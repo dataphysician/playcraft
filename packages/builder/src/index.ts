@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DeterministicStubAssetProvider } from "@playcraft/assets";
 import {
   activity,
   createPlaycraftEnvelope,
@@ -14,20 +15,24 @@ import {
   type AgUiEvent
 } from "@playcraft/ag-ui";
 import {
+  AssetGenerationRequestSchema,
+  GameAssemblyProfileSchema,
   BuilderCommandResultSchema,
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
   BuilderProfilePresetSchema,
   PLAYCRAFT_SCHEMA_VERSION,
+  type BuilderAssetEdit,
   type BuilderCommand,
   type BuilderCommandResult,
   type BuilderPreviewState,
   type BuilderProfilePreset,
   type GameAssemblyProfile,
+  type GeneratedAssetRecord,
   type JsonValue,
   type PlaycraftAssemblyRequest
 } from "@playcraft/contracts";
-import { replayProfile, type ReplayResult } from "@playcraft/core";
+import { replayProfile, validateGameAssemblyProfile, type PlaycraftRegistries, type ReplayResult } from "@playcraft/core";
 import {
   createDefaultPlanner,
   createDefaultRegistries,
@@ -73,8 +78,9 @@ export interface BuilderCommandHandler {
 }
 
 export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
-  private readonly planner = createDefaultPlanner();
   private readonly registries = createDefaultRegistries();
+  private readonly assetProvider = new DeterministicStubAssetProvider();
+  private readonly planner = createDefaultPlanner({ registries: this.registries, assetProvider: this.assetProvider });
   private readonly sessions = new Map<string, BuilderSessionRecord>();
 
   execute(commandInput: BuilderCommand): BuilderExecutionResult {
@@ -110,7 +116,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const preset = BuilderProfilePresetSchema.parse(command.preset);
     const request = requestForPreset(preset);
     const runId = `${command.sessionId}.${preset}`;
-    const profile = this.planner.assemble(request);
+    const profile = applyAssetEdit(this.planner.assemble(request), command.assetEdit, this.assetProvider, this.registries);
     const replay = replayProfile(profile, this.registries);
     const preview = BuilderPreviewStateSchema.parse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -144,15 +150,15 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const toolName = command.commandName === "update-profile" ? "tool:update-profile" : "tool:assemble-profile";
     const stateEvent =
       command.commandName === "update-profile"
-        ? stateDelta(runId, { sessionId: session.sessionId, preset, profileId: profile.id }, 3)
-        : stateSnapshot(runId, { sessionId: session.sessionId, preset, profileId: profile.id }, 3);
+        ? stateDelta(runId, { sessionId: session.sessionId, preset, profileId: profile.id, assetEdit: command.assetEdit ?? null }, 3)
+        : stateSnapshot(runId, { sessionId: session.sessionId, preset, profileId: profile.id, assetEdit: command.assetEdit ?? null }, 3);
 
     const events: BuilderAgUiEvent[] = [
       runStarted(runId, 0),
       stepStarted(runId, `${command.commandName}.plan`, `${command.commandName} planner`, 1),
       activity(runId, "builder.profile", "started", `assembling ${preset}`, 2),
       stateEvent,
-      toolCall(runId, toolName, { requestId: request.id, preset }, 4),
+      toolCall(runId, toolName, { requestId: request.id, preset, assetEdit: command.assetEdit ?? null }, 4),
       toolResult(runId, toolName, { profileId: profile.id, valid: result.validation?.valid ?? false }, 5),
       playcraftCustomEvent(
         createPlaycraftEnvelope({
@@ -315,4 +321,209 @@ export function createBuilderCommandHandler(): BuilderCommandHandler {
 
 export function requestForPreset(preset: BuilderProfilePreset): PlaycraftAssemblyRequest {
   return mvpAssemblyRequests[PRESET_TO_REQUEST_INDEX[preset]];
+}
+
+interface NormalizedAssetEdit {
+  theme: string;
+  singularTheme: string;
+  items: string[];
+}
+
+function applyAssetEdit(
+  profile: GameAssemblyProfile,
+  assetEdit: BuilderAssetEdit | undefined,
+  assetProvider: DeterministicStubAssetProvider,
+  registries: PlaycraftRegistries
+): GameAssemblyProfile {
+  const edit = normalizeAssetEdit(assetEdit);
+  if (!edit) {
+    return profile;
+  }
+
+  const assetRequests = profile.assetRequests.map((request) =>
+    AssetGenerationRequestSchema.parse({
+      ...request,
+      prompt: promptForAssetEdit(profile, edit),
+      metadata: {
+        ...request.metadata,
+        assetEditTheme: edit.theme,
+        assetEditItems: edit.items
+      }
+    })
+  );
+  const assets = assetProvider.generateBatch(assetRequests);
+  const components = profile.components.map((component) => ({
+    ...component,
+    props: editComponentProps(component.renderCapability, component.props, edit),
+    assetBindings: rewriteAssetBindings(component.assetBindings, profile.assets, assets)
+  }));
+  const editedProfile = GameAssemblyProfileSchema.parse({
+    ...profile,
+    components,
+    assetRequests,
+    assets
+  });
+
+  return GameAssemblyProfileSchema.parse({
+    ...editedProfile,
+    validation: validateGameAssemblyProfile(editedProfile, registries)
+  });
+}
+
+function normalizeAssetEdit(assetEdit: BuilderAssetEdit | undefined): NormalizedAssetEdit | undefined {
+  if (!assetEdit) {
+    return undefined;
+  }
+
+  const theme = cleanLabel(assetEdit.theme ?? assetEdit.items?.join(" ") ?? "");
+  const items = (assetEdit.items ?? []).map(cleanLabel).filter(Boolean);
+  const normalizedTheme = theme || items.join(" ") || "custom assets";
+  const singularTheme = singularize(normalizedTheme);
+
+  return {
+    theme: normalizedTheme,
+    singularTheme,
+    items: items.length > 0 ? items : defaultItemsForTheme(singularTheme)
+  };
+}
+
+function editComponentProps(
+  renderCapability: string,
+  props: Record<string, JsonValue>,
+  edit: NormalizedAssetEdit
+): Record<string, JsonValue> {
+  switch (renderCapability) {
+    case "component:reveal-card-grid":
+      return {
+        ...props,
+        title: `${titleCase(edit.theme)} pairs`,
+        cards: pairedCardIds(edit),
+        columns: props.columns ?? 2
+      };
+    case "component:choice-grid":
+      return {
+        ...props,
+        title: `Choose ${articleFor(edit.singularTheme)} ${edit.singularTheme}`,
+        prompt: `Pick one ${edit.singularTheme}.`,
+        items: edit.items
+      };
+    case "component:sort-bins": {
+      const bins = stringArrayProp(props, "bins");
+      const activeBins = bins.length > 0 ? bins : ["red", "blue"];
+      return {
+        ...props,
+        title: `${titleCase(edit.theme)} bins`,
+        items: activeBins.map((bin) => `${bin} ${edit.singularTheme}`),
+        bins: activeBins
+      };
+    }
+    case "component:sequence-pad":
+      return {
+        ...props,
+        title: `Repeat the ${edit.singularTheme} pattern`,
+        prompt: `Tap the ${edit.singularTheme} buttons in the same order.`,
+        sequence: [edit.items[0], edit.items[1] ?? edit.items[0], edit.items[0]]
+      };
+    case "component:celebration-overlay":
+      return {
+        ...props,
+        message: `${titleCase(edit.theme)} round complete.`
+      };
+    case "component:hint-bubble":
+      return {
+        ...props,
+        hint: `Look for the ${edit.singularTheme} clue first.`
+      };
+    default:
+      return props;
+  }
+}
+
+function promptForAssetEdit(profile: GameAssemblyProfile, edit: NormalizedAssetEdit): string {
+  if (profile.id.includes("memory-match")) {
+    return `child-safe ${edit.theme} memory card illustrations for paired cards ${pairedCardIds(edit).join(", ")}`;
+  }
+
+  if (profile.id.includes("sorting")) {
+    return `child-safe ${edit.theme} sorting game illustrations for ${edit.items.join(", ")}`;
+  }
+
+  if (profile.id.includes("sequence-repeat")) {
+    return `child-safe ${edit.theme} sequence game button illustrations for ${edit.items.join(", ")}`;
+  }
+
+  return `child-safe ${edit.theme} game illustrations for ${profile.profileName}`;
+}
+
+function pairedCardIds(edit: NormalizedAssetEdit): string[] {
+  const bases = edit.items.slice(0, 2);
+  return bases.flatMap((item) => {
+    const cardBase = slugLabel(item);
+    return [`${cardBase}-a`, `${cardBase}-b`];
+  });
+}
+
+function defaultItemsForTheme(singularTheme: string): string[] {
+  const base = slugLabel(singularTheme);
+  return [`${base}-1`, `${base}-2`, `${base}-3`];
+}
+
+function rewriteAssetBindings(
+  assetBindings: Record<string, string>,
+  previousAssets: GeneratedAssetRecord[],
+  nextAssets: GeneratedAssetRecord[]
+): Record<string, string> {
+  const requestIdByPreviousAssetId = new Map(previousAssets.map((asset) => [asset.assetId, asset.requestId]));
+  const nextAssetIdByRequestId = new Map(nextAssets.map((asset) => [asset.requestId, asset.assetId]));
+
+  return Object.fromEntries(
+    Object.entries(assetBindings).map(([binding, assetId]) => {
+      const requestId = requestIdByPreviousAssetId.get(assetId);
+      return [binding, requestId ? nextAssetIdByRequestId.get(requestId) ?? assetId : assetId];
+    })
+  );
+}
+
+function stringArrayProp(props: Record<string, JsonValue>, key: string): string[] {
+  const value = props[key];
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((entry) => (typeof entry === "string" ? entry : JSON.stringify(entry)));
+}
+
+function cleanLabel(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function slugLabel(value: string): string {
+  return cleanLabel(value).replace(/\s+/gu, "-");
+}
+
+function singularize(value: string): string {
+  return value
+    .split(" ")
+    .map((word) => {
+      if (word.endsWith("ies") && word.length > 3) {
+        return `${word.slice(0, -3)}y`;
+      }
+      if (word.endsWith("s") && !word.endsWith("ss") && word.length > 3) {
+        return word.slice(0, -1);
+      }
+      return word;
+    })
+    .join(" ");
+}
+
+function titleCase(value: string): string {
+  return value.replace(/\b[a-z]/gu, (match) => match.toUpperCase());
+}
+
+function articleFor(value: string): "a" | "an" {
+  return /^[aeiou]/u.test(value) ? "an" : "a";
 }

@@ -5,6 +5,7 @@ import {
 } from "@playcraft/builder";
 import {
   PLAYCRAFT_SCHEMA_VERSION,
+  type BuilderAssetEdit,
   type BuilderCommand,
   type BuilderProfilePreset,
   type GameAssemblyProfile
@@ -18,8 +19,14 @@ export function createLocalStudioClient(): StudioClient {
   const timeline: StudioTimelineEntry[] = [];
   let commandCounter = 0;
   let activePreset: BuilderProfilePreset = "profile-a";
+  let activeAssetEdit: BuilderAssetEdit | undefined;
 
-  function execute(sessionId: string, commandName: BuilderCommand["commandName"], preset: BuilderProfilePreset): StudioSessionSnapshot {
+  function execute(
+    sessionId: string,
+    commandName: BuilderCommand["commandName"],
+    preset: BuilderProfilePreset,
+    assetEdit: BuilderAssetEdit | undefined
+  ): StudioSessionSnapshot {
     commandCounter += 1;
     const output = handler.execute({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -28,7 +35,8 @@ export function createLocalStudioClient(): StudioClient {
       kind: "builder-command",
       sessionId,
       commandName,
-      preset
+      preset,
+      assetEdit
     });
 
     return snapshotFromOutput(sessionId, output);
@@ -54,11 +62,13 @@ export function createLocalStudioClient(): StudioClient {
     assembleFromIntent(input) {
       const sessionId = input.sessionId ?? "studio.session";
       activePreset = presetForText(input.idea, activePreset);
-      return execute(sessionId, "build-profile", activePreset);
+      activeAssetEdit = assetEditForText(input.idea) ?? activeAssetEdit;
+      return execute(sessionId, "build-profile", activePreset, activeAssetEdit);
     },
     requestChange(input) {
       activePreset = presetForText(input.changeRequest, nextPreset(activePreset));
-      return execute(input.sessionId, "update-profile", activePreset);
+      activeAssetEdit = assetEditForText(input.changeRequest) ?? activeAssetEdit;
+      return execute(input.sessionId, "update-profile", activePreset, activeAssetEdit);
     }
   };
 }
@@ -125,4 +135,45 @@ function presetForText(text: string, fallback: BuilderProfilePreset): BuilderPro
 
 function nextPreset(current: BuilderProfilePreset): BuilderProfilePreset {
   return current === "profile-b" || current === "sorting" ? "profile-a" : "profile-b";
+}
+
+function assetEditForText(text: string): BuilderAssetEdit | undefined {
+  const normalized = text.toLowerCase();
+  const theme =
+    matchTheme(normalized, /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
+    matchTheme(normalized, /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
+    matchTheme(normalized, /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u);
+
+  if (!theme) {
+    return undefined;
+  }
+
+  const items = theme
+    .split(/\s*(?:,| and )\s*/u)
+    .map((entry) => cleanAssetTheme(entry))
+    .filter((entry) => entry.length > 0)
+    .slice(0, 12);
+
+  return items.length > 1 ? { theme, items } : { theme };
+}
+
+function matchTheme(text: string, pattern: RegExp): string | undefined {
+  const match = pattern.exec(text);
+  if (!match) {
+    return undefined;
+  }
+
+  const candidate = cleanAssetTheme(match[1]);
+  return candidate.length > 0 ? candidate : undefined;
+}
+
+function cleanAssetTheme(value: string): string {
+  return value
+    .split(/[.!?;]/u)[0]
+    .replace(/\b(?:game|profile|challenge|assets?|cards?|card images?|images?|art|theme)\b/gu, " ")
+    .replace(/\b(?:a|an|the)\b/gu, " ")
+    .replace(/[^a-z0-9 ,.-]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .slice(0, 80);
 }

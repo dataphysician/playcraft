@@ -452,11 +452,23 @@ export type PackManifest = z.infer<typeof PackManifestSchema>;
 export const BuilderProfilePresetSchema = z.enum(["profile-a", "profile-b", "memory-match", "sorting", "sequence-repeat"]);
 export type BuilderProfilePreset = z.infer<typeof BuilderProfilePresetSchema>;
 
+export const BuilderAssetEditSchema = z
+  .object({
+    theme: z.string().min(1).max(80).optional(),
+    items: z.array(z.string().min(1).max(48)).min(1).max(12).optional()
+  })
+  .strict()
+  .refine((value) => Boolean(value.theme || value.items), {
+    message: "asset edit requires a theme or items"
+  });
+export type BuilderAssetEdit = z.infer<typeof BuilderAssetEditSchema>;
+
 export const BuilderCommandSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-command"),
   sessionId: StableIdSchema,
   commandName: z.enum(["build-profile", "update-profile", "preview-action"]),
   preset: BuilderProfilePresetSchema.optional(),
+  assetEdit: BuilderAssetEditSchema.optional(),
   interaction: z
     .object({
       action: z.enum(["primary"]).default("primary")

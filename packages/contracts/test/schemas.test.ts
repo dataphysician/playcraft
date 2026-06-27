@@ -81,7 +81,10 @@ describe("public contract schemas", () => {
         kind: "builder-command",
         sessionId: "session.fixture",
         commandName: "build-profile",
-        preset: "profile-a"
+        preset: "profile-a",
+        assetEdit: {
+          theme: "dinosaurs"
+        }
       },
       BuilderPreviewStateSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

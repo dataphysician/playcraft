@@ -1,12 +1,15 @@
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { assembleMvpProfiles } from "@playcraft/packs";
+import { createLocalStudioClient } from "../apps/studio/src/local-client.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
 import { TrustedPreview } from "../apps/studio/src/trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "../apps/studio/src/types.js";
 
 const [profileA, profileB] = assembleMvpProfiles();
+
+afterEach(() => cleanup());
 
 function timelineEntry(id: string, title: string, kind: StudioTimelineEntry["kind"], profileId?: string): StudioTimelineEntry {
   return {
@@ -69,6 +72,24 @@ describe("studio UI", () => {
     fireEvent.click(await screen.findByRole("button", { name: "red circle" }));
     const interactions = await screen.findAllByText((text) => text.startsWith("Preview interaction:"));
     expect(interactions.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("keeps the memory game selected while swapping requested card assets", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.change(screen.getByLabelText("Game idea"), { target: { value: "Memory game with dinosaurs" } });
+    fireEvent.click(screen.getByRole("button", { name: "Assemble profile" }));
+
+    expect(await screen.findByText("Memory Match MVP")).toBeDefined();
+    expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "dinosaur-1-b" })).toBeDefined();
+
+    fireEvent.change(screen.getByLabelText("Change request"), { target: { value: "Memory game with toys" } });
+    fireEvent.click(screen.getByRole("button", { name: "Request update" }));
+
+    expect(await screen.findByRole("button", { name: "toy-1-a" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "toy-1-b" })).toBeDefined();
+    expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
   });
 
   it("surfaces trusted preview failures instead of suppressing them", () => {

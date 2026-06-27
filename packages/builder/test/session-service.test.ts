@@ -50,6 +50,22 @@ describe("builder session service", () => {
     expect(output.result.profile?.id).toBe("profile.sorting.mvp");
   });
 
+  it("edits memory profile assets without switching the game recipe", () => {
+    const service = new PlaycraftBuilderSessionService();
+    const dinosaurs = service.execute(command({ preset: "profile-a", assetEdit: { theme: "dinosaurs" } }));
+    const toys = service.execute(command({ commandName: "update-profile", preset: "profile-a", assetEdit: { theme: "toys" } }));
+
+    expect(dinosaurs.result.profile?.id).toBe("profile.memory-match.mvp");
+    expect(toys.result.profile?.id).toBe("profile.memory-match.mvp");
+    expect(cardsFor(dinosaurs.result.profile)).toEqual(["dinosaur-1-a", "dinosaur-1-b", "dinosaur-2-a", "dinosaur-2-b"]);
+    expect(cardsFor(toys.result.profile)).toEqual(["toy-1-a", "toy-1-b", "toy-2-a", "toy-2-b"]);
+    expect(dinosaurs.result.profile?.assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
+    expect(toys.result.profile?.assetRequests[0]?.prompt).toContain("toys memory card illustrations");
+    expect(dinosaurs.result.profile?.assets[0]?.assetId).not.toBe(toys.result.profile?.assets[0]?.assetId);
+    expect(toys.result.profile?.components[0]?.assetBindings.illustration).toBe(toys.result.profile?.assets[0]?.assetId);
+    expect(toys.result.validation?.valid).toBe(true);
+  });
+
   it("supports real trusted preview interactions before and after an update", () => {
     const service = new PlaycraftBuilderSessionService();
     service.execute(command({ preset: "profile-a" }));
@@ -83,3 +99,8 @@ describe("builder session service", () => {
     expect(parsed.map((entry) => entry.result.profile?.id)).toEqual(["profile.memory-match.mvp", "profile.sorting.mvp"]);
   });
 });
+
+function cardsFor(profile: ReturnType<PlaycraftBuilderSessionService["execute"]>["result"]["profile"]): unknown {
+  const revealGrid = profile?.components.find((component) => component.componentId === "component.reveal-card-grid");
+  return revealGrid?.props.cards;
+}
