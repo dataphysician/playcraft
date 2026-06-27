@@ -1,0 +1,223 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.memory-match.mvp",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Memory Match MVP",
+  "assemblyRequestId": "request.memory-match.mvp",
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.memory-match.mvp.mechanic.1",
+      "mechanicId": "mechanic.tap-to-reveal",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-reveal"
+      },
+      "eventBindings": {
+        "primary": "frontend:revealed"
+      }
+    },
+    {
+      "bindingId": "profile.memory-match.mvp.mechanic.2",
+      "mechanicId": "mechanic.match-pairs",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:match-pairs"
+      },
+      "eventBindings": {
+        "primary": "rule:pair-matched"
+      }
+    },
+    {
+      "bindingId": "profile.memory-match.mvp.mechanic.3",
+      "mechanicId": "mechanic.timed-celebration",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "feedback:celebration"
+      },
+      "eventBindings": {
+        "primary": "frontend:celebrated"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.memory-match.mvp.rule.1",
+      "ruleId": "rule.pair-match",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "pair-matching"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.memory-match.mvp.rule.2",
+      "ruleId": "rule.guided-retry",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "retry"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.memory-match.mvp.rule.3",
+      "ruleId": "rule.hint-timing",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "hint"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.memory-match.mvp.rule.4",
+      "ruleId": "rule.completion",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "completion"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.memory-match.mvp.component.1",
+      "componentId": "component.reveal-card-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:reveal-card-grid",
+      "mechanicBindingIds": [
+        "profile.memory-match.mvp.mechanic.1",
+        "profile.memory-match.mvp.mechanic.2"
+      ],
+      "props": {
+        "title": "Animal pairs",
+        "cards": [
+          "cat-a",
+          "cat-b",
+          "sun-a",
+          "sun-b"
+        ],
+        "columns": 2
+      },
+      "assetBindings": {
+        "illustration": "asset.6f02986c"
+      }
+    },
+    {
+      "bindingId": "profile.memory-match.mvp.component.2",
+      "componentId": "component.celebration-overlay",
+      "version": "1.0.0",
+      "renderCapability": "component:celebration-overlay",
+      "mechanicBindingIds": [
+        "profile.memory-match.mvp.mechanic.3"
+      ],
+      "props": {
+        "message": "You found every pair."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.memory-match.mvp",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.memory-match.mvp",
+      "profileId": "profile.memory-match.mvp",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "svg",
+      "prompt": "friendly animal cards for a child-safe memory match game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-memory-match"
+      },
+      "metadata": {
+        "profileTemplate": "recipe.memory-match"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.6f02986c",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.memory-match.mvp",
+      "assetId": "asset.6f02986c",
+      "providerId": "asset-provider.stub-deterministic",
+      "contentType": "image",
+      "format": "svg",
+      "uri": "stub://image/6f02986c.svg",
+      "altText": "Deterministic image asset for friendly animal cards for a child-safe memory match game",
+      "metadata": {
+        "promptDigest": "6f02986c",
+        "source": "deterministic-stub"
+      },
+      "provenance": {
+        "providerManifestId": "asset-provider.stub-deterministic",
+        "providerManifestVersion": "1.0.0",
+        "deterministic": true,
+        "seed": "seed-memory-match",
+        "seedSupported": true,
+        "seedStatus": "used",
+        "generatedAt": "2026-06-27T00:00:00.000Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-memory-match",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.memory-match.mvp.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.memory-match.mvp",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.memory-match.mvp",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.memory-match.mvp",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.memory-match.mvp",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}

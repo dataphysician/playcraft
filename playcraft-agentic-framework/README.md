@@ -1,0 +1,68 @@
+# Playcraft Agentic Game Framework Cleanroom Docs
+
+| Attribute | Value |
+|-----------|-------|
+| Status | Canonical cleanroom specification |
+| Date | 2026-06-27 |
+| Scope | Documentation-only framework direction |
+| Source of truth | `docs/cleanroom/playcraft-agentic-framework/` |
+
+This folder is the canonical source of truth for the Playcraft Agentic Game Framework.
+
+It supersedes the older PlayCraft AI app/product framing. The older framing described a Next.js/OpenAI/Postgres child-game application with app-specific auth, database, dashboard, and route assumptions. That history can be useful context, but it is not the foundation for the framework spec.
+
+## Positioning
+
+Playcraft is "GDevelop-inspired for coding agents": a lightweight game-assembly SDK/framework where agents assemble mini games from typed contracts, event/rule semantics, registries, trusted components, theme packs, asset records, safety policies, and replayable profiles.
+
+Playcraft is not an AI game generator. AI or agents may help interpret intent, plan assemblies, or request assets, but the playable result must be a validated `GameAssemblyProfile` made from registered capabilities.
+
+AG-UI is the standard outer protocol for agent/frontend interaction. Playcraft owns the game DSL, manifests, registries, replay model, safety semantics, trusted component runtime, and pack model.
+
+## Doc Map
+
+| Document | Purpose |
+|----------|---------|
+| [PRD.md](PRD.md) | Product/framework requirements for the AG-UI-native game-assembly SDK. |
+| [DEV_GUIDE.md](DEV_GUIDE.md) | Lightweight implementation guide, package boundaries, contracts, tests, and milestones. |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Protocol boundaries, AG-UI mapping, registries, replay, trusted runtime, and pack model. |
+| [ROADMAP.md](ROADMAP.md) | Lightweight v1, middleweight path, and heavyweight non-goals. |
+
+## Lightweight V1
+
+The v1 target is intentionally small and local-first:
+
+- TypeScript contracts and Zod schemas.
+- Mechanic, rule, component, theme, and asset provider registries.
+- Deterministic stub planner and deterministic stub asset provider.
+- AG-UI adapter with validated Playcraft `Custom` envelopes.
+- Trusted React renderer for registered components only.
+- Replay harness for saved `GameAssemblyProfile` records.
+- Three MVP profiles: memory match, sorting, and sequence repeat.
+
+V1 must be buildable and testable without network access, credentials, AI SDKs, GPU, model weights, a database, or Tauri.
+
+## Middleweight Later Path
+
+Later docs may specify a Vite studio app, Tauri/Tauri Mobile shell, visual inspector/debug timeline, profile import/export, curated packs, and real provider adapters. These are not v1 core requirements.
+
+## Explicit Rejections
+
+The framework docs reject the old app-centered abstractions:
+
+- No hardcoded `GameType` enum as the core model.
+- No provider-name branching.
+- No arbitrary generated React/runtime code.
+- No Next.js API routes as framework core.
+- No app-specific database, auth, dashboard, or deployment assumptions in core docs.
+
+## Acceptance Checklist
+
+The cleanroom documentation is acceptable when:
+
+- This folder is named as the canonical source of truth.
+- The old root PRD reads as superseded, not active architecture.
+- The root README no longer advertises the old app stack as the future target.
+- V1 can be implemented offline with deterministic stubs and import-light packages.
+- Middleweight studio/runtime features are clearly later path items.
+- The developer guide includes schema, registry, AG-UI envelope, replay, trusted renderer, import-light, and source-scan gates.

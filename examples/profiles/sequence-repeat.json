@@ -1,0 +1,234 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.sequence-repeat.mvp",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Sequence Repeat MVP",
+  "assemblyRequestId": "request.sequence-repeat.mvp",
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.sequence-repeat.mvp.mechanic.1",
+      "mechanicId": "mechanic.sequence-repeat",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:sequence-repeat"
+      },
+      "eventBindings": {
+        "primary": "rule:sequence-progressed"
+      }
+    },
+    {
+      "bindingId": "profile.sequence-repeat.mvp.mechanic.2",
+      "mechanicId": "mechanic.tap-to-select",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-select"
+      },
+      "eventBindings": {
+        "primary": "frontend:selected"
+      }
+    },
+    {
+      "bindingId": "profile.sequence-repeat.mvp.mechanic.3",
+      "mechanicId": "mechanic.timed-celebration",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "feedback:celebration"
+      },
+      "eventBindings": {
+        "primary": "frontend:celebrated"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.sequence-repeat.mvp.rule.1",
+      "ruleId": "rule.sequence-progression",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "progression"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.sequence-repeat.mvp.rule.2",
+      "ruleId": "rule.attempt-feedback",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "attempt-feedback"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.sequence-repeat.mvp.rule.3",
+      "ruleId": "rule.hint-timing",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "hint"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.sequence-repeat.mvp.component.1",
+      "componentId": "component.sequence-pad",
+      "version": "1.0.0",
+      "renderCapability": "component:sequence-pad",
+      "mechanicBindingIds": [
+        "profile.sequence-repeat.mvp.mechanic.1",
+        "profile.sequence-repeat.mvp.mechanic.2"
+      ],
+      "props": {
+        "title": "Repeat the lights",
+        "prompt": "Tap the buttons in the same order.",
+        "sequence": [
+          "green",
+          "yellow",
+          "green"
+        ]
+      },
+      "assetBindings": {
+        "illustration": "asset.40272302"
+      }
+    },
+    {
+      "bindingId": "profile.sequence-repeat.mvp.component.2",
+      "componentId": "component.choice-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:choice-grid",
+      "mechanicBindingIds": [
+        "profile.sequence-repeat.mvp.mechanic.2"
+      ],
+      "props": {
+        "title": "Light buttons",
+        "prompt": "Choose the next light.",
+        "items": [
+          "green",
+          "yellow",
+          "blue"
+        ]
+      },
+      "assetBindings": {
+        "illustration": "asset.40272302"
+      }
+    },
+    {
+      "bindingId": "profile.sequence-repeat.mvp.component.3",
+      "componentId": "component.celebration-overlay",
+      "version": "1.0.0",
+      "renderCapability": "component:celebration-overlay",
+      "mechanicBindingIds": [
+        "profile.sequence-repeat.mvp.mechanic.3"
+      ],
+      "props": {
+        "message": "Sequence complete."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.sequence-repeat.mvp",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.sequence-repeat.mvp",
+      "profileId": "profile.sequence-repeat.mvp",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "svg",
+      "prompt": "soft glowing buttons for a child-safe sequence repeat game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-sequence-repeat"
+      },
+      "metadata": {
+        "profileTemplate": "recipe.sequence-repeat"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.40272302",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.sequence-repeat.mvp",
+      "assetId": "asset.40272302",
+      "providerId": "asset-provider.stub-deterministic",
+      "contentType": "image",
+      "format": "svg",
+      "uri": "stub://image/40272302.svg",
+      "altText": "Deterministic image asset for soft glowing buttons for a child-safe sequence repeat game",
+      "metadata": {
+        "promptDigest": "40272302",
+        "source": "deterministic-stub"
+      },
+      "provenance": {
+        "providerManifestId": "asset-provider.stub-deterministic",
+        "providerManifestVersion": "1.0.0",
+        "deterministic": true,
+        "seed": "seed-sequence-repeat",
+        "seedSupported": true,
+        "seedStatus": "used",
+        "generatedAt": "2026-06-27T00:00:00.000Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-sequence-repeat",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.sequence-repeat.mvp.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.sequence-repeat.mvp",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.sequence-repeat.mvp",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.sequence-repeat.mvp",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.sequence-repeat.mvp",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}

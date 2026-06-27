@@ -1,0 +1,21 @@
+{
+  "name": "@playcraft/packs",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@playcraft/assets": "workspace:*",
+    "@playcraft/contracts": "workspace:*",
+    "@playcraft/core": "workspace:*",
+    "@playcraft/renderer": "workspace:*",
+    "react": "^19.0.0",
+    "zod": "^3.24.2"
+  }
+}

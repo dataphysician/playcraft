@@ -1,0 +1,103 @@
+import { describe, expect, it } from "vitest";
+import {
+  ComponentRenderRequestSchema,
+  PLAYCRAFT_SCHEMA_VERSION,
+  PlaycraftAgUiEventEnvelopeSchema,
+  PublicContractSchemas
+} from "@playcraft/contracts";
+import { replayProfile } from "@playcraft/core";
+import {
+  assembleMvpProfiles,
+  assetProviderManifests,
+  componentManifests,
+  createDefaultRegistries,
+  domainProfiles,
+  mechanicDefinitions,
+  packManifests,
+  ruleModuleDefinitions,
+  safetyPolicyPacks,
+  themePacks
+} from "@playcraft/packs";
+
+describe("public contract schemas", () => {
+  it("validates every public contract fixture", () => {
+    const registries = createDefaultRegistries();
+    const profile = assembleMvpProfiles()[0];
+    const renderRequest = replayProfile(profile, registries).renderRequests[0];
+    const envelope = PlaycraftAgUiEventEnvelopeSchema.parse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      eventId: "event.contract.envelope",
+      eventVersion: "1.0.0",
+      profileId: profile.id,
+      runId: "run.contract",
+      payloadType: "replay.ready",
+      payload: {
+        profileId: profile.id,
+        replayable: true
+      },
+      provenance: {
+        role: "validator",
+        sourceId: "validator.contract"
+      }
+    });
+
+    const fixtures = {
+      PlaycraftAssemblyRequestSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: profile.assemblyRequestId,
+        version: "1.0.0",
+        kind: "assembly-request",
+        intent: {
+          label: "Contract fixture",
+          goals: ["goal:educational"],
+          requestedCapabilities: ["game:memory-match"]
+        },
+        domainProfileId: profile.domainProfile.id,
+        safetyPolicyId: profile.safetyPolicy.id,
+        targetModalities: ["touch"],
+        ageBand: "4-6",
+        deterministicSeed: "schema-seed"
+      },
+      DomainProfileSchema: domainProfiles[0],
+      SafetyPolicyPackSchema: safetyPolicyPacks[0],
+      GameAssemblyProfileSchema: profile,
+      MechanicDefinitionSchema: mechanicDefinitions[0],
+      RuleModuleDefinitionSchema: ruleModuleDefinitions[0],
+      ComponentManifestSchema: componentManifests[0],
+      ComponentRenderRequestSchema: renderRequest,
+      ThemePackSchema: themePacks[0],
+      FrontendToolDefinitionSchema: componentManifests[0].emittedTools[0],
+      AssetGenerationRequestSchema: profile.assetRequests[0],
+      AssetProviderCapabilityManifestSchema: assetProviderManifests[0],
+      GeneratedAssetRecordSchema: profile.assets[0],
+      AssemblyValidationResultSchema: profile.validation,
+      PlaycraftAgUiEventEnvelopeSchema: envelope,
+      PlaycraftEventRecordSchema: profile.replay.eventLog[0],
+      PackManifestSchema: packManifests[0]
+    };
+
+    for (const [name, schema] of Object.entries(PublicContractSchemas)) {
+      const result = schema.safeParse(fixtures[name as keyof typeof fixtures]);
+      expect(result.success, `${name} should parse its fixture`).toBe(true);
+      if (result.success) {
+        expect(result.data.schemaVersion).toBe(PLAYCRAFT_SCHEMA_VERSION);
+      }
+    }
+  });
+
+  it("keeps render requests strict and identified", () => {
+    const result = ComponentRenderRequestSchema.safeParse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "render.strict.fixture",
+      version: "1.0.0",
+      kind: "component-render-request",
+      profileId: "profile.strict.fixture",
+      mechanicBindingId: "mechanic.binding.fixture",
+      props: {},
+      fallbackPolicy: "fail-closed",
+      generatedRuntimeCode: "not accepted"
+    });
+
+    expect(result.success).toBe(false);
+  });
+});

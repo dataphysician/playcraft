@@ -1,0 +1,32 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/contracts" },
+    { "path": "./packages/assets" },
+    { "path": "./packages/core" },
+    { "path": "./packages/ag-ui" },
+    { "path": "./packages/renderer" },
+    { "path": "./packages/packs" }
+  ],
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@playcraft/contracts": ["packages/contracts/src/index.ts"],
+      "@playcraft/core": ["packages/core/src/index.ts"],
+      "@playcraft/assets": ["packages/assets/src/index.ts"],
+      "@playcraft/ag-ui": ["packages/ag-ui/src/index.ts"],
+      "@playcraft/renderer": ["packages/renderer/src/index.ts"],
+      "@playcraft/packs": ["packages/packs/src/index.ts"]
+    }
+  }
+}
