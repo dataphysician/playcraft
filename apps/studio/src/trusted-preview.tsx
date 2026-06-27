@@ -20,7 +20,14 @@ const registry = registerPlaycraftTrustedComponents(new TrustedComponentRegistry
 const registries = createDefaultRegistries();
 
 export function TrustedPreview({ profile, onInteraction }: TrustedPreviewProps): React.ReactElement {
-  const replay = replayProfile(profile, registries);
+  let replay;
+  try {
+    replay = replayProfile(profile, registries);
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : "preview replay failed";
+    return React.createElement(PreviewFailure, { failure: { code: "invalid-request", message } });
+  }
+
   const request = replay.renderRequests[0];
 
   if (!request) {
