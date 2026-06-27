@@ -7,7 +7,8 @@
     { "path": "./packages/ag-ui" },
     { "path": "./packages/renderer" },
     { "path": "./packages/packs" },
-    { "path": "./packages/builder" }
+    { "path": "./packages/builder" },
+    { "path": "./apps/studio" }
   ],
   "compilerOptions": {
     "target": "ES2022",
@@ -28,7 +29,8 @@
       "@playcraft/ag-ui": ["packages/ag-ui/src/index.ts"],
       "@playcraft/renderer": ["packages/renderer/src/index.ts"],
       "@playcraft/packs": ["packages/packs/src/index.ts"],
-      "@playcraft/builder": ["packages/builder/src/index.ts"]
+      "@playcraft/builder": ["packages/builder/src/index.ts"],
+      "@playcraft/studio": ["apps/studio/src/index.ts"]
     }
   }
 }

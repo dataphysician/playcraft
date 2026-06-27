@@ -4,25 +4,18 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "bin": {
-    "playcraft-builder": "./dist/cli.js"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./cli": {
-      "types": "./dist/cli.d.ts",
-      "import": "./dist/cli.js"
     }
   },
   "dependencies": {
     "@playcraft/ag-ui": "workspace:*",
+    "@playcraft/assets": "workspace:*",
     "@playcraft/contracts": "workspace:*",
     "@playcraft/core": "workspace:*",
     "@playcraft/packs": "workspace:*",
-    "@playcraft/renderer": "workspace:*",
     "zod": "^3.24.2"
   }
 }
