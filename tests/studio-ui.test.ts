@@ -47,23 +47,25 @@ describe("studio UI", () => {
 
     render(React.createElement(StudioApp, { client: { assembleFromIntent, requestChange } }));
 
-    fireEvent.change(screen.getByLabelText("Game idea"), { target: { value: "Build a memory game for kids" } });
-    fireEvent.click(screen.getByRole("button", { name: "Assemble profile" }));
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Build a memory game for kids" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
 
     await waitFor(() => expect(assembleFromIntent).toHaveBeenCalledWith({ idea: "Build a memory game for kids", sessionId: undefined }));
     expect(await screen.findByText(profileA.profileName)).toBeDefined();
+    expect(screen.getByRole("button", { name: "cat-a" })).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "cat-a" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+    expect((await screen.findAllByText((text) => text.startsWith("Preview interaction:"))).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Validation: valid")).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.reveal-card-grid/u })).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.celebration-overlay/u })).toBeDefined();
 
-    fireEvent.click(screen.getByRole("button", { name: "cat-a" }));
-    expect((await screen.findAllByText((text) => text.startsWith("Preview interaction:"))).length).toBeGreaterThanOrEqual(1);
-
     fireEvent.click(screen.getByRole("button", { name: /component\.celebration-overlay/u }));
     expect(await screen.findByText("You found every pair.")).toBeDefined();
 
-    fireEvent.change(screen.getByLabelText("Change request"), { target: { value: "Switch it to a sorting challenge" } });
-    fireEvent.click(screen.getByRole("button", { name: "Request update" }));
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Switch it to a sorting challenge" } });
+    fireEvent.click(screen.getByRole("button", { name: "Update Game" }));
 
     await waitFor(() => expect(requestChange).toHaveBeenCalledWith({ changeRequest: "Switch it to a sorting challenge", sessionId: "session.demo" }));
     expect(await screen.findByText(profileB.profileName)).toBeDefined();
@@ -77,19 +79,31 @@ describe("studio UI", () => {
   it("keeps the memory game selected while swapping requested card assets", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
-    fireEvent.change(screen.getByLabelText("Game idea"), { target: { value: "Memory game with dinosaurs" } });
-    fireEvent.click(screen.getByRole("button", { name: "Assemble profile" }));
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Memory game with dinosaurs" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
 
     expect(await screen.findByText("Memory Match MVP")).toBeDefined();
     expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
     expect(screen.getByRole("button", { name: "dinosaur-1-b" })).toBeDefined();
 
-    fireEvent.change(screen.getByLabelText("Change request"), { target: { value: "Memory game with toys" } });
-    fireEvent.click(screen.getByRole("button", { name: "Request update" }));
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Memory game with toys" } });
+    fireEvent.click(screen.getByRole("button", { name: "Update Game" }));
 
     expect(await screen.findByRole("button", { name: "toy-1-a" })).toBeDefined();
     expect(screen.getByRole("button", { name: "toy-1-b" })).toBeDefined();
     expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
+  });
+
+  it("resets the local session from the shared command bar", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Memory game with toys" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+    expect(await screen.findByRole("button", { name: "toy-1-a" })).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start Over" }));
+    expect(screen.getByRole("button", { name: "Generate Game" })).toBeDefined();
+    expect(screen.queryByRole("button", { name: "toy-1-a" })).toBeNull();
   });
 
   it("surfaces trusted preview failures instead of suppressing them", () => {

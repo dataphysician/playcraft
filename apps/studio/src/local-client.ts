@@ -69,6 +69,13 @@ export function createLocalStudioClient(): StudioClient {
       activePreset = presetForText(input.changeRequest, nextPreset(activePreset));
       activeAssetEdit = assetEditForText(input.changeRequest) ?? activeAssetEdit;
       return execute(input.sessionId, "update-profile", activePreset, activeAssetEdit);
+    },
+    reset() {
+      profiles.clear();
+      timeline.length = 0;
+      commandCounter = 0;
+      activePreset = "profile-a";
+      activeAssetEdit = undefined;
     }
   };
 }

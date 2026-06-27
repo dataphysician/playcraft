@@ -67,7 +67,8 @@ describe("builder/studio workspace scaffold", () => {
     render(<App />);
 
     expect(screen.getByRole("heading", { name: "Playcraft Studio" })).toBeTruthy();
-    expect(screen.getByLabelText("Game idea")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Assemble profile" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Live App" })).toBeTruthy();
+    expect(screen.getByLabelText("Game request")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Generate Game" })).toBeTruthy();
   });
 });

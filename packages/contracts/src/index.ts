@@ -370,6 +370,7 @@ export const ComponentBindingSchema = z
     assetBindings: z.record(StableIdSchema).default({})
   })
   .strict();
+export type ComponentBinding = z.infer<typeof ComponentBindingSchema>;
 
 export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
   kind: z.literal("game-assembly-profile"),

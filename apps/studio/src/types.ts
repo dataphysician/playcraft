@@ -32,4 +32,5 @@ export interface StudioChangeInput {
 export interface StudioClient {
   assembleFromIntent(input: StudioAssembleInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   requestChange(input: StudioChangeInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
+  reset?(): void;
 }
