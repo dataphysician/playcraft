@@ -52,7 +52,7 @@ describe("studio UI", () => {
     expect(screen.getByText("Validation: valid")).toBeDefined();
 
     fireEvent.click(screen.getByRole("button", { name: "Select" }));
-    expect(await screen.findByText((text) => text.startsWith("Preview interaction:"))).toBeDefined();
+    expect((await screen.findAllByText((text) => text.startsWith("Preview interaction:"))).length).toBeGreaterThanOrEqual(1);
 
     fireEvent.change(screen.getByLabelText("Change request"), { target: { value: "Switch it to a sorting challenge" } });
     fireEvent.click(screen.getByRole("button", { name: "Request update" }));
@@ -75,6 +75,7 @@ describe("studio UI", () => {
 
     render(React.createElement(TrustedPreview, { profile: invalidProfile }));
 
-    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("unknown-component");
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("invalid-request");
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("component.unknown");
   });
 });
