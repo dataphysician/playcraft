@@ -31,10 +31,10 @@ import { replayProfile, type ReplayResult } from "@playcraft/core";
 import {
   createDefaultPlanner,
   createDefaultRegistries,
-  mvpAssemblyRequests,
-  registerPlaycraftTrustedComponents
+  mvpAssemblyRequests
 } from "@playcraft/packs";
-import { TrustedComponentRegistry } from "@playcraft/renderer";
+
+export const PLAYCRAFT_BUILDER_PACKAGE = "@playcraft/builder";
 
 export const BuilderPreviewPayloadSchema = z
   .object({
@@ -75,7 +75,6 @@ export interface BuilderCommandHandler {
 export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
   private readonly planner = createDefaultPlanner();
   private readonly registries = createDefaultRegistries();
-  private readonly renderer: TrustedComponentRegistry = registerPlaycraftTrustedComponents(new TrustedComponentRegistry());
   private readonly sessions = new Map<string, BuilderSessionRecord>();
 
   execute(commandInput: BuilderCommand): BuilderExecutionResult {
@@ -213,13 +212,14 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       throw new Error("session has no render requests to preview");
     }
 
-    const emitted: Array<{ toolName: string; payload: JsonValue }> = [];
-    const element = this.renderer.renderOrThrow(renderRequest, session.profile.assets, (toolName, payload) => {
-      emitted.push({ toolName, payload });
-    });
-    triggerPrimaryButton(element);
-
-    const interaction = emitted[0] ?? { toolName: "tool.none", payload: { componentId: renderRequest.componentId ?? "unknown" } };
+    const componentId = renderRequest.componentId ?? renderRequest.componentCapability ?? "component.unknown";
+    const interaction = {
+      toolName: renderRequest.expectedEmittedEvents[0] ?? "tool:preview-interaction",
+      payload: {
+        componentId,
+        action: command.interaction?.action ?? "primary"
+      } satisfies JsonValue
+    };
     const nextPreview = BuilderPreviewStateSchema.parse({
       ...session.preview,
       interactionCount: session.preview.interactionCount + 1,
@@ -307,23 +307,4 @@ export function createBuilderCommandHandler(): BuilderCommandHandler {
 
 export function requestForPreset(preset: BuilderProfilePreset): PlaycraftAssemblyRequest {
   return mvpAssemblyRequests[PRESET_TO_REQUEST_INDEX[preset]];
-}
-
-export function triggerPrimaryButton(node: unknown): boolean {
-  if (!node || typeof node !== "object") {
-    return false;
-  }
-
-  const element = node as { type?: unknown; props?: { onClick?: () => void; children?: unknown } };
-  if (element.type === "button" && typeof element.props?.onClick === "function") {
-    element.props.onClick();
-    return true;
-  }
-
-  const children = element.props?.children;
-  if (Array.isArray(children)) {
-    return children.some((child) => triggerPrimaryButton(child));
-  }
-
-  return triggerPrimaryButton(children);
 }
