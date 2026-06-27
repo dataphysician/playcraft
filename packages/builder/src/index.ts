@@ -114,6 +114,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const profile = this.planner.assemble(request);
     const replay = replayProfile(profile, this.registries);
     const preview = BuilderPreviewStateSchema.parse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       sessionId: session.sessionId,
       activeProfileId: profile.id,
       activePreset: preset,
@@ -289,6 +290,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const created: BuilderSessionRecord = {
       sessionId,
       preview: BuilderPreviewStateSchema.parse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         sessionId,
         renderedComponentIds: [],
         interactionCount: 0

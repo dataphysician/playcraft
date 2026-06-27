@@ -468,6 +468,7 @@ export type BuilderCommand = z.infer<typeof BuilderCommandSchema>;
 
 export const BuilderPreviewStateSchema = z
   .object({
+    schemaVersion: z.literal(PLAYCRAFT_SCHEMA_VERSION),
     sessionId: StableIdSchema,
     activeProfileId: StableIdSchema.optional(),
     activePreset: BuilderProfilePresetSchema.optional(),

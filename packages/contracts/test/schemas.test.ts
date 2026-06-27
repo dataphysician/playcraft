@@ -73,7 +73,44 @@ describe("public contract schemas", () => {
       AssemblyValidationResultSchema: profile.validation,
       PlaycraftAgUiEventEnvelopeSchema: envelope,
       PlaycraftEventRecordSchema: profile.replay.eventLog[0],
-      PackManifestSchema: packManifests[0]
+      PackManifestSchema: packManifests[0],
+      BuilderCommandSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-command.fixture",
+        version: "1.0.0",
+        kind: "builder-command",
+        sessionId: "session.fixture",
+        commandName: "build-profile",
+        preset: "profile-a"
+      },
+      BuilderPreviewStateSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        sessionId: "session.fixture",
+        activeProfileId: profile.id,
+        activePreset: "profile-a",
+        activeComponentId: renderRequest.componentId,
+        renderedComponentIds: [renderRequest.componentId],
+        interactionCount: 0
+      },
+      BuilderCommandResultSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-result.fixture",
+        version: "1.0.0",
+        kind: "builder-command-result",
+        commandId: "builder-command.fixture",
+        sessionId: "session.fixture",
+        profile,
+        preview: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          sessionId: "session.fixture",
+          activeProfileId: profile.id,
+          activePreset: "profile-a",
+          activeComponentId: renderRequest.componentId,
+          renderedComponentIds: [renderRequest.componentId],
+          interactionCount: 0
+        },
+        validation: profile.validation
+      }
     };
 
     for (const [name, schema] of Object.entries(PublicContractSchemas)) {
