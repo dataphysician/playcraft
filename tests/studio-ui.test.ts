@@ -22,6 +22,21 @@ function timelineEntry(id: string, title: string, kind: StudioTimelineEntry["kin
   };
 }
 
+function setElementRect(
+  element: Element,
+  rect: { bottom: number; height: number; left: number; right: number; top: number; width: number }
+): void {
+  Object.defineProperty(element, "getBoundingClientRect", {
+    configurable: true,
+    value: () => ({
+      ...rect,
+      x: rect.left,
+      y: rect.top,
+      toJSON: () => rect
+    })
+  });
+}
+
 describe("studio UI", () => {
   it("shows available games and asset edits in the game request tips tooltip", () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
@@ -135,11 +150,15 @@ describe("studio UI", () => {
 
     expect(await screen.findByText("Sorting MVP")).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "red circle" }));
-    fireEvent.click(screen.getByRole("button", { name: "blue bin" }));
+    const blueBin = screen.getByRole("button", { name: "blue bin" });
+    fireEvent.click(blueBin);
     expect(await screen.findByText("red circle does not belong in blue.")).toBeDefined();
+    expect(blueBin.getAttribute("style")).toContain("rgb(239, 68, 68)");
 
-    fireEvent.click(screen.getByRole("button", { name: "red bin" }));
+    const redBin = screen.getByRole("button", { name: "red bin" });
+    fireEvent.click(redBin);
     expect(await screen.findByText("red circle belongs in red.")).toBeDefined();
+    expect(redBin.getAttribute("style")).toContain("rgb(22, 163, 74)");
     expect(screen.getByText("1 / 3")).toBeDefined();
 
     fireEvent.click(screen.getByRole("button", { name: "blue square" }));
@@ -150,6 +169,30 @@ describe("studio UI", () => {
     expect(await screen.findByText("Sort complete")).toBeDefined();
     expect(screen.getByText("3 items sorted with 1 miss.")).toBeDefined();
     expect(screen.getByRole("button", { name: "Play Again" })).toBeDefined();
+  });
+
+  it("supports drag/drop sorting with ghost and target feedback", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Sort shapes by color" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+
+    const item = await screen.findByRole("button", { name: "red circle" });
+    const redBin = screen.getByRole("button", { name: "red bin" });
+    setElementRect(item, { left: 10, top: 10, right: 190, bottom: 58, width: 180, height: 48 });
+    setElementRect(redBin, { left: 240, top: 80, right: 430, bottom: 270, width: 190, height: 190 });
+
+    fireEvent.mouseDown(item, { clientX: 30, clientY: 30, button: 0 });
+    fireEvent.mouseMove(item, { clientX: 300, clientY: 140, buttons: 1 });
+
+    expect((await screen.findByTestId("sort-drag-ghost")).textContent).toContain("red circle");
+    expect(redBin.getAttribute("style")).toContain("rgb(249, 115, 22)");
+
+    fireEvent.mouseUp(item, { clientX: 300, clientY: 140, button: 0 });
+
+    expect(await screen.findByText("red circle belongs in red.")).toBeDefined();
+    expect(redBin.getAttribute("style")).toContain("rgb(22, 163, 74)");
+    expect(screen.queryByTestId("sort-drag-ghost")).toBeNull();
   });
 
   it("plays the sequence profile through completion", async () => {

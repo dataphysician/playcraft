@@ -28,6 +28,21 @@ interface MemoryCard {
 }
 
 type SequencePhase = "watch" | "play" | "complete";
+type BinFeedback = "success" | "failure";
+
+interface SortDragState {
+  item: string;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  x: number;
+  y: number;
+  offsetX: number;
+  offsetY: number;
+  width: number;
+  height: number;
+  dragging: boolean;
+}
 
 export function createProfileAssetReplacementLookup(
   profile: GameAssemblyProfile,
@@ -66,15 +81,18 @@ export function useProfileAssetReplacements(
 }
 
 export function LiveGame({ profile, assetReplacements, onInteraction }: LiveGameProps): React.ReactElement {
-  if (!profile) {
-    return React.createElement(
-      "section",
-      { role: "status", style: liveStyles.emptyState },
-      "Generate a game to play it here."
-    );
-  }
-
-  return React.createElement(LiveGameForProfile, { profile, assetReplacements, onInteraction });
+  return React.createElement(
+    React.Fragment,
+    null,
+    React.createElement("style", null, liveMotionCss),
+    profile
+      ? React.createElement(LiveGameForProfile, { profile, assetReplacements, onInteraction })
+      : React.createElement(
+          "section",
+          { role: "status", style: liveStyles.emptyState },
+          "Generate a game to play it here."
+        )
+  );
 }
 
 function LiveGameForProfile({
@@ -265,6 +283,13 @@ function SortingGame({
   const [feedback, setFeedback] = React.useState<string | undefined>();
   const [mistakes, setMistakes] = React.useState(0);
   const [streak, setStreak] = React.useState(0);
+  const [dragState, setDragState] = React.useState<SortDragState | undefined>();
+  const [dragTarget, setDragTarget] = React.useState<string | undefined>();
+  const [binFeedback, setBinFeedback] = React.useState<Record<string, BinFeedback | undefined>>({});
+  const binRefs = React.useRef<Map<string, HTMLButtonElement>>(new Map());
+  const dragStateRef = React.useRef<SortDragState | undefined>(undefined);
+  const feedbackTimers = React.useRef<Array<ReturnType<typeof setTimeout>>>([]);
+  const suppressNextClick = React.useRef(false);
   const componentArt = resolveComponentAsset(profile, component, "illustration", replacements);
   const placedCount = Object.keys(placements).length;
   const complete = items.length > 0 && placedCount === items.length;
@@ -276,24 +301,45 @@ function SortingGame({
     setFeedback(undefined);
     setMistakes(0);
     setStreak(0);
+    setDragState(undefined);
+    dragStateRef.current = undefined;
+    setDragTarget(undefined);
+    setBinFeedback({});
   }, [profile.id, items.join("|"), bins.join("|")]);
 
-  function placeItem(targetId: string): void {
-    if (!selectedItem) {
+  React.useEffect(
+    () => () => {
+      for (const timer of feedbackTimers.current) {
+        clearTimeout(timer);
+      }
+    },
+    []
+  );
+
+  function placeSelectedItem(targetId: string): void {
+    if (!selectedItem || placements[selectedItem] !== undefined) {
       setFeedback("Choose an item first.");
       return;
     }
 
-    const correct = matchesBin(selectedItem, targetId);
+    placeItem(selectedItem, targetId, false);
+  }
+
+  function placeItem(item: string, targetId: string, clearOnFailure: boolean): void {
+    const correct = matchesBin(item, targetId);
+    flashBin(targetId, correct ? "success" : "failure");
     if (correct) {
-      setPlacements((current) => ({ ...current, [selectedItem]: targetId }));
-      setFeedback(`${selectedItem} belongs in ${targetId}.`);
+      setPlacements((current) => ({ ...current, [item]: targetId }));
+      setFeedback(`${item} belongs in ${targetId}.`);
       setStreak((current) => current + 1);
       setSelectedItem(undefined);
     } else {
-      setFeedback(`${selectedItem} does not belong in ${targetId}.`);
+      setFeedback(`${item} does not belong in ${targetId}.`);
       setMistakes((current) => current + 1);
       setStreak(0);
+      if (clearOnFailure) {
+        setSelectedItem(undefined);
+      }
     }
 
     onInteraction?.({
@@ -301,11 +347,125 @@ function SortingGame({
       profileId: profile.id,
       payload: {
         componentId: component.componentId,
-        itemId: selectedItem,
+        itemId: item,
         targetId,
         correct
       }
     });
+  }
+
+  function flashBin(bin: string, state: BinFeedback): void {
+    setBinFeedback((current) => ({ ...current, [bin]: state }));
+    const timer = setTimeout(() => {
+      setBinFeedback((current) => ({ ...current, [bin]: undefined }));
+    }, 620);
+    feedbackTimers.current.push(timer);
+  }
+
+  function binAtPoint(x: number, y: number): string | undefined {
+    for (const bin of bins) {
+      const node = binRefs.current.get(bin);
+      if (node && pointInRect(x, y, node.getBoundingClientRect())) {
+        return bin;
+      }
+    }
+
+    return undefined;
+  }
+
+  function handleItemPointerDown(item: string, event: React.PointerEvent<HTMLButtonElement>): void {
+    if (placements[item] !== undefined || event.button > 0) {
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    beginItemDrag(item, event.pointerId, event.clientX, event.clientY, rect);
+  }
+
+  function handleItemPointerMove(event: React.PointerEvent<HTMLButtonElement>): void {
+    moveItemDrag(event.pointerId, event.clientX, event.clientY, () => event.preventDefault());
+  }
+
+  function finishItemPointer(event: React.PointerEvent<HTMLButtonElement>): void {
+    finishItemDrag(event.pointerId, event.clientX, event.clientY, () => event.preventDefault());
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+  }
+
+  function handleItemMouseDown(item: string, event: React.MouseEvent<HTMLButtonElement>): void {
+    if (dragStateRef.current || placements[item] !== undefined || event.button > 0) {
+      return;
+    }
+
+    beginItemDrag(item, -1, event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
+  }
+
+  function handleItemMouseMove(event: React.MouseEvent<HTMLButtonElement>): void {
+    moveItemDrag(-1, event.clientX, event.clientY, () => event.preventDefault());
+  }
+
+  function finishItemMouse(event: React.MouseEvent<HTMLButtonElement>): void {
+    finishItemDrag(-1, event.clientX, event.clientY, () => event.preventDefault());
+  }
+
+  function beginItemDrag(item: string, pointerId: number, x: number, y: number, rect: DOMRect): void {
+    setSelectedItem(item);
+    const nextDragState = {
+      item,
+      pointerId,
+      startX: x,
+      startY: y,
+      x,
+      y,
+      offsetX: rect.width > 0 ? x - rect.left : 24,
+      offsetY: rect.height > 0 ? y - rect.top : 24,
+      width: rect.width || 176,
+      height: rect.height || 48,
+      dragging: false
+    };
+    dragStateRef.current = nextDragState;
+    setDragState(nextDragState);
+  }
+
+  function moveItemDrag(pointerId: number, x: number, y: number, preventDefault: () => void): void {
+    const current = dragStateRef.current;
+    if (!current || current.pointerId !== pointerId) {
+      return;
+    }
+
+    const distance = Math.hypot(x - current.startX, y - current.startY);
+    const dragging = current.dragging || distance > 4;
+    if (dragging) {
+      preventDefault();
+    }
+
+    const nextDragState = { ...current, x, y, dragging };
+    dragStateRef.current = nextDragState;
+    setDragState(nextDragState);
+    setDragTarget(dragging ? binAtPoint(x, y) : undefined);
+  }
+
+  function finishItemDrag(pointerId: number, x: number, y: number, preventDefault: () => void): void {
+    const current = dragStateRef.current;
+    if (!current || current.pointerId !== pointerId) {
+      return;
+    }
+
+    if (current.dragging) {
+      preventDefault();
+      suppressNextClick.current = true;
+      const target = binAtPoint(x, y) ?? dragTarget;
+      if (target) {
+        placeItem(current.item, target, true);
+      } else {
+        setFeedback(`${current.item} returned to the tray.`);
+        setSelectedItem(undefined);
+      }
+    }
+
+    dragStateRef.current = undefined;
+    setDragState(undefined);
+    setDragTarget(undefined);
   }
 
   return React.createElement(
@@ -349,14 +509,27 @@ function SortingGame({
               key: item,
               type: "button",
               "aria-label": item,
-              onClick: () => setSelectedItem(item),
+              onClick: () => {
+                if (suppressNextClick.current) {
+                  suppressNextClick.current = false;
+                  return;
+                }
+
+                setSelectedItem(item);
+              },
+              onPointerDown: (event: React.PointerEvent<HTMLButtonElement>) => handleItemPointerDown(item, event),
+              onPointerMove: handleItemPointerMove,
+              onPointerUp: finishItemPointer,
+              onPointerCancel: finishItemPointer,
+              onMouseDown: (event: React.MouseEvent<HTMLButtonElement>) => handleItemMouseDown(item, event),
+              onMouseMove: handleItemMouseMove,
+              onMouseUp: finishItemMouse,
               disabled: placements[item] !== undefined,
-              style:
-                placements[item] !== undefined
-                  ? liveStyles.itemChipPlaced
-                  : selectedItem === item
-                    ? liveStyles.itemChipActive
-                    : liveStyles.itemChip
+              style: sortItemStyle({
+                placed: placements[item] !== undefined,
+                selected: selectedItem === item,
+                dragging: dragState?.item === item && dragState.dragging
+              })
             },
             React.createElement("span", { style: tokenDotStyle(item) }, displayInitial(item)),
             React.createElement("span", null, item)
@@ -373,8 +546,19 @@ function SortingGame({
               key: bin,
               type: "button",
               "aria-label": `${bin} bin`,
-              onClick: () => placeItem(bin),
-              style: selectedItem ? liveStyles.binActive : liveStyles.bin
+              ref: (node: HTMLButtonElement | null) => {
+                if (node) {
+                  binRefs.current.set(bin, node);
+                } else {
+                  binRefs.current.delete(bin);
+                }
+              },
+              onClick: () => placeSelectedItem(bin),
+              style: sortBinStyle({
+                selectable: Boolean(selectedItem),
+                targeted: dragTarget === bin,
+                feedback: binFeedback[bin]
+              })
             },
             React.createElement("strong", null, bin),
             React.createElement(
@@ -391,6 +575,17 @@ function SortingGame({
         )
       )
     ),
+    dragState?.dragging
+      ? React.createElement(
+          "div",
+          {
+            "data-testid": "sort-drag-ghost",
+            style: dragGhostStyle(dragState)
+          },
+          React.createElement("span", { style: tokenDotStyle(dragState.item) }, displayInitial(dragState.item)),
+          React.createElement("span", null, dragState.item)
+        )
+      : null,
     complete
       ? React.createElement(CompletionPanel, {
           title: mistakes === 0 ? "Flawless sort" : "Sort complete",
@@ -818,6 +1013,55 @@ function matchesBin(item: string, bin: string): boolean {
   return item.toLowerCase().includes(bin.toLowerCase());
 }
 
+function pointInRect(x: number, y: number, rect: DOMRect): boolean {
+  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+}
+
+function sortItemStyle(state: { dragging: boolean; placed: boolean; selected: boolean }): React.CSSProperties {
+  if (state.dragging) {
+    return { ...liveStyles.itemChip, ...liveStyles.itemChipDraggingSource };
+  }
+
+  if (state.placed) {
+    return liveStyles.itemChipPlaced;
+  }
+
+  if (state.selected) {
+    return liveStyles.itemChipActive;
+  }
+
+  return liveStyles.itemChip;
+}
+
+function sortBinStyle(state: {
+  feedback: BinFeedback | undefined;
+  selectable: boolean;
+  targeted: boolean;
+}): React.CSSProperties {
+  const base = state.selectable ? liveStyles.binActive : liveStyles.bin;
+  if (state.feedback === "success") {
+    return { ...base, ...liveStyles.binSuccess };
+  }
+  if (state.feedback === "failure") {
+    return { ...base, ...liveStyles.binFailure };
+  }
+  if (state.targeted) {
+    return { ...base, ...liveStyles.binDragTarget };
+  }
+
+  return base;
+}
+
+function dragGhostStyle(state: SortDragState): React.CSSProperties {
+  return {
+    ...liveStyles.dragGhost,
+    left: state.x - state.offsetX,
+    top: state.y - state.offsetY,
+    width: state.width,
+    minHeight: state.height
+  };
+}
+
 function sequenceRounds(sequence: string[], choices: string[]): string[][] {
   const base = sequence.length > 0 ? sequence : choices.slice(0, 3);
   const fallback = base[0] ?? "green";
@@ -897,6 +1141,29 @@ function colorForToken(token: string): { background: string; border: string; for
   ];
   return palette[hashString(token) % palette.length];
 }
+
+const liveMotionCss = `
+@keyframes playcraft-drag-ghost {
+  from { transform: scale(0.96) rotate(-1deg); opacity: 0.72; }
+  to { transform: scale(1.03) rotate(1deg); opacity: 0.96; }
+}
+@keyframes playcraft-bin-target {
+  from { box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.16), 0 16px 28px rgba(249, 115, 22, 0.16); }
+  to { box-shadow: 0 0 0 7px rgba(249, 115, 22, 0.08), 0 18px 34px rgba(249, 115, 22, 0.22); }
+}
+@keyframes playcraft-bin-success {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.36); }
+  48% { transform: scale(1.025); box-shadow: 0 0 0 8px rgba(22, 163, 74, 0.18); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+@keyframes playcraft-bin-failure {
+  0%, 100% { transform: translateX(0); }
+  18% { transform: translateX(-6px); }
+  36% { transform: translateX(5px); }
+  54% { transform: translateX(-4px); }
+  72% { transform: translateX(3px); }
+}
+`;
 
 const liveStyles = {
   emptyState: {
@@ -1158,7 +1425,8 @@ const liveStyles = {
     gap: "0.55rem",
     textAlign: "left" as const,
     cursor: "pointer",
-    boxShadow: "0 10px 22px rgba(24, 24, 27, 0.07)"
+    boxShadow: "0 10px 22px rgba(24, 24, 27, 0.07)",
+    touchAction: "none"
   },
   itemChipActive: {
     minHeight: "3rem",
@@ -1174,7 +1442,8 @@ const liveStyles = {
     gap: "0.55rem",
     textAlign: "left" as const,
     cursor: "pointer",
-    boxShadow: "0 12px 24px rgba(217, 119, 6, 0.16)"
+    boxShadow: "0 12px 24px rgba(217, 119, 6, 0.16)",
+    touchAction: "none"
   },
   itemChipPlaced: {
     minHeight: "3rem",
@@ -1190,6 +1459,29 @@ const liveStyles = {
     alignItems: "center",
     gap: "0.55rem",
     textAlign: "left" as const
+  },
+  itemChipDraggingSource: {
+    opacity: 0.28,
+    transform: "scale(0.98)",
+    boxShadow: "none"
+  },
+  dragGhost: {
+    position: "fixed" as const,
+    zIndex: 50,
+    pointerEvents: "none" as const,
+    border: "2px solid #d97706",
+    borderRadius: "8px",
+    background: "#fff7ed",
+    color: "#92400e",
+    fontWeight: 800,
+    padding: "0.55rem",
+    display: "grid",
+    gridTemplateColumns: "2rem minmax(0, 1fr)",
+    alignItems: "center",
+    gap: "0.55rem",
+    textAlign: "left" as const,
+    boxShadow: "0 22px 40px rgba(24, 24, 27, 0.24)",
+    animation: "playcraft-drag-ghost 180ms ease-out forwards"
   },
   tokenDot: {
     width: "1.65rem",
@@ -1231,6 +1523,25 @@ const liveStyles = {
     padding: "1rem",
     textAlign: "left" as const,
     boxShadow: "0 14px 26px rgba(217, 119, 6, 0.14)"
+  },
+  binDragTarget: {
+    border: "3px solid #f97316",
+    background: "#ffedd5",
+    color: "#7c2d12",
+    transform: "translateY(-2px)",
+    animation: "playcraft-bin-target 560ms ease-in-out infinite alternate"
+  },
+  binSuccess: {
+    border: "3px solid #16a34a",
+    background: "#dcfce7",
+    color: "#14532d",
+    animation: "playcraft-bin-success 560ms ease-out"
+  },
+  binFailure: {
+    border: "3px solid #ef4444",
+    background: "#fef2f2",
+    color: "#7f1d1d",
+    animation: "playcraft-bin-failure 420ms ease-in-out"
   },
   binItems: {
     display: "flex",
