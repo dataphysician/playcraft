@@ -1,5 +1,6 @@
 import React from "react";
 import type { ComponentBinding, GameAssemblyProfile, GeneratedAssetRecord, JsonValue } from "@playcraft/contracts";
+import { createProfileLibraryAssetReplacements, playcraftUiAssets, sortingBinAssetFor } from "./asset-library.js";
 import emptyGameHeroUrl from "./assets/empty-game-hero.png";
 
 export interface LiveGameInteraction {
@@ -37,6 +38,7 @@ interface MemoryPairVisual {
 
 type SequencePhase = "watch" | "play" | "complete";
 type BinFeedback = "success" | "failure";
+type GameSurfaceKind = "memory" | "sequence" | "sorting";
 type SequenceFeedbackKind = "info" | "success" | "failure";
 
 interface SequenceFeedback {
@@ -128,7 +130,12 @@ function LiveGameForProfile({
   assetReplacements?: AssetReplacementInput;
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
-  const replacements = useProfileAssetReplacements(profile, assetReplacements);
+  const libraryAssetReplacements = React.useMemo(() => createProfileLibraryAssetReplacements(profile), [profile]);
+  const mergedAssetReplacements = React.useMemo(
+    () => ({ ...libraryAssetReplacements, ...assetReplacements }),
+    [assetReplacements, libraryAssetReplacements]
+  );
+  const replacements = useProfileAssetReplacements(profile, mergedAssetReplacements);
   const memory = componentByCapability(profile, "component:reveal-card-grid");
   const sortBins = componentByCapability(profile, "component:sort-bins");
   const sequence = componentByCapability(profile, "component:sequence-pad");
@@ -227,7 +234,7 @@ function MemoryGame({
 
   return React.createElement(
     "section",
-    { style: liveStyles.liveSurface, "aria-label": profile.profileName },
+    { style: gameSurfaceStyle("memory"), "aria-label": profile.profileName },
     React.createElement(
       "div",
       { style: liveStyles.gameHeader },
@@ -273,7 +280,7 @@ function MemoryGame({
                 pairVisual,
                 replacement: cardReplacement ?? componentArt
               })
-            : React.createElement("span", { style: liveStyles.cardBackMark }, String(index + 1))
+            : React.createElement(CardBackFace)
         );
       })
     ),
@@ -497,7 +504,7 @@ function SortingGame({
 
   return React.createElement(
     "section",
-    { style: liveStyles.liveSurface, "aria-label": profile.profileName },
+    { style: gameSurfaceStyle("sorting"), "aria-label": profile.profileName },
     React.createElement(
       "div",
       { style: liveStyles.gameHeader },
@@ -521,6 +528,7 @@ function SortingGame({
     React.createElement(HeroArt, {
       asset: componentArt,
       label: textProp(component.props, "title", profile.profileName),
+      replacements,
       tokens: items
     }),
     React.createElement(
@@ -529,8 +537,9 @@ function SortingGame({
       React.createElement(
         "div",
         { style: liveStyles.itemTray },
-        ...items.map((item) =>
-          React.createElement(
+        ...items.map((item) => {
+          const itemReplacement = replacementForToken(item, replacements, "item");
+          return React.createElement(
             "button",
             {
               key: item,
@@ -558,16 +567,17 @@ function SortingGame({
                 dragging: dragState?.item === item && dragState.dragging
               })
             },
-            React.createElement("span", { style: tokenDotStyle(item) }, displayInitial(item)),
+            React.createElement(TokenSprite, { replacement: itemReplacement, token: item }),
             React.createElement("span", null, item)
-          )
-        )
+          );
+        })
       ),
       React.createElement(
         "div",
         { style: liveStyles.binGrid },
-        ...bins.map((bin) =>
-          React.createElement(
+        ...bins.map((bin) => {
+          const binAsset = sortingBinAssetFor(bin);
+          return React.createElement(
             "button",
             {
               key: bin,
@@ -587,7 +597,18 @@ function SortingGame({
                 feedback: binFeedback[bin]
               })
             },
-            React.createElement("strong", null, bin),
+            React.createElement(
+              "span",
+              { style: liveStyles.binHeader },
+              binAsset
+                ? React.createElement("img", {
+                    alt: binAsset.altText,
+                    src: binAsset.uri,
+                    style: liveStyles.binAsset
+                  })
+                : null,
+              React.createElement("strong", null, bin)
+            ),
             React.createElement(
               "span",
               { style: liveStyles.binItems },
@@ -598,8 +619,8 @@ function SortingGame({
                 ),
               items.some((item) => placements[item] === bin) ? null : "Drop matching items here"
             )
-          )
-        )
+          );
+        })
       )
     ),
     dragState?.dragging
@@ -609,7 +630,10 @@ function SortingGame({
             "data-testid": "sort-drag-ghost",
             style: dragGhostStyle(dragState)
           },
-          React.createElement("span", { style: tokenDotStyle(dragState.item) }, displayInitial(dragState.item)),
+          React.createElement(TokenSprite, {
+            replacement: replacementForToken(dragState.item, replacements, "item"),
+            token: dragState.item
+          }),
           React.createElement("span", null, dragState.item)
         )
       : null,
@@ -737,7 +761,7 @@ function SequenceGame({
 
   return React.createElement(
     "section",
-    { style: liveStyles.liveSurface, "aria-label": profile.profileName },
+    { style: gameSurfaceStyle("sequence"), "aria-label": profile.profileName },
     React.createElement(
       "div",
       { style: liveStyles.gameHeader },
@@ -765,6 +789,7 @@ function SequenceGame({
     React.createElement(HeroArt, {
       asset: componentArt,
       label: textProp(sequenceComponent.props, "title", profile.profileName),
+      replacements,
       tokens: activeRound
     }),
     React.createElement(
@@ -812,7 +837,7 @@ function SequenceGame({
             disabled: complete || phase !== "play",
             style: sequenceChoiceStyle(item, phase === "play", feedback)
           },
-          React.createElement("span", { style: tokenDotStyle(item) }, displayInitial(item)),
+          React.createElement(TokenSprite, { replacement: replacementForToken(item, replacements, "choice"), token: item }),
           React.createElement("span", null, item)
         )
       )
@@ -833,6 +858,38 @@ function SequenceGame({
         })
       : null
   );
+}
+
+function CardBackFace(): React.ReactElement {
+  return React.createElement(
+    "span",
+    { style: liveStyles.cardBackWrap },
+    React.createElement("img", {
+      alt: "",
+      "aria-hidden": true,
+      "data-testid": "playcraft-card-back",
+      src: playcraftUiAssets.cards.playcraftBack,
+      style: liveStyles.cardBackImage
+    })
+  );
+}
+
+function TokenSprite({
+  replacement,
+  token
+}: {
+  replacement?: AssetReplacement;
+  token: string;
+}): React.ReactElement {
+  if (replacement && isRenderableUri(replacement.uri)) {
+    return React.createElement(
+      "span",
+      { style: liveStyles.tokenSpriteWrap },
+      React.createElement("img", { alt: replacement.altText ?? token, src: replacement.uri, style: liveStyles.tokenSpriteImage })
+    );
+  }
+
+  return React.createElement("span", { style: tokenDotStyle(token) }, displayInitial(token));
 }
 
 function CardFace({
@@ -865,12 +922,38 @@ function CardFace({
 function HeroArt({
   asset,
   label,
+  replacements,
   tokens
 }: {
   asset?: AssetReplacement;
   label: string;
+  replacements?: AssetReplacementLookup;
   tokens: string[];
 }): React.ReactElement {
+  const tokenAssets = uniqueStrings(tokens)
+    .map((token) => ({ token, replacement: replacementForToken(token, replacements, "choice") ?? replacementForToken(token, replacements, "item") }))
+    .filter((entry): entry is { token: string; replacement: AssetReplacement } => Boolean(entry.replacement))
+    .slice(0, 4);
+
+  if (tokenAssets.length > 0) {
+    return React.createElement(
+      "div",
+      { "aria-label": label, role: "img", style: liveStyles.heroArtwork },
+      React.createElement(
+        "div",
+        { style: liveStyles.heroTokenCluster },
+        ...tokenAssets.map(({ replacement, token }, index) =>
+          React.createElement(
+            "span",
+            { key: `${token}.${index}`, style: heroTokenStyle(token, index) },
+            React.createElement("img", { alt: replacement.altText ?? token, src: replacement.uri, style: liveStyles.heroTokenImage })
+          )
+        )
+      ),
+      React.createElement("strong", { style: liveStyles.heroArtworkLabel }, label)
+    );
+  }
+
   if (asset && isRenderableUri(asset.uri)) {
     return React.createElement("img", { src: asset.uri, alt: asset.altText ?? label, style: liveStyles.heroAsset });
   }
@@ -951,6 +1034,14 @@ function CompletionPanel({
 
 function componentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding | undefined {
   return profile.components.find((component) => component.renderCapability === capability);
+}
+
+function replacementForToken(
+  token: string,
+  replacements: AssetReplacementLookup | undefined,
+  namespace: "choice" | "item"
+): AssetReplacement | undefined {
+  return replacements?.get(`${namespace}:${token}`) ?? replacements?.get(token);
 }
 
 function stringArrayProp(props: Record<string, JsonValue>, key: string): string[] {
@@ -1171,6 +1262,23 @@ function sequenceRailStyle(feedback?: SequenceFeedback): React.CSSProperties {
 
 function sequenceStepStyle(item: string, revealed: boolean): React.CSSProperties {
   return revealed ? { ...liveStyles.sequenceStepComplete, ...tokenPanelStyle(item) } : liveStyles.sequenceStep;
+}
+
+function gameSurfaceStyle(kind: GameSurfaceKind): React.CSSProperties {
+  const background =
+    kind === "memory"
+      ? playcraftUiAssets.backgrounds.memoryMatch
+      : kind === "sorting"
+        ? playcraftUiAssets.backgrounds.sorting
+        : playcraftUiAssets.backgrounds.sequenceRepeat;
+
+  return {
+    ...liveStyles.liveSurface,
+    backgroundColor: "#f8fafc",
+    backgroundImage: `linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.7)), url(${background})`,
+    backgroundPosition: "center",
+    backgroundSize: "cover"
+  };
 }
 
 function tokenDotStyle(token: string): React.CSSProperties {
@@ -1411,6 +1519,18 @@ const liveStyles = {
     color: "#18181b",
     fontWeight: 800
   },
+  cardBackWrap: {
+    display: "grid",
+    placeItems: "center",
+    width: "100%",
+    height: "100%"
+  },
+  cardBackImage: {
+    display: "block",
+    width: "100%",
+    height: "100%",
+    objectFit: "contain" as const
+  },
   generatedFace: {
     display: "grid",
     gap: "0.5rem",
@@ -1449,7 +1569,7 @@ const liveStyles = {
   cardImage: {
     width: "100%",
     aspectRatio: "1",
-    objectFit: "cover" as const,
+    objectFit: "contain" as const,
     borderRadius: "8px"
   },
   cardLabel: {
@@ -1501,7 +1621,14 @@ const liveStyles = {
     borderRadius: "8px",
     fontSize: "1.6rem",
     fontWeight: 900,
+    overflow: "hidden",
     boxShadow: "0 12px 22px rgba(24, 24, 27, 0.14)"
+  },
+  heroTokenImage: {
+    display: "block",
+    width: "100%",
+    height: "5rem",
+    objectFit: "contain" as const
   },
   heroArtworkLabel: {
     fontSize: "1.15rem",
@@ -1599,6 +1726,21 @@ const liveStyles = {
     fontSize: "0.86rem",
     fontWeight: 900
   },
+  tokenSpriteWrap: {
+    display: "grid",
+    placeItems: "center",
+    width: "2rem",
+    height: "2rem",
+    borderRadius: "8px",
+    background: "rgba(255, 255, 255, 0.74)",
+    overflow: "hidden"
+  },
+  tokenSpriteImage: {
+    display: "block",
+    width: "100%",
+    height: "100%",
+    objectFit: "contain" as const
+  },
   binGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 10rem), 1fr))",
@@ -1655,6 +1797,19 @@ const liveStyles = {
     gap: "0.35rem",
     color: "#18181b",
     overflowWrap: "anywhere" as const
+  },
+  binHeader: {
+    display: "grid",
+    gridTemplateColumns: "minmax(3rem, 5.25rem) minmax(0, 1fr)",
+    gap: "0.75rem",
+    alignItems: "center"
+  },
+  binAsset: {
+    display: "block",
+    width: "100%",
+    aspectRatio: "1",
+    objectFit: "contain" as const,
+    filter: "drop-shadow(0 10px 12px rgba(24, 24, 27, 0.14))"
   },
   placedBadge: {
     border: "1px solid #0f766e",
