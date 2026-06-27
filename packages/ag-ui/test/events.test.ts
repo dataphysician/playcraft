@@ -109,7 +109,7 @@ describe("AG-UI-compatible events", () => {
           interactionCount: 2
         },
         provenance: {
-          role: "ui",
+          role: "frontend",
           sourceId: "studio.preview"
         }
       }),
