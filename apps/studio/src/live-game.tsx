@@ -37,6 +37,14 @@ interface MemoryPairVisual {
 
 type SequencePhase = "watch" | "play" | "complete";
 type BinFeedback = "success" | "failure";
+type SequenceFeedbackKind = "info" | "success" | "failure";
+
+interface SequenceFeedback {
+  expected?: string;
+  item?: string;
+  kind: SequenceFeedbackKind;
+  message: string;
+}
 
 interface SortDragState {
   item: string;
@@ -641,7 +649,7 @@ function SequenceGame({
   const [roundIndex, setRoundIndex] = React.useState(0);
   const [progress, setProgress] = React.useState(0);
   const [attempts, setAttempts] = React.useState(0);
-  const [feedback, setFeedback] = React.useState<string | undefined>();
+  const [feedback, setFeedback] = React.useState<SequenceFeedback | undefined>();
   const [phase, setPhase] = React.useState<SequencePhase>("watch");
   const [score, setScore] = React.useState(0);
   const componentArt = resolveComponentAsset(profile, sequenceComponent, "illustration", replacements);
@@ -664,12 +672,12 @@ function SequenceGame({
 
     setProgress(0);
     setPhase("play");
-    setFeedback(`Round ${roundIndex + 1}: repeat the pattern.`);
+    setFeedback({ kind: "info", message: `Round ${roundIndex + 1}: repeat the pattern.` });
   }
 
   function choose(item: string): void {
     if (complete || phase !== "play") {
-      setFeedback("Watch the pattern, then start the round.");
+      setFeedback({ kind: "info", message: "Watch the pattern, then start the round." });
       return;
     }
 
@@ -688,22 +696,27 @@ function SequenceGame({
         setScore((current) => current + roundScore);
         if (roundIndex + 1 >= rounds.length) {
           setPhase("complete");
-          setFeedback("Sequence complete.");
+          setFeedback({ kind: "success", message: "Sequence complete.", item });
           nextComplete = true;
         } else {
           setRoundIndex((current) => current + 1);
           setPhase("watch");
-          setFeedback(`Round ${roundIndex + 2} unlocked. Watch the next pattern.`);
+          setFeedback({ kind: "success", message: `Round ${roundIndex + 2} unlocked. Watch the next pattern.`, item });
         }
         setProgress(0);
       } else {
         setProgress(nextProgress);
-        setFeedback("Correct.");
+        setFeedback({ kind: "success", message: "Correct.", item });
       }
     } else {
       setProgress(0);
       setPhase("watch");
-      setFeedback(`Start again after ${item}. Watch the pattern.`);
+      setFeedback({
+        expected,
+        item,
+        kind: "failure",
+        message: `Not ${item}. Try ${expected} next; watch the pattern again.`
+      });
     }
 
     onInteraction?.({
@@ -736,7 +749,7 @@ function SequenceGame({
         React.createElement(
           "p",
           { style: liveStyles.gameMeta },
-          complete ? "Sequence complete." : feedback ?? textProp(sequenceComponent.props, "prompt", `${progress} of ${activeRound.length}`)
+          complete ? "Sequence complete." : feedback?.message ?? textProp(sequenceComponent.props, "prompt", `${progress} of ${activeRound.length}`)
         )
       ),
       React.createElement("span", { style: liveStyles.counter }, `Round ${Math.min(roundIndex + 1, rounds.length)} / ${rounds.length}`)
@@ -756,7 +769,7 @@ function SequenceGame({
     }),
     React.createElement(
       "div",
-      { style: liveStyles.sequenceRail },
+      { "aria-label": "Sequence pattern", style: sequenceRailStyle(feedback) },
       ...activeRound.map((item, index) =>
         React.createElement(
           "span",
@@ -794,9 +807,10 @@ function SequenceGame({
             key: item,
             type: "button",
             "aria-label": item,
+            "aria-invalid": feedback?.kind === "failure" && feedback.item === item ? true : undefined,
             onClick: () => choose(item),
             disabled: complete || phase !== "play",
-            style: sequenceChoiceStyle(item, phase === "play")
+            style: sequenceChoiceStyle(item, phase === "play", feedback)
           },
           React.createElement("span", { style: tokenDotStyle(item) }, displayInitial(item)),
           React.createElement("span", null, item)
@@ -1138,13 +1152,21 @@ function sequenceRounds(sequence: string[], choices: string[]): string[][] {
   ].filter((round) => round.length > 0);
 }
 
-function sequenceChoiceStyle(item: string, enabled: boolean): React.CSSProperties {
+function sequenceChoiceStyle(item: string, enabled: boolean, feedback?: SequenceFeedback): React.CSSProperties {
+  const failed = feedback?.kind === "failure" && feedback.item === item;
   return {
     ...liveStyles.choiceButton,
     ...tokenPanelStyle(item),
-    opacity: enabled ? 1 : 0.58,
+    ...(failed ? liveStyles.sequenceChoiceFailure : {}),
+    opacity: enabled || failed ? 1 : 0.58,
     cursor: enabled ? "pointer" : "not-allowed"
   };
+}
+
+function sequenceRailStyle(feedback?: SequenceFeedback): React.CSSProperties {
+  return feedback?.kind === "failure"
+    ? { ...liveStyles.sequenceRail, ...liveStyles.sequenceRailFailure }
+    : liveStyles.sequenceRail;
 }
 
 function sequenceStepStyle(item: string, revealed: boolean): React.CSSProperties {
@@ -1645,10 +1667,24 @@ const liveStyles = {
   sequenceRail: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 6rem), 1fr))",
-    gap: "0.5rem"
+    gap: "0.5rem",
+    borderWidth: "2px",
+    borderStyle: "solid",
+    borderColor: "transparent",
+    borderRadius: "8px",
+    padding: "0.35rem",
+    transition: "border-color 160ms ease, background 160ms ease, box-shadow 160ms ease"
+  },
+  sequenceRailFailure: {
+    borderColor: "#ef4444",
+    background: "#fef2f2",
+    boxShadow: "0 0 0 3px rgba(239, 68, 68, 0.16), 0 16px 28px rgba(239, 68, 68, 0.14)",
+    animation: "playcraft-bin-failure 420ms ease-in-out"
   },
   sequenceStep: {
-    border: "1px solid #d4d4d8",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "#d4d4d8",
     borderRadius: "8px",
     background: "#fafafa",
     color: "#52525b",
@@ -1657,7 +1693,9 @@ const liveStyles = {
     textAlign: "center" as const
   },
   sequenceStepComplete: {
-    border: "1px solid",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "#0f766e",
     borderRadius: "8px",
     background: "#ecfdf5",
     color: "#064e3b",
@@ -1674,7 +1712,9 @@ const liveStyles = {
   choiceButton: {
     minHeight: "4rem",
     borderRadius: "8px",
-    border: "2px solid #d97706",
+    borderWidth: "2px",
+    borderStyle: "solid",
+    borderColor: "#d97706",
     background: "#fff7ed",
     color: "#92400e",
     fontWeight: 800,
@@ -1685,6 +1725,13 @@ const liveStyles = {
     gap: "0.55rem",
     textAlign: "left" as const,
     boxShadow: "0 14px 30px rgba(24, 24, 27, 0.1)"
+  },
+  sequenceChoiceFailure: {
+    borderColor: "#ef4444",
+    background: "#fef2f2",
+    color: "#7f1d1d",
+    boxShadow: "0 0 0 3px rgba(239, 68, 68, 0.18), 0 16px 28px rgba(239, 68, 68, 0.18)",
+    animation: "playcraft-bin-failure 420ms ease-in-out"
   },
   completionPanel: {
     display: "grid",

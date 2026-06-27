@@ -221,6 +221,12 @@ describe("studio UI", () => {
 
     expect(await screen.findByText("Sequence Repeat MVP")).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Start Round" }));
+    fireEvent.click(screen.getByRole("button", { name: "blue" }));
+    expect(await screen.findByText("Not blue. Try green next; watch the pattern again.")).toBeDefined();
+    expect(screen.getByRole("button", { name: "blue" }).getAttribute("style")).toContain("rgb(239, 68, 68)");
+    expect(screen.getByLabelText("Sequence pattern").getAttribute("style")).toContain("rgb(239, 68, 68)");
+
+    fireEvent.click(screen.getByRole("button", { name: "Start Round" }));
     fireEvent.click(screen.getByRole("button", { name: "green" }));
     expect(await screen.findByText("Correct.")).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "yellow" }));
