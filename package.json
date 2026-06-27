@@ -8,7 +8,9 @@
     "build": "tsc -b",
     "build:studio": "pnpm --filter @playcraft/studio build",
     "dev:studio": "pnpm --filter @playcraft/studio dev",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc -b",
+    "typecheck:studio": "pnpm --filter @playcraft/studio typecheck"
   },
   "devDependencies": {
     "@testing-library/react": "^16.2.0",
