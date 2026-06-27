@@ -448,6 +448,48 @@ export const PackManifestSchema = PublicContractBaseSchema.extend({
 }).strict();
 export type PackManifest = z.infer<typeof PackManifestSchema>;
 
+
+export const BuilderProfilePresetSchema = z.enum(["profile-a", "profile-b", "memory-match", "sorting", "sequence-repeat"]);
+export type BuilderProfilePreset = z.infer<typeof BuilderProfilePresetSchema>;
+
+export const BuilderCommandSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("builder-command"),
+  sessionId: StableIdSchema,
+  commandName: z.enum(["build-profile", "update-profile", "preview-action"]),
+  preset: BuilderProfilePresetSchema.optional(),
+  interaction: z
+    .object({
+      action: z.enum(["primary"]).default("primary")
+    })
+    .strict()
+    .optional()
+}).strict();
+export type BuilderCommand = z.infer<typeof BuilderCommandSchema>;
+
+export const BuilderPreviewStateSchema = z
+  .object({
+    sessionId: StableIdSchema,
+    activeProfileId: StableIdSchema.optional(),
+    activePreset: BuilderProfilePresetSchema.optional(),
+    activeComponentId: StableIdSchema.optional(),
+    renderedComponentIds: z.array(StableIdSchema).default([]),
+    interactionCount: z.number().int().nonnegative(),
+    lastToolName: CapabilityTagSchema.optional(),
+    lastToolPayload: JsonValueSchema.optional()
+  })
+  .strict();
+export type BuilderPreviewState = z.infer<typeof BuilderPreviewStateSchema>;
+
+export const BuilderCommandResultSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("builder-command-result"),
+  commandId: StableIdSchema,
+  sessionId: StableIdSchema,
+  profile: GameAssemblyProfileSchema.optional(),
+  preview: BuilderPreviewStateSchema,
+  validation: AssemblyValidationResultSchema.optional()
+}).strict();
+export type BuilderCommandResult = z.infer<typeof BuilderCommandResultSchema>;
+
 export const PublicContractSchemas = {
   PlaycraftAssemblyRequestSchema,
   DomainProfileSchema,
@@ -465,7 +507,10 @@ export const PublicContractSchemas = {
   AssemblyValidationResultSchema,
   PlaycraftAgUiEventEnvelopeSchema,
   PlaycraftEventRecordSchema,
-  PackManifestSchema
+  PackManifestSchema,
+  BuilderCommandSchema,
+  BuilderPreviewStateSchema,
+  BuilderCommandResultSchema
 } as const;
 
 export type PublicContractName = keyof typeof PublicContractSchemas;
