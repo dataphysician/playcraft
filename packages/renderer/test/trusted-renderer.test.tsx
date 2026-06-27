@@ -125,7 +125,7 @@ describe("trusted renderer", () => {
     }
 
     const view = render(first.element);
-    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+    fireEvent.click(screen.getByRole("button", { name: "cat-a" }));
 
     const updatedRequest: ComponentRenderRequest = {
       ...request,
@@ -144,16 +144,16 @@ describe("trusted renderer", () => {
 
     view.rerender(second.element);
     expect(screen.getByLabelText("Animal pairs updated")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+    fireEvent.click(screen.getByRole("button", { name: "cat-a" }));
 
     expect(emitted).toEqual([
       {
         name: "tool:reveal-card",
-        payload: { componentId: request.componentId }
+        payload: { componentId: request.componentId, cardId: "cat-a" }
       },
       {
         name: "tool:reveal-card",
-        payload: { componentId: request.componentId }
+        payload: { componentId: request.componentId, cardId: "cat-a" }
       }
     ]);
   });

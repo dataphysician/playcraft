@@ -459,35 +459,247 @@ function componentForManifest(manifest: ComponentManifest): TrustedReactComponen
   const displayName = manifest.displayName;
   return ({ props, assets, emit }: TrustedComponentRuntimeProps) => {
     const label = typeof props.title === "string" ? props.title : typeof props.message === "string" ? props.message : displayName;
+    const prompt = typeof props.prompt === "string" ? props.prompt : typeof props.hint === "string" ? props.hint : undefined;
+    const cards = stringArrayProp(props, "cards");
+    const pairs = stringArrayProp(props, "pairs");
+    const items = stringArrayProp(props, "items");
+    const bins = stringArrayProp(props, "bins");
+    const sequence = stringArrayProp(props, "sequence");
+    const path = stringArrayProp(props, "path");
+    const assetNodes = Object.entries(assets).map(([binding, asset]) =>
+      React.createElement("img", {
+        key: binding,
+        src: asset.uri,
+        alt: asset.altText,
+        "data-playcraft-asset": binding,
+        style: trustedComponentStyles.image
+      })
+    );
+
     return React.createElement(
       "section",
       {
         "data-playcraft-component": manifest.id,
-        "aria-label": label
+        "aria-label": label,
+        style: trustedComponentStyles.surface
       },
-      React.createElement("h2", null, label),
-      React.createElement("pre", { "data-playcraft-props": "true" }, JSON.stringify(props)),
-      Object.entries(assets).map(([binding, asset]) =>
-        React.createElement("img", {
-          key: binding,
-          src: asset.uri,
-          alt: asset.altText,
-          "data-playcraft-asset": binding
-        })
+      React.createElement(
+        "div",
+        { style: assetNodes.length > 0 ? trustedComponentStyles.header : trustedComponentStyles.headerWithoutAsset },
+        ...assetNodes,
+        React.createElement(
+          "div",
+          null,
+          React.createElement("h2", { style: trustedComponentStyles.title }, label),
+          prompt ? React.createElement("p", { style: trustedComponentStyles.prompt }, prompt) : null
+        )
       ),
-      manifest.emittedTools.length > 0
-        ? React.createElement(
-            "button",
-            {
-              type: "button",
-              onClick: () => emit(manifest.emittedTools[0].toolName, { componentId: manifest.id })
-            },
-            "Select"
-          )
-        : null
+      renderTrustedControls(manifest, { cards, pairs, items, bins, sequence, path }, emit)
     );
   };
 }
+
+function renderTrustedControls(
+  manifest: ComponentManifest,
+  props: {
+    cards: string[];
+    pairs: string[];
+    items: string[];
+    bins: string[];
+    sequence: string[];
+    path: string[];
+  },
+  emit: TrustedComponentRuntimeProps["emit"]
+): React.ReactElement | null {
+  if (props.cards.length > 0) {
+    return renderButtonGrid(
+      props.cards,
+      (cardId) => emitFirstTool(manifest, emit, { cardId }),
+      `${manifest.id}.cards`
+    );
+  }
+
+  if (props.pairs.length > 0) {
+    return renderButtonGrid(
+      props.pairs,
+      (itemId) => emitFirstTool(manifest, emit, { itemId }),
+      `${manifest.id}.pairs`
+    );
+  }
+
+  if (props.items.length > 0 && props.bins.length > 0) {
+    return React.createElement(
+      "div",
+      { style: trustedComponentStyles.grid },
+      ...props.items.flatMap((itemId) =>
+        props.bins.map((targetId) =>
+          React.createElement(
+            "button",
+            {
+              key: `${itemId}.${targetId}`,
+              type: "button",
+              onClick: () => emitFirstTool(manifest, emit, { itemId, targetId }),
+              style: trustedComponentStyles.button
+            },
+            `${itemId} -> ${targetId}`
+          )
+        )
+      )
+    );
+  }
+
+  if (props.items.length > 0) {
+    return renderButtonGrid(
+      props.items,
+      (itemId) => emitFirstTool(manifest, emit, { itemId }),
+      `${manifest.id}.items`
+    );
+  }
+
+  if (props.sequence.length > 0) {
+    return React.createElement(
+      "div",
+      { style: trustedComponentStyles.sequence },
+      React.createElement(
+        "div",
+        { style: trustedComponentStyles.steps },
+        ...props.sequence.map((step, index) =>
+          React.createElement("span", { key: `${step}.${index}`, style: trustedComponentStyles.step }, step)
+        )
+      ),
+      React.createElement(
+        "button",
+        {
+          type: "button",
+          onClick: () => emitFirstTool(manifest, emit, { sequence: props.sequence }),
+          style: trustedComponentStyles.button
+        },
+        "Submit sequence"
+      )
+    );
+  }
+
+  if (props.path.length > 0) {
+    return React.createElement(
+      "button",
+      {
+        type: "button",
+        onClick: () => emitFirstTool(manifest, emit, { itemId: "path", targetId: props.path.join(" ") }),
+        style: trustedComponentStyles.button
+      },
+      "Trace path"
+    );
+  }
+
+  return null;
+}
+
+function renderButtonGrid(items: string[], onSelect: (item: string) => void, keyPrefix: string): React.ReactElement {
+  return React.createElement(
+    "div",
+    { style: trustedComponentStyles.grid },
+    ...items.map((item) =>
+      React.createElement(
+        "button",
+        {
+          key: `${keyPrefix}.${item}`,
+          type: "button",
+          onClick: () => onSelect(item),
+          style: trustedComponentStyles.button
+        },
+        item
+      )
+    )
+  );
+}
+
+function stringArrayProp(props: Record<string, JsonValue>, key: string): string[] {
+  const value = props[key];
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((entry) => (typeof entry === "string" ? entry : JSON.stringify(entry)));
+}
+
+function emitFirstTool(
+  manifest: ComponentManifest,
+  emit: TrustedComponentRuntimeProps["emit"],
+  payload: Record<string, JsonValue>
+): void {
+  const tool = manifest.emittedTools[0];
+  if (!tool) {
+    return;
+  }
+
+  emit(tool.toolName, {
+    componentId: manifest.id,
+    ...payload
+  });
+}
+
+const trustedComponentStyles = {
+  surface: {
+    display: "grid",
+    gap: "1rem"
+  },
+  header: {
+    display: "grid",
+    gridTemplateColumns: "minmax(4rem, 8rem) minmax(0, 1fr)",
+    gap: "1rem",
+    alignItems: "center"
+  },
+  headerWithoutAsset: {
+    display: "grid",
+    gap: "0.5rem"
+  },
+  image: {
+    width: "100%",
+    aspectRatio: "1",
+    objectFit: "cover" as const,
+    borderRadius: "8px",
+    border: "1px solid #d4d4d8",
+    background: "#f4f4f5"
+  },
+  title: {
+    margin: 0,
+    fontSize: "1.25rem"
+  },
+  prompt: {
+    margin: "0.5rem 0 0",
+    color: "#52525b"
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 8rem), 1fr))",
+    gap: "0.5rem"
+  },
+  button: {
+    minHeight: "3rem",
+    borderRadius: "8px",
+    border: "1px solid #0f766e",
+    background: "#ecfdf5",
+    color: "#064e3b",
+    fontWeight: 700,
+    padding: "0.625rem",
+    overflowWrap: "anywhere" as const
+  },
+  sequence: {
+    display: "grid",
+    gap: "0.75rem"
+  },
+  steps: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    gap: "0.5rem"
+  },
+  step: {
+    borderRadius: "8px",
+    border: "1px solid #d4d4d8",
+    background: "#fafafa",
+    padding: "0.5rem 0.75rem"
+  }
+} satisfies Record<string, React.CSSProperties>;
 
 function request(id: string, label: string, capabilities: string[], seed: string): PlaycraftAssemblyRequest {
   return {

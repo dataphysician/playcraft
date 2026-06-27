@@ -1,6 +1,11 @@
 import React from "react";
 import type { GameAssemblyProfile } from "@playcraft/contracts";
-import { TrustedPreview, type TrustedPreviewInteraction } from "./trusted-preview.js";
+import {
+  TrustedPreview,
+  getTrustedPreviewComponents,
+  type TrustedPreviewComponentSummary,
+  type TrustedPreviewInteraction
+} from "./trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "./types.js";
 
 export interface StudioAppProps {
@@ -13,11 +18,33 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const [changeRequest, setChangeRequest] = React.useState("");
   const [session, setSession] = React.useState<StudioSessionSnapshot | undefined>(initialSession);
   const [selectedTimelineId, setSelectedTimelineId] = React.useState<string | undefined>(initialSession?.timeline[0]?.id);
+  const [selectedComponentKey, setSelectedComponentKey] = React.useState<string | undefined>();
   const [pending, setPending] = React.useState<"assemble" | "update" | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
   const activeProfile = session ? findActiveProfile(session) : undefined;
   const selectedEntry = session?.timeline.find((entry) => entry.id === selectedTimelineId) ?? session?.timeline[0];
+  const componentSummaries = React.useMemo(() => {
+    if (!activeProfile) {
+      return [];
+    }
+
+    try {
+      return getTrustedPreviewComponents(activeProfile);
+    } catch {
+      return [];
+    }
+  }, [activeProfile]);
+
+  React.useEffect(() => {
+    setSelectedComponentKey((current) => {
+      if (componentSummaries.some((component) => component.componentKey === current)) {
+        return current;
+      }
+
+      return componentSummaries[0]?.componentKey;
+    });
+  }, [componentSummaries]);
 
   async function handleAssemble(): Promise<void> {
     if (!idea.trim()) {
@@ -126,8 +153,19 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
       "section",
       { style: shellStyles.centerPanel },
       React.createElement("h2", null, activeProfile ? activeProfile.profileName : "Trusted preview"),
+      activeProfile && componentSummaries.length > 0
+        ? React.createElement(ComponentInventoryPanel, {
+            components: componentSummaries,
+            selectedComponentKey,
+            onSelect: setSelectedComponentKey
+          })
+        : null,
       activeProfile
-        ? React.createElement(TrustedPreview, { profile: activeProfile, onInteraction: handlePreviewInteraction })
+        ? React.createElement(TrustedPreview, {
+            profile: activeProfile,
+            selectedComponentKey,
+            onInteraction: handlePreviewInteraction
+          })
         : React.createElement("div", { role: "status", style: shellStyles.emptyState }, "Assemble a profile to open the trusted preview."),
       activeProfile ? React.createElement(ProfileSummaryPanel, { profile: activeProfile }) : null
     ),
@@ -185,69 +223,175 @@ function ProfileSummaryPanel({ profile }: { profile: GameAssemblyProfile }): Rea
   );
 }
 
+function ComponentInventoryPanel({
+  components,
+  selectedComponentKey,
+  onSelect
+}: {
+  components: TrustedPreviewComponentSummary[];
+  selectedComponentKey: string | undefined;
+  onSelect: (componentKey: string) => void;
+}): React.ReactElement {
+  return React.createElement(
+    "section",
+    { "aria-label": "Trusted React components", style: shellStyles.componentPanel },
+    React.createElement("h3", null, "Components"),
+    React.createElement(
+      "ol",
+      { style: shellStyles.componentList },
+      ...components.map((component) =>
+        React.createElement(
+          "li",
+          { key: component.componentKey },
+          React.createElement(
+            "button",
+            {
+              type: "button",
+              onClick: () => onSelect(component.componentKey),
+              style:
+                component.componentKey === selectedComponentKey
+                  ? shellStyles.componentButtonActive
+                  : shellStyles.componentButton
+            },
+            React.createElement("strong", { style: shellStyles.componentName }, component.componentId),
+            React.createElement("span", { style: shellStyles.componentMeta }, component.componentCapability),
+            React.createElement(
+              "span",
+              { style: shellStyles.componentToolLine },
+              component.emittedToolNames.length > 0 ? component.emittedToolNames.join(", ") : "display-only"
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
 const shellStyles = {
   main: {
     display: "grid",
-    gridTemplateColumns: "minmax(16rem, 22rem) minmax(24rem, 1fr) minmax(18rem, 24rem)",
-    gap: "1rem",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 22rem), 1fr))",
+    gap: 0,
     minHeight: "100vh",
-    padding: "1rem",
-    background: "#020617",
-    color: "#e2e8f0",
+    padding: 0,
+    background: "#f4f4f5",
+    color: "#18181b",
     fontFamily: "Inter, system-ui, sans-serif"
   },
   leftRail: {
     display: "grid",
     gap: "0.75rem",
-    alignContent: "start"
+    alignContent: "start",
+    padding: "1rem",
+    background: "#18202a",
+    color: "#f8fafc"
   },
   centerPanel: {
     display: "grid",
     gap: "1rem",
-    alignContent: "start"
+    alignContent: "start",
+    padding: "1rem"
   },
   rightRail: {
     display: "grid",
     gap: "0.75rem",
-    alignContent: "start"
+    alignContent: "start",
+    padding: "1rem",
+    borderLeft: "1px solid #d4d4d8",
+    background: "#fafafa",
+    color: "#18181b"
   },
   textarea: {
     width: "100%",
-    borderRadius: "0.75rem",
-    border: "1px solid #334155",
-    background: "#0f172a",
-    color: "#e2e8f0",
+    borderRadius: "8px",
+    border: "1px solid #a1a1aa",
+    background: "#ffffff",
+    color: "#18181b",
     padding: "0.75rem"
   },
   primaryButton: {
-    borderRadius: "999px",
+    borderRadius: "8px",
     border: 0,
     padding: "0.75rem 1rem",
-    background: "#38bdf8",
-    color: "#082f49",
+    background: "#0f766e",
+    color: "#ffffff",
     fontWeight: 700
   },
   secondaryButton: {
-    borderRadius: "999px",
-    border: "1px solid #38bdf8",
+    borderRadius: "8px",
+    border: "1px solid #d97706",
     padding: "0.75rem 1rem",
-    background: "transparent",
-    color: "#bae6fd",
+    background: "#fff7ed",
+    color: "#92400e",
     fontWeight: 700
   },
   emptyState: {
     minHeight: "10rem",
-    border: "1px dashed #334155",
-    borderRadius: "0.75rem",
+    border: "1px dashed #a1a1aa",
+    borderRadius: "8px",
     padding: "1rem",
     display: "grid",
-    placeItems: "center"
+    placeItems: "center",
+    background: "#ffffff"
   },
   summaryPanel: {
-    border: "1px solid #334155",
-    borderRadius: "0.75rem",
+    border: "1px solid #d4d4d8",
+    borderRadius: "8px",
     padding: "1rem",
-    background: "#0f172a"
+    background: "#ffffff"
+  },
+  componentPanel: {
+    border: "1px solid #d4d4d8",
+    borderRadius: "8px",
+    padding: "1rem",
+    background: "#ffffff"
+  },
+  componentList: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 13rem), 1fr))",
+    gap: "0.5rem",
+    listStyle: "none",
+    padding: 0,
+    margin: 0
+  },
+  componentButton: {
+    width: "100%",
+    minHeight: "6rem",
+    textAlign: "left" as const,
+    borderRadius: "8px",
+    border: "1px solid #d4d4d8",
+    background: "#fafafa",
+    color: "#18181b",
+    padding: "0.75rem",
+    display: "grid",
+    alignContent: "start",
+    gap: "0.35rem"
+  },
+  componentButtonActive: {
+    width: "100%",
+    minHeight: "6rem",
+    textAlign: "left" as const,
+    borderRadius: "8px",
+    border: "2px solid #0f766e",
+    background: "#ecfdf5",
+    color: "#064e3b",
+    padding: "0.6875rem",
+    display: "grid",
+    alignContent: "start",
+    gap: "0.35rem"
+  },
+  componentName: {
+    overflowWrap: "anywhere" as const
+  },
+  componentMeta: {
+    fontSize: "0.875rem",
+    color: "#52525b",
+    overflowWrap: "anywhere" as const
+  },
+  componentToolLine: {
+    fontSize: "0.8125rem",
+    color: "#0f766e",
+    overflowWrap: "anywhere" as const
   },
   timelineList: {
     display: "grid",
@@ -259,10 +403,10 @@ const shellStyles = {
   timelineButton: {
     width: "100%",
     textAlign: "left" as const,
-    borderRadius: "0.75rem",
-    border: "1px solid #334155",
-    background: "#0f172a",
-    color: "#e2e8f0",
+    borderRadius: "8px",
+    border: "1px solid #d4d4d8",
+    background: "#ffffff",
+    color: "#18181b",
     padding: "0.75rem",
     display: "grid",
     gap: "0.35rem"
@@ -270,10 +414,10 @@ const shellStyles = {
   timelineButtonActive: {
     width: "100%",
     textAlign: "left" as const,
-    borderRadius: "0.75rem",
-    border: "1px solid #38bdf8",
-    background: "#082f49",
-    color: "#e0f2fe",
+    borderRadius: "8px",
+    border: "2px solid #0f766e",
+    background: "#ecfdf5",
+    color: "#064e3b",
     padding: "0.75rem",
     display: "grid",
     gap: "0.35rem"
@@ -283,20 +427,20 @@ const shellStyles = {
     fontSize: "0.875rem"
   },
   detailPanel: {
-    border: "1px solid #334155",
-    borderRadius: "0.75rem",
+    border: "1px solid #d4d4d8",
+    borderRadius: "8px",
     padding: "1rem",
-    background: "#0f172a"
+    background: "#ffffff"
   },
   detailPre: {
     whiteSpace: "pre-wrap" as const,
     wordBreak: "break-word" as const
   },
   error: {
-    borderRadius: "0.75rem",
-    border: "1px solid #7f1d1d",
-    background: "#450a0a",
-    color: "#fecaca",
+    borderRadius: "8px",
+    border: "1px solid #b91c1c",
+    background: "#fef2f2",
+    color: "#7f1d1d",
     padding: "0.75rem"
   }
 } satisfies Record<string, React.CSSProperties>;

@@ -50,17 +50,23 @@ describe("studio UI", () => {
     await waitFor(() => expect(assembleFromIntent).toHaveBeenCalledWith({ idea: "Build a memory game for kids", sessionId: undefined }));
     expect(await screen.findByText(profileA.profileName)).toBeDefined();
     expect(screen.getByText("Validation: valid")).toBeDefined();
+    expect(screen.getByRole("button", { name: /component\.reveal-card-grid/u })).toBeDefined();
+    expect(screen.getByRole("button", { name: /component\.celebration-overlay/u })).toBeDefined();
 
-    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+    fireEvent.click(screen.getByRole("button", { name: "cat-a" }));
     expect((await screen.findAllByText((text) => text.startsWith("Preview interaction:"))).length).toBeGreaterThanOrEqual(1);
+
+    fireEvent.click(screen.getByRole("button", { name: /component\.celebration-overlay/u }));
+    expect(await screen.findByText("You found every pair.")).toBeDefined();
 
     fireEvent.change(screen.getByLabelText("Change request"), { target: { value: "Switch it to a sorting challenge" } });
     fireEvent.click(screen.getByRole("button", { name: "Request update" }));
 
     await waitFor(() => expect(requestChange).toHaveBeenCalledWith({ changeRequest: "Switch it to a sorting challenge", sessionId: "session.demo" }));
     expect(await screen.findByText(profileB.profileName)).toBeDefined();
+    expect(screen.getByRole("button", { name: /component\.sort-bins/u })).toBeDefined();
 
-    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+    fireEvent.click(await screen.findByRole("button", { name: "red circle" }));
     const interactions = await screen.findAllByText((text) => text.startsWith("Preview interaction:"));
     expect(interactions.length).toBeGreaterThanOrEqual(2);
   });
