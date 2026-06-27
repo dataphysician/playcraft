@@ -6,6 +6,8 @@
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "build": "tsc -b",
+    "build:studio": "pnpm --filter @playcraft/studio build",
+    "dev:studio": "pnpm --filter @playcraft/studio dev",
     "test": "vitest run"
   },
   "devDependencies": {
