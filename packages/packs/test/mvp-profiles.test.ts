@@ -37,4 +37,16 @@ describe("MVP profile pack", () => {
       expect(saved).toEqual(assembled);
     }
   });
+
+  it("assembles multiple MVP profiles through the same deterministic builder entrypoint", () => {
+    const planner = createDefaultPlanner();
+    const [profileA, profileB] = mvpAssemblyRequests.slice(0, 2).map((request) => planner.assemble(request));
+
+    expect(profileA.id).toBe("profile.memory-match.mvp");
+    expect(profileB.id).toBe("profile.sorting.mvp");
+    expect(profileA.replay.plannerId).toBe(planner.id);
+    expect(profileB.replay.plannerId).toBe(planner.id);
+    expect(profileA.assemblyRequestId).toBe("request.memory-match.mvp");
+    expect(profileB.assemblyRequestId).toBe("request.sorting.mvp");
+  });
 });

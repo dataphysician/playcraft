@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import {
   activity,
   createPlaycraftEnvelope,
@@ -76,5 +77,79 @@ describe("AG-UI-compatible events", () => {
     });
 
     expect(() => validatePlaycraftEnvelope(invalid)).toThrow(/invalid Playcraft custom payload/u);
+  });
+
+  it("validates replay and preview custom events alongside standard AG-UI events", () => {
+    const profile = assembleMvpProfiles()[1];
+    const replayReady = playcraftCustomEvent(
+      createPlaycraftEnvelope({
+        eventId: "event.agui.replay",
+        runId: "run.agui",
+        profileId: profile.id,
+        payloadType: "replay.ready",
+        payload: {
+          profileId: profile.id,
+          replayable: true
+        },
+        provenance: {
+          role: "planner",
+          sourceId: "planner.deterministic.mvp"
+        }
+      })
+    );
+    const previewUpdated = playcraftCustomEvent(
+      createPlaycraftEnvelope({
+        eventId: "event.agui.preview",
+        runId: "run.agui",
+        profileId: profile.id,
+        payloadType: "preview.updated",
+        payload: {
+          profileId: profile.id,
+          state: "interactive",
+          interactionCount: 2
+        },
+        provenance: {
+          role: "ui",
+          sourceId: "studio.preview"
+        }
+      }),
+      {
+        extraPayloadSchemas: {
+          "preview.updated": z
+            .object({
+              profileId: z.string().min(1),
+              state: z.enum(["interactive", "updated"]),
+              interactionCount: z.number().int().nonnegative()
+            })
+            .strict()
+        }
+      }
+    );
+
+    const stream = [
+      runStarted("run.agui"),
+      stateSnapshot("run.agui", { profileId: profile.id, mode: "preview" }),
+      stateDelta("run.agui", { interactionCount: 1 }),
+      activity("run.agui", "preview", "progress", "Preview synced"),
+      toolCall("run.agui", "tool:select-item", { itemId: "red circle" }),
+      toolResult("run.agui", "tool:select-item", { accepted: true }),
+      replayReady,
+      previewUpdated,
+      runFinished("run.agui")
+    ];
+
+    expect(stream.map((event) => event.type)).toEqual([
+      "RunStarted",
+      "StateSnapshot",
+      "StateDelta",
+      "Activity",
+      "ToolCall",
+      "ToolResult",
+      "Custom",
+      "Custom",
+      "RunFinished"
+    ]);
+    expect(replayReady.value.payloadType).toBe("replay.ready");
+    expect(previewUpdated.value.payloadType).toBe("preview.updated");
   });
 });

@@ -1,3 +1,4 @@
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
@@ -110,5 +111,50 @@ describe("trusted renderer", () => {
     if (!result.ok) {
       expect(result.error.code).toBe("invalid-request");
     }
+  });
+
+  it("supports trusted interactions before and after preview updates", () => {
+    const registry = registerPlaycraftTrustedComponents();
+    const { request, assets } = firstRenderRequest();
+    const emitted: Array<{ name: string; payload: unknown }> = [];
+    const first = registry.render(request, assets, (name, payload) => emitted.push({ name, payload }));
+
+    expect(first.ok).toBe(true);
+    if (!first.ok) {
+      return;
+    }
+
+    const view = render(first.element);
+    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+
+    const updatedRequest: ComponentRenderRequest = {
+      ...request,
+      id: `${request.id}.updated`,
+      props: {
+        ...request.props,
+        title: "Animal pairs updated"
+      }
+    };
+    const second = registry.render(updatedRequest, assets, (name, payload) => emitted.push({ name, payload }));
+
+    expect(second.ok).toBe(true);
+    if (!second.ok) {
+      return;
+    }
+
+    view.rerender(second.element);
+    expect(screen.getByLabelText("Animal pairs updated")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+
+    expect(emitted).toEqual([
+      {
+        name: "tool:reveal-card",
+        payload: { componentId: request.componentId }
+      },
+      {
+        name: "tool:reveal-card",
+        payload: { componentId: request.componentId }
+      }
+    ]);
   });
 });
