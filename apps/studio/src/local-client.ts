@@ -149,6 +149,7 @@ function assetEditForText(text: string): BuilderAssetEdit | undefined {
   const theme =
     matchTheme(normalized, /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
     matchTheme(normalized, /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
+    matchTheme(normalized, /\b(?:memory|match|matching|sort|sorting|sequence|repeat)?\s*(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
     matchTheme(normalized, /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u);
 
   if (!theme) {
@@ -171,7 +172,11 @@ function matchTheme(text: string, pattern: RegExp): string | undefined {
   }
 
   const candidate = cleanAssetTheme(match[1]);
-  return candidate.length > 0 ? candidate : undefined;
+  return candidate.length > 0 && !isProfileOnlyTheme(candidate) ? candidate : undefined;
+}
+
+function isProfileOnlyTheme(value: string): boolean {
+  return /^(?:memory|match|matching|sort|sorting|sequence|repeat)$/u.test(value);
 }
 
 function cleanAssetTheme(value: string): string {

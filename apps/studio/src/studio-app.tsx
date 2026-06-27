@@ -89,7 +89,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
         {
           id: `message.studio.${current.length + 2}`,
           speaker: "Studio",
-          text: `${mode === "generate" ? "Generated" : "Updated"} ${findActiveProfile(nextSession)?.profileName ?? "game"}.`
+          text: chatSummaryForSession(mode, nextSession)
         }
       ]);
     } catch (cause) {
@@ -177,6 +177,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
         : React.createElement(DeveloperPanel, {
             activeProfile,
             componentSummaries,
+            messages,
             selectedComponentKey,
             selectedEntry,
             session,
@@ -188,7 +189,6 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     React.createElement(CommandBar, {
       commandText,
       hasSession: Boolean(session?.sessionId),
-      messages,
       pending,
       error,
       onChange: setCommandText,
@@ -201,6 +201,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
 function DeveloperPanel({
   activeProfile,
   componentSummaries,
+  messages,
   selectedComponentKey,
   selectedEntry,
   session,
@@ -210,6 +211,7 @@ function DeveloperPanel({
 }: {
   activeProfile: GameAssemblyProfile | undefined;
   componentSummaries: TrustedPreviewComponentSummary[];
+  messages: ChatMessage[];
   selectedComponentKey: string | undefined;
   selectedEntry: StudioTimelineEntry | undefined;
   session: StudioSessionSnapshot | undefined;
@@ -224,6 +226,7 @@ function DeveloperPanel({
       "section",
       { style: shellStyles.centerPanel },
       React.createElement("h2", null, activeProfile ? activeProfile.profileName : "Developer"),
+      messages.length > 0 ? React.createElement(ChatHistoryPanel, { messages }) : null,
       activeProfile && componentSummaries.length > 0
         ? React.createElement(ComponentInventoryPanel, {
             components: componentSummaries,
@@ -251,7 +254,6 @@ function DeveloperPanel({
 function CommandBar({
   commandText,
   hasSession,
-  messages,
   pending,
   error,
   onChange,
@@ -260,7 +262,6 @@ function CommandBar({
 }: {
   commandText: string;
   hasSession: boolean;
-  messages: ChatMessage[];
   pending: PendingCommand | null;
   error: string | null;
   onChange: (value: string) => void;
@@ -269,25 +270,10 @@ function CommandBar({
 }): React.ReactElement {
   const buttonLabel = hasSession ? "Update Game" : "Generate Game";
   const [tipsOpen, setTipsOpen] = React.useState(false);
-  const visibleMessages = messages.slice(-4);
 
   return React.createElement(
     "footer",
     { style: shellStyles.commandBar },
-    visibleMessages.length > 0
-      ? React.createElement(
-          "ol",
-          { "aria-label": "Chat history", style: shellStyles.messageLog },
-          ...visibleMessages.map((message) =>
-            React.createElement(
-              "li",
-              { key: message.id, style: shellStyles.message },
-              React.createElement("strong", null, message.speaker),
-              React.createElement("span", null, message.text)
-            )
-          )
-        )
-      : null,
     React.createElement(
       "form",
       { onSubmit: (event: React.FormEvent<HTMLFormElement>) => onSubmit(event), style: shellStyles.commandForm },
@@ -357,6 +343,26 @@ function CommandBar({
   );
 }
 
+function ChatHistoryPanel({ messages }: { messages: ChatMessage[] }): React.ReactElement {
+  return React.createElement(
+    "section",
+    { "aria-label": "Developer chat log", style: shellStyles.chatPanel },
+    React.createElement("h3", null, "Chat log"),
+    React.createElement(
+      "ol",
+      { "aria-label": "Chat history", style: shellStyles.messageLog },
+      ...messages.slice(-8).map((message) =>
+        React.createElement(
+          "li",
+          { key: message.id, style: shellStyles.message },
+          React.createElement("strong", null, message.speaker),
+          React.createElement("span", null, message.text)
+        )
+      )
+    )
+  );
+}
+
 function TimelinePanel({
   session,
   selectedEntry,
@@ -404,6 +410,26 @@ function TimelinePanel({
 
 function findActiveProfile(session: StudioSessionSnapshot): GameAssemblyProfile | undefined {
   return session.profiles.find((profile) => profile.id === session.activeProfileId) ?? session.profiles.at(-1);
+}
+
+function chatSummaryForSession(mode: PendingCommand, session: StudioSessionSnapshot): string {
+  const profile = findActiveProfile(session);
+  const profileName = profile?.profileName ?? "game";
+  const assetTheme = profile ? assetThemeForProfile(profile) : undefined;
+  const action = mode === "generate" ? "Generated" : "Updated";
+  return `${action} ${profileName}${assetTheme ? ` with ${assetTheme} assets` : ""}.`;
+}
+
+function assetThemeForProfile(profile: GameAssemblyProfile): string | undefined {
+  const prompt = profile.assetRequests[0]?.prompt;
+  if (!prompt) {
+    return undefined;
+  }
+
+  const match = /^child-safe\s+(.+?)\s+(?:memory card illustrations|sorting game illustrations|sequence game button illustrations|game illustrations)\b/u.exec(
+    prompt
+  );
+  return match?.[1];
 }
 
 function ProfileSummaryPanel({ profile }: { profile: GameAssemblyProfile }): React.ReactElement {
@@ -557,6 +583,12 @@ const shellStyles = {
     gap: "0.5rem",
     alignItems: "baseline",
     fontSize: "0.9rem"
+  },
+  chatPanel: {
+    border: "1px solid #d4d4d8",
+    borderRadius: "8px",
+    padding: "1rem",
+    background: "#ffffff"
   },
   commandForm: {
     display: "flex",

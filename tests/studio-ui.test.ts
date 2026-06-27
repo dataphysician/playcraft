@@ -44,6 +44,7 @@ describe("studio UI", () => {
 
     expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
     expect(screen.getByRole("button", { name: "Update Game" })).toBeDefined();
+    expect(screen.queryByLabelText("Chat history")).toBeNull();
     const appRoot = view.container.querySelector("main");
     expect(appRoot?.getAttribute("style")).toContain("height: 100vh");
     expect(appRoot?.getAttribute("style")).toContain("overflow: hidden");
@@ -112,12 +113,18 @@ describe("studio UI", () => {
     expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
     expect(screen.getByRole("button", { name: "dinosaur-1-b" })).toBeDefined();
 
-    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Memory game with toys" } });
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Change the memory game to toys" } });
     fireEvent.click(screen.getByRole("button", { name: "Update Game" }));
 
     expect(await screen.findByRole("button", { name: "toy-1-a" })).toBeDefined();
     expect(screen.getByRole("button", { name: "toy-1-b" })).toBeDefined();
     expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
+    expect(screen.queryByLabelText("Chat history")).toBeNull();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+    expect(await screen.findByLabelText("Chat history")).toBeDefined();
+    expect(screen.getByText("Generated Memory Match MVP with dinosaurs assets.")).toBeDefined();
+    expect(screen.getByText("Updated Memory Match MVP with toys assets.")).toBeDefined();
   });
 
   it("plays the sorting profile with bin validation", async () => {
