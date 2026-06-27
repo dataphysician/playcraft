@@ -28,6 +28,13 @@ interface MemoryCard {
   pairKey: string;
 }
 
+interface MemoryPairVisual {
+  background: string;
+  border: string;
+  foreground: string;
+  accent: string;
+}
+
 type SequencePhase = "watch" | "play" | "complete";
 type BinFeedback = "success" | "failure";
 
@@ -156,6 +163,7 @@ function MemoryGame({
 }): React.ReactElement {
   const sourceCards = stringArrayProp(component.props, "cards");
   const deck = React.useMemo(() => shuffleMemoryCards(sourceCards, profile.id), [sourceCards.join("|"), profile.id]);
+  const pairVisuals = React.useMemo(() => createMemoryPairVisuals(sourceCards), [sourceCards.join("|")]);
   const [revealed, setRevealed] = React.useState<string[]>([]);
   const [matched, setMatched] = React.useState<Set<string>>(() => new Set());
   const [moves, setMoves] = React.useState(0);
@@ -236,6 +244,7 @@ function MemoryGame({
       { style: liveStyles.memoryBoard },
       ...deck.map((card, index) => {
         const cardReplacement = replacements.get(`card:${card.id}`) ?? replacements.get(card.id);
+        const pairVisual = pairVisuals.get(card.pairKey) ?? memoryPairPalette[0];
         const shown = revealed.includes(card.id) || matched.has(card.pairKey);
         return React.createElement(
           "button",
@@ -246,13 +255,14 @@ function MemoryGame({
             "aria-label": card.id,
             style: {
               ...liveStyles.memoryCard,
-              ...(shown ? memoryCardFaceStyle(card.id) : liveStyles.memoryCardHidden),
+              ...(shown ? memoryCardFaceStyle(pairVisual) : liveStyles.memoryCardHidden),
               ...(matched.has(card.pairKey) ? liveStyles.memoryCardMatched : {})
             }
           },
           shown
             ? React.createElement(CardFace, {
                 cardId: card.id,
+                pairVisual,
                 replacement: cardReplacement ?? componentArt
               })
             : React.createElement("span", { style: liveStyles.cardBackMark }, String(index + 1))
@@ -811,11 +821,20 @@ function SequenceGame({
   );
 }
 
-function CardFace({ cardId, replacement }: { cardId: string; replacement?: AssetReplacement }): React.ReactElement {
+function CardFace({
+  cardId,
+  pairVisual,
+  replacement
+}: {
+  cardId: string;
+  pairVisual: MemoryPairVisual;
+  replacement?: AssetReplacement;
+}): React.ReactElement {
   if (replacement && isRenderableUri(replacement.uri)) {
     return React.createElement(
       "span",
       { style: liveStyles.cardImageWrap },
+      React.createElement("span", { style: cardPairBadgeStyle(pairVisual) }, displayCardGlyph(cardId)),
       React.createElement("img", { src: replacement.uri, alt: replacement.altText ?? cardId, style: liveStyles.cardImage }),
       React.createElement("strong", { style: liveStyles.cardLabel }, displayCardLabel(cardId))
     );
@@ -824,7 +843,7 @@ function CardFace({ cardId, replacement }: { cardId: string; replacement?: Asset
   return React.createElement(
     "span",
     { style: liveStyles.generatedFace },
-    React.createElement("span", { style: liveStyles.generatedGlyph }, displayInitial(cardId)),
+    React.createElement("span", { style: generatedGlyphStyle(pairVisual) }, displayCardGlyph(cardId)),
     React.createElement("strong", { style: liveStyles.cardLabel }, displayCardLabel(cardId))
   );
 }
@@ -945,6 +964,15 @@ function pairKeyFor(cardId: string): string {
   return cardId.replace(/-[ab]$/u, "");
 }
 
+function createMemoryPairVisuals(cards: string[]): Map<string, MemoryPairVisual> {
+  return new Map(
+    uniqueStrings(cards.map((card) => pairKeyFor(card))).map((pairKey, index) => [
+      pairKey,
+      memoryPairPalette[index % memoryPairPalette.length]
+    ])
+  );
+}
+
 function resolveComponentAsset(
   profile: GameAssemblyProfile,
   component: ComponentBinding,
@@ -979,21 +1007,40 @@ function isRenderableUri(uri: string): boolean {
   return /^(?:https?:|data:|blob:|\/|\.\/|\.\.\/)/u.test(uri);
 }
 
-function memoryCardFaceStyle(cardId: string): React.CSSProperties {
-  const palette = [
-    ["#dcfce7", "#166534"],
-    ["#fef3c7", "#92400e"],
-    ["#fee2e2", "#991b1b"],
-    ["#e0f2fe", "#075985"],
-    ["#ede9fe", "#5b21b6"],
-    ["#fce7f3", "#9d174d"]
-  ];
-  const selected = palette[hashString(cardId) % palette.length];
+const memoryPairPalette: MemoryPairVisual[] = [
+  { background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d", accent: "#fecaca" },
+  { background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a", accent: "#bfdbfe" },
+  { background: "#dcfce7", border: "#16a34a", foreground: "#14532d", accent: "#bbf7d0" },
+  { background: "#fef3c7", border: "#d97706", foreground: "#713f12", accent: "#fde68a" },
+  { background: "#ede9fe", border: "#7c3aed", foreground: "#4c1d95", accent: "#ddd6fe" },
+  { background: "#fce7f3", border: "#db2777", foreground: "#831843", accent: "#fbcfe8" },
+  { background: "#ccfbf1", border: "#0d9488", foreground: "#134e4a", accent: "#99f6e4" },
+  { background: "#ffedd5", border: "#f97316", foreground: "#7c2d12", accent: "#fed7aa" }
+];
 
+function memoryCardFaceStyle(visual: MemoryPairVisual): React.CSSProperties {
   return {
-    background: selected[0],
-    color: selected[1],
-    borderColor: selected[1]
+    background: visual.background,
+    color: visual.foreground,
+    borderColor: visual.border
+  };
+}
+
+function generatedGlyphStyle(visual: MemoryPairVisual): React.CSSProperties {
+  return {
+    ...liveStyles.generatedGlyph,
+    background: visual.accent,
+    color: visual.foreground,
+    borderColor: visual.border
+  };
+}
+
+function cardPairBadgeStyle(visual: MemoryPairVisual): React.CSSProperties {
+  return {
+    ...liveStyles.cardPairBadge,
+    background: visual.accent,
+    color: visual.foreground,
+    borderColor: visual.border
   };
 }
 
@@ -1012,6 +1059,13 @@ function displayCardLabel(cardId: string): string {
 
 function displayInitial(cardId: string): string {
   return displayCardLabel(cardId).charAt(0).toUpperCase();
+}
+
+function displayCardGlyph(cardId: string): string {
+  const label = displayCardLabel(cardId);
+  const firstLetter = label.match(/[a-z]/iu)?.[0]?.toUpperCase() ?? "?";
+  const number = label.match(/\b\d+\b/u)?.[0] ?? "";
+  return `${firstLetter}${number}`.slice(0, 3);
 }
 
 function uniqueStrings(values: string[]): string[] {
@@ -1346,9 +1400,22 @@ const liveStyles = {
     placeItems: "center",
     width: "3.5rem",
     height: "3.5rem",
+    border: "2px solid #cbd5e1",
     borderRadius: "8px",
     background: "rgba(255, 255, 255, 0.76)",
     fontSize: "2rem",
+    fontWeight: 900
+  },
+  cardPairBadge: {
+    display: "inline-grid",
+    placeItems: "center",
+    minWidth: "2rem",
+    height: "2rem",
+    boxSizing: "border-box" as const,
+    border: "2px solid #cbd5e1",
+    borderRadius: "8px",
+    padding: "0 0.35rem",
+    fontSize: "0.9rem",
     fontWeight: 900
   },
   cardImageWrap: {

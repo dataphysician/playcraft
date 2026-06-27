@@ -133,10 +133,26 @@ describe("studio UI", () => {
     fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Change the memory game to toys" } });
     fireEvent.click(screen.getByRole("button", { name: "Update Game" }));
 
-    expect(await screen.findByRole("button", { name: "toy-1-a" })).toBeDefined();
-    expect(screen.getByRole("button", { name: "toy-1-b" })).toBeDefined();
+    const toy1A = await screen.findByRole("button", { name: "toy-1-a" });
+    const toy1B = screen.getByRole("button", { name: "toy-1-b" });
+    const toy2A = screen.getByRole("button", { name: "toy-2-a" });
+    const toy2B = screen.getByRole("button", { name: "toy-2-b" });
+    expect(toy1A).toBeDefined();
+    expect(toy1B).toBeDefined();
     expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
     expect(screen.queryByLabelText("Chat history")).toBeNull();
+
+    fireEvent.click(toy1A);
+    fireEvent.click(toy1B);
+    fireEvent.click(toy2A);
+    fireEvent.click(toy2B);
+    await waitFor(() => expect(toy1A.style.background).toBe(toy1B.style.background));
+    expect(toy1A.style.borderColor).toBe(toy1B.style.borderColor);
+    expect(toy2A.style.background).toBe(toy2B.style.background);
+    expect(toy2A.style.borderColor).toBe(toy2B.style.borderColor);
+    expect(toy1A.style.background).not.toBe(toy2A.style.background);
+    expect(toy1A.textContent).toContain("T1");
+    expect(toy2A.textContent).toContain("T2");
 
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
     expect(await screen.findByLabelText("Chat history")).toBeDefined();
