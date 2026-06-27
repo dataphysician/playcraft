@@ -563,7 +563,8 @@ const liveStyles = {
     padding: "1rem"
   },
   liveSurface: {
-    minHeight: "calc(100vh - 12rem)",
+    minHeight: "100%",
+    boxSizing: "border-box" as const,
     display: "grid",
     alignContent: "start",
     gap: "1rem",

@@ -420,9 +420,11 @@ function ComponentInventoryPanel({
 
 const shellStyles = {
   app: {
-    minHeight: "100vh",
+    height: "100vh",
+    maxHeight: "100vh",
     display: "grid",
     gridTemplateRows: "auto minmax(0, 1fr) auto",
+    overflow: "hidden",
     background: "#f4f4f5",
     color: "#18181b",
     fontFamily: "Inter, system-ui, sans-serif"
@@ -464,7 +466,8 @@ const shellStyles = {
   content: {
     minHeight: 0,
     overflow: "auto",
-    padding: "1rem"
+    padding: "1rem",
+    boxSizing: "border-box" as const
   },
   developerGrid: {
     display: "grid",
@@ -488,6 +491,7 @@ const shellStyles = {
   commandBar: {
     display: "grid",
     gap: "0.5rem",
+    minHeight: 0,
     borderTop: "1px solid #d4d4d8",
     background: "#ffffff",
     padding: "0.75rem 1rem",

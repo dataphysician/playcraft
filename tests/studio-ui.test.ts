@@ -23,6 +23,19 @@ function timelineEntry(id: string, title: string, kind: StudioTimelineEntry["kin
 }
 
 describe("studio UI", () => {
+  it("keeps the command bar in the viewport after game generation", async () => {
+    const view = render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Memory game with dinosaurs" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+
+    expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Update Game" })).toBeDefined();
+    const appRoot = view.container.querySelector("main");
+    expect(appRoot?.getAttribute("style")).toContain("height: 100vh");
+    expect(appRoot?.getAttribute("style")).toContain("overflow: hidden");
+  });
+
   it("assembles a profile, shows trusted preview metadata, updates it, and records preview interactions", async () => {
     const assembleFromIntent = vi.fn<StudioClient["assembleFromIntent"]>().mockResolvedValue({
       sessionId: "session.demo",
