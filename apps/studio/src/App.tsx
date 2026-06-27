@@ -1,10 +1,10 @@
 import React from "react";
 
+import { createLocalStudioClient } from "./local-client.js";
+import { StudioApp } from "./studio-app.js";
+
 export function App(): React.JSX.Element {
-  return (
-    <main>
-      <h1>Playcraft Studio</h1>
-      <p>Workspace scaffold for the game-builder studio app.</p>
-    </main>
-  );
+  const client = React.useMemo(() => createLocalStudioClient(), []);
+
+  return <StudioApp client={client} />;
 }

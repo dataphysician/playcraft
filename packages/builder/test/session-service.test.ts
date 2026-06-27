@@ -26,19 +26,28 @@ describe("builder session service", () => {
     expect(outputs[1].result.profile?.id).toBe("profile.sorting.mvp");
   });
 
-  it("emits validated lifecycle, state, activity, custom, replay, and preview events for builds", () => {
+  it("emits validated lifecycle, state, activity, tool, custom, replay, and preview events for builds", () => {
     const service = new PlaycraftBuilderSessionService();
     const output = service.execute(command({ preset: "profile-a" }));
     const types = output.events.map((event) => event.type);
     const customEvents = output.events.filter((event) => event.type === "Custom");
     const payloadTypes = customEvents.map((event) => (event.value as { payloadType: string }).payloadType);
 
-    expect(types).toEqual(expect.arrayContaining(["RunStarted", "StepStarted", "StateSnapshot", "Activity", "Custom", "StepFinished", "RunFinished"]));
+    expect(types).toEqual(expect.arrayContaining(["RunStarted", "StepStarted", "StateSnapshot", "Activity", "ToolCall", "ToolResult", "Custom", "StepFinished", "RunFinished"]));
     expect(payloadTypes).toEqual(expect.arrayContaining(["profile.proposed", "profile.validated", "replay.ready", "preview.rendered"]));
 
     const previewEvent = customEvents.find((event) => (event.value as { payloadType: string }).payloadType === "preview.rendered");
     expect(previewEvent).toBeDefined();
     expect(() => BuilderPreviewPayloadSchema.parse((previewEvent?.value as { payload: unknown }).payload)).not.toThrow();
+  });
+
+  it("emits a state delta for profile updates", () => {
+    const service = new PlaycraftBuilderSessionService();
+    service.execute(command({ preset: "profile-a" }));
+    const output = service.execute(command({ commandName: "update-profile", preset: "profile-b" }));
+
+    expect(output.events.map((event) => event.type)).toEqual(expect.arrayContaining(["RunStarted", "StateDelta", "ToolCall", "ToolResult", "Custom", "RunFinished"]));
+    expect(output.result.profile?.id).toBe("profile.sorting.mvp");
   });
 
   it("supports real trusted preview interactions before and after an update", () => {

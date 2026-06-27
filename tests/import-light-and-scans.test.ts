@@ -31,6 +31,9 @@ describe("import-light boundaries and source scans", () => {
       readSource("packages/core/src/index.ts"),
       readSource("packages/assets/src/index.ts"),
       readSource("packages/builder/src/index.ts"),
+      readSource("apps/studio/src/local-client.ts"),
+      readSource("apps/studio/src/studio-app.tsx"),
+      readSource("apps/studio/src/trusted-preview.tsx"),
       readSource("apps/studio/src/App.tsx"),
       readSource("apps/studio/src/main.tsx")
     ].join("\n");
@@ -43,6 +46,9 @@ describe("import-light boundaries and source scans", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),
       readSource("packages/builder/src/index.ts"),
+      readSource("apps/studio/src/local-client.ts"),
+      readSource("apps/studio/src/studio-app.tsx"),
+      readSource("apps/studio/src/trusted-preview.tsx"),
       readSource("apps/studio/src/App.tsx"),
       readSource("apps/studio/src/main.tsx")
     ].join("\n");
@@ -55,6 +61,9 @@ describe("import-light boundaries and source scans", () => {
       readSource("packages/builder/package.json"),
       readSource("packages/builder/src/index.ts"),
       readSource("apps/studio/package.json"),
+      readSource("apps/studio/src/local-client.ts"),
+      readSource("apps/studio/src/studio-app.tsx"),
+      readSource("apps/studio/src/trusted-preview.tsx"),
       readSource("apps/studio/src/App.tsx"),
       readSource("apps/studio/src/main.tsx")
     ].join("\n");

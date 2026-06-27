@@ -63,10 +63,11 @@ describe("builder/studio workspace scaffold", () => {
     expect(studioPackage.devDependencies).toHaveProperty("@vitejs/plugin-react");
   });
 
-  it("renders the studio scaffold entry point", () => {
+  it("renders the studio builder entry point", () => {
     render(<App />);
 
     expect(screen.getByRole("heading", { name: "Playcraft Studio" })).toBeTruthy();
-    expect(screen.getByText(/workspace scaffold for the game-builder studio app/i)).toBeTruthy();
+    expect(screen.getByLabelText("Game idea")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Assemble profile" })).toBeTruthy();
   });
 });

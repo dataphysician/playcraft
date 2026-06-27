@@ -141,11 +141,19 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       validation: profile.validation
     });
 
+    const toolName = command.commandName === "update-profile" ? "tool:update-profile" : "tool:assemble-profile";
+    const stateEvent =
+      command.commandName === "update-profile"
+        ? stateDelta(runId, { sessionId: session.sessionId, preset, profileId: profile.id }, 3)
+        : stateSnapshot(runId, { sessionId: session.sessionId, preset, profileId: profile.id }, 3);
+
     const events: BuilderAgUiEvent[] = [
       runStarted(runId, 0),
       stepStarted(runId, `${command.commandName}.plan`, `${command.commandName} planner`, 1),
       activity(runId, "builder.profile", "started", `assembling ${preset}`, 2),
-      stateSnapshot(runId, { sessionId: session.sessionId, preset, profileId: profile.id }, 3),
+      stateEvent,
+      toolCall(runId, toolName, { requestId: request.id, preset }, 4),
+      toolResult(runId, toolName, { profileId: profile.id, valid: result.validation?.valid ?? false }, 5),
       playcraftCustomEvent(
         createPlaycraftEnvelope({
           eventId: `event.${profile.id}.proposed`,
@@ -155,7 +163,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
           payload: profile,
           provenance: { role: "planner", sourceId: "builder-session-service" }
         }),
-        { sequence: 4 }
+        { sequence: 6 }
       ),
       playcraftCustomEvent(
         createPlaycraftEnvelope({
@@ -166,7 +174,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
           payload: profile,
           provenance: { role: "validator", sourceId: "builder-session-service" }
         }),
-        { sequence: 5 }
+        { sequence: 7 }
       ),
       playcraftCustomEvent(
         createPlaycraftEnvelope({
@@ -177,7 +185,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
           payload: { profileId: profile.id, replayable: result.validation?.valid ?? false },
           provenance: { role: "validator", sourceId: "builder-session-service" }
         }),
-        { sequence: 6 }
+        { sequence: 8 }
       ),
       playcraftCustomEvent(
         createPlaycraftEnvelope({
@@ -192,11 +200,11 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
           },
           provenance: { role: "renderer", sourceId: "builder-session-service" }
         }),
-        { extraPayloadSchemas: { "preview.rendered": BuilderPreviewPayloadSchema }, sequence: 7 }
+        { extraPayloadSchemas: { "preview.rendered": BuilderPreviewPayloadSchema }, sequence: 9 }
       ),
-      activity(runId, "builder.profile", "finished", `assembled ${profile.profileName}`, 8),
-      stepFinished(runId, `${command.commandName}.plan`, 9),
-      runFinished(runId, 10)
+      activity(runId, "builder.profile", "finished", `assembled ${profile.profileName}`, 10),
+      stepFinished(runId, `${command.commandName}.plan`, 11),
+      runFinished(runId, 12)
     ];
 
     return { result, events };
