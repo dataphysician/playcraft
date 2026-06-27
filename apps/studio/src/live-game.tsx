@@ -1,5 +1,6 @@
 import React from "react";
 import type { ComponentBinding, GameAssemblyProfile, GeneratedAssetRecord, JsonValue } from "@playcraft/contracts";
+import emptyGameHeroUrl from "./assets/empty-game-hero.png";
 
 export interface LiveGameInteraction {
   eventName: string;
@@ -87,11 +88,19 @@ export function LiveGame({ profile, assetReplacements, onInteraction }: LiveGame
     React.createElement("style", null, liveMotionCss),
     profile
       ? React.createElement(LiveGameForProfile, { profile, assetReplacements, onInteraction })
-      : React.createElement(
-          "section",
-          { role: "status", style: liveStyles.emptyState },
-          "Generate a game to play it here."
-        )
+      : React.createElement(EmptyGameHero)
+  );
+}
+
+function EmptyGameHero(): React.ReactElement {
+  return React.createElement(
+    "section",
+    { "aria-label": "Live app preview placeholder", style: liveStyles.emptyState },
+    React.createElement("img", {
+      alt: "Children playing a colorful game together",
+      src: emptyGameHeroUrl,
+      style: liveStyles.emptyHeroImage
+    })
   );
 }
 
@@ -1170,11 +1179,19 @@ const liveStyles = {
     minHeight: "24rem",
     display: "grid",
     placeItems: "center",
-    border: "1px dashed #a1a1aa",
+    border: "1px solid #cbd5e1",
     borderRadius: "8px",
     background: "#ffffff",
-    color: "#52525b",
-    padding: "1rem"
+    padding: 0,
+    overflow: "hidden",
+    boxShadow: "0 20px 60px rgba(24, 24, 27, 0.12)"
+  },
+  emptyHeroImage: {
+    display: "block",
+    width: "100%",
+    height: "100%",
+    minHeight: "24rem",
+    objectFit: "cover" as const
   },
   liveSurface: {
     minHeight: "100%",

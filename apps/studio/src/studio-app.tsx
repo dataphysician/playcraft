@@ -61,7 +61,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     event?.preventDefault();
     const text = commandText.trim();
     if (!text) {
-      setError(session ? "Enter a game update." : "Enter a game request.");
+      setError(session ? "Enter an update." : "Enter a request.");
       return;
     }
 
@@ -280,7 +280,7 @@ function CommandBar({
       React.createElement(
         "span",
         { style: shellStyles.commandLabelGroup },
-        React.createElement("label", { htmlFor: "studio-command", style: shellStyles.commandLabel }, "Game request"),
+        React.createElement("label", { htmlFor: "studio-command", style: shellStyles.commandLabel }, "Request"),
         React.createElement(
           "span",
           {
@@ -294,7 +294,7 @@ function CommandBar({
             "button",
             {
               type: "button",
-              "aria-label": "Game request tips",
+              "aria-label": "Request tips",
               "aria-describedby": tipsOpen ? "game-request-tips" : undefined,
               "aria-expanded": tipsOpen,
               onClick: () => setTipsOpen(true),
