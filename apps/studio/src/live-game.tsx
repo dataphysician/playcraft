@@ -27,6 +27,8 @@ interface MemoryCard {
   pairKey: string;
 }
 
+type SequencePhase = "watch" | "play" | "complete";
+
 export function createProfileAssetReplacementLookup(
   profile: GameAssemblyProfile,
   replacements: AssetReplacementInput = {}
@@ -141,6 +143,7 @@ function MemoryGame({
   const pairs = new Set(deck.map((card) => card.pairKey));
   const complete = pairs.size > 0 && matched.size === pairs.size;
   const componentArt = resolveComponentAsset(profile, component, "illustration", replacements);
+  const score = Math.max(0, matched.size * 150 - moves * 5);
 
   function handleCard(card: MemoryCard): void {
     if (matched.has(card.pairKey) || revealed.includes(card.id)) {
@@ -196,6 +199,13 @@ function MemoryGame({
     ),
     React.createElement(
       "div",
+      { style: liveStyles.statRow },
+      React.createElement(StatPill, { label: "Pairs", value: `${matched.size}/${pairs.size}` }),
+      React.createElement(StatPill, { label: "Score", value: String(score), tone: "warm" }),
+      React.createElement(ProgressTrack, { value: matched.size, max: pairs.size })
+    ),
+    React.createElement(
+      "div",
       { style: liveStyles.memoryBoard },
       ...deck.map((card, index) => {
         const cardReplacement = replacements.get(`card:${card.id}`) ?? replacements.get(card.id);
@@ -223,19 +233,16 @@ function MemoryGame({
       })
     ),
     complete
-      ? React.createElement(
-          "button",
-          {
-            type: "button",
-            onClick: () => {
-              setRevealed([]);
-              setMatched(new Set());
-              setMoves(0);
-            },
-            style: liveStyles.inlineAction
-          },
-          "Play Again"
-        )
+      ? React.createElement(CompletionPanel, {
+          title: "Perfect match",
+          detail: `${pairs.size} pairs cleared in ${moves} moves.`,
+          score,
+          onRestart: () => {
+            setRevealed([]);
+            setMatched(new Set());
+            setMoves(0);
+          }
+        })
       : null
   );
 }
@@ -256,14 +263,19 @@ function SortingGame({
   const [selectedItem, setSelectedItem] = React.useState<string | undefined>();
   const [placements, setPlacements] = React.useState<Record<string, string>>({});
   const [feedback, setFeedback] = React.useState<string | undefined>();
+  const [mistakes, setMistakes] = React.useState(0);
+  const [streak, setStreak] = React.useState(0);
   const componentArt = resolveComponentAsset(profile, component, "illustration", replacements);
   const placedCount = Object.keys(placements).length;
   const complete = items.length > 0 && placedCount === items.length;
+  const score = Math.max(0, placedCount * 120 + streak * 15 - mistakes * 20);
 
   React.useEffect(() => {
     setSelectedItem(undefined);
     setPlacements({});
     setFeedback(undefined);
+    setMistakes(0);
+    setStreak(0);
   }, [profile.id, items.join("|"), bins.join("|")]);
 
   function placeItem(targetId: string): void {
@@ -276,9 +288,12 @@ function SortingGame({
     if (correct) {
       setPlacements((current) => ({ ...current, [selectedItem]: targetId }));
       setFeedback(`${selectedItem} belongs in ${targetId}.`);
+      setStreak((current) => current + 1);
       setSelectedItem(undefined);
     } else {
       setFeedback(`${selectedItem} does not belong in ${targetId}.`);
+      setMistakes((current) => current + 1);
+      setStreak(0);
     }
 
     onInteraction?.({
@@ -308,7 +323,19 @@ function SortingGame({
       ),
       React.createElement("span", { style: liveStyles.counter }, `${placedCount} / ${items.length}`)
     ),
-    componentArt ? React.createElement("img", { src: componentArt.uri, alt: componentArt.altText, style: liveStyles.heroAsset }) : null,
+    React.createElement(
+      "div",
+      { style: liveStyles.statRow },
+      React.createElement(StatPill, { label: "Score", value: String(score), tone: "warm" }),
+      React.createElement(StatPill, { label: "Streak", value: String(streak) }),
+      React.createElement(StatPill, { label: "Misses", value: String(mistakes), tone: mistakes > 0 ? "danger" : "calm" }),
+      React.createElement(ProgressTrack, { value: placedCount, max: items.length })
+    ),
+    React.createElement(HeroArt, {
+      asset: componentArt,
+      label: textProp(component.props, "title", profile.profileName),
+      tokens: items
+    }),
     React.createElement(
       "div",
       { style: liveStyles.sortLayout },
@@ -321,6 +348,7 @@ function SortingGame({
             {
               key: item,
               type: "button",
+              "aria-label": item,
               onClick: () => setSelectedItem(item),
               disabled: placements[item] !== undefined,
               style:
@@ -330,7 +358,8 @@ function SortingGame({
                     ? liveStyles.itemChipActive
                     : liveStyles.itemChip
             },
-            item
+            React.createElement("span", { style: tokenDotStyle(item) }, displayInitial(item)),
+            React.createElement("span", null, item)
           )
         )
       ),
@@ -351,26 +380,30 @@ function SortingGame({
             React.createElement(
               "span",
               { style: liveStyles.binItems },
-              items.filter((item) => placements[item] === bin).join(", ") || " "
+              ...items
+                .filter((item) => placements[item] === bin)
+                .map((item) =>
+                  React.createElement("span", { key: item, style: liveStyles.placedBadge }, displayCardLabel(item))
+                ),
+              items.some((item) => placements[item] === bin) ? null : "Drop matching items here"
             )
           )
         )
       )
     ),
     complete
-      ? React.createElement(
-          "button",
-          {
-            type: "button",
-            onClick: () => {
-              setPlacements({});
-              setSelectedItem(undefined);
-              setFeedback(undefined);
-            },
-            style: liveStyles.inlineAction
-          },
-          "Play Again"
-        )
+      ? React.createElement(CompletionPanel, {
+          title: mistakes === 0 ? "Flawless sort" : "Sort complete",
+          detail: `${placedCount} items sorted with ${mistakes} ${mistakes === 1 ? "miss" : "misses"}.`,
+          score,
+          onRestart: () => {
+            setPlacements({});
+            setSelectedItem(undefined);
+            setFeedback(undefined);
+            setMistakes(0);
+            setStreak(0);
+          }
+        })
       : null
   );
 }
@@ -390,30 +423,75 @@ function SequenceGame({
 }): React.ReactElement {
   const sequence = stringArrayProp(sequenceComponent.props, "sequence");
   const choices = uniqueStrings([...stringArrayProp(choiceComponent?.props ?? {}, "items"), ...sequence]);
+  const rounds = React.useMemo(() => sequenceRounds(sequence, choices), [sequence.join("|"), choices.join("|")]);
+  const [roundIndex, setRoundIndex] = React.useState(0);
   const [progress, setProgress] = React.useState(0);
   const [attempts, setAttempts] = React.useState(0);
   const [feedback, setFeedback] = React.useState<string | undefined>();
+  const [phase, setPhase] = React.useState<SequencePhase>("watch");
+  const [score, setScore] = React.useState(0);
   const componentArt = resolveComponentAsset(profile, sequenceComponent, "illustration", replacements);
-  const complete = sequence.length > 0 && progress >= sequence.length;
+  const activeRound = rounds[roundIndex] ?? [];
+  const complete = phase === "complete";
 
   React.useEffect(() => {
+    setRoundIndex(0);
     setProgress(0);
     setAttempts(0);
     setFeedback(undefined);
-  }, [profile.id, sequence.join("|")]);
+    setPhase("watch");
+    setScore(0);
+  }, [profile.id, sequence.join("|"), choices.join("|")]);
 
-  function choose(item: string): void {
-    if (complete) {
+  function startRound(): void {
+    if (complete || activeRound.length === 0) {
       return;
     }
 
-    const expected = sequence[progress];
+    setProgress(0);
+    setPhase("play");
+    setFeedback(`Round ${roundIndex + 1}: repeat the pattern.`);
+  }
+
+  function choose(item: string): void {
+    if (complete || phase !== "play") {
+      setFeedback("Watch the pattern, then start the round.");
+      return;
+    }
+
+    const expected = activeRound[progress];
     const correct = item === expected;
-    const nextProgress = correct ? progress + 1 : 0;
     const nextAttempts = attempts + 1;
-    setProgress(nextProgress);
     setAttempts(nextAttempts);
-    setFeedback(correct ? (nextProgress === sequence.length ? "Sequence complete." : "Correct.") : `Start again after ${item}.`);
+
+    let nextProgress = 0;
+    let nextComplete = false;
+    if (correct) {
+      nextProgress = progress + 1;
+      const roundComplete = nextProgress === activeRound.length;
+      if (roundComplete) {
+        const roundScore = activeRound.length * 100 + Math.max(0, 60 - nextAttempts * 5);
+        setScore((current) => current + roundScore);
+        if (roundIndex + 1 >= rounds.length) {
+          setPhase("complete");
+          setFeedback("Sequence complete.");
+          nextComplete = true;
+        } else {
+          setRoundIndex((current) => current + 1);
+          setPhase("watch");
+          setFeedback(`Round ${roundIndex + 2} unlocked. Watch the next pattern.`);
+        }
+        setProgress(0);
+      } else {
+        setProgress(nextProgress);
+        setFeedback("Correct.");
+      }
+    } else {
+      setProgress(0);
+      setPhase("watch");
+      setFeedback(`Start again after ${item}. Watch the pattern.`);
+    }
+
     onInteraction?.({
       eventName: "tool:repeat-sequence",
       profileId: profile.id,
@@ -423,7 +501,8 @@ function SequenceGame({
         expected,
         correct,
         progress: nextProgress,
-        complete: nextProgress === sequence.length,
+        round: roundIndex + 1,
+        complete: nextComplete,
         attempts: nextAttempts
       }
     });
@@ -440,25 +519,57 @@ function SequenceGame({
         null,
         React.createElement("p", { style: liveStyles.profileName }, profile.profileName),
         React.createElement("h2", { style: liveStyles.gameTitle }, textProp(sequenceComponent.props, "title", profile.profileName)),
-        React.createElement("p", { style: liveStyles.gameMeta }, feedback ?? textProp(sequenceComponent.props, "prompt", `${progress} of ${sequence.length}`))
+        React.createElement(
+          "p",
+          { style: liveStyles.gameMeta },
+          complete ? "Sequence complete." : feedback ?? textProp(sequenceComponent.props, "prompt", `${progress} of ${activeRound.length}`)
+        )
       ),
-      React.createElement("span", { style: liveStyles.counter }, `${progress} / ${sequence.length}`)
+      React.createElement("span", { style: liveStyles.counter }, `Round ${Math.min(roundIndex + 1, rounds.length)} / ${rounds.length}`)
     ),
-    componentArt ? React.createElement("img", { src: componentArt.uri, alt: componentArt.altText, style: liveStyles.heroAsset }) : null,
+    React.createElement(
+      "div",
+      { style: liveStyles.statRow },
+      React.createElement(StatPill, { label: "Score", value: String(score), tone: "warm" }),
+      React.createElement(StatPill, { label: "Input", value: `${progress}/${activeRound.length}` }),
+      React.createElement(StatPill, { label: "Taps", value: String(attempts), tone: "calm" }),
+      React.createElement(ProgressTrack, { value: complete ? rounds.length : roundIndex, max: rounds.length })
+    ),
+    React.createElement(HeroArt, {
+      asset: componentArt,
+      label: textProp(sequenceComponent.props, "title", profile.profileName),
+      tokens: activeRound
+    }),
     React.createElement(
       "div",
       { style: liveStyles.sequenceRail },
-      ...sequence.map((item, index) =>
+      ...activeRound.map((item, index) =>
         React.createElement(
           "span",
           {
             key: `${item}.${index}`,
-            style: index < progress ? liveStyles.sequenceStepComplete : liveStyles.sequenceStep
+            style:
+              phase === "watch"
+                ? sequenceStepStyle(item, true)
+                : index < progress
+                  ? sequenceStepStyle(item, true)
+                  : liveStyles.sequenceStep
           },
-          item
+          phase === "watch" || index < progress ? item : String(index + 1)
         )
       )
     ),
+    phase === "watch"
+      ? React.createElement(
+          "button",
+          {
+            type: "button",
+            onClick: startRound,
+            style: liveStyles.inlineAction
+          },
+          roundIndex === 0 ? "Start Round" : "Continue"
+        )
+      : null,
     React.createElement(
       "div",
       { style: liveStyles.choiceGrid },
@@ -468,28 +579,30 @@ function SequenceGame({
           {
             key: item,
             type: "button",
+            "aria-label": item,
             onClick: () => choose(item),
-            disabled: complete,
-            style: liveStyles.choiceButton
+            disabled: complete || phase !== "play",
+            style: sequenceChoiceStyle(item, phase === "play")
           },
-          item
+          React.createElement("span", { style: tokenDotStyle(item) }, displayInitial(item)),
+          React.createElement("span", null, item)
         )
       )
     ),
     complete
-      ? React.createElement(
-          "button",
-          {
-            type: "button",
-            onClick: () => {
-              setProgress(0);
-              setAttempts(0);
-              setFeedback(undefined);
-            },
-            style: liveStyles.inlineAction
-          },
-          "Play Again"
-        )
+      ? React.createElement(CompletionPanel, {
+          title: "Sequence master",
+          detail: `${rounds.length} rounds cleared in ${attempts} taps.`,
+          score,
+          onRestart: () => {
+            setRoundIndex(0);
+            setProgress(0);
+            setAttempts(0);
+            setFeedback(undefined);
+            setPhase("watch");
+            setScore(0);
+          }
+        })
       : null
   );
 }
@@ -509,6 +622,93 @@ function CardFace({ cardId, replacement }: { cardId: string; replacement?: Asset
     { style: liveStyles.generatedFace },
     React.createElement("span", { style: liveStyles.generatedGlyph }, displayInitial(cardId)),
     React.createElement("strong", { style: liveStyles.cardLabel }, displayCardLabel(cardId))
+  );
+}
+
+function HeroArt({
+  asset,
+  label,
+  tokens
+}: {
+  asset?: AssetReplacement;
+  label: string;
+  tokens: string[];
+}): React.ReactElement {
+  if (asset && isRenderableUri(asset.uri)) {
+    return React.createElement("img", { src: asset.uri, alt: asset.altText ?? label, style: liveStyles.heroAsset });
+  }
+
+  const visibleTokens = uniqueStrings(tokens).slice(0, 4);
+  return React.createElement(
+    "div",
+    { "aria-label": asset?.altText ?? label, role: "img", style: liveStyles.heroArtwork },
+    React.createElement(
+      "div",
+      { style: liveStyles.heroTokenCluster },
+      ...visibleTokens.map((token, index) =>
+        React.createElement(
+          "span",
+          { key: `${token}.${index}`, style: heroTokenStyle(token, index) },
+          displayInitial(token)
+        )
+      )
+    ),
+    React.createElement("strong", { style: liveStyles.heroArtworkLabel }, label)
+  );
+}
+
+function StatPill({
+  label,
+  value,
+  tone = "calm"
+}: {
+  label: string;
+  value: string;
+  tone?: "calm" | "warm" | "danger";
+}): React.ReactElement {
+  return React.createElement(
+    "span",
+    { style: tone === "warm" ? liveStyles.statPillWarm : tone === "danger" ? liveStyles.statPillDanger : liveStyles.statPill },
+    React.createElement("span", { style: liveStyles.statLabel }, label),
+    React.createElement("strong", null, value)
+  );
+}
+
+function ProgressTrack({ value, max }: { value: number; max: number }): React.ReactElement {
+  const ratio = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
+  return React.createElement(
+    "span",
+    { "aria-label": `Progress ${value} of ${max}`, style: liveStyles.progressTrack },
+    React.createElement("span", { style: { ...liveStyles.progressFill, width: `${Math.round(ratio * 100)}%` } })
+  );
+}
+
+function CompletionPanel({
+  title,
+  detail,
+  score,
+  onRestart
+}: {
+  title: string;
+  detail: string;
+  score: number;
+  onRestart: () => void;
+}): React.ReactElement {
+  return React.createElement(
+    "section",
+    { role: "status", style: liveStyles.completionPanel },
+    React.createElement("div", { style: liveStyles.completionMark }, "WIN"),
+    React.createElement("div", null, React.createElement("h3", { style: liveStyles.completionTitle }, title), React.createElement("p", { style: liveStyles.completionDetail }, detail)),
+    React.createElement(StatPill, { label: "Final score", value: String(score), tone: "warm" }),
+    React.createElement(
+      "button",
+      {
+        type: "button",
+        onClick: onRestart,
+        style: liveStyles.inlineAction
+      },
+      "Play Again"
+    )
   );
 }
 
@@ -618,6 +818,86 @@ function matchesBin(item: string, bin: string): boolean {
   return item.toLowerCase().includes(bin.toLowerCase());
 }
 
+function sequenceRounds(sequence: string[], choices: string[]): string[][] {
+  const base = sequence.length > 0 ? sequence : choices.slice(0, 3);
+  const fallback = base[0] ?? "green";
+  const third = choices.find((choice) => !base.includes(choice)) ?? base.at(-1) ?? fallback;
+  const second = base[1] ?? third;
+
+  return [
+    base,
+    [...base, third],
+    [second, base[0] ?? fallback, third, base[2] ?? second, second]
+  ].filter((round) => round.length > 0);
+}
+
+function sequenceChoiceStyle(item: string, enabled: boolean): React.CSSProperties {
+  return {
+    ...liveStyles.choiceButton,
+    ...tokenPanelStyle(item),
+    opacity: enabled ? 1 : 0.58,
+    cursor: enabled ? "pointer" : "not-allowed"
+  };
+}
+
+function sequenceStepStyle(item: string, revealed: boolean): React.CSSProperties {
+  return revealed ? { ...liveStyles.sequenceStepComplete, ...tokenPanelStyle(item) } : liveStyles.sequenceStep;
+}
+
+function tokenDotStyle(token: string): React.CSSProperties {
+  const color = colorForToken(token);
+  return {
+    ...liveStyles.tokenDot,
+    background: color.background,
+    color: color.foreground,
+    borderColor: color.border
+  };
+}
+
+function tokenPanelStyle(token: string): React.CSSProperties {
+  const color = colorForToken(token);
+  return {
+    background: color.background,
+    color: color.foreground,
+    borderColor: color.border
+  };
+}
+
+function heroTokenStyle(token: string, index: number): React.CSSProperties {
+  const color = colorForToken(token);
+  return {
+    ...liveStyles.heroToken,
+    background: color.background,
+    color: color.foreground,
+    borderColor: color.border,
+    transform: `rotate(${[-7, 5, -3, 8][index % 4]}deg)`
+  };
+}
+
+function colorForToken(token: string): { background: string; border: string; foreground: string } {
+  const normalized = token.toLowerCase();
+  if (normalized.includes("red")) {
+    return { background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d" };
+  }
+  if (normalized.includes("blue")) {
+    return { background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a" };
+  }
+  if (normalized.includes("green")) {
+    return { background: "#dcfce7", border: "#16a34a", foreground: "#14532d" };
+  }
+  if (normalized.includes("yellow")) {
+    return { background: "#fef3c7", border: "#eab308", foreground: "#713f12" };
+  }
+
+  const palette = [
+    { background: "#fce7f3", border: "#db2777", foreground: "#831843" },
+    { background: "#ede9fe", border: "#7c3aed", foreground: "#4c1d95" },
+    { background: "#ffedd5", border: "#f97316", foreground: "#7c2d12" },
+    { background: "#ccfbf1", border: "#0d9488", foreground: "#134e4a" }
+  ];
+  return palette[hashString(token) % palette.length];
+}
+
 const liveStyles = {
   emptyState: {
     minHeight: "24rem",
@@ -635,21 +915,28 @@ const liveStyles = {
     display: "grid",
     alignContent: "start",
     gap: "1rem",
-    border: "1px solid #d4d4d8",
+    border: "1px solid #cbd5e1",
     borderRadius: "8px",
-    background: "#ffffff",
-    padding: "1rem",
-    boxShadow: "0 18px 40px rgba(24, 24, 27, 0.08)"
+    background: "linear-gradient(135deg, #f8fafc 0%, #eef2ff 48%, #ecfdf5 100%)",
+    padding: "clamp(1rem, 3vw, 1.5rem)",
+    boxShadow: "0 20px 60px rgba(24, 24, 27, 0.12)",
+    overflow: "hidden"
   },
   gameHeader: {
     display: "flex",
+    flexWrap: "wrap" as const,
     justifyContent: "space-between",
     gap: "1rem",
-    alignItems: "start"
+    alignItems: "start",
+    border: "1px solid rgba(15, 23, 42, 0.08)",
+    borderRadius: "8px",
+    background: "rgba(255, 255, 255, 0.78)",
+    padding: "1rem",
+    boxShadow: "0 12px 30px rgba(24, 24, 27, 0.08)"
   },
   gameTitle: {
     margin: 0,
-    fontSize: "1.5rem"
+    fontSize: "1.7rem"
   },
   profileName: {
     margin: "0 0 0.35rem",
@@ -671,6 +958,63 @@ const liveStyles = {
     fontWeight: 700,
     whiteSpace: "nowrap" as const
   },
+  statRow: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 8rem), 1fr))",
+    gap: "0.65rem",
+    alignItems: "stretch"
+  },
+  statPill: {
+    display: "grid",
+    gap: "0.15rem",
+    border: "1px solid #cbd5e1",
+    borderRadius: "8px",
+    background: "rgba(255, 255, 255, 0.86)",
+    color: "#18181b",
+    padding: "0.65rem 0.75rem",
+    boxShadow: "0 10px 22px rgba(24, 24, 27, 0.07)"
+  },
+  statPillWarm: {
+    display: "grid",
+    gap: "0.15rem",
+    border: "1px solid #f97316",
+    borderRadius: "8px",
+    background: "#fff7ed",
+    color: "#7c2d12",
+    padding: "0.65rem 0.75rem",
+    boxShadow: "0 10px 22px rgba(249, 115, 22, 0.14)"
+  },
+  statPillDanger: {
+    display: "grid",
+    gap: "0.15rem",
+    border: "1px solid #ef4444",
+    borderRadius: "8px",
+    background: "#fef2f2",
+    color: "#7f1d1d",
+    padding: "0.65rem 0.75rem",
+    boxShadow: "0 10px 22px rgba(239, 68, 68, 0.12)"
+  },
+  statLabel: {
+    color: "#52525b",
+    fontSize: "0.75rem",
+    fontWeight: 800,
+    textTransform: "uppercase" as const
+  },
+  progressTrack: {
+    alignSelf: "center",
+    display: "block",
+    minHeight: "0.8rem",
+    borderRadius: "999px",
+    background: "rgba(15, 23, 42, 0.12)",
+    overflow: "hidden",
+    gridColumn: "1 / -1"
+  },
+  progressFill: {
+    display: "block",
+    height: "100%",
+    borderRadius: "999px",
+    background: "linear-gradient(90deg, #0f766e, #f97316)"
+  },
   memoryBoard: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 8rem), 1fr))",
@@ -679,16 +1023,18 @@ const liveStyles = {
   memoryCard: {
     width: "100%",
     aspectRatio: "1",
-    border: "2px solid #d4d4d8",
+    border: "2px solid #cbd5e1",
     borderRadius: "8px",
     padding: "0.75rem",
     display: "grid",
     placeItems: "center",
     overflow: "hidden",
-    transition: "transform 160ms ease, border-color 160ms ease, background 160ms ease"
+    boxShadow: "0 14px 30px rgba(24, 24, 27, 0.12)",
+    transition: "transform 160ms ease, border-color 160ms ease, background 160ms ease",
+    cursor: "pointer"
   },
   memoryCardHidden: {
-    background: "#18181b",
+    background: "linear-gradient(145deg, #111827, #334155)",
     color: "#fafafa",
     borderColor: "#3f3f46"
   },
@@ -744,7 +1090,9 @@ const liveStyles = {
     background: "#0f766e",
     color: "#ffffff",
     padding: "0.7rem 1rem",
-    fontWeight: 700
+    fontWeight: 800,
+    boxShadow: "0 12px 24px rgba(15, 118, 110, 0.22)",
+    cursor: "pointer"
   },
   heroAsset: {
     width: "min(14rem, 100%)",
@@ -753,6 +1101,38 @@ const liveStyles = {
     border: "1px solid #d4d4d8",
     borderRadius: "8px",
     background: "#f4f4f5"
+  },
+  heroArtwork: {
+    minHeight: "10rem",
+    display: "grid",
+    gridTemplateColumns: "minmax(8rem, 12rem) minmax(0, 1fr)",
+    gap: "1rem",
+    alignItems: "center",
+    border: "1px solid rgba(15, 23, 42, 0.08)",
+    borderRadius: "8px",
+    background: "rgba(255, 255, 255, 0.72)",
+    padding: "1rem",
+    boxShadow: "0 14px 34px rgba(24, 24, 27, 0.1)"
+  },
+  heroTokenCluster: {
+    minHeight: "8rem",
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: "0.55rem"
+  },
+  heroToken: {
+    minHeight: "3.5rem",
+    display: "grid",
+    placeItems: "center",
+    border: "2px solid",
+    borderRadius: "8px",
+    fontSize: "1.6rem",
+    fontWeight: 900,
+    boxShadow: "0 12px 22px rgba(24, 24, 27, 0.14)"
+  },
+  heroArtworkLabel: {
+    fontSize: "1.15rem",
+    overflowWrap: "anywhere" as const
   },
   sortLayout: {
     display: "grid",
@@ -768,10 +1148,17 @@ const liveStyles = {
     minHeight: "3rem",
     borderRadius: "8px",
     border: "1px solid #d4d4d8",
-    background: "#fafafa",
+    background: "rgba(255, 255, 255, 0.86)",
     color: "#18181b",
     fontWeight: 700,
-    padding: "0.6rem"
+    padding: "0.6rem",
+    display: "grid",
+    gridTemplateColumns: "2rem minmax(0, 1fr)",
+    alignItems: "center",
+    gap: "0.55rem",
+    textAlign: "left" as const,
+    cursor: "pointer",
+    boxShadow: "0 10px 22px rgba(24, 24, 27, 0.07)"
   },
   itemChipActive: {
     minHeight: "3rem",
@@ -780,7 +1167,14 @@ const liveStyles = {
     background: "#fff7ed",
     color: "#92400e",
     fontWeight: 700,
-    padding: "0.55rem"
+    padding: "0.55rem",
+    display: "grid",
+    gridTemplateColumns: "2rem minmax(0, 1fr)",
+    alignItems: "center",
+    gap: "0.55rem",
+    textAlign: "left" as const,
+    cursor: "pointer",
+    boxShadow: "0 12px 24px rgba(217, 119, 6, 0.16)"
   },
   itemChipPlaced: {
     minHeight: "3rem",
@@ -790,7 +1184,22 @@ const liveStyles = {
     color: "#064e3b",
     fontWeight: 700,
     padding: "0.6rem",
-    opacity: 0.72
+    opacity: 0.72,
+    display: "grid",
+    gridTemplateColumns: "2rem minmax(0, 1fr)",
+    alignItems: "center",
+    gap: "0.55rem",
+    textAlign: "left" as const
+  },
+  tokenDot: {
+    width: "1.65rem",
+    height: "1.65rem",
+    border: "1px solid",
+    borderRadius: "8px",
+    display: "grid",
+    placeItems: "center",
+    fontSize: "0.86rem",
+    fontWeight: 900
   },
   binGrid: {
     display: "grid",
@@ -807,7 +1216,8 @@ const liveStyles = {
     background: "#ecfdf5",
     color: "#064e3b",
     padding: "1rem",
-    textAlign: "left" as const
+    textAlign: "left" as const,
+    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.48)"
   },
   binActive: {
     minHeight: "10rem",
@@ -819,15 +1229,27 @@ const liveStyles = {
     background: "#fff7ed",
     color: "#92400e",
     padding: "1rem",
-    textAlign: "left" as const
+    textAlign: "left" as const,
+    boxShadow: "0 14px 26px rgba(217, 119, 6, 0.14)"
   },
   binItems: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    gap: "0.35rem",
     color: "#18181b",
     overflowWrap: "anywhere" as const
   },
+  placedBadge: {
+    border: "1px solid #0f766e",
+    borderRadius: "999px",
+    background: "#ffffff",
+    color: "#064e3b",
+    padding: "0.25rem 0.5rem",
+    fontWeight: 700
+  },
   sequenceRail: {
-    display: "flex",
-    flexWrap: "wrap" as const,
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 6rem), 1fr))",
     gap: "0.5rem"
   },
   sequenceStep: {
@@ -836,15 +1258,18 @@ const liveStyles = {
     background: "#fafafa",
     color: "#52525b",
     padding: "0.6rem 0.8rem",
-    fontWeight: 700
+    fontWeight: 800,
+    textAlign: "center" as const
   },
   sequenceStepComplete: {
-    border: "1px solid #0f766e",
+    border: "1px solid",
     borderRadius: "8px",
     background: "#ecfdf5",
     color: "#064e3b",
     padding: "0.6rem 0.8rem",
-    fontWeight: 700
+    fontWeight: 800,
+    textAlign: "center" as const,
+    boxShadow: "0 10px 22px rgba(24, 24, 27, 0.08)"
   },
   choiceGrid: {
     display: "grid",
@@ -854,10 +1279,47 @@ const liveStyles = {
   choiceButton: {
     minHeight: "4rem",
     borderRadius: "8px",
-    border: "1px solid #d97706",
+    border: "2px solid #d97706",
     background: "#fff7ed",
     color: "#92400e",
     fontWeight: 800,
-    padding: "0.75rem"
+    padding: "0.75rem",
+    display: "grid",
+    gridTemplateColumns: "2rem minmax(0, 1fr)",
+    alignItems: "center",
+    gap: "0.55rem",
+    textAlign: "left" as const,
+    boxShadow: "0 14px 30px rgba(24, 24, 27, 0.1)"
+  },
+  completionPanel: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 9rem), 1fr))",
+    gap: "0.85rem",
+    alignItems: "center",
+    border: "1px solid #0f766e",
+    borderRadius: "8px",
+    background: "rgba(236, 253, 245, 0.92)",
+    color: "#064e3b",
+    padding: "1rem",
+    boxShadow: "0 16px 34px rgba(15, 118, 110, 0.16)"
+  },
+  completionMark: {
+    width: "3.25rem",
+    height: "3.25rem",
+    display: "grid",
+    placeItems: "center",
+    borderRadius: "8px",
+    background: "#0f766e",
+    color: "#ffffff",
+    fontWeight: 900,
+    fontSize: "0.9rem"
+  },
+  completionTitle: {
+    margin: 0,
+    fontSize: "1.1rem"
+  },
+  completionDetail: {
+    margin: "0.2rem 0 0",
+    color: "#134e4a"
   }
 } satisfies Record<string, React.CSSProperties>;

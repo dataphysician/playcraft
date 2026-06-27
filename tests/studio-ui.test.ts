@@ -141,6 +141,15 @@ describe("studio UI", () => {
     fireEvent.click(screen.getByRole("button", { name: "red bin" }));
     expect(await screen.findByText("red circle belongs in red.")).toBeDefined();
     expect(screen.getByText("1 / 3")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "blue square" }));
+    fireEvent.click(screen.getByRole("button", { name: "blue bin" }));
+    fireEvent.click(screen.getByRole("button", { name: "red triangle" }));
+    fireEvent.click(screen.getByRole("button", { name: "red bin" }));
+
+    expect(await screen.findByText("Sort complete")).toBeDefined();
+    expect(screen.getByText("3 items sorted with 1 miss.")).toBeDefined();
+    expect(screen.getByRole("button", { name: "Play Again" })).toBeDefined();
   });
 
   it("plays the sequence profile through completion", async () => {
@@ -150,11 +159,29 @@ describe("studio UI", () => {
     fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
 
     expect(await screen.findByText("Sequence Repeat MVP")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Start Round" }));
     fireEvent.click(screen.getByRole("button", { name: "green" }));
     expect(await screen.findByText("Correct.")).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "yellow" }));
     fireEvent.click(screen.getByRole("button", { name: "green" }));
+    expect(await screen.findByText("Round 2 unlocked. Watch the next pattern.")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.click(screen.getByRole("button", { name: "green" }));
+    fireEvent.click(screen.getByRole("button", { name: "yellow" }));
+    fireEvent.click(screen.getByRole("button", { name: "green" }));
+    fireEvent.click(screen.getByRole("button", { name: "blue" }));
+    expect(await screen.findByText("Round 3 unlocked. Watch the next pattern.")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.click(screen.getByRole("button", { name: "yellow" }));
+    fireEvent.click(screen.getByRole("button", { name: "green" }));
+    fireEvent.click(screen.getByRole("button", { name: "blue" }));
+    fireEvent.click(screen.getByRole("button", { name: "green" }));
+    fireEvent.click(screen.getByRole("button", { name: "yellow" }));
+
     expect(await screen.findByText("Sequence complete.")).toBeDefined();
+    expect(screen.getByText("Sequence master")).toBeDefined();
     expect(screen.getByRole("button", { name: "Play Again" })).toBeDefined();
   });
 
