@@ -268,46 +268,73 @@ function CommandBar({
   onStartOver: () => void;
 }): React.ReactElement {
   const buttonLabel = hasSession ? "Update Game" : "Generate Game";
-  const visibleMessages =
-    messages.length > 0
-      ? messages.slice(-4)
-      : [
-          {
-            id: "message.preview.games",
-            speaker: "Studio",
-            text: "Available games: Memory Match, Sorting, Sequence Repeat."
-          },
-          {
-            id: "message.preview.assets",
-            speaker: "Studio",
-            text: "Asset edits: with dinosaurs, with toys, assets with ocean animals, cards with fruit."
-          },
-          {
-            id: "message.preview.examples",
-            speaker: "Studio",
-            text: "Try: Memory game with dinosaurs; Sort shapes by color; Repeat a pattern with gems."
-          }
-        ] satisfies ChatMessage[];
+  const [tipsOpen, setTipsOpen] = React.useState(false);
+  const visibleMessages = messages.slice(-4);
 
   return React.createElement(
     "footer",
     { style: shellStyles.commandBar },
-    React.createElement(
-      "ol",
-      { "aria-label": "Chat history", style: shellStyles.messageLog },
-      ...visibleMessages.map((message) =>
-        React.createElement(
-          "li",
-          { key: message.id, style: messages.length > 0 ? shellStyles.message : shellStyles.previewMessage },
-          React.createElement("strong", null, message.speaker),
-          React.createElement("span", null, message.text)
+    visibleMessages.length > 0
+      ? React.createElement(
+          "ol",
+          { "aria-label": "Chat history", style: shellStyles.messageLog },
+          ...visibleMessages.map((message) =>
+            React.createElement(
+              "li",
+              { key: message.id, style: shellStyles.message },
+              React.createElement("strong", null, message.speaker),
+              React.createElement("span", null, message.text)
+            )
+          )
         )
-      )
-    ),
+      : null,
     React.createElement(
       "form",
       { onSubmit: (event: React.FormEvent<HTMLFormElement>) => onSubmit(event), style: shellStyles.commandForm },
-      React.createElement("label", { htmlFor: "studio-command", style: shellStyles.commandLabel }, "Game request"),
+      React.createElement(
+        "span",
+        { style: shellStyles.commandLabelGroup },
+        React.createElement("label", { htmlFor: "studio-command", style: shellStyles.commandLabel }, "Game request"),
+        React.createElement(
+          "span",
+          {
+            style: shellStyles.tipAnchor,
+            onMouseEnter: () => setTipsOpen(true),
+            onMouseLeave: () => setTipsOpen(false),
+            onFocus: () => setTipsOpen(true),
+            onBlur: () => setTipsOpen(false)
+          },
+          React.createElement(
+            "button",
+            {
+              type: "button",
+              "aria-label": "Game request tips",
+              "aria-describedby": tipsOpen ? "game-request-tips" : undefined,
+              "aria-expanded": tipsOpen,
+              onClick: () => setTipsOpen(true),
+              style: shellStyles.tipButton
+            },
+            "i"
+          ),
+          tipsOpen
+            ? React.createElement(
+                "div",
+                { id: "game-request-tips", role: "tooltip", style: shellStyles.tipPanel },
+                React.createElement("p", { style: shellStyles.tipLine }, "Available games: Memory Match, Sorting, Sequence Repeat."),
+                React.createElement(
+                  "p",
+                  { style: shellStyles.tipLine },
+                  "Asset edits: with dinosaurs, with toys, assets with ocean animals, cards with fruit."
+                ),
+                React.createElement(
+                  "p",
+                  { style: shellStyles.tipLine },
+                  "Try: Memory game with dinosaurs; Sort shapes by color; Repeat a pattern with gems."
+                )
+              )
+            : null
+        )
+      ),
       React.createElement("input", {
         id: "studio-command",
         value: commandText,
@@ -531,23 +558,59 @@ const shellStyles = {
     alignItems: "baseline",
     fontSize: "0.9rem"
   },
-  previewMessage: {
-    display: "grid",
-    gridTemplateColumns: "4rem minmax(0, 1fr)",
-    gap: "0.5rem",
-    alignItems: "baseline",
-    fontSize: "0.9rem",
-    color: "#52525b"
-  },
   commandForm: {
     display: "flex",
     flexWrap: "wrap" as const,
     gap: "0.5rem",
     alignItems: "center"
   },
+  commandLabelGroup: {
+    position: "relative" as const,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.35rem",
+    whiteSpace: "nowrap" as const
+  },
   commandLabel: {
     fontWeight: 700,
     whiteSpace: "nowrap" as const
+  },
+  tipAnchor: {
+    position: "relative" as const,
+    display: "inline-flex",
+    alignItems: "center"
+  },
+  tipButton: {
+    width: "1.35rem",
+    height: "1.35rem",
+    borderRadius: "999px",
+    border: "1px solid #0f766e",
+    background: "#ecfdf5",
+    color: "#064e3b",
+    fontWeight: 800,
+    lineHeight: 1,
+    cursor: "help"
+  },
+  tipPanel: {
+    position: "absolute" as const,
+    left: 0,
+    bottom: "calc(100% + 0.5rem)",
+    zIndex: 5,
+    width: "min(28rem, calc(100vw - 2rem))",
+    display: "grid",
+    gap: "0.35rem",
+    border: "1px solid #0f766e",
+    borderRadius: "8px",
+    background: "#f8fafc",
+    color: "#18181b",
+    boxShadow: "0 18px 40px rgba(24, 24, 27, 0.18)",
+    padding: "0.65rem 0.75rem",
+    whiteSpace: "normal" as const
+  },
+  tipLine: {
+    margin: 0,
+    fontSize: "0.86rem",
+    lineHeight: 1.35
   },
   commandInput: {
     flex: "1 1 16rem",

@@ -23,9 +23,15 @@ function timelineEntry(id: string, title: string, kind: StudioTimelineEntry["kin
 }
 
 describe("studio UI", () => {
-  it("previews available games and asset edits in the command chat", () => {
+  it("shows available games and asset edits in the game request tips tooltip", () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
+    expect(screen.queryByLabelText("Chat history")).toBeNull();
+    expect(screen.queryByText("Available games: Memory Match, Sorting, Sequence Repeat.")).toBeNull();
+
+    fireEvent.mouseEnter(screen.getByRole("button", { name: "Game request tips" }));
+
+    expect(screen.getByRole("tooltip")).toBeDefined();
     expect(screen.getByText("Available games: Memory Match, Sorting, Sequence Repeat.")).toBeDefined();
     expect(screen.getByText("Asset edits: with dinosaurs, with toys, assets with ocean animals, cards with fruit.")).toBeDefined();
   });
