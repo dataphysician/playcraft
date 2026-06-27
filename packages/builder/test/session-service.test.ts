@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PLAYCRAFT_SCHEMA_VERSION, type BuilderCommand } from "@playcraft/contracts";
-import { createBuilderCommandHandler, runBuilderCli } from "@playcraft/builder/cli";
-import { BuilderPreviewPayloadSchema, PlaycraftBuilderSessionService, createBuilderCommandHandler as createHandler } from "@playcraft/builder";
+import { BuilderPreviewPayloadSchema, PlaycraftBuilderSessionService, createBuilderCommandHandler as createHandler } from "../src/index.js";
+import { runBuilderCli } from "../src/cli.js";
 
 function command(overrides: Partial<BuilderCommand>): BuilderCommand {
   return {
