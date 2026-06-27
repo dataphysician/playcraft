@@ -1,3 +1,5 @@
+declare const process: { argv: string[]; exit(code?: number): never };
+
 import { PLAYCRAFT_SCHEMA_VERSION } from "@playcraft/contracts";
 import { createBuilderCommandHandler, type BuilderExecutionResult } from "./index.js";
 
@@ -6,7 +8,12 @@ export interface BuilderCliIo {
   stderr(message: string): void;
 }
 
-export function runBuilderCli(argv: string[], io: BuilderCliIo = console): number {
+const defaultIo: BuilderCliIo = {
+  stdout: (message) => console.log(message),
+  stderr: (message) => console.error(message)
+};
+
+export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
     io.stderr("usage: playcraft-builder <build|update|preview|batch> [--profile <preset>] [--session <id>] [--json]");
