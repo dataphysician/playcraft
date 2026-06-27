@@ -268,24 +268,42 @@ function CommandBar({
   onStartOver: () => void;
 }): React.ReactElement {
   const buttonLabel = hasSession ? "Update Game" : "Generate Game";
+  const visibleMessages =
+    messages.length > 0
+      ? messages.slice(-4)
+      : [
+          {
+            id: "message.preview.games",
+            speaker: "Studio",
+            text: "Available games: Memory Match, Sorting, Sequence Repeat."
+          },
+          {
+            id: "message.preview.assets",
+            speaker: "Studio",
+            text: "Asset edits: with dinosaurs, with toys, assets with ocean animals, cards with fruit."
+          },
+          {
+            id: "message.preview.examples",
+            speaker: "Studio",
+            text: "Try: Memory game with dinosaurs; Sort shapes by color; Repeat a pattern with gems."
+          }
+        ] satisfies ChatMessage[];
 
   return React.createElement(
     "footer",
     { style: shellStyles.commandBar },
-    messages.length > 0
-      ? React.createElement(
-          "ol",
-          { "aria-label": "Chat history", style: shellStyles.messageLog },
-          ...messages.slice(-4).map((message) =>
-            React.createElement(
-              "li",
-              { key: message.id, style: shellStyles.message },
-              React.createElement("strong", null, message.speaker),
-              React.createElement("span", null, message.text)
-            )
-          )
+    React.createElement(
+      "ol",
+      { "aria-label": "Chat history", style: shellStyles.messageLog },
+      ...visibleMessages.map((message) =>
+        React.createElement(
+          "li",
+          { key: message.id, style: messages.length > 0 ? shellStyles.message : shellStyles.previewMessage },
+          React.createElement("strong", null, message.speaker),
+          React.createElement("span", null, message.text)
         )
-      : null,
+      )
+    ),
     React.createElement(
       "form",
       { onSubmit: (event: React.FormEvent<HTMLFormElement>) => onSubmit(event), style: shellStyles.commandForm },
@@ -512,6 +530,14 @@ const shellStyles = {
     gap: "0.5rem",
     alignItems: "baseline",
     fontSize: "0.9rem"
+  },
+  previewMessage: {
+    display: "grid",
+    gridTemplateColumns: "4rem minmax(0, 1fr)",
+    gap: "0.5rem",
+    alignItems: "baseline",
+    fontSize: "0.9rem",
+    color: "#52525b"
   },
   commandForm: {
     display: "flex",

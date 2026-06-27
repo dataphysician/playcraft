@@ -255,20 +255,32 @@ function SortingGame({
   const bins = stringArrayProp(component.props, "bins");
   const [selectedItem, setSelectedItem] = React.useState<string | undefined>();
   const [placements, setPlacements] = React.useState<Record<string, string>>({});
+  const [feedback, setFeedback] = React.useState<string | undefined>();
   const componentArt = resolveComponentAsset(profile, component, "illustration", replacements);
+  const placedCount = Object.keys(placements).length;
+  const complete = items.length > 0 && placedCount === items.length;
 
   React.useEffect(() => {
     setSelectedItem(undefined);
     setPlacements({});
+    setFeedback(undefined);
   }, [profile.id, items.join("|"), bins.join("|")]);
 
   function placeItem(targetId: string): void {
     if (!selectedItem) {
+      setFeedback("Choose an item first.");
       return;
     }
 
-    const correct = selectedItem.includes(targetId);
-    setPlacements((current) => ({ ...current, [selectedItem]: targetId }));
+    const correct = matchesBin(selectedItem, targetId);
+    if (correct) {
+      setPlacements((current) => ({ ...current, [selectedItem]: targetId }));
+      setFeedback(`${selectedItem} belongs in ${targetId}.`);
+      setSelectedItem(undefined);
+    } else {
+      setFeedback(`${selectedItem} does not belong in ${targetId}.`);
+    }
+
     onInteraction?.({
       eventName: "tool:move-item",
       profileId: profile.id,
@@ -279,7 +291,6 @@ function SortingGame({
         correct
       }
     });
-    setSelectedItem(undefined);
   }
 
   return React.createElement(
@@ -292,9 +303,10 @@ function SortingGame({
         "div",
         null,
         React.createElement("p", { style: liveStyles.profileName }, profile.profileName),
-        React.createElement("h2", { style: liveStyles.gameTitle }, textProp(component.props, "title", profile.profileName))
+        React.createElement("h2", { style: liveStyles.gameTitle }, textProp(component.props, "title", profile.profileName)),
+        React.createElement("p", { style: liveStyles.gameMeta }, complete ? "All items sorted" : feedback ?? "Pick an item, then choose a matching bin.")
       ),
-      React.createElement("span", { style: liveStyles.counter }, `${Object.keys(placements).length} / ${items.length}`)
+      React.createElement("span", { style: liveStyles.counter }, `${placedCount} / ${items.length}`)
     ),
     componentArt ? React.createElement("img", { src: componentArt.uri, alt: componentArt.altText, style: liveStyles.heroAsset }) : null,
     React.createElement(
@@ -311,7 +323,12 @@ function SortingGame({
               type: "button",
               onClick: () => setSelectedItem(item),
               disabled: placements[item] !== undefined,
-              style: selectedItem === item ? liveStyles.itemChipActive : liveStyles.itemChip
+              style:
+                placements[item] !== undefined
+                  ? liveStyles.itemChipPlaced
+                  : selectedItem === item
+                    ? liveStyles.itemChipActive
+                    : liveStyles.itemChip
             },
             item
           )
@@ -326,8 +343,9 @@ function SortingGame({
             {
               key: bin,
               type: "button",
+              "aria-label": `${bin} bin`,
               onClick: () => placeItem(bin),
-              style: liveStyles.bin
+              style: selectedItem ? liveStyles.binActive : liveStyles.bin
             },
             React.createElement("strong", null, bin),
             React.createElement(
@@ -338,7 +356,22 @@ function SortingGame({
           )
         )
       )
-    )
+    ),
+    complete
+      ? React.createElement(
+          "button",
+          {
+            type: "button",
+            onClick: () => {
+              setPlacements({});
+              setSelectedItem(undefined);
+              setFeedback(undefined);
+            },
+            style: liveStyles.inlineAction
+          },
+          "Play Again"
+        )
+      : null
   );
 }
 
@@ -358,17 +391,29 @@ function SequenceGame({
   const sequence = stringArrayProp(sequenceComponent.props, "sequence");
   const choices = uniqueStrings([...stringArrayProp(choiceComponent?.props ?? {}, "items"), ...sequence]);
   const [progress, setProgress] = React.useState(0);
+  const [attempts, setAttempts] = React.useState(0);
+  const [feedback, setFeedback] = React.useState<string | undefined>();
   const componentArt = resolveComponentAsset(profile, sequenceComponent, "illustration", replacements);
+  const complete = sequence.length > 0 && progress >= sequence.length;
 
   React.useEffect(() => {
     setProgress(0);
+    setAttempts(0);
+    setFeedback(undefined);
   }, [profile.id, sequence.join("|")]);
 
   function choose(item: string): void {
+    if (complete) {
+      return;
+    }
+
     const expected = sequence[progress];
     const correct = item === expected;
     const nextProgress = correct ? progress + 1 : 0;
+    const nextAttempts = attempts + 1;
     setProgress(nextProgress);
+    setAttempts(nextAttempts);
+    setFeedback(correct ? (nextProgress === sequence.length ? "Sequence complete." : "Correct.") : `Start again after ${item}.`);
     onInteraction?.({
       eventName: "tool:repeat-sequence",
       profileId: profile.id,
@@ -377,7 +422,9 @@ function SequenceGame({
         itemId: item,
         expected,
         correct,
-        progress: nextProgress
+        progress: nextProgress,
+        complete: nextProgress === sequence.length,
+        attempts: nextAttempts
       }
     });
   }
@@ -393,7 +440,7 @@ function SequenceGame({
         null,
         React.createElement("p", { style: liveStyles.profileName }, profile.profileName),
         React.createElement("h2", { style: liveStyles.gameTitle }, textProp(sequenceComponent.props, "title", profile.profileName)),
-        React.createElement("p", { style: liveStyles.gameMeta }, textProp(sequenceComponent.props, "prompt", `${progress} of ${sequence.length}`))
+        React.createElement("p", { style: liveStyles.gameMeta }, feedback ?? textProp(sequenceComponent.props, "prompt", `${progress} of ${sequence.length}`))
       ),
       React.createElement("span", { style: liveStyles.counter }, `${progress} / ${sequence.length}`)
     ),
@@ -422,12 +469,28 @@ function SequenceGame({
             key: item,
             type: "button",
             onClick: () => choose(item),
+            disabled: complete,
             style: liveStyles.choiceButton
           },
           item
         )
       )
-    )
+    ),
+    complete
+      ? React.createElement(
+          "button",
+          {
+            type: "button",
+            onClick: () => {
+              setProgress(0);
+              setAttempts(0);
+              setFeedback(undefined);
+            },
+            style: liveStyles.inlineAction
+          },
+          "Play Again"
+        )
+      : null
   );
 }
 
@@ -549,6 +612,10 @@ function displayInitial(cardId: string): string {
 
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
+}
+
+function matchesBin(item: string, bin: string): boolean {
+  return item.toLowerCase().includes(bin.toLowerCase());
 }
 
 const liveStyles = {
@@ -715,6 +782,16 @@ const liveStyles = {
     fontWeight: 700,
     padding: "0.55rem"
   },
+  itemChipPlaced: {
+    minHeight: "3rem",
+    borderRadius: "8px",
+    border: "1px solid #0f766e",
+    background: "#ecfdf5",
+    color: "#064e3b",
+    fontWeight: 700,
+    padding: "0.6rem",
+    opacity: 0.72
+  },
   binGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 10rem), 1fr))",
@@ -729,6 +806,18 @@ const liveStyles = {
     border: "2px dashed #0f766e",
     background: "#ecfdf5",
     color: "#064e3b",
+    padding: "1rem",
+    textAlign: "left" as const
+  },
+  binActive: {
+    minHeight: "10rem",
+    display: "grid",
+    alignContent: "start",
+    gap: "0.75rem",
+    borderRadius: "8px",
+    border: "2px solid #d97706",
+    background: "#fff7ed",
+    color: "#92400e",
     padding: "1rem",
     textAlign: "left" as const
   },

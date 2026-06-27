@@ -23,6 +23,13 @@ function timelineEntry(id: string, title: string, kind: StudioTimelineEntry["kin
 }
 
 describe("studio UI", () => {
+  it("previews available games and asset edits in the command chat", () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    expect(screen.getByText("Available games: Memory Match, Sorting, Sequence Repeat.")).toBeDefined();
+    expect(screen.getByText("Asset edits: with dinosaurs, with toys, assets with ocean animals, cards with fruit.")).toBeDefined();
+  });
+
   it("keeps the command bar in the viewport after game generation", async () => {
     const view = render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
@@ -105,6 +112,37 @@ describe("studio UI", () => {
     expect(await screen.findByRole("button", { name: "toy-1-a" })).toBeDefined();
     expect(screen.getByRole("button", { name: "toy-1-b" })).toBeDefined();
     expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
+  });
+
+  it("plays the sorting profile with bin validation", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Sort shapes by color" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+
+    expect(await screen.findByText("Sorting MVP")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "red circle" }));
+    fireEvent.click(screen.getByRole("button", { name: "blue bin" }));
+    expect(await screen.findByText("red circle does not belong in blue.")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "red bin" }));
+    expect(await screen.findByText("red circle belongs in red.")).toBeDefined();
+    expect(screen.getByText("1 / 3")).toBeDefined();
+  });
+
+  it("plays the sequence profile through completion", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.change(screen.getByLabelText("Game request"), { target: { value: "Repeat a friendly light pattern" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+
+    expect(await screen.findByText("Sequence Repeat MVP")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "green" }));
+    expect(await screen.findByText("Correct.")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "yellow" }));
+    fireEvent.click(screen.getByRole("button", { name: "green" }));
+    expect(await screen.findByText("Sequence complete.")).toBeDefined();
+    expect(screen.getByRole("button", { name: "Play Again" })).toBeDefined();
   });
 
   it("resets the local session from the shared command bar", async () => {
