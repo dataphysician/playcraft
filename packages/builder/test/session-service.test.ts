@@ -379,6 +379,26 @@ describe("builder session service", () => {
     expect(stderr.join("\n")).toMatch(/builder template IDs must start with template/u);
   });
 
+  it("prints a contract-shaped builder CLI catalog summary", () => {
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const exitCode = runBuilderCli(["catalog"], {
+      stdout: (message) => stdout.push(message),
+      stderr: (message) => stderr.push(message)
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stderr).toEqual([]);
+    expect(stdout).toEqual(expect.arrayContaining([
+      "tools:",
+      "- Assemble Game [tool:assemble-game -> assemble-game] args: assetEdit:object, input:object, sessionId:string, templateId*:string",
+      "- Preview Action [tool:preview-action -> preview-action] args: interaction*:object, sessionId*:string",
+      "templates:",
+      "- Memory Match [template.memory-match] try: Memory game; aliases: memory, memory game, memory match"
+    ]));
+    expect(stdout).not.toContain(`${BUILDER_SESSION_POLICY.defaultCatalogSessionId}: preview`);
+  });
+
   it("rejects unknown builder CLI options and missing values", () => {
     const stdout: string[] = [];
     const stderr: string[] = [];

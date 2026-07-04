@@ -266,6 +266,17 @@ describe("import-light boundaries and source scans", () => {
     expect(cliSource).not.toContain('sources.join(", ")');
   });
 
+  it("keeps builder CLI catalog summaries contract-shaped", () => {
+    const builderCliSource = readSource("packages/builder/src/cli.ts");
+
+    expect(builderCliSource).toContain("writeCatalogSummary(handler.listTools(), handler.listTemplates(), io)");
+    expect(builderCliSource).toContain("tool.displayName");
+    expect(builderCliSource).toContain("tool.argumentsSchema");
+    expect(builderCliSource).toContain("template.displayLabel");
+    expect(builderCliSource).toContain("template.exampleRequest");
+    expect(builderCliSource).toContain("if (!args.json)");
+  });
+
   it("keeps Studio service event ingestion schema-backed", () => {
     const source = readSource("apps/studio/src/local-client.ts");
 

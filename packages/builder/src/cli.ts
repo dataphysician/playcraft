@@ -1,6 +1,13 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
-import { BuilderTemplateIdSchema, PLAYCRAFT_SCHEMA_VERSION, type BuilderTemplateId } from "@playcraft/contracts";
+import {
+  BuilderTemplateIdSchema,
+  PLAYCRAFT_SCHEMA_VERSION,
+  type BuilderTemplateId,
+  type BuilderToolDefinition,
+  type GameTemplateDefinition,
+  type JsonObjectSchemaDescriptor
+} from "@playcraft/contracts";
 import { BUILDER_SESSION_POLICY, createBuilderCommandHandler, type BuilderExecutionResult } from "./index.js";
 
 export interface BuilderCliIo {
@@ -41,6 +48,10 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
         sessionId,
         actionName: "list-builder-tools"
       });
+      if (!args.json) {
+        writeCatalogSummary(handler.listTools(), handler.listTemplates(), io);
+        return 0;
+      }
       writeResult(result, Boolean(args.json), io);
       return 0;
     }
@@ -121,6 +132,27 @@ function writeResult(result: BuilderExecutionResult | BuilderExecutionResult[], 
   for (const entry of outputs) {
     io.stdout(`${entry.result.sessionId}: ${entry.result.profile?.profileName ?? "preview"}`);
   }
+}
+
+function writeCatalogSummary(
+  tools: BuilderToolDefinition[],
+  templates: GameTemplateDefinition[],
+  io: BuilderCliIo
+): void {
+  io.stdout("tools:");
+  for (const tool of tools) {
+    io.stdout(`- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${toolArgumentsSummary(tool.argumentsSchema)}`);
+  }
+
+  io.stdout("templates:");
+  for (const template of templates) {
+    io.stdout(`- ${template.displayLabel} [${template.id}] try: ${template.exampleRequest}; aliases: ${template.requestAliases.slice(0, 3).join(", ")}`);
+  }
+}
+
+function toolArgumentsSummary(schema: JsonObjectSchemaDescriptor): string {
+  const summary = Object.entries(schema.fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
+  return summary.length > 0 ? `args: ${summary.join(", ")}` : "args: none";
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Contract-Shaped Builder CLI Catalog Summary
+
+Milestone:
+- `playcraft-builder catalog` now prints a builder-local tool/template summary for non-JSON agent use.
+- Tool rows show explicit display names, tool/action identifiers, and argument schema summaries from `BuilderToolDefinition`.
+- Template rows show catalog-owned display labels, stable IDs, example requests, and leading request aliases from `GameTemplateDefinition`.
+- JSON catalog output still returns the validated builder execution result for exact event/result inspection.
+
+Supportive changes:
+- Builder CLI tests verify the non-JSON catalog output no longer collapses to `builder.cli: preview`.
+- Source scans now guard the builder CLI catalog path against returning to opaque command-result summaries.
+- The change keeps the lower-level builder CLI aligned with the richer service CLI while preserving its narrower package boundary.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps local CLI agent discovery contract-shaped and forward-only without preview-like placeholder summaries, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Catalog-Suggested Asset Edit Items
 
 Milestone:
