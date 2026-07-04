@@ -295,10 +295,19 @@ describe("import-light boundaries and source scans", () => {
     const packSource = readSource("packages/packs/src/index.ts");
 
     expect(contractSource).toContain("assetPromptKind");
+    expect(contractSource).toContain("GameTemplateAssetEditOperationSchema");
     expect(packSource).toContain("assetPromptKind: template.assetPromptKind");
+    expect(packSource).toContain("assetEditOperations: template.assetEditOperations");
     expect(builderSource).toContain("template.assetPromptKind");
+    expect(builderSource).toContain("template.assetEditOperations");
     expect(builderSource).not.toContain("hasComponentCapability");
     expect(builderSource).not.toContain("promptForAssetEdit(profile");
+    expect(builderSource).not.toContain('case "component:reveal-card-grid"');
+    expect(builderSource).not.toContain('case "component:choice-grid"');
+    expect(builderSource).not.toContain('case "component:sort-bins"');
+    expect(builderSource).not.toContain('case "component:sequence-pad"');
+    expect(builderSource).not.toContain('case "component:celebration-overlay"');
+    expect(builderSource).not.toContain('case "component:hint-bubble"');
   });
 
   it("keeps Live App surface selection template-owned instead of component-priority inferred", () => {

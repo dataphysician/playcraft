@@ -1,5 +1,33 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template-Owned Asset Edit Operations
+
+Milestone:
+- `GameTemplateDefinition` now publishes `assetEditOperations` for template-specific asset edit behavior.
+- Bundled memory, sorting, and sequence templates declare named operations for editable components and support text.
+- Builder asset edits now apply operation kinds from the selected template instead of switching on component render capability strings.
+
+Supportive changes:
+- Pack and service catalog tests now assert starter template asset edit operation plans.
+- Builder tests continue to verify memory, sorting, and sequence asset edits preserve game rules and imported authored rounds.
+- Source scans now block the removed render-capability switch cases from returning to the builder asset edit path.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Refined provider/key literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps builder asset edits template-owned and forward-only without render-capability behavior inference, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Template-Owned Asset Replacement Sources
 
 Milestone:

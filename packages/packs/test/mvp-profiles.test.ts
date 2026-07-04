@@ -106,6 +106,11 @@ describe("MVP profile pack", () => {
       "sorting-game",
       "sequence-buttons"
     ]);
+    expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.assetEditOperations.map((entry) => entry.operation))).toEqual([
+      ["memory-pairs", "completion-message"],
+      ["choice-items", "sorting-items", "hint-message"],
+      ["sequence-items", "choice-items", "completion-message"]
+    ]);
     expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.liveSurface.kind)).toEqual([
       "memory",
       "sorting",

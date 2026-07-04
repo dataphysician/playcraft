@@ -32,6 +32,7 @@ import {
   type BuilderTemplateId,
   type BuilderToolDefinition,
   type GameAssemblyProfile,
+  type GameTemplateAssetEditOperation,
   type GameTemplateDefinition,
   type GeneratedAssetRecord,
   type JsonObjectSchemaDescriptor,
@@ -641,11 +642,12 @@ function applyAssetEdit(
   if (!edit) {
     return profile;
   }
+  const template = templateForProfile(profile);
 
   const assetRequests = profile.assetRequests.map((request) =>
     AssetGenerationRequestSchema.parse({
       ...request,
-      prompt: promptForAssetEdit(templateForProfile(profile), edit),
+      prompt: promptForAssetEdit(template, edit),
       metadata: {
         ...request.metadata,
         assetEditTheme: edit.theme,
@@ -656,7 +658,11 @@ function applyAssetEdit(
   const assets = assetSource.generateBatch(assetRequests);
   const components = profile.components.map((component) => ({
     ...component,
-    props: editComponentProps(component.renderCapability, component.props, edit),
+    props: editComponentProps(
+      template.assetEditOperations.find((operation) => operation.componentCapability === component.renderCapability),
+      component.props,
+      edit
+    ),
     assetBindings: rewriteAssetBindings(component.assetBindings, profile.assets, assets)
   }));
   const editedProfile = GameAssemblyProfileSchema.parse({
@@ -690,12 +696,12 @@ function normalizeAssetEdit(assetEdit: BuilderAssetEdit | undefined): Normalized
 }
 
 function editComponentProps(
-  renderCapability: string,
+  operation: GameTemplateAssetEditOperation | undefined,
   props: Record<string, JsonValue>,
   edit: NormalizedAssetEdit
 ): Record<string, JsonValue> {
-  switch (renderCapability) {
-    case "component:reveal-card-grid":
+  switch (operation?.operation) {
+    case "memory-pairs":
       const cards = pairedCardIds(edit);
       return {
         ...props,
@@ -704,14 +710,14 @@ function editComponentProps(
         pairs: pairMapForCards(cards),
         columns: props.columns ?? 2
       };
-    case "component:choice-grid":
+    case "choice-items":
       return {
         ...props,
         title: `Choose ${articleFor(edit.singularTheme)} ${edit.singularTheme}`,
         prompt: `Pick one ${edit.singularTheme}.`,
         items: edit.items
       };
-    case "component:sort-bins": {
+    case "sorting-items": {
       const bins = stringArrayProp(props, "bins");
       const activeBins = bins.length > 0 ? bins : ["red", "blue"];
       const items = activeBins.map((bin) => `${bin} ${edit.singularTheme}`);
@@ -723,7 +729,7 @@ function editComponentProps(
         targets: Object.fromEntries(items.map((item, index) => [item, activeBins[index]]))
       };
     }
-    case "component:sequence-pad":
+    case "sequence-items":
       const sourceSequence = stringArrayProp(props, "sequence");
       const sourceRounds = stringMatrixProp(props, "rounds");
       const sequenceTokenMap = tokenMapForSequence([...sourceSequence, ...sourceRounds.flat()], edit.items);
@@ -736,12 +742,12 @@ function editComponentProps(
         sequence,
         rounds: rounds.length > 0 ? rounds : [sequence]
       };
-    case "component:celebration-overlay":
+    case "completion-message":
       return {
         ...props,
         message: `${titleCase(edit.theme)} round complete.`
       };
-    case "component:hint-bubble":
+    case "hint-message":
       return {
         ...props,
         hint: `Look for the ${edit.singularTheme} clue first.`

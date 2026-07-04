@@ -23,6 +23,7 @@ import {
   type DomainProfile,
   type FrontendToolDefinition,
   type GameAssemblyProfile,
+  type GameTemplateAssetEditOperation,
   type GameTemplateAssetPromptKind,
   type GameTemplateDefinition,
   type GameTemplateLiveSurface,
@@ -53,6 +54,23 @@ export const DEFAULT_DOMAIN_ID = "domain.child-edu";
 export const DEFAULT_SAFETY_POLICY_ID = "safety.child-friendly";
 export const DEFAULT_THEME_ID = "theme.bright-calm";
 export const DEFAULT_PLANNER_ID = "planner.deterministic.mvp";
+
+const memoryAssetEditOperations: GameTemplateAssetEditOperation[] = [
+  { componentCapability: "component:reveal-card-grid", operation: "memory-pairs" },
+  { componentCapability: "component:celebration-overlay", operation: "completion-message" }
+];
+
+const sortingAssetEditOperations: GameTemplateAssetEditOperation[] = [
+  { componentCapability: "component:choice-grid", operation: "choice-items" },
+  { componentCapability: "component:sort-bins", operation: "sorting-items" },
+  { componentCapability: "component:hint-bubble", operation: "hint-message" }
+];
+
+const sequenceAssetEditOperations: GameTemplateAssetEditOperation[] = [
+  { componentCapability: "component:sequence-pad", operation: "sequence-items" },
+  { componentCapability: "component:choice-grid", operation: "choice-items" },
+  { componentCapability: "component:celebration-overlay", operation: "completion-message" }
+];
 export const DEFAULT_PACK_VERSION = "1.0.0";
 
 const textField = { type: "string", required: true } as const;
@@ -208,6 +226,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     requestAliases: ["memory", "memory game", "memory match", "matching cards", "card pairs", "pair match"],
     exampleRequest: "Memory game",
     assetPromptKind: "memory-cards",
+    assetEditOperations: memoryAssetEditOperations,
     liveSurface: {
       kind: "memory",
       componentCapabilities: { primary: "component:reveal-card-grid" },
@@ -250,6 +269,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     requestAliases: ["sort", "sorting", "sorting game", "category", "categories", "color bins", "group by color"],
     exampleRequest: "Sorting game",
     assetPromptKind: "sorting-game",
+    assetEditOperations: sortingAssetEditOperations,
     liveSurface: {
       kind: "sorting",
       componentCapabilities: { primary: "component:sort-bins" },
@@ -291,6 +311,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     requestAliases: ["sequence", "sequence repeat", "pattern", "repeat", "repeat pattern", "copy the pattern"],
     exampleRequest: "Sequence repeat",
     assetPromptKind: "sequence-buttons",
+    assetEditOperations: sequenceAssetEditOperations,
     liveSurface: {
       kind: "sequence",
       componentCapabilities: {
@@ -635,6 +656,7 @@ export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.ma
     requestAliases: template.requestAliases,
     exampleRequest: template.exampleRequest,
     assetPromptKind: template.assetPromptKind,
+    assetEditOperations: template.assetEditOperations,
     liveSurface: template.liveSurface,
     assemblyRequestId: mvpAssemblyRequests[index].id,
     profileId: template.profileId,
@@ -1294,6 +1316,7 @@ interface MvpProfileTemplate {
   requestAliases: string[];
   exampleRequest: string;
   assetPromptKind: GameTemplateAssetPromptKind;
+  assetEditOperations: GameTemplateAssetEditOperation[];
   liveSurface: GameTemplateLiveSurface;
   profileId: string;
   profileName: string;
@@ -1328,6 +1351,7 @@ function memoryTemplate(input: {
     requestAliases: input.aliases,
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     assetPromptKind: "memory-cards",
+    assetEditOperations: memoryAssetEditOperations,
     liveSurface: {
       kind: "memory",
       componentCapabilities: { primary: "component:reveal-card-grid" },
@@ -1383,6 +1407,7 @@ function sortingTemplate(input: {
     requestAliases: input.aliases,
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     assetPromptKind: "sorting-game",
+    assetEditOperations: sortingAssetEditOperations,
     liveSurface: {
       kind: "sorting",
       componentCapabilities: { primary: "component:sort-bins" },
@@ -1437,6 +1462,7 @@ function sequenceTemplate(input: {
     requestAliases: input.aliases,
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     assetPromptKind: "sequence-buttons",
+    assetEditOperations: sequenceAssetEditOperations,
     liveSurface: {
       kind: "sequence",
       componentCapabilities: {

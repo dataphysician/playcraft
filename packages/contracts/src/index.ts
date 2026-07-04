@@ -462,6 +462,24 @@ export const GameTemplateAssetPromptKindSchema = z.enum([
 ]);
 export type GameTemplateAssetPromptKind = z.infer<typeof GameTemplateAssetPromptKindSchema>;
 
+export const GameTemplateAssetEditOperationKindSchema = z.enum([
+  "memory-pairs",
+  "choice-items",
+  "sorting-items",
+  "sequence-items",
+  "completion-message",
+  "hint-message"
+]);
+export type GameTemplateAssetEditOperationKind = z.infer<typeof GameTemplateAssetEditOperationKindSchema>;
+
+export const GameTemplateAssetEditOperationSchema = z
+  .object({
+    componentCapability: CapabilityTagSchema,
+    operation: GameTemplateAssetEditOperationKindSchema
+  })
+  .strict();
+export type GameTemplateAssetEditOperation = z.infer<typeof GameTemplateAssetEditOperationSchema>;
+
 export const GameTemplateLiveSurfaceKindSchema = z.enum(["memory", "sorting", "sequence"]);
 export type GameTemplateLiveSurfaceKind = z.infer<typeof GameTemplateLiveSurfaceKindSchema>;
 
@@ -508,6 +526,7 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   requestAliases: z.array(z.string().min(2).max(80)).min(1),
   exampleRequest: z.string().min(2).max(120),
   assetPromptKind: GameTemplateAssetPromptKindSchema,
+  assetEditOperations: z.array(GameTemplateAssetEditOperationSchema).min(1),
   liveSurface: GameTemplateLiveSurfaceSchema,
   assemblyRequestId: StableIdSchema,
   profileId: StableIdSchema,

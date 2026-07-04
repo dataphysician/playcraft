@@ -726,6 +726,11 @@ describe("local Playcraft service", () => {
       ["item"],
       ["choice", "choice"]
     ]);
+    expect(catalog.templates.slice(0, 3).map((template) => template.assetEditOperations.map((entry) => entry.operation))).toEqual([
+      ["memory-pairs", "completion-message"],
+      ["choice-items", "sorting-items", "hint-message"],
+      ["sequence-items", "choice-items", "completion-message"]
+    ]);
     expect(catalog.assetEdit.availableThemes.map((entry) => entry.theme)).toEqual([
       "dinosaurs",
       "toys",
