@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PLAYCRAFT_SCHEMA_VERSION, type BuilderServiceResponse } from "@playcraft/contracts";
+import { BuilderServiceResponseSchema, PLAYCRAFT_SCHEMA_VERSION } from "@playcraft/contracts";
 import {
   PLAYCRAFT_SERVICE_PACKAGE,
   createHttpServiceTransport,
@@ -282,7 +282,7 @@ describe("local Playcraft service", () => {
       sessionId: "session.http-body",
       text: "Memory game with dinosaurs"
     }));
-    const parsed = JSON.parse(response.body) as BuilderServiceResponse;
+    const parsed = BuilderServiceResponseSchema.parse(JSON.parse(response.body));
 
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe("application/json");
@@ -376,7 +376,7 @@ describe("local Playcraft service", () => {
           text: transcript.text
         })
       });
-      const parsed = await response.json() as BuilderServiceResponse;
+      const parsed = BuilderServiceResponseSchema.parse(await response.json());
 
       expect(response.status).toBe(200);
       expect(parsed.execution?.result.sessionId).toBe("session.live-http");
@@ -840,7 +840,7 @@ describe("local Playcraft service", () => {
       })
     ).toBe(0);
 
-    const response = JSON.parse(out.pop() ?? "{}") as BuilderServiceResponse;
+    const response = BuilderServiceResponseSchema.parse(JSON.parse(out.pop() ?? "{}"));
     expect(response.kind).toBe("builder-service-response");
     expect(response.requestId).toBe("builder-service-request.test.cli-envelope");
     expect(response.execution?.result.sessionId).toBe("session.cli-envelope");

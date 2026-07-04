@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Service Response Test Parsing
+
+Milestone:
+- Service HTTP, live HTTP, and CLI response tests now parse payloads through `BuilderServiceResponseSchema`.
+- Public service response fixtures in tests enforce the same contract schema used by the local service boundary.
+- Removed test-only `BuilderServiceResponse` casts from service response body checks.
+
+Supportive changes:
+- Tightened service validation coverage without changing runtime behavior or public envelope shape.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps CLI/API response verification schema-first and local without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Catalog Template Alias Asset Guard
 
 Milestone:
