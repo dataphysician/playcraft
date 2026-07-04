@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Suggested Asset Edit Items
+
+Milestone:
+- Builder asset-edit normalization now reads known theme aliases from the shared local asset catalog.
+- Known catalog themes use `suggestedItems` for generated profile component IDs instead of locally guessing item names from the request phrase.
+- Freeform future asset-folder themes still get deterministic generated item IDs when they are not in the catalog.
+
+Supportive changes:
+- Builder tests verify the `ocean animals` alias produces dolphin card IDs from catalog metadata.
+- Studio asset-library tests verify local replacements attach directly to catalog-suggested card IDs and no longer rely on indirect `ocean-animal-*` IDs.
+- Source scans now guard against reintroducing the old builder-local default item helper for catalog-known asset edits.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps asset replacement levers catalog-aware and forward-extensible without profile-ID guessing, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Contract-Shaped CLI Catalog Summary
 
 Milestone:

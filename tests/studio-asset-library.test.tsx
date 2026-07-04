@@ -22,7 +22,8 @@ describe("studio asset library", () => {
 
     expect(oceanProfile).toBeDefined();
     expect(fruitProfile).toBeDefined();
-    expect(createProfileLibraryAssetReplacements(oceanProfile!)["card:ocean-animal-1-a"]?.altText).toBe("dolphin 1 sprite");
+    expect(createProfileLibraryAssetReplacements(oceanProfile!)["card:dolphin-1-a"]?.altText).toBe("dolphin 1 sprite");
+    expect(createProfileLibraryAssetReplacements(oceanProfile!)["card:ocean-animal-1-a"]).toBeUndefined();
     expect(createProfileLibraryAssetReplacements(fruitProfile!)["card:fruit-1-a"]?.altText).toBe("fruit 1 sprite");
   });
 

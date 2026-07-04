@@ -1173,6 +1173,7 @@ describe("local Playcraft service", () => {
 
     expect(response.execution?.result.sessionId).toBe("session.direct");
     expect(response.execution?.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
+    expect(response.execution?.result.profile?.components[0]?.props.cards).toEqual(["dolphin-1-a", "dolphin-1-b", "dolphin-2-a", "dolphin-2-b"]);
   });
 });
 

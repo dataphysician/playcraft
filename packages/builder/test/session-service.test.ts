@@ -152,6 +152,15 @@ describe("builder session service", () => {
     expect(toys.result.validation?.valid).toBe(true);
   });
 
+  it("uses catalog suggested items for known asset theme aliases", () => {
+    const service = new PlaycraftBuilderSessionService();
+    const edited = service.execute(command({ templateId: "template.memory-match", assetEdit: { theme: "ocean animals" } }));
+
+    expect(cardsFor(edited.result.profile)).toEqual(["dolphin-1-a", "dolphin-1-b", "dolphin-2-a", "dolphin-2-b"]);
+    expect(edited.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
+    expect(edited.result.validation?.valid).toBe(true);
+  });
+
   it("keeps sorting targets in sync when asset edits rename items", () => {
     const service = new PlaycraftBuilderSessionService();
     const edited = service.execute(command({ templateId: "template.sorting", assetEdit: { theme: "toys" } }));

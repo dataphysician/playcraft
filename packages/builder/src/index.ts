@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DeterministicLocalAssetSource } from "@playcraft/assets";
+import { DeterministicLocalAssetSource, localAssetEditCatalog } from "@playcraft/assets";
 import {
   activity,
   createPlaycraftEnvelope,
@@ -712,11 +712,12 @@ function normalizeAssetEdit(assetEdit: BuilderAssetEdit | undefined): Normalized
   const items = (assetEdit.items ?? []).map(cleanLabel).filter(Boolean);
   const normalizedTheme = theme || items.join(" ") || "custom assets";
   const singularTheme = singularize(normalizedTheme);
+  const catalogEntry = assetEditCatalogEntryFor(normalizedTheme);
 
   return {
     theme: normalizedTheme,
     singularTheme,
-    items: items.length > 0 ? items : defaultItemsForTheme(singularTheme)
+    items: items.length > 0 ? items : catalogEntry?.suggestedItems ?? generatedItemsForTheme(singularTheme)
   };
 }
 
@@ -820,7 +821,14 @@ function pairMapForCards(cards: string[]): Record<string, string> {
   return pairs;
 }
 
-function defaultItemsForTheme(singularTheme: string): string[] {
+function assetEditCatalogEntryFor(theme: string): typeof localAssetEditCatalog[number] | undefined {
+  const candidate = cleanLabel(theme);
+  return localAssetEditCatalog.find((entry) =>
+    [entry.theme, ...entry.aliases].some((alias) => cleanLabel(alias) === candidate)
+  );
+}
+
+function generatedItemsForTheme(singularTheme: string): string[] {
   const base = slugLabel(singularTheme);
   return [`${base}-1`, `${base}-2`, `${base}-3`];
 }

@@ -296,9 +296,14 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps local asset edit theme metadata shared through the assets package", () => {
+    const builderSource = readSource("packages/builder/src/index.ts");
     const serviceSource = readSource("packages/service/src/index.ts");
     const studioAssetLibrarySource = readSource("apps/studio/src/asset-library.ts");
 
+    expect(builderSource).toContain("localAssetEditCatalog");
+    expect(builderSource).toContain("assetEditCatalogEntryFor");
+    expect(builderSource).toContain("catalogEntry?.suggestedItems");
+    expect(builderSource).not.toContain("defaultItemsForTheme");
     expect(serviceSource).toContain('from "@playcraft/assets"');
     expect(studioAssetLibrarySource).toContain('from "@playcraft/assets"');
     expect(studioAssetLibrarySource).not.toContain("const aliases: Record");
