@@ -15,7 +15,7 @@ It supersedes the older PlayCraft AI app/product framing. The older framing desc
 
 Playcraft is "GDevelop-inspired for coding agents": a lightweight game-assembly SDK/framework where agents assemble mini games from typed contracts, template definitions, event/rule semantics, registries, trusted components, theme packs, asset records, safety policies, and replayable profiles.
 
-The user-facing builder accepts local text input and local speech transcripts. Speech transcripts are modeled as Moonshine Streaming CPU-only input records; there is no hosted-stack-specific video-avatar or hosted conversation stack in the Playcraft runtime.
+The user-facing builder accepts local text input and local speech transcripts. Speech transcripts are modeled as Moonshine Streaming CPU-only input records; there is no vendor conversation runtime in the Playcraft runtime.
 
 Playcraft is not an AI game generator. AI or agents may help interpret intent, plan assemblies, or request assets, but the playable result must be a validated `GameAssemblyProfile` made from registered capabilities.
 
@@ -54,7 +54,7 @@ The core framework packages must be buildable and testable without network acces
 
 ## Middleweight Later Path
 
-Current middleweight app work includes the Vite studio, local service, visual game preview, developer timeline, and a Tauri Mobile-facing webview scaffold. Later docs may specify richer curated local packs, server catalog retrieval, and asset-library adapters. Hosted hosted SDK adapters are not part of the framework path.
+Current middleweight app work includes the Vite studio, local service, visual game preview, developer timeline, and a Tauri Mobile-facing webview scaffold. Later docs may specify richer curated local packs, server catalog retrieval, and asset-library adapters. Hosted SDK adapters are not part of the framework path.
 
 ## Explicit Rejections
 

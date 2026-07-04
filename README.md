@@ -8,7 +8,7 @@ The current app surface is:
 - `apps/mobile-shell`: Tauri Mobile-facing webview shell that reuses the Studio UI and client contract.
 - `packages/service`: local app/API facade and CLI over `BuilderServiceRequest` and `BuilderServiceResponse`.
 
-Inputs are text and local Moonshine Streaming CPU transcript records. There is no hosted avatar stack, auth/database layer, generated runtime code, or hosted SDK dependency in the framework path.
+Inputs are text and local Moonshine Streaming CPU transcript records. There is no hosted conversation stack, auth/database layer, generated runtime code, or hosted SDK dependency in the framework path.
 
 ## Run Locally
 

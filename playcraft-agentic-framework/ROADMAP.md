@@ -82,7 +82,7 @@ Server retrieval requirements:
 - Declare network, credential, safety, format, dimension, and seed support.
 - Return `GeneratedAssetRecord` values with provenance.
 - Keep default tests local and deterministic.
-- Never require hosted SDK SDK imports from contracts/core packages.
+- Never require hosted SDK imports from contracts/core packages.
 
 Asset-source selection must be capability-driven and must not branch on source names in core.
 
@@ -141,5 +141,5 @@ Move from lightweight v1 to middleweight work only when:
 - AG-UI custom payloads are schema-validated.
 - The renderer fails closed for unknown components and invalid props.
 - Core packages pass import-light tests.
-- Source scans catch old abstractions and hosted-stack-specific shortcuts.
+- Source scans catch old abstractions and removed-stack shortcuts.
 - The docs still identify this folder as the canonical source of truth.

@@ -110,6 +110,23 @@ describe("import-light boundaries and source scans", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps public framework docs free of removed hosted-stack phrasing", () => {
+    const blockedTerms = [
+      "hosted hosted",
+      "SDK SDK",
+      "hosted-stack-specific",
+      "video-avatar"
+    ];
+    const docs = repoSourceFiles()
+      .filter((path) => path === "README.md" || path.startsWith("playcraft-agentic-framework/"));
+    const violations = docs.flatMap((path) => {
+      const source = readSource(path);
+      return blockedTerms.some((term) => source.includes(term)) ? [path] : [];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Public Docs Hosted-Stack Phrase Cleanup
+
+Milestone:
+- Public framework docs now describe local text and Moonshine transcript input without removed video/avatar phrasing.
+- Duplicate hosted SDK wording in framework README, architecture, and roadmap docs was collapsed into clear adapter rejection language.
+- Source scans now guard public framework docs against removed hosted-stack phrasing regressions.
+
+Supportive changes:
+- Updated the root README and cleanroom framework docs without changing runtime contracts or service behavior.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Public docs removed hosted-stack phrase scan.
+- Hidden-file removed vendor/avatar marker scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps public documentation aligned with the text/Moonshine-only local builder path without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Registry Kind-Specific Compatibility Fields
 
 Milestone:

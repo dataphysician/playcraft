@@ -214,7 +214,7 @@ Every pack manifest must declare:
 - Import-light status.
 - Network/credential/native requirements, if any.
 
-V1 packs must be local and import-light. Middleweight packs may add richer studio components, curated asset folders, and server catalog retrieval, but hosted SDK SDK adapters are outside the framework path.
+V1 packs must be local and import-light. Middleweight packs may add richer studio components, curated asset folders, and server catalog retrieval, but hosted SDK adapters are outside the framework path.
 
 ## 11. Safety and Privacy
 
