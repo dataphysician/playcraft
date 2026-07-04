@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Token Color Catalog
+
+Milestone:
+- Live game token styling now resolves named colors through an exact local token color catalog instead of substring checks.
+- Labels such as `blueberry` no longer receive the `blue` styling just because they contain the word fragment.
+- Sequence, sorting, and hero token visuals keep deterministic fallback colors for arbitrary toddler-friendly labels.
+
+Supportive changes:
+- Added Studio Live App coverage comparing exact `blue` token styling against non-matching `blueberry`.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps visual defaults profile-token driven and local without generated runtime code, hosted providers, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Replaceable Asset Theme Matching
 
 Milestone:

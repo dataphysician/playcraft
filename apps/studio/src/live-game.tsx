@@ -48,6 +48,13 @@ interface SequenceFeedback {
   message: string;
 }
 
+interface TokenColor {
+  aliases: string[];
+  background: string;
+  border: string;
+  foreground: string;
+}
+
 interface SortDragState {
   item: string;
   pointerId: number;
@@ -1319,18 +1326,16 @@ function heroTokenStyle(token: string, index: number): React.CSSProperties {
 }
 
 function colorForToken(token: string): { background: string; border: string; foreground: string } {
-  const normalized = token.toLowerCase();
-  if (normalized.includes("red")) {
-    return { background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d" };
-  }
-  if (normalized.includes("blue")) {
-    return { background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a" };
-  }
-  if (normalized.includes("green")) {
-    return { background: "#dcfce7", border: "#16a34a", foreground: "#14532d" };
-  }
-  if (normalized.includes("yellow")) {
-    return { background: "#fef3c7", border: "#eab308", foreground: "#713f12" };
+  const tokenParts = normalizedTokens(token);
+  const catalogColor = tokenColorCatalog.find((entry) =>
+    entry.aliases.some((alias) => tokenSequenceIncludes(tokenParts, normalizedTokens(alias)))
+  );
+  if (catalogColor) {
+    return {
+      background: catalogColor.background,
+      border: catalogColor.border,
+      foreground: catalogColor.foreground
+    };
   }
 
   const palette = [
@@ -1340,6 +1345,32 @@ function colorForToken(token: string): { background: string; border: string; for
     { background: "#ccfbf1", border: "#0d9488", foreground: "#134e4a" }
   ];
   return palette[hashString(token) % palette.length];
+}
+
+const tokenColorCatalog: TokenColor[] = [
+  { aliases: ["red"], background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d" },
+  { aliases: ["blue"], background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a" },
+  { aliases: ["green"], background: "#dcfce7", border: "#16a34a", foreground: "#14532d" },
+  { aliases: ["yellow"], background: "#fef3c7", border: "#eab308", foreground: "#713f12" }
+];
+
+function normalizedTokens(value: string): string[] {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, " ")
+    .trim()
+    .split(/\s+/u)
+    .filter(Boolean);
+}
+
+function tokenSequenceIncludes(tokens: string[], sequence: string[]): boolean {
+  if (sequence.length === 0 || sequence.length > tokens.length) {
+    return false;
+  }
+
+  return tokens.some((_, index) =>
+    sequence.every((part, offset) => tokens[index + offset] === part)
+  );
 }
 
 const liveMotionCss = `

@@ -580,6 +580,41 @@ describe("studio UI", () => {
     expect(await screen.findByText("Sequence complete.")).toBeDefined();
   });
 
+  it("uses exact token color aliases instead of substring token styling", () => {
+    const profile = {
+      ...profileC,
+      components: profileC.components.map((component) => {
+        if (component.renderCapability === "component:sequence-pad") {
+          return {
+            ...component,
+            props: {
+              ...component.props,
+              sequence: ["blueberry"],
+              rounds: [["blueberry"]]
+            }
+          };
+        }
+
+        if (component.renderCapability === "component:choice-grid") {
+          return {
+            ...component,
+            props: {
+              ...component.props,
+              items: ["blue", "blueberry"]
+            }
+          };
+        }
+
+        return component;
+      })
+    };
+
+    render(React.createElement(LiveGame, { profile }));
+
+    expect(screen.getByRole("button", { name: "blue" }).getAttribute("style")).toContain("rgb(37, 99, 235)");
+    expect(screen.getByRole("button", { name: "blueberry" }).getAttribute("style")).not.toContain("rgb(37, 99, 235)");
+  });
+
   it("plays the sequence profile through completion", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
