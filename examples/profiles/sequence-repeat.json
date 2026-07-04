@@ -157,7 +157,7 @@
         "seed": "seed-sequence-repeat"
       },
       "metadata": {
-        "profileTemplate": "recipe.sequence-repeat"
+        "profileTemplate": "template.sequence-repeat"
       }
     }
   ],

@@ -13,7 +13,9 @@ It supersedes the older PlayCraft AI app/product framing. The older framing desc
 
 ## Positioning
 
-Playcraft is "GDevelop-inspired for coding agents": a lightweight game-assembly SDK/framework where agents assemble mini games from typed contracts, event/rule semantics, registries, trusted components, theme packs, asset records, safety policies, and replayable profiles.
+Playcraft is "GDevelop-inspired for coding agents": a lightweight game-assembly SDK/framework where agents assemble mini games from typed contracts, template definitions, event/rule semantics, registries, trusted components, theme packs, asset records, safety policies, and replayable profiles.
+
+The user-facing builder accepts local text input and local speech transcripts. Speech transcripts are modeled as Moonshine Streaming CPU-only input records; there is no provider-specific video-avatar or hosted conversation stack in the Playcraft runtime.
 
 Playcraft is not an AI game generator. AI or agents may help interpret intent, plan assemblies, or request assets, but the playable result must be a validated `GameAssemblyProfile` made from registered capabilities.
 
@@ -35,6 +37,7 @@ The v1 target is intentionally small and local-first:
 - TypeScript contracts and Zod schemas.
 - Mechanic, rule, component, theme, and asset provider registries.
 - Deterministic stub planner and deterministic stub asset provider.
+- Builder tool contracts for assembling a game, updating a game, previewing trusted interactions, and listing local tools/templates.
 - AG-UI adapter with validated Playcraft `Custom` envelopes.
 - Trusted React renderer for registered components only.
 - Replay harness for saved `GameAssemblyProfile` records.

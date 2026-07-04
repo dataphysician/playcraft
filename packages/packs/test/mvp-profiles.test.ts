@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   assembleMvpProfiles,
   createDefaultPlanner,
+  gameTemplateDefinitions,
   mvpAssemblyRequests
 } from "@playcraft/packs";
 
@@ -48,5 +49,17 @@ describe("MVP profile pack", () => {
     expect(profileB.replay.plannerId).toBe(planner.id);
     expect(profileA.assemblyRequestId).toBe("request.memory-match.mvp");
     expect(profileB.assemblyRequestId).toBe("request.sorting.mvp");
+  });
+
+  it("publishes bundled game templates for the builder catalog", () => {
+    expect(gameTemplateDefinitions.map((template) => template.id)).toEqual([
+      "template.memory-match",
+      "template.sorting",
+      "template.sequence-repeat"
+    ]);
+    expect(gameTemplateDefinitions.every((template) => template.localFirst)).toBe(true);
+    expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
+      mvpAssemblyRequests.map((request) => request.id)
+    );
   });
 });

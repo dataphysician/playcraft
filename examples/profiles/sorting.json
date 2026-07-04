@@ -170,7 +170,7 @@
         "seed": "seed-sorting"
       },
       "metadata": {
-        "profileTemplate": "recipe.sorting"
+        "profileTemplate": "template.sorting"
       }
     }
   ],

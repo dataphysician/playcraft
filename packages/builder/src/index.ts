@@ -20,14 +20,17 @@ import {
   BuilderCommandResultSchema,
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
-  BuilderProfilePresetSchema,
+  BuilderTemplateIdSchema,
+  BuilderToolDefinitionSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
   type BuilderCommand,
   type BuilderCommandResult,
   type BuilderPreviewState,
-  type BuilderProfilePreset,
+  type BuilderTemplateId,
+  type BuilderToolDefinition,
   type GameAssemblyProfile,
+  type GameTemplateDefinition,
   type GeneratedAssetRecord,
   type JsonValue,
   type PlaycraftAssemblyRequest
@@ -36,6 +39,7 @@ import { replayProfile, validateGameAssemblyProfile, type PlaycraftRegistries, t
 import {
   createDefaultPlanner,
   createDefaultRegistries,
+  gameTemplateDefinitions,
   mvpAssemblyRequests
 } from "@playcraft/packs";
 
@@ -51,17 +55,19 @@ export const BuilderPreviewPayloadSchema = z
 
 export type BuilderAgUiEvent = AgUiEvent;
 
-const PRESET_TO_REQUEST_INDEX: Record<BuilderProfilePreset, number> = {
-  "profile-a": 0,
-  "profile-b": 1,
-  "memory-match": 0,
-  sorting: 1,
-  "sequence-repeat": 2
-};
+export const builderToolDefinitions: BuilderToolDefinition[] = [
+  builderTool("builder-tool.assemble-game", "tool:assemble-game", "Assemble a mini-game from a registered local template.", "assemble-game", ["text", "speech-transcript"]),
+  builderTool("builder-tool.update-game", "tool:update-game", "Update the active mini-game template or its asset edit levers.", "update-game", ["text", "speech-transcript"]),
+  builderTool("builder-tool.preview-action", "tool:preview-action", "Replay one trusted UI interaction against the active profile.", "preview-action", ["text"]),
+  builderTool("builder-tool.list-builder-tools", "tool:list-builder-tools", "List the local Playcraft builder tools and bundled game templates.", "list-builder-tools", ["text"])
+];
+
+const TEMPLATE_BY_ID = new Map(gameTemplateDefinitions.map((template) => [template.id, template]));
+const REQUEST_BY_ID = new Map(mvpAssemblyRequests.map((request) => [request.id, request]));
 
 export interface BuilderSessionRecord {
   sessionId: string;
-  preset?: BuilderProfilePreset;
+  templateId?: BuilderTemplateId;
   profile?: GameAssemblyProfile;
   replay?: ReplayResult;
   preview: BuilderPreviewState;
@@ -74,7 +80,9 @@ export interface BuilderExecutionResult {
 
 export interface BuilderCommandHandler {
   execute(command: BuilderCommand): BuilderExecutionResult;
-  buildProfiles(presets: BuilderProfilePreset[], sessionId?: string): BuilderExecutionResult[];
+  assembleTemplates(templateIds: BuilderTemplateId[], sessionId?: string): BuilderExecutionResult[];
+  listTools(): BuilderToolDefinition[];
+  listTemplates(): GameTemplateDefinition[];
 }
 
 export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
@@ -87,42 +95,53 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const command = BuilderCommandSchema.parse(commandInput);
     const session = this.getOrCreateSession(command.sessionId);
 
-    switch (command.commandName) {
-      case "build-profile":
-      case "update-profile":
+    switch (command.actionName) {
+      case "assemble-game":
+      case "update-game":
         return this.buildOrUpdate(session, command);
       case "preview-action":
         return this.previewAction(session, command);
+      case "list-builder-tools":
+        return this.catalogResult(session, command);
       default:
-        throw new Error(`unsupported command ${(command as { commandName: string }).commandName}`);
+        throw new Error(`unsupported command ${(command as { actionName: string }).actionName}`);
     }
   }
 
-  buildProfiles(presets: BuilderProfilePreset[], sessionId = "builder.batch"): BuilderExecutionResult[] {
-    return presets.map((preset, index) =>
+  assembleTemplates(templateIds: BuilderTemplateId[], sessionId = "builder.batch"): BuilderExecutionResult[] {
+    return templateIds.map((templateId, index) =>
       this.execute({
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: `builder-command.${sessionId}.${index + 1}`,
         version: "1.0.0",
         kind: "builder-command",
         sessionId,
-        commandName: index === 0 ? "build-profile" : "update-profile",
-        preset
+        actionName: index === 0 ? "assemble-game" : "update-game",
+        templateId
       })
     );
   }
 
+  listTools(): BuilderToolDefinition[] {
+    return [...builderToolDefinitions];
+  }
+
+  listTemplates(): GameTemplateDefinition[] {
+    return [...gameTemplateDefinitions];
+  }
+
   private buildOrUpdate(session: BuilderSessionRecord, command: BuilderCommand): BuilderExecutionResult {
-    const preset = BuilderProfilePresetSchema.parse(command.preset);
-    const request = requestForPreset(preset);
-    const runId = `${command.sessionId}.${preset}`;
+    const templateId = BuilderTemplateIdSchema.parse(command.templateId);
+    const template = templateForId(templateId);
+    const request = requestForTemplate(templateId);
+    const runId = `${command.sessionId}.${templateId}`;
     const profile = applyAssetEdit(this.planner.assemble(request), command.assetEdit, this.assetProvider, this.registries);
     const replay = replayProfile(profile, this.registries);
     const preview = BuilderPreviewStateSchema.parse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       sessionId: session.sessionId,
       activeProfileId: profile.id,
-      activePreset: preset,
+      activeTemplateId: templateId,
       activeComponentId: replay.renderRequests[0]?.componentId,
       renderedComponentIds: replay.renderRequests.map((entry) => entry.componentId ?? entry.componentCapability ?? "unknown"),
       interactionCount: session.preview.interactionCount,
@@ -130,7 +149,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       lastToolPayload: session.preview.lastToolPayload
     });
 
-    session.preset = preset;
+    session.templateId = templateId;
     session.profile = profile;
     session.replay = replay;
     session.preview = preview;
@@ -147,18 +166,18 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       validation: profile.validation
     });
 
-    const toolName = command.commandName === "update-profile" ? "tool:update-profile" : "tool:assemble-profile";
+    const toolName = command.actionName === "update-game" ? "tool:update-game" : "tool:assemble-game";
     const stateEvent =
-      command.commandName === "update-profile"
-        ? stateDelta(runId, { sessionId: session.sessionId, preset, profileId: profile.id, assetEdit: command.assetEdit ?? null }, 3)
-        : stateSnapshot(runId, { sessionId: session.sessionId, preset, profileId: profile.id, assetEdit: command.assetEdit ?? null }, 3);
+      command.actionName === "update-game"
+        ? stateDelta(runId, { sessionId: session.sessionId, templateId, profileId: profile.id, assetEdit: command.assetEdit ?? null }, 3)
+        : stateSnapshot(runId, { sessionId: session.sessionId, templateId, profileId: profile.id, assetEdit: command.assetEdit ?? null }, 3);
 
     const events: BuilderAgUiEvent[] = [
       runStarted(runId, 0),
-      stepStarted(runId, `${command.commandName}.plan`, `${command.commandName} planner`, 1),
-      activity(runId, "builder.profile", "started", `assembling ${preset}`, 2),
+      stepStarted(runId, `${command.actionName}.plan`, `${command.actionName} planner`, 1),
+      activity(runId, "builder.profile", "started", `assembling ${template.displayName}`, 2),
       stateEvent,
-      toolCall(runId, toolName, { requestId: request.id, preset, assetEdit: command.assetEdit ?? null }, 4),
+      toolCall(runId, toolName, { requestId: request.id, templateId, assetEdit: command.assetEdit ?? null, input: command.input ?? null }, 4),
       toolResult(runId, toolName, { profileId: profile.id, valid: result.validation?.valid ?? false }, 5),
       playcraftCustomEvent(
         createPlaycraftEnvelope({
@@ -209,11 +228,40 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
         { extraPayloadSchemas: { "preview.rendered": BuilderPreviewPayloadSchema }, sequence: 9 }
       ),
       activity(runId, "builder.profile", "finished", `assembled ${profile.profileName}`, 10),
-      stepFinished(runId, `${command.commandName}.plan`, 11),
+      stepFinished(runId, `${command.actionName}.plan`, 11),
       runFinished(runId, 12)
     ];
 
     return { result, events };
+  }
+
+  private catalogResult(session: BuilderSessionRecord, command: BuilderCommand): BuilderExecutionResult {
+    const preview = BuilderPreviewStateSchema.parse(session.preview);
+    const result = BuilderCommandResultSchema.parse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: `builder-result.${command.id}`,
+      version: "1.0.0",
+      kind: "builder-command-result",
+      commandId: command.id,
+      sessionId: session.sessionId,
+      preview
+    });
+    const runId = `${command.sessionId}.catalog`;
+
+    return {
+      result,
+      events: [
+        toolCall(runId, "tool:list-builder-tools", { localOnly: true }, 0),
+        toolResult(runId, "tool:list-builder-tools", {
+          tools: this.listTools().map((toolDefinition) => toolDefinition.toolName),
+          templates: this.listTemplates().map((template) => template.id)
+        }, 1),
+        stateSnapshot(runId, {
+          toolCount: this.listTools().length,
+          templateCount: this.listTemplates().length
+        }, 2)
+      ]
+    };
   }
 
   private previewAction(session: BuilderSessionRecord, command: BuilderCommand): BuilderExecutionResult {
@@ -254,7 +302,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       validation: session.profile.validation
     });
 
-    const runId = `${command.sessionId}.${session.preset ?? "preview"}`;
+    const runId = `${command.sessionId}.${session.templateId ?? "preview"}`;
     const replayEvent = session.profile.replay.eventLog[0];
     const events: BuilderAgUiEvent[] = [
       toolCall(runId, interaction.toolName, { action: command.interaction?.action ?? "primary" }, 0),
@@ -319,8 +367,45 @@ export function createBuilderCommandHandler(): BuilderCommandHandler {
   return new PlaycraftBuilderSessionService();
 }
 
-export function requestForPreset(preset: BuilderProfilePreset): PlaycraftAssemblyRequest {
-  return mvpAssemblyRequests[PRESET_TO_REQUEST_INDEX[preset]];
+export function requestForTemplate(templateIdInput: BuilderTemplateId): PlaycraftAssemblyRequest {
+  const templateId = BuilderTemplateIdSchema.parse(templateIdInput);
+  const template = templateForId(templateId);
+  const request = REQUEST_BY_ID.get(template.assemblyRequestId);
+  if (!request) {
+    throw new Error(`template ${templateId} references missing request ${template.assemblyRequestId}`);
+  }
+  return request;
+}
+
+function templateForId(templateId: BuilderTemplateId): GameTemplateDefinition {
+  const template = TEMPLATE_BY_ID.get(templateId);
+  if (!template) {
+    throw new Error(`unknown game template ${templateId}`);
+  }
+  return template;
+}
+
+function builderTool(
+  id: string,
+  toolName: string,
+  description: string,
+  actionName: BuilderToolDefinition["actionName"],
+  acceptedInputSources: BuilderToolDefinition["acceptedInputSources"]
+): BuilderToolDefinition {
+  return BuilderToolDefinitionSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id,
+    version: "1.0.0",
+    kind: "builder-tool",
+    toolName,
+    displayName: description.split(".")[0],
+    description,
+    actionName,
+    acceptedInputSources,
+    localOnly: true,
+    emittedEvents: ["builder:command", "builder:profile-ready"],
+    requiredContracts: ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"]
+  });
 }
 
 interface NormalizedAssetEdit {

@@ -36,6 +36,7 @@ The core must not depend on a specific app framework, route system, database, au
 | Packs | Versioned mechanics, rules, components, themes, providers, domain profiles, and safety policies. |
 | Assets | Provider-neutral asset requests, capability manifests, deterministic stub provider, provenance records. |
 | Renderer | Trusted React component registry and render requests. |
+| Builder tools | Local CLI/API actions that assemble templates, update asset levers, preview trusted interactions, and expose the tool/template catalog. |
 | Studio/shells | Later Vite, Tauri, and mobile apps that consume the framework packages. |
 
 ## 3. Protocol Boundaries
@@ -48,6 +49,8 @@ The core must not depend on a specific app framework, route system, database, au
 | Persistence | Profile shape, replay requirements, import/export semantics | Database, filesystem, or app-specific storage |
 | Native shell | Framework contracts and static client compatibility | Tauri permissions, native APIs, app lifecycle |
 | Product app | Game assembly framework semantics | Auth, billing, dashboards, deployment, analytics |
+
+Builder input is provider-neutral: text requests and Moonshine Streaming CPU-only speech transcripts both become `BuilderInputRequest` records before they reach the builder service.
 
 ## 4. AG-UI Mapping
 

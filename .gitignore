@@ -3,3 +3,6 @@ packages/*/dist/
 apps/*/dist/
 coverage/
 .vitest/
+.env
+.env.*
+!.env.example

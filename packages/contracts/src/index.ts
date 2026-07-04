@@ -450,8 +450,80 @@ export const PackManifestSchema = PublicContractBaseSchema.extend({
 export type PackManifest = z.infer<typeof PackManifestSchema>;
 
 
-export const BuilderProfilePresetSchema = z.enum(["profile-a", "profile-b", "memory-match", "sorting", "sequence-repeat"]);
-export type BuilderProfilePreset = z.infer<typeof BuilderProfilePresetSchema>;
+export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("game-template"),
+  displayName: z.string().min(1),
+  description: z.string().min(1),
+  capabilityTags: z.array(CapabilityTagSchema).min(1),
+  assemblyRequestId: StableIdSchema,
+  profileId: StableIdSchema,
+  supportedAgeBands: z.array(AgeBandSchema).min(1),
+  supportedModalities: z.array(InputModalitySchema).min(1),
+  requiredMechanicIds: z.array(StableIdSchema).min(1),
+  requiredRuleIds: z.array(StableIdSchema).min(1),
+  requiredComponentIds: z.array(StableIdSchema).min(1),
+  defaultAssetContentTypes: z.array(AssetContentTypeSchema).default(["image"]),
+  localFirst: z.boolean(),
+  retrieval: z
+    .object({
+      current: z.literal("bundled-local"),
+      planned: z.literal("server-catalog")
+    })
+    .strict()
+}).strict();
+export type GameTemplateDefinition = z.infer<typeof GameTemplateDefinitionSchema>;
+
+export const BuilderInputSourceSchema = z.enum(["text", "speech-transcript"]);
+export type BuilderInputSource = z.infer<typeof BuilderInputSourceSchema>;
+
+export const SpeechTranscriptionConfigSchema = z
+  .object({
+    engine: z.literal("moonshine-streaming"),
+    runtime: z.literal("cpu"),
+    localOnly: z.literal(true)
+  })
+  .strict();
+export type SpeechTranscriptionConfig = z.infer<typeof SpeechTranscriptionConfigSchema>;
+
+export const BuilderInputRequestSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("builder-input"),
+  inputId: StableIdSchema,
+  source: BuilderInputSourceSchema,
+  text: z.string().min(1).max(500),
+  transcription: SpeechTranscriptionConfigSchema.optional(),
+  receivedAt: z.string().datetime(),
+  metadata: z.record(JsonValueSchema).default({})
+}).strict()
+  .refine((value) => value.source !== "speech-transcript" || Boolean(value.transcription), {
+    message: "speech transcripts must declare the local transcription config",
+    path: ["transcription"]
+  })
+  .refine((value) => value.source !== "text" || !value.transcription, {
+    message: "text input must not include speech transcription config",
+    path: ["transcription"]
+  });
+export type BuilderInputRequest = z.infer<typeof BuilderInputRequestSchema>;
+
+export const BuilderActionNameSchema = z.enum(["assemble-game", "update-game", "preview-action", "list-builder-tools"]);
+export type BuilderActionName = z.infer<typeof BuilderActionNameSchema>;
+
+export const BuilderTemplateIdSchema = StableIdSchema.refine((value) => value.startsWith("template."), {
+  message: "builder template IDs must start with template."
+});
+export type BuilderTemplateId = z.infer<typeof BuilderTemplateIdSchema>;
+
+export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("builder-tool"),
+  toolName: CapabilityTagSchema,
+  displayName: z.string().min(1),
+  description: z.string().min(1),
+  actionName: BuilderActionNameSchema,
+  acceptedInputSources: z.array(BuilderInputSourceSchema).min(1),
+  localOnly: z.boolean(),
+  emittedEvents: z.array(CapabilityTagSchema).default([]),
+  requiredContracts: z.array(z.string().min(1)).min(1)
+}).strict();
+export type BuilderToolDefinition = z.infer<typeof BuilderToolDefinitionSchema>;
 
 export const BuilderAssetEditSchema = z
   .object({
@@ -467,8 +539,9 @@ export type BuilderAssetEdit = z.infer<typeof BuilderAssetEditSchema>;
 export const BuilderCommandSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-command"),
   sessionId: StableIdSchema,
-  commandName: z.enum(["build-profile", "update-profile", "preview-action"]),
-  preset: BuilderProfilePresetSchema.optional(),
+  actionName: BuilderActionNameSchema,
+  templateId: BuilderTemplateIdSchema.optional(),
+  input: BuilderInputRequestSchema.optional(),
   assetEdit: BuilderAssetEditSchema.optional(),
   interaction: z
     .object({
@@ -476,7 +549,11 @@ export const BuilderCommandSchema = PublicContractBaseSchema.extend({
     })
     .strict()
     .optional()
-}).strict();
+}).strict()
+  .refine((value) => value.actionName === "preview-action" || value.actionName === "list-builder-tools" || Boolean(value.templateId), {
+    message: "assemble and update actions require a templateId",
+    path: ["templateId"]
+  });
 export type BuilderCommand = z.infer<typeof BuilderCommandSchema>;
 
 export const BuilderPreviewStateSchema = z
@@ -484,7 +561,7 @@ export const BuilderPreviewStateSchema = z
     schemaVersion: z.literal(PLAYCRAFT_SCHEMA_VERSION),
     sessionId: StableIdSchema,
     activeProfileId: StableIdSchema.optional(),
-    activePreset: BuilderProfilePresetSchema.optional(),
+    activeTemplateId: BuilderTemplateIdSchema.optional(),
     activeComponentId: StableIdSchema.optional(),
     renderedComponentIds: z.array(StableIdSchema).default([]),
     interactionCount: z.number().int().nonnegative(),
@@ -522,6 +599,9 @@ export const PublicContractSchemas = {
   PlaycraftAgUiEventEnvelopeSchema,
   PlaycraftEventRecordSchema,
   PackManifestSchema,
+  GameTemplateDefinitionSchema,
+  BuilderInputRequestSchema,
+  BuilderToolDefinitionSchema,
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
   BuilderCommandResultSchema

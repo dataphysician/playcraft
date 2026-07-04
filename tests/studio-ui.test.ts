@@ -2,6 +2,7 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { assembleMvpProfiles } from "@playcraft/packs";
+import { resolveStudioInputCommand } from "../apps/studio/src/input-adapter.js";
 import { createLocalStudioClient } from "../apps/studio/src/local-client.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
 import { TrustedPreview } from "../apps/studio/src/trusted-preview.js";
@@ -38,6 +39,48 @@ function setElementRect(
 }
 
 describe("studio UI", () => {
+  it("normalizes local text and speech transcript inputs into template commands", () => {
+    const text = resolveStudioInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Sort shapes by color"
+    });
+    const speech = resolveStudioInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 2,
+      source: "speech-transcript",
+      text: "Repeat a pattern with gems"
+    });
+
+    expect(text.templateId).toBe("template.sorting");
+    expect(text.input.source).toBe("text");
+    expect(text.input.transcription).toBeUndefined();
+    expect(speech.templateId).toBe("template.sequence-repeat");
+    expect(speech.assetEdit?.theme).toBe("gems");
+    expect(speech.input.transcription).toEqual({
+      engine: "moonshine-streaming",
+      runtime: "cpu",
+      localOnly: true
+    });
+  });
+
+  it("lets speech transcripts replace typed game requests", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Speech" }));
+    fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Memory game with dinosaurs" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+
+    expect(await screen.findByText("Memory Match MVP")).toBeDefined();
+    expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+    expect(await screen.findByLabelText("Chat history")).toBeDefined();
+    expect(screen.getByText("Transcript")).toBeDefined();
+    expect(screen.getAllByText(/memory game with dinosaurs/iu).length).toBeGreaterThanOrEqual(1);
+  });
+
   it("shows available games and asset edits in the request tips tooltip", () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
@@ -94,7 +137,7 @@ describe("studio UI", () => {
     fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Build a memory game for kids" } });
     fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
 
-    await waitFor(() => expect(assembleFromIntent).toHaveBeenCalledWith({ idea: "Build a memory game for kids", sessionId: undefined }));
+    await waitFor(() => expect(assembleFromIntent).toHaveBeenCalledWith({ idea: "Build a memory game for kids", sessionId: undefined, source: "text" }));
     expect(await screen.findByText(profileA.profileName)).toBeDefined();
     expect(screen.getByRole("button", { name: "cat-a" })).toBeDefined();
 
@@ -111,7 +154,7 @@ describe("studio UI", () => {
     fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Switch it to a sorting challenge" } });
     fireEvent.click(screen.getByRole("button", { name: "Update Game" }));
 
-    await waitFor(() => expect(requestChange).toHaveBeenCalledWith({ changeRequest: "Switch it to a sorting challenge", sessionId: "session.demo" }));
+    await waitFor(() => expect(requestChange).toHaveBeenCalledWith({ changeRequest: "Switch it to a sorting challenge", sessionId: "session.demo", source: "text" }));
     expect(await screen.findByText(profileB.profileName)).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.sort-bins/u })).toBeDefined();
 

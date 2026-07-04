@@ -49,6 +49,7 @@ The first useful domain is child-friendly educational mini games, but the framew
 | `DomainProfile` | Domain defaults and constraints, such as child-friendly educational games. |
 | `SafetyPolicyPack` | Safety, privacy, rating, content, and modality rules. |
 | `GameAssemblyProfile` | Saved recipe for one playable mini game. |
+| `GameTemplateDefinition` | Reusable local template that bounds game rules, required mechanics, trusted components, and the default assembly request. |
 | `MechanicDefinition` | Reusable interaction primitive such as reveal, match, sort, sequence, choose, trace, or audio response. |
 | `RuleModuleDefinition` | Event/rule logic for progression, hints, retry, scoring, completion, safety, and celebration. |
 | `ComponentManifest` | Trusted frontend render capability for one or more mechanics. |
@@ -58,6 +59,8 @@ The first useful domain is child-friendly educational mini games, but the framew
 | `GeneratedAssetRecord` | Provenance-rich output of an asset request. |
 | `PlaycraftAgUiEventEnvelope` | Validated Playcraft payload carried inside AG-UI `Custom` events. |
 | `PlaycraftEventRecord` | Normalized runtime/replay event emitted by mechanics, rules, components, and tools. |
+| `BuilderInputRequest` | Local text or Moonshine Streaming CPU speech-transcript input accepted by the builder. |
+| `BuilderToolDefinition` | Contract for reusable builder actions such as assemble, update, preview, and catalog listing. |
 
 ## 5. AG-UI Strategy
 

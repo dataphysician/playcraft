@@ -11,6 +11,7 @@ import {
   DomainProfileSchema,
   FrontendToolDefinitionSchema,
   GameAssemblyProfileSchema,
+  GameTemplateDefinitionSchema,
   MechanicDefinitionSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   PackManifestSchema,
@@ -22,6 +23,7 @@ import {
   type DomainProfile,
   type FrontendToolDefinition,
   type GameAssemblyProfile,
+  type GameTemplateDefinition,
   type GeneratedAssetRecord,
   type JsonValue,
   type MechanicDefinition,
@@ -205,7 +207,8 @@ export const mvpAssemblyRequests: PlaycraftAssemblyRequest[] = [
 
 const mvpTemplates: MvpProfileTemplate[] = [
   {
-    id: "recipe.memory-match",
+    id: "template.memory-match",
+    description: "A toddler-safe card reveal game that asks the player to find visual pairs.",
     capabilityTags: ["game:memory-match", "mechanic:match-pairs"],
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
@@ -219,7 +222,8 @@ const mvpTemplates: MvpProfileTemplate[] = [
     }
   },
   {
-    id: "recipe.sorting",
+    id: "template.sorting",
+    description: "A toddler-safe categorization game that asks the player to move items into matching bins.",
     capabilityTags: ["game:sorting", "mechanic:sort-into-bins"],
     profileId: "profile.sorting.mvp",
     profileName: "Sorting MVP",
@@ -234,7 +238,8 @@ const mvpTemplates: MvpProfileTemplate[] = [
     }
   },
   {
-    id: "recipe.sequence-repeat",
+    id: "template.sequence-repeat",
+    description: "A toddler-safe pattern game that asks the player to repeat a short sequence.",
     capabilityTags: ["game:sequence-repeat", "mechanic:sequence-repeat"],
     profileId: "profile.sequence-repeat.mvp",
     profileName: "Sequence Repeat MVP",
@@ -249,6 +254,31 @@ const mvpTemplates: MvpProfileTemplate[] = [
     }
   }
 ];
+
+export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.map((template, index) =>
+  GameTemplateDefinitionSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: template.id,
+    version: "1.0.0",
+    kind: "game-template",
+    displayName: template.profileName,
+    description: template.description,
+    capabilityTags: template.capabilityTags,
+    assemblyRequestId: mvpAssemblyRequests[index].id,
+    profileId: template.profileId,
+    supportedAgeBands: ["2-3", "4-6", "7-9"],
+    supportedModalities: ["touch", "pointer", "voice"],
+    requiredMechanicIds: template.mechanicCapabilities.map((capability) => findMechanicByCapability(capability).id),
+    requiredRuleIds: template.ruleCategories.map((category) => findRuleByCategory(category).id),
+    requiredComponentIds: template.componentCapabilities.map((capability) => findComponentByCapability(capability).id),
+    defaultAssetContentTypes: ["image"],
+    localFirst: true,
+    retrieval: {
+      current: "bundled-local",
+      planned: "server-catalog"
+    }
+  })
+);
 
 export const mvpAssemblyRecipes: AssemblyRecipe[] = mvpTemplates.map((template) => ({
   id: template.id,
@@ -883,6 +913,7 @@ function packManifest(id: string, kind: "mechanic-pack" | "rule-pack" | "compone
 
 interface MvpProfileTemplate {
   id: string;
+  description: string;
   capabilityTags: string[];
   profileId: string;
   profileName: string;
@@ -891,4 +922,28 @@ interface MvpProfileTemplate {
   ruleCategories: string[];
   componentCapabilities: string[];
   propsByCapability: Record<string, Record<string, JsonValue>>;
+}
+
+function findMechanicByCapability(capability: string): MechanicDefinition {
+  const mechanic = mechanicDefinitions.find((entry) => entry.capabilityTags.includes(capability));
+  if (!mechanic) {
+    throw new Error(`missing mechanic capability ${capability}`);
+  }
+  return mechanic;
+}
+
+function findRuleByCategory(category: string): RuleModuleDefinition {
+  const ruleEntry = ruleModuleDefinitions.find((entry) => entry.category === category);
+  if (!ruleEntry) {
+    throw new Error(`missing rule category ${category}`);
+  }
+  return ruleEntry;
+}
+
+function findComponentByCapability(capability: string): ComponentManifest {
+  const componentEntry = componentManifests.find((entry) => entry.renderCapability === capability);
+  if (!componentEntry) {
+    throw new Error(`missing component capability ${capability}`);
+  }
+  return componentEntry;
 }

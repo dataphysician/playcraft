@@ -10,25 +10,30 @@ function command(overrides: Partial<BuilderCommand>): BuilderCommand {
     version: "1.0.0",
     kind: "builder-command",
     sessionId: "session.test",
-    commandName: "build-profile",
-    preset: "profile-a",
+    actionName: "assemble-game",
+    templateId: "template.memory-match",
     ...overrides
   };
 }
 
 describe("builder session service", () => {
-  it("builds Profile A and Profile B through the shared command handler", () => {
+  it("assembles bundled templates through the shared command handler", () => {
     const handler = createHandler();
-    const outputs = handler.buildProfiles(["profile-a", "profile-b"], "session.batch");
+    const outputs = handler.assembleTemplates(["template.memory-match", "template.sorting"], "session.batch");
 
     expect(outputs).toHaveLength(2);
     expect(outputs[0].result.profile?.id).toBe("profile.memory-match.mvp");
     expect(outputs[1].result.profile?.id).toBe("profile.sorting.mvp");
+    expect(handler.listTemplates().map((template) => template.id)).toEqual([
+      "template.memory-match",
+      "template.sorting",
+      "template.sequence-repeat"
+    ]);
   });
 
   it("emits validated lifecycle, state, activity, tool, custom, replay, and preview events for builds", () => {
     const service = new PlaycraftBuilderSessionService();
-    const output = service.execute(command({ preset: "profile-a" }));
+    const output = service.execute(command({ templateId: "template.memory-match" }));
     const types = output.events.map((event) => event.type);
     const customEvents = output.events.filter((event) => event.type === "Custom");
     const payloadTypes = customEvents.map((event) => (event.value as { payloadType: string }).payloadType);
@@ -43,8 +48,8 @@ describe("builder session service", () => {
 
   it("emits a state delta for profile updates", () => {
     const service = new PlaycraftBuilderSessionService();
-    service.execute(command({ preset: "profile-a" }));
-    const output = service.execute(command({ commandName: "update-profile", preset: "profile-b" }));
+    service.execute(command({ templateId: "template.memory-match" }));
+    const output = service.execute(command({ actionName: "update-game", templateId: "template.sorting" }));
 
     expect(output.events.map((event) => event.type)).toEqual(expect.arrayContaining(["RunStarted", "StateDelta", "ToolCall", "ToolResult", "Custom", "RunFinished"]));
     expect(output.result.profile?.id).toBe("profile.sorting.mvp");
@@ -52,8 +57,8 @@ describe("builder session service", () => {
 
   it("edits memory profile assets without switching the game recipe", () => {
     const service = new PlaycraftBuilderSessionService();
-    const dinosaurs = service.execute(command({ preset: "profile-a", assetEdit: { theme: "dinosaurs" } }));
-    const toys = service.execute(command({ commandName: "update-profile", preset: "profile-a", assetEdit: { theme: "toys" } }));
+    const dinosaurs = service.execute(command({ templateId: "template.memory-match", assetEdit: { theme: "dinosaurs" } }));
+    const toys = service.execute(command({ actionName: "update-game", templateId: "template.memory-match", assetEdit: { theme: "toys" } }));
 
     expect(dinosaurs.result.profile?.id).toBe("profile.memory-match.mvp");
     expect(toys.result.profile?.id).toBe("profile.memory-match.mvp");
@@ -68,10 +73,10 @@ describe("builder session service", () => {
 
   it("supports real trusted preview interactions before and after an update", () => {
     const service = new PlaycraftBuilderSessionService();
-    service.execute(command({ preset: "profile-a" }));
-    const before = service.execute(command({ commandName: "preview-action", interaction: { action: "primary" }, preset: undefined }));
-    service.execute(command({ commandName: "update-profile", preset: "profile-b" }));
-    const after = service.execute(command({ commandName: "preview-action", interaction: { action: "primary" }, preset: undefined }));
+    service.execute(command({ templateId: "template.memory-match" }));
+    const before = service.execute(command({ actionName: "preview-action", interaction: { action: "primary" }, templateId: undefined }));
+    service.execute(command({ actionName: "update-game", templateId: "template.sorting" }));
+    const after = service.execute(command({ actionName: "preview-action", interaction: { action: "primary" }, templateId: undefined }));
 
     for (const output of [before, after]) {
       expect(output.events.map((event) => event.type)).toEqual(expect.arrayContaining(["ToolCall", "ToolResult", "StateDelta", "Custom"]));

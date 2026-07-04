@@ -22,7 +22,7 @@ describe("import-light boundaries and source scans", () => {
       readSource("packages/core/src/index.ts")
     ].join("\n");
 
-    expect(source).not.toMatch(/@playcraft\/builder|@playcraft\/studio|@ai-sdk|openai|next\/server|NextRequest|PrismaClient|NextAuth|Tauri|tauri|process\.env|OPENAI_API_KEY/u);
+    expect(source).not.toMatch(/@playcraft\/builder|@playcraft\/studio|@ai-sdk|openai|next\/server|NextRequest|PrismaClient|NextAuth|Tauri|tauri|process\.env|OPENAI_API_KEY|TA[V]US|ta[v]us/u);
     expect(source).not.toMatch(/GameType|MEMORY_MATCH|PATTERN_MATCH|SORTING/u);
   });
 
@@ -32,6 +32,7 @@ describe("import-light boundaries and source scans", () => {
       readSource("packages/assets/src/index.ts"),
       readSource("packages/builder/src/index.ts"),
       readSource("apps/studio/src/local-client.ts"),
+      readSource("apps/studio/src/input-adapter.ts"),
       readSource("apps/studio/src/live-game.tsx"),
       readSource("apps/studio/src/studio-app.tsx"),
       readSource("apps/studio/src/trusted-preview.tsx"),
@@ -41,6 +42,7 @@ describe("import-light boundaries and source scans", () => {
 
     expect(source).not.toMatch(/providerName|if\s*\(\s*provider|switch\s*\(\s*provider/u);
     expect(source).not.toMatch(/\bGameType\b|\bMEMORY_MATCH\b|\bPATTERN_MATCH\b|\bSORTING\b/u);
+    expect(source).not.toMatch(/Ta[v]us|ta[v]us|re[p]lica|C[V]I/u);
   });
 
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
@@ -48,6 +50,7 @@ describe("import-light boundaries and source scans", () => {
       readSource("packages/renderer/src/index.tsx"),
       readSource("packages/builder/src/index.ts"),
       readSource("apps/studio/src/local-client.ts"),
+      readSource("apps/studio/src/input-adapter.ts"),
       readSource("apps/studio/src/live-game.tsx"),
       readSource("apps/studio/src/studio-app.tsx"),
       readSource("apps/studio/src/trusted-preview.tsx"),
@@ -64,6 +67,7 @@ describe("import-light boundaries and source scans", () => {
       readSource("packages/builder/src/index.ts"),
       readSource("apps/studio/package.json"),
       readSource("apps/studio/src/local-client.ts"),
+      readSource("apps/studio/src/input-adapter.ts"),
       readSource("apps/studio/src/live-game.tsx"),
       readSource("apps/studio/src/studio-app.tsx"),
       readSource("apps/studio/src/trusted-preview.tsx"),
@@ -71,6 +75,6 @@ describe("import-light boundaries and source scans", () => {
       readSource("apps/studio/src/main.tsx")
     ].join("\n");
 
-    expect(source).not.toMatch(/openai|@ai-sdk|Prisma|NextAuth|next\/server|Tauri|tauri|sqlite|postgres|mysql|mongodb|supabase|firebase/u);
+    expect(source).not.toMatch(/openai|@ai-sdk|Prisma|NextAuth|next\/server|Tauri|tauri|sqlite|postgres|mysql|mongodb|supabase|firebase|Ta[v]us|ta[v]us/u);
   });
 });

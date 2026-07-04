@@ -1,4 +1,4 @@
-import type { GameAssemblyProfile } from "@playcraft/contracts";
+import type { BuilderInputSource, GameAssemblyProfile } from "@playcraft/contracts";
 
 export type StudioTimelineKind = "lifecycle" | "state" | "activity" | "tool" | "custom" | "frontend";
 
@@ -22,11 +22,13 @@ export interface StudioSessionSnapshot {
 export interface StudioAssembleInput {
   sessionId?: string;
   idea: string;
+  source?: BuilderInputSource;
 }
 
 export interface StudioChangeInput {
   sessionId: string;
   changeRequest: string;
+  source?: BuilderInputSource;
 }
 
 export interface StudioClient {

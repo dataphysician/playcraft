@@ -7,10 +7,12 @@ import {
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
   type BuilderCommand,
-  type BuilderProfilePreset,
+  type BuilderInputRequest,
+  type BuilderTemplateId,
   type GameAssemblyProfile
 } from "@playcraft/contracts";
 
+import { DEFAULT_TEMPLATE_ID, resolveStudioInputCommand } from "./input-adapter.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry, StudioTimelineKind } from "./types.js";
 
 export function createLocalStudioClient(): StudioClient {
@@ -18,14 +20,16 @@ export function createLocalStudioClient(): StudioClient {
   const profiles = new Map<string, GameAssemblyProfile>();
   const timeline: StudioTimelineEntry[] = [];
   let commandCounter = 0;
-  let activePreset: BuilderProfilePreset = "profile-a";
+  let inputCounter = 0;
+  let activeTemplateId: BuilderTemplateId = DEFAULT_TEMPLATE_ID;
   let activeAssetEdit: BuilderAssetEdit | undefined;
 
   function execute(
     sessionId: string,
-    commandName: BuilderCommand["commandName"],
-    preset: BuilderProfilePreset,
-    assetEdit: BuilderAssetEdit | undefined
+    actionName: BuilderCommand["actionName"],
+    templateId: BuilderTemplateId,
+    assetEdit: BuilderAssetEdit | undefined,
+    input: BuilderInputRequest
   ): StudioSessionSnapshot {
     commandCounter += 1;
     const output = handler.execute({
@@ -34,8 +38,9 @@ export function createLocalStudioClient(): StudioClient {
       version: "1.0.0",
       kind: "builder-command",
       sessionId,
-      commandName,
-      preset,
+      actionName,
+      templateId,
+      input,
       assetEdit
     });
 
@@ -61,20 +66,35 @@ export function createLocalStudioClient(): StudioClient {
   return {
     assembleFromIntent(input) {
       const sessionId = input.sessionId ?? "studio.session";
-      activePreset = presetForText(input.idea, activePreset);
-      activeAssetEdit = assetEditForText(input.idea) ?? activeAssetEdit;
-      return execute(sessionId, "build-profile", activePreset, activeAssetEdit);
+      inputCounter += 1;
+      const resolved = resolveStudioInputCommand({
+        activeTemplateId,
+        sequence: inputCounter,
+        source: input.source ?? "text",
+        text: input.idea
+      });
+      activeTemplateId = resolved.templateId;
+      activeAssetEdit = resolved.assetEdit ?? activeAssetEdit;
+      return execute(sessionId, "assemble-game", activeTemplateId, activeAssetEdit, resolved.input);
     },
     requestChange(input) {
-      activePreset = presetForText(input.changeRequest, nextPreset(activePreset));
-      activeAssetEdit = assetEditForText(input.changeRequest) ?? activeAssetEdit;
-      return execute(input.sessionId, "update-profile", activePreset, activeAssetEdit);
+      inputCounter += 1;
+      const resolved = resolveStudioInputCommand({
+        activeTemplateId,
+        sequence: inputCounter,
+        source: input.source ?? "text",
+        text: input.changeRequest
+      });
+      activeTemplateId = resolved.templateId;
+      activeAssetEdit = resolved.assetEdit ?? activeAssetEdit;
+      return execute(input.sessionId, "update-game", activeTemplateId, activeAssetEdit, resolved.input);
     },
     reset() {
       profiles.clear();
       timeline.length = 0;
       commandCounter = 0;
-      activePreset = "profile-a";
+      inputCounter = 0;
+      activeTemplateId = DEFAULT_TEMPLATE_ID;
       activeAssetEdit = undefined;
     }
   };
@@ -124,68 +144,4 @@ function profileIdForEvent(event: BuilderAgUiEvent): string | undefined {
   }
   const profileId = event.value.profileId;
   return typeof profileId === "string" ? profileId : undefined;
-}
-
-function presetForText(text: string, fallback: BuilderProfilePreset): BuilderProfilePreset {
-  const normalized = text.toLowerCase();
-  if (normalized.includes("sort") || normalized.includes("category") || normalized.includes("color")) {
-    return "profile-b";
-  }
-  if (normalized.includes("sequence") || normalized.includes("pattern") || normalized.includes("repeat")) {
-    return "sequence-repeat";
-  }
-  if (normalized.includes("memory") || normalized.includes("match") || normalized.includes("card")) {
-    return "profile-a";
-  }
-  return fallback;
-}
-
-function nextPreset(current: BuilderProfilePreset): BuilderProfilePreset {
-  return current === "profile-b" || current === "sorting" ? "profile-a" : "profile-b";
-}
-
-function assetEditForText(text: string): BuilderAssetEdit | undefined {
-  const normalized = text.toLowerCase();
-  const theme =
-    matchTheme(normalized, /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchTheme(normalized, /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchTheme(normalized, /\b(?:memory|match|matching|sort|sorting|sequence|repeat)?\s*(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchTheme(normalized, /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u);
-
-  if (!theme) {
-    return undefined;
-  }
-
-  const items = theme
-    .split(/\s*(?:,| and )\s*/u)
-    .map((entry) => cleanAssetTheme(entry))
-    .filter((entry) => entry.length > 0)
-    .slice(0, 12);
-
-  return items.length > 1 ? { theme, items } : { theme };
-}
-
-function matchTheme(text: string, pattern: RegExp): string | undefined {
-  const match = pattern.exec(text);
-  if (!match) {
-    return undefined;
-  }
-
-  const candidate = cleanAssetTheme(match[1]);
-  return candidate.length > 0 && !isProfileOnlyTheme(candidate) ? candidate : undefined;
-}
-
-function isProfileOnlyTheme(value: string): boolean {
-  return /^(?:memory|match|matching|sort|sorting|sequence|repeat)$/u.test(value);
-}
-
-function cleanAssetTheme(value: string): string {
-  return value
-    .split(/[.!?;]/u)[0]
-    .replace(/\b(?:game|profile|challenge|assets?|cards?|card images?|images?|art|theme)\b/gu, " ")
-    .replace(/\b(?:a|an|the)\b/gu, " ")
-    .replace(/[^a-z0-9 ,.-]+/gu, " ")
-    .replace(/\s+/gu, " ")
-    .trim()
-    .slice(0, 80);
 }

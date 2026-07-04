@@ -1,6 +1,6 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
-import { PLAYCRAFT_SCHEMA_VERSION } from "@playcraft/contracts";
+import { PLAYCRAFT_SCHEMA_VERSION, type BuilderTemplateId } from "@playcraft/contracts";
 import { createBuilderCommandHandler, type BuilderExecutionResult } from "./index.js";
 
 export interface BuilderCliIo {
@@ -16,7 +16,7 @@ const defaultIo: BuilderCliIo = {
 export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-builder <build|update|preview|batch> [--profile <preset>] [--session <id>] [--json]");
+    io.stderr("usage: playcraft-builder <assemble|update|preview|catalog|batch> [--template <template.id>] [--session <id>] [--json]");
     return 1;
   }
 
@@ -25,12 +25,25 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
 
   try {
     if (commandName === "batch") {
-      const outputs = handler.buildProfiles(["profile-a", "profile-b"], args.sessionId ?? "builder.batch");
+      const outputs = handler.assembleTemplates(["template.memory-match", "template.sorting"], args.sessionId ?? "builder.batch");
       writeResult(outputs, Boolean(args.json), io);
       return 0;
     }
 
-    const mappedName = commandName === "build" ? "build-profile" : commandName === "update" ? "update-profile" : commandName === "preview" ? "preview-action" : undefined;
+    if (commandName === "catalog") {
+      const result = handler.execute({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: `builder-command.${args.sessionId ?? "cli"}.catalog`,
+        version: "1.0.0",
+        kind: "builder-command",
+        sessionId: args.sessionId ?? "builder.cli",
+        actionName: "list-builder-tools"
+      });
+      writeResult(result, Boolean(args.json), io);
+      return 0;
+    }
+
+    const mappedName = commandName === "assemble" ? "assemble-game" : commandName === "update" ? "update-game" : commandName === "preview" ? "preview-action" : undefined;
     if (!mappedName) {
       io.stderr(`unknown command: ${commandName}`);
       return 1;
@@ -42,8 +55,8 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
       version: "1.0.0",
       kind: "builder-command",
       sessionId: args.sessionId ?? "builder.cli",
-      commandName: mappedName,
-      preset: args.profile,
+      actionName: mappedName,
+      templateId: args.template,
       interaction: mappedName === "preview-action" ? { action: "primary" } : undefined
     });
 
@@ -55,13 +68,13 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
   }
 }
 
-function parseArgs(argv: string[]): { profile?: "profile-a" | "profile-b" | "memory-match" | "sorting" | "sequence-repeat"; sessionId?: string; json?: boolean } {
-  const output: { profile?: "profile-a" | "profile-b" | "memory-match" | "sorting" | "sequence-repeat"; sessionId?: string; json?: boolean } = {};
+function parseArgs(argv: string[]): { template?: BuilderTemplateId; sessionId?: string; json?: boolean } {
+  const output: { template?: BuilderTemplateId; sessionId?: string; json?: boolean } = {};
 
   for (let index = 0; index < argv.length; index += 1) {
     const entry = argv[index];
-    if (entry === "--profile") {
-      output.profile = argv[index + 1] as typeof output.profile;
+    if (entry === "--template") {
+      output.template = argv[index + 1] as BuilderTemplateId;
       index += 1;
     } else if (entry === "--session") {
       output.sessionId = argv[index + 1];

@@ -146,7 +146,7 @@
         "seed": "seed-memory-match"
       },
       "metadata": {
-        "profileTemplate": "recipe.memory-match"
+        "profileTemplate": "template.memory-match"
       }
     }
   ],

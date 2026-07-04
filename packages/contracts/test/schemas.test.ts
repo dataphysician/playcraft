@@ -9,6 +9,7 @@ import { replayProfile } from "@playcraft/core";
 import {
   assembleMvpProfiles,
   assetProviderManifests,
+  gameTemplateDefinitions,
   componentManifests,
   createDefaultRegistries,
   domainProfiles,
@@ -74,14 +75,47 @@ describe("public contract schemas", () => {
       PlaycraftAgUiEventEnvelopeSchema: envelope,
       PlaycraftEventRecordSchema: profile.replay.eventLog[0],
       PackManifestSchema: packManifests[0],
+      GameTemplateDefinitionSchema: gameTemplateDefinitions[0],
+      BuilderInputRequestSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-input.fixture",
+        version: "1.0.0",
+        kind: "builder-input",
+        inputId: "builder-input.fixture",
+        source: "speech-transcript",
+        text: "memory game with dinosaurs",
+        transcription: {
+          engine: "moonshine-streaming",
+          runtime: "cpu",
+          localOnly: true
+        },
+        receivedAt: "2026-07-04T00:00:00.000Z",
+        metadata: {
+          origin: "contract-test"
+        }
+      },
+      BuilderToolDefinitionSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-tool.fixture",
+        version: "1.0.0",
+        kind: "builder-tool",
+        toolName: "tool:assemble-game",
+        displayName: "Assemble game",
+        description: "Assemble a game from a registered template.",
+        actionName: "assemble-game",
+        acceptedInputSources: ["text", "speech-transcript"],
+        localOnly: true,
+        emittedEvents: ["builder:profile-ready"],
+        requiredContracts: ["BuilderCommandSchema", "GameTemplateDefinitionSchema"]
+      },
       BuilderCommandSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-command.fixture",
         version: "1.0.0",
         kind: "builder-command",
         sessionId: "session.fixture",
-        commandName: "build-profile",
-        preset: "profile-a",
+        actionName: "assemble-game",
+        templateId: "template.memory-match",
         assetEdit: {
           theme: "dinosaurs"
         }
@@ -90,7 +124,7 @@ describe("public contract schemas", () => {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         sessionId: "session.fixture",
         activeProfileId: profile.id,
-        activePreset: "profile-a",
+        activeTemplateId: "template.memory-match",
         activeComponentId: renderRequest.componentId,
         renderedComponentIds: [renderRequest.componentId],
         interactionCount: 0
@@ -107,7 +141,7 @@ describe("public contract schemas", () => {
           schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
           sessionId: "session.fixture",
           activeProfileId: profile.id,
-          activePreset: "profile-a",
+          activeTemplateId: "template.memory-match",
           activeComponentId: renderRequest.componentId,
           renderedComponentIds: [renderRequest.componentId],
           interactionCount: 0

@@ -1,5 +1,5 @@
 import React from "react";
-import type { GameAssemblyProfile } from "@playcraft/contracts";
+import type { BuilderInputSource, GameAssemblyProfile } from "@playcraft/contracts";
 import { LiveGame, type LiveGameInteraction } from "./live-game.js";
 import {
   TrustedPreview,
@@ -19,12 +19,13 @@ type PendingCommand = "generate" | "update";
 
 interface ChatMessage {
   id: string;
-  speaker: "You" | "Studio";
+  speaker: "Studio" | "Transcript" | "You";
   text: string;
 }
 
 export function StudioApp({ client, initialSession }: StudioAppProps): React.ReactElement {
   const [commandText, setCommandText] = React.useState("");
+  const [inputSource, setInputSource] = React.useState<BuilderInputSource>("text");
   const [session, setSession] = React.useState<StudioSessionSnapshot | undefined>(initialSession);
   const [selectedTimelineId, setSelectedTimelineId] = React.useState<string | undefined>(initialSession?.timeline[0]?.id);
   const [selectedComponentKey, setSelectedComponentKey] = React.useState<string | undefined>();
@@ -57,9 +58,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     });
   }, [componentSummaries]);
 
-  async function handleCommandSubmit(event?: React.FormEvent<HTMLFormElement>): Promise<void> {
-    event?.preventDefault();
-    const text = commandText.trim();
+  async function runStudioCommand(text: string, source: BuilderInputSource = inputSource): Promise<void> {
     if (!text) {
       setError(session ? "Enter an update." : "Enter a request.");
       return;
@@ -72,20 +71,21 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     try {
       let nextSession: StudioSessionSnapshot;
       if (mode === "generate") {
-        nextSession = await Promise.resolve(client.assembleFromIntent({ sessionId, idea: text }));
+        nextSession = await Promise.resolve(client.assembleFromIntent({ sessionId, idea: text, source }));
       } else {
         if (!sessionId) {
           throw new Error("Update requires an active session.");
         }
-        nextSession = await Promise.resolve(client.requestChange({ sessionId, changeRequest: text }));
+        nextSession = await Promise.resolve(client.requestChange({ sessionId, changeRequest: text, source }));
       }
 
+      const speaker: ChatMessage["speaker"] = source === "speech-transcript" ? "Transcript" : "You";
       setSession(nextSession);
       setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
       setCommandText("");
       setMessages((current) => [
         ...current,
-        { id: `message.user.${current.length + 1}`, speaker: "You", text },
+        { id: `message.user.${current.length + 1}`, speaker, text },
         {
           id: `message.studio.${current.length + 2}`,
           speaker: "Studio",
@@ -99,9 +99,15 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     }
   }
 
+  async function handleCommandSubmit(event?: React.FormEvent<HTMLFormElement>): Promise<void> {
+    event?.preventDefault();
+    await runStudioCommand(commandText.trim());
+  }
+
   function handleStartOver(): void {
     client.reset?.();
     setCommandText("");
+    setInputSource("text");
     setSession(undefined);
     setSelectedTimelineId(undefined);
     setSelectedComponentKey(undefined);
@@ -188,10 +194,12 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     ),
     React.createElement(CommandBar, {
       commandText,
+      inputSource,
       hasSession: Boolean(session?.sessionId),
       pending,
       error,
       onChange: setCommandText,
+      onInputSourceChange: setInputSource,
       onSubmit: handleCommandSubmit,
       onStartOver: handleStartOver
     })
@@ -253,18 +261,22 @@ function DeveloperPanel({
 
 function CommandBar({
   commandText,
+  inputSource,
   hasSession,
   pending,
   error,
   onChange,
+  onInputSourceChange,
   onSubmit,
   onStartOver
 }: {
   commandText: string;
+  inputSource: BuilderInputSource;
   hasSession: boolean;
   pending: PendingCommand | null;
   error: string | null;
   onChange: (value: string) => void;
+  onInputSourceChange: (value: BuilderInputSource) => void;
   onSubmit: (event?: React.FormEvent<HTMLFormElement>) => void;
   onStartOver: () => void;
 }): React.ReactElement {
@@ -325,9 +337,38 @@ function CommandBar({
         id: "studio-command",
         value: commandText,
         onChange: (event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value),
-        placeholder: hasSession ? "Change the game or replace assets..." : "Memory game with dinosaurs",
+        placeholder:
+          inputSource === "speech-transcript"
+            ? "Moonshine transcript: memory game with dinosaurs"
+            : hasSession
+              ? "Change the game or replace assets..."
+              : "Memory game with dinosaurs",
         style: shellStyles.commandInput
       }),
+      React.createElement(
+        "span",
+        { role: "group", "aria-label": "Input source", style: shellStyles.inputSourceGroup },
+        React.createElement(
+          "button",
+          {
+            type: "button",
+            "aria-pressed": inputSource === "text",
+            onClick: () => onInputSourceChange("text"),
+            style: inputSource === "text" ? shellStyles.inputSourceButtonActive : shellStyles.inputSourceButton
+          },
+          "Text"
+        ),
+        React.createElement(
+          "button",
+          {
+            type: "button",
+            "aria-pressed": inputSource === "speech-transcript",
+            onClick: () => onInputSourceChange("speech-transcript"),
+            style: inputSource === "speech-transcript" ? shellStyles.inputSourceButtonActive : shellStyles.inputSourceButton
+          },
+          "Speech"
+        )
+      ),
       React.createElement(
         "button",
         { type: "submit", disabled: pending !== null, style: shellStyles.primaryButton },
@@ -652,6 +693,30 @@ const shellStyles = {
     background: "#ffffff",
     color: "#18181b",
     padding: "0.75rem"
+  },
+  inputSourceGroup: {
+    display: "inline-grid",
+    gridTemplateColumns: "1fr 1fr",
+    minWidth: "9rem",
+    border: "1px solid #a1a1aa",
+    borderRadius: "8px",
+    overflow: "hidden"
+  },
+  inputSourceButton: {
+    minHeight: "2.6rem",
+    border: 0,
+    background: "#ffffff",
+    color: "#3f3f46",
+    padding: "0.55rem 0.75rem",
+    fontWeight: 700
+  },
+  inputSourceButtonActive: {
+    minHeight: "2.6rem",
+    border: 0,
+    background: "#dbeafe",
+    color: "#1e3a8a",
+    padding: "0.55rem 0.75rem",
+    fontWeight: 800
   },
   primaryButton: {
     borderRadius: "8px",
