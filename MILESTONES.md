@@ -1,5 +1,33 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Shared Local Asset Edit Catalog
+
+Milestone:
+- `@playcraft/assets` now owns the local edit-aware asset theme catalog used for `+with {asset}` requests.
+- The service builder catalog and text asset-trigger matching now consume the shared assets package catalog instead of a service-local alias table.
+- Studio local replacement-folder matching now consumes the same shared catalog instead of maintaining a separate alias map.
+
+Supportive changes:
+- Asset tests now verify the shared edit catalog themes, aliases, and suggested items.
+- Source scans now keep service and Studio asset-edit theme metadata pointed at `@playcraft/assets`.
+- Workspace metadata and TypeScript project references now declare the direct assets dependency where service and Studio consume it.
+
+Validation:
+- `pnpm test packages/assets/test/local-asset-source.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-asset-library.test.tsx`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps local asset replacement levers folder-aware and forward-extensible without duplicated alias heuristics, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Schema-Backed Studio Event Ingestion
 
 Milestone:

@@ -24,6 +24,7 @@
     "typecheck": "tsc -b"
   },
   "dependencies": {
+    "@playcraft/assets": "workspace:*",
     "@playcraft/builder": "workspace:*",
     "@playcraft/contracts": "workspace:*",
     "@playcraft/packs": "workspace:*"

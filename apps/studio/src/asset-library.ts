@@ -1,4 +1,5 @@
 import type { GameAssemblyProfile, JsonValue } from "@playcraft/contracts";
+import { localAssetEditCatalog } from "@playcraft/assets";
 
 import memoryMatchBackgroundUrl from "./assets/library/ui/backgrounds/memory-match.png";
 import sequenceRepeatBackgroundUrl from "./assets/library/ui/backgrounds/sequence-repeat.png";
@@ -219,14 +220,9 @@ function valuesMatchTheme(values: string[], theme: string): boolean {
 function themeTerms(theme: string): string[] {
   const normalized = normalizeText(theme);
   const singular = singularize(normalized);
-  const aliases: Record<string, string[]> = {
-    dolphins: ["dolphin", "dolphins", "ocean animal", "ocean animals", "sea animal", "sea animals"],
-    dinosaurs: ["dinosaur", "dinosaurs"],
-    fruits: ["fruit", "fruits"],
-    toys: ["toy", "toys"]
-  };
+  const catalogEntry = localAssetEditCatalog.find((entry) => entry.theme === theme);
 
-  return uniqueStrings([normalized, singular, ...(aliases[theme] ?? [])]);
+  return uniqueStrings([normalized, singular, ...(catalogEntry?.aliases ?? [])]);
 }
 
 function spriteForIdentifier(identifier: string, themeFolders: string[], index: number): ReplacementSprite | undefined {

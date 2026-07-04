@@ -29,6 +29,7 @@ import {
   type MoonshineTranscriptRecord,
   type MoonshineTranscriptSegment
 } from "@playcraft/contracts";
+import { localAssetEditCatalog } from "@playcraft/assets";
 import {
   createBuilderCommandHandler,
   type BuilderCommandHandler,
@@ -38,28 +39,7 @@ import { gameTemplateDefinitions } from "@playcraft/packs";
 
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
 export const DEFAULT_TEMPLATE_ID = BuilderTemplateIdSchema.parse("template.memory-match");
-export const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
-  {
-    theme: "dinosaurs",
-    aliases: ["dinosaur", "dinosaurs"],
-    suggestedItems: ["dinosaur-1", "dinosaur-2", "dinosaur-3"]
-  },
-  {
-    theme: "toys",
-    aliases: ["toy", "toys"],
-    suggestedItems: ["toy-1", "toy-2", "toy-3"]
-  },
-  {
-    theme: "dolphins",
-    aliases: ["dolphin", "dolphins", "ocean animals", "sea animals"],
-    suggestedItems: ["dolphin-1", "dolphin-2", "dolphin-3"]
-  },
-  {
-    theme: "fruits",
-    aliases: ["fruit", "fruits"],
-    suggestedItems: ["fruit-1", "fruit-2", "fruit-3"]
-  }
-];
+export { localAssetEditCatalog } from "@playcraft/assets";
 
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;

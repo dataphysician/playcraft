@@ -164,6 +164,16 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("agUiEventTypeFromString");
   });
 
+  it("keeps local asset edit theme metadata shared through the assets package", () => {
+    const serviceSource = readSource("packages/service/src/index.ts");
+    const studioAssetLibrarySource = readSource("apps/studio/src/asset-library.ts");
+
+    expect(serviceSource).toContain('from "@playcraft/assets"');
+    expect(studioAssetLibrarySource).toContain('from "@playcraft/assets"');
+    expect(studioAssetLibrarySource).not.toContain("const aliases: Record");
+    expect(studioAssetLibrarySource).not.toContain('dolphins: ["dolphin"');
+  });
+
   it("keeps retired sample memory-card IDs out of source and fixtures", () => {
     const blockedTerms = ["cat", "sun"].flatMap((item) => [`${item}-a`, `${item}-b`]);
     const checkedFiles = repoSourceFiles().filter((path) =>

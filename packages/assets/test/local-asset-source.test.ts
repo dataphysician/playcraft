@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   DeterministicLocalAssetSource,
-  createLocalAssetSourceManifest
+  createLocalAssetSourceManifest,
+  localAssetEditCatalog
 } from "@playcraft/assets";
 import {
   PLAYCRAFT_SCHEMA_VERSION,
@@ -27,6 +28,12 @@ const request: AssetGenerationRequest = {
 };
 
 describe("deterministic local asset source", () => {
+  it("publishes the shared local asset edit catalog used by service and Studio", () => {
+    expect(localAssetEditCatalog.map((entry) => entry.theme)).toEqual(["dinosaurs", "toys", "dolphins", "fruits"]);
+    expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
+    expect(localAssetEditCatalog.every((entry) => entry.suggestedItems.length > 0)).toBe(true);
+  });
+
   it("returns stable generated asset records for the same request and seed", () => {
     const source = new DeterministicLocalAssetSource();
 

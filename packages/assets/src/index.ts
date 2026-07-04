@@ -3,10 +3,12 @@ import {
   AssetSourceCapabilityManifestSchema,
   GeneratedAssetRecordSchema,
   PLAYCRAFT_SCHEMA_VERSION,
+  BuilderAssetEditCatalogEntrySchema,
   type AssetContentTypeSchema,
   type AssetFormatSchema,
   type AssetGenerationRequest,
   type AssetSourceCapabilityManifest,
+  type BuilderAssetEditCatalogEntry,
   type GeneratedAssetRecord
 } from "@playcraft/contracts";
 import type { z } from "zod";
@@ -20,6 +22,28 @@ export interface LocalAssetSourceOptions {
 
 export const LOCAL_ASSET_SOURCE_ID = "asset-source.local-deterministic";
 export const LOCAL_ASSET_SOURCE_VERSION = "1.0.0";
+export const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
+  BuilderAssetEditCatalogEntrySchema.parse({
+    theme: "dinosaurs",
+    aliases: ["dinosaur", "dinosaurs"],
+    suggestedItems: ["dinosaur-1", "dinosaur-2", "dinosaur-3"]
+  }),
+  BuilderAssetEditCatalogEntrySchema.parse({
+    theme: "toys",
+    aliases: ["toy", "toys"],
+    suggestedItems: ["toy-1", "toy-2", "toy-3"]
+  }),
+  BuilderAssetEditCatalogEntrySchema.parse({
+    theme: "dolphins",
+    aliases: ["dolphin", "dolphins", "ocean animals", "ocean animal", "sea animals", "sea animal"],
+    suggestedItems: ["dolphin-1", "dolphin-2", "dolphin-3"]
+  }),
+  BuilderAssetEditCatalogEntrySchema.parse({
+    theme: "fruits",
+    aliases: ["fruit", "fruits"],
+    suggestedItems: ["fruit-1", "fruit-2", "fruit-3"]
+  })
+];
 
 export function createLocalAssetSourceManifest(overrides: Partial<AssetSourceCapabilityManifest> = {}): AssetSourceCapabilityManifest {
   const manifest: AssetSourceCapabilityManifest = {

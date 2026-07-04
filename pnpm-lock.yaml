@@ -73,6 +73,9 @@ importers:
       '@playcraft/ag-ui':
         specifier: workspace:*
         version: link:../../packages/ag-ui
+      '@playcraft/assets':
+        specifier: workspace:*
+        version: link:../../packages/assets
       '@playcraft/builder':
         specifier: workspace:*
         version: link:../../packages/builder
@@ -200,6 +203,9 @@ importers:
 
   packages/service:
     dependencies:
+      '@playcraft/assets':
+        specifier: workspace:*
+        version: link:../assets
       '@playcraft/builder':
         specifier: workspace:*
         version: link:../builder
