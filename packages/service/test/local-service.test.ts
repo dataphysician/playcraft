@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PLAYCRAFT_SCHEMA_VERSION } from "@playcraft/contracts";
+import { PLAYCRAFT_SCHEMA_VERSION, type BuilderServiceResponse } from "@playcraft/contracts";
 import {
   PLAYCRAFT_SERVICE_PACKAGE,
   createLocalServiceTransport,
@@ -249,6 +249,36 @@ describe("local Playcraft service", () => {
     expect(JSON.stringify(assembled.events)).toContain("moonshine-streaming");
     expect(assembled.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
     expect(assembled.result.profile?.components[0]?.props.cards).toEqual(["dolphin-a", "dolphin-b", "turtle-a", "turtle-b"]);
+    expect(err).toEqual([]);
+  });
+
+  it("lets agents submit the exact service request envelope through the CLI", () => {
+    const out: string[] = [];
+    const err: string[] = [];
+    const request = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.cli-envelope",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.cli-envelope",
+      source: "speech-transcript",
+      text: "Memory game with dinosaurs"
+    };
+
+    expect(
+      runLocalServiceCli(["request", "--request-json", JSON.stringify(request), "--json"], {
+        stdout: (message) => out.push(message),
+        stderr: (message) => err.push(message)
+      })
+    ).toBe(0);
+
+    const response = JSON.parse(out.pop() ?? "{}") as BuilderServiceResponse;
+    expect(response.kind).toBe("builder-service-response");
+    expect(response.requestId).toBe("builder-service-request.test.cli-envelope");
+    expect(response.execution?.result.sessionId).toBe("session.cli-envelope");
+    expect(response.execution?.result.profile?.assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
+    expect(JSON.stringify(response.execution?.events)).toContain("moonshine-streaming");
     expect(err).toEqual([]);
   });
 

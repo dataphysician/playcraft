@@ -19,6 +19,7 @@ export interface LocalServiceCliIo {
 interface ParsedArgs {
   assetEdit?: BuilderAssetEdit;
   json?: boolean;
+  requestJson?: string;
   sessionId?: string;
   source?: BuilderInputSource;
   templateId?: BuilderTemplateId;
@@ -33,7 +34,7 @@ const defaultIo: LocalServiceCliIo = {
 export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|reset> [--text <request>] [--source <text|speech-transcript>] [--session <id>] [--asset-theme <theme>] [--asset-item <item>] [--json]");
+    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|reset|request> [--text <request>] [--source <text|speech-transcript>] [--session <id>] [--asset-theme <theme>] [--asset-item <item>] [--request-json <json>] [--json]");
     return 1;
   }
 
@@ -41,6 +42,12 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
   const service = createLocalPlaycraftService();
 
   try {
+    if (commandName === "request") {
+      const response = service.handle(parseServiceRequestJson(args.requestJson));
+      writeServiceEnvelopeResponse(response, Boolean(args.json), io);
+      return 0;
+    }
+
     if (isCliCommand(commandName)) {
       if (commandName === "preview" && args.text) {
         service.handle(serviceRequest("assemble", args, "service.cli.preview.seed"));
@@ -86,6 +93,9 @@ function parseArgs(argv: string[]): ParsedArgs {
       index += 1;
     } else if (entry === "--asset-item") {
       items.push(argv[index + 1]);
+      index += 1;
+    } else if (entry === "--request-json") {
+      output.requestJson = argv[index + 1];
       index += 1;
     } else if (entry === "--json") {
       output.json = true;
@@ -134,6 +144,14 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
   };
 }
 
+function parseServiceRequestJson(value: string | undefined): BuilderServiceRequest {
+  if (!value) {
+    throw new Error("request command requires --request-json");
+  }
+
+  return JSON.parse(value) as BuilderServiceRequest;
+}
+
 function writeResponse(response: BuilderServiceResponse, json: boolean, io: LocalServiceCliIo): void {
   const payload = response.catalog ?? response.execution ?? { reset: response.reset === true };
 
@@ -153,6 +171,15 @@ function writeResponse(response: BuilderServiceResponse, json: boolean, io: Loca
   }
 
   io.stdout("reset: ok");
+}
+
+function writeServiceEnvelopeResponse(response: BuilderServiceResponse, json: boolean, io: LocalServiceCliIo): void {
+  if (json) {
+    io.stdout(JSON.stringify(response, null, 2));
+    return;
+  }
+
+  writeResponse(response, false, io);
 }
 
 function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): void {

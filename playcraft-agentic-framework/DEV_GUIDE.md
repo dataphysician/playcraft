@@ -37,6 +37,8 @@ Do not put framework core logic behind Next.js API routes, native commands, or a
 
 Studio clients should talk to a `BuilderServiceTransport`; the local implementation is in-process today, and a future server adapter should preserve the same request/response schemas rather than adding app-local command formats.
 
+Agents that need the exact API boundary can call `playcraft-service request --request-json '<BuilderServiceRequest JSON>' --json` and receive the full `BuilderServiceResponse` envelope. Friendly CLI commands may keep concise output for humans.
+
 Template request phrases belong in `GameTemplateDefinition.requestAliases`. Do not add service-side `if game == ...` branches when adding a template; the local service resolves template switches from catalog aliases and records the matched alias in `BuilderIntentResolution`.
 
 ## 3. Stack Defaults
