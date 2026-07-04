@@ -458,9 +458,13 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("isGenericAssetTheme");
     expect(contractSource).toContain("genericThemeTokens");
     expect(assetCatalogSource).toContain("localAssetEditGenericThemeTokens");
+    expect(assetCatalogSource).toContain("localAssetEditIntentPatterns");
     expect(source).toContain("localAssetEditGenericThemeTokens");
+    expect(source).toContain("localAssetEditIntentPatterns");
     expect(source).not.toContain("GENERIC_ASSET_THEME_TOKENS");
     expect(source).not.toContain('new Set(["asset", "assets"');
+    expect(source).not.toContain("matchCatalogAssetTheme");
+    expect(source).not.toContain("replace\\\\s+");
     expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:game\|profile\|challenge\|assets/u);
     expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:assets\?\|cards/u);
   });

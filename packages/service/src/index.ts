@@ -29,7 +29,12 @@ import {
   type MoonshineTranscriptRecord,
   type MoonshineTranscriptSegment
 } from "@playcraft/contracts";
-import { localAssetEditCatalog, localAssetEditGenericThemeTokens } from "@playcraft/assets";
+import {
+  localAssetEditCatalog,
+  localAssetEditGenericThemeTokens,
+  localAssetEditIntentPatterns,
+  type LocalAssetEditIntentPattern
+} from "@playcraft/assets";
 import {
   createBuilderCommandHandler,
   type BuilderCommandHandler,
@@ -664,12 +669,9 @@ function assetDecisionFor(input: {
 
 function assetEditForText(text: string): TextAssetEdit | undefined {
   const normalized = text.toLowerCase();
-  const match =
-    matchAssetTheme(normalized, /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request") ??
-    matchAssetTheme(normalized, /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request") ??
-    matchCatalogAssetTheme(normalized, /\b(?:make|change|switch|update)\s+(?:it|this|them)\s+(?:(?:to|with|as|for)\s+)?([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchCatalogAssetTheme(normalized, /\b(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchAssetTheme(normalized, /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request");
+  const match = localAssetEditIntentPatterns
+    .map((pattern) => matchAssetTheme(normalized, pattern))
+    .find((entry): entry is { source: TextAssetEdit["source"]; theme: string } => Boolean(entry));
 
   if (!match) {
     return undefined;
@@ -688,37 +690,26 @@ function assetEditForText(text: string): TextAssetEdit | undefined {
   };
 }
 
-function matchCatalogAssetTheme(
-  text: string,
-  pattern: RegExp
-): { source: "catalog-asset-alias"; theme: string } | undefined {
-  const match = pattern.exec(text);
-  if (!match) {
-    return undefined;
-  }
-
-  const candidate = cleanAssetTheme(match[1]);
-  return candidate.length > 0 && !isGenericAssetTheme(candidate) && isKnownAssetTheme(candidate)
-    ? { source: "catalog-asset-alias", theme: candidate }
-    : undefined;
-}
-
 function matchAssetTheme(
   text: string,
-  pattern: RegExp,
-  source: TextAssetEdit["source"]
+  pattern: LocalAssetEditIntentPattern
 ): { source: TextAssetEdit["source"]; theme: string } | undefined {
-  const match = pattern.exec(text);
+  const match = pattern.pattern.exec(text);
   if (!match) {
     return undefined;
   }
 
   const candidate = cleanAssetTheme(match[1]);
-  if (candidate.length === 0 || isGenericAssetTheme(candidate) || isTemplateOnlyTheme(candidate)) {
+  if (
+    candidate.length === 0 ||
+    isGenericAssetTheme(candidate) ||
+    isTemplateOnlyTheme(candidate) ||
+    (pattern.source === "catalog-asset-alias" && !isKnownAssetTheme(candidate))
+  ) {
     return undefined;
   }
 
-  const matchedSource = isKnownAssetTheme(candidate) ? "catalog-asset-alias" : source;
+  const matchedSource = isKnownAssetTheme(candidate) ? "catalog-asset-alias" : pattern.source;
   return { source: matchedSource, theme: candidate };
 }
 

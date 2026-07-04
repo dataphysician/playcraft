@@ -3,6 +3,7 @@ import {
   DeterministicLocalAssetSource,
   createLocalAssetSourceManifest,
   localAssetEditGenericThemeTokens,
+  localAssetEditIntentPatterns,
   localAssetEditCatalog
 } from "@playcraft/assets";
 import {
@@ -35,6 +36,13 @@ describe("deterministic local asset source", () => {
     expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
     expect(localAssetEditCatalog.every((entry) => entry.suggestedItems.length > 0)).toBe(true);
     expect(localAssetEditGenericThemeTokens).toEqual(expect.arrayContaining(["asset", "assets", "card images", "theme"]));
+    expect(localAssetEditIntentPatterns.map((entry) => entry.source)).toEqual([
+      "freeform-asset-request",
+      "freeform-asset-request",
+      "catalog-asset-alias",
+      "catalog-asset-alias",
+      "freeform-asset-request"
+    ]);
   });
 
   it("returns stable generated asset records for the same request and seed", () => {

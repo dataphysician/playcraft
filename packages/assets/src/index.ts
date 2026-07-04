@@ -20,6 +20,11 @@ export interface LocalAssetSourceOptions {
   manifest?: AssetSourceCapabilityManifest;
 }
 
+export interface LocalAssetEditIntentPattern {
+  pattern: RegExp;
+  source: "catalog-asset-alias" | "freeform-asset-request";
+}
+
 export const LOCAL_ASSET_SOURCE_ID = "asset-source.local-deterministic";
 export const LOCAL_ASSET_SOURCE_VERSION = "1.0.0";
 export const localAssetEditGenericThemeTokens = [
@@ -33,6 +38,28 @@ export const localAssetEditGenericThemeTokens = [
   "images",
   "art",
   "theme"
+];
+export const localAssetEditIntentPatterns: LocalAssetEditIntentPattern[] = [
+  {
+    pattern: /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    source: "freeform-asset-request"
+  },
+  {
+    pattern: /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    source: "freeform-asset-request"
+  },
+  {
+    pattern: /\b(?:make|change|switch|update)\s+(?:it|this|them)\s+(?:(?:to|with|as|for)\s+)?([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    source: "catalog-asset-alias"
+  },
+  {
+    pattern: /\b(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    source: "catalog-asset-alias"
+  },
+  {
+    pattern: /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    source: "freeform-asset-request"
+  }
 ];
 export const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
   BuilderAssetEditCatalogEntrySchema.parse({

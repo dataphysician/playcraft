@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Asset-Owned Intent Patterns
+
+Milestone:
+- Asset edit intent phrase patterns now live in `@playcraft/assets` with the local replacement catalog.
+- The service consumes `localAssetEditIntentPatterns` instead of owning hardcoded asset request regex chains.
+- Catalog-owned generic theme guards and asset-owned intent patterns now sit together as the local asset edit lever surface.
+
+Supportive changes:
+- Asset tests verify the exported pattern ordering and decision source categories.
+- Source scans now block service-local asset intent pattern helpers from returning.
+
+Validation:
+- `pnpm test packages/assets/test/local-asset-source.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps asset replacement intent parsing asset-catalog-owned and forward-extensible without service-local phrase heuristics, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Catalog-Owned Asset Theme Guards
 
 Milestone:
