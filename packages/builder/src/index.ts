@@ -354,11 +354,16 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       throw new Error(`interactive render request ${renderRequest.id} does not declare an emitted tool`);
     }
 
+    const action = command.interaction?.action;
+    if (!action) {
+      throw new Error("preview-action requires an interaction action");
+    }
+
     const interaction = {
       toolName,
       payload: {
         componentId,
-        action: command.interaction?.action ?? "primary"
+        action
       } satisfies JsonValue
     };
     const nextPreview = BuilderPreviewStateSchema.parse({
@@ -384,7 +389,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const runId = `${command.sessionId}.${session.templateId ?? "preview"}`;
     const replayEvent = session.profile.replay.eventLog[0];
     const events: BuilderAgUiEvent[] = [
-      toolCall(runId, interaction.toolName, { action: command.interaction?.action ?? "primary" }, 0),
+      toolCall(runId, interaction.toolName, { action }, 0),
       toolResult(runId, interaction.toolName, interaction.payload, 1),
       stateDelta(runId, {
         interactionCount: nextPreview.interactionCount,

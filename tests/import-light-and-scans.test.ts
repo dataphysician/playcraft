@@ -255,6 +255,13 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("interaction payloads are only accepted by preview actions");
   });
 
+  it("keeps builder preview actions free of interaction defaulting", () => {
+    const source = readSource("packages/builder/src/index.ts");
+
+    expect(source).toContain("preview-action requires an interaction action");
+    expect(source).not.toContain('command.interaction?.action ?? "primary"');
+  });
+
   it("keeps service event serialization schema-first and non-coercive", () => {
     const source = readSource("packages/service/src/index.ts");
 

@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Preview Interaction Actions
+
+Milestone:
+- Builder preview runtime now requires a concrete interaction action instead of defaulting missing actions to `primary`.
+- Preview tool call payloads now reuse the validated interaction action directly.
+
+Supportive changes:
+- Source scans now block preview-action interaction defaulting from returning to the builder runtime.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps preview interactions contract-shaped and forward-only without hidden default actions, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Action-Scoped Builder Commands
 
 Milestone:
