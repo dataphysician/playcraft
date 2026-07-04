@@ -1,7 +1,7 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
-import type { BuilderAssetEdit, BuilderInputSource, BuilderTemplateId } from "@playcraft/contracts";
-import { createLocalPlaycraftService, type BuilderCatalog, type LocalBuilderInput } from "./index.js";
+import type { BuilderAssetEdit, BuilderCatalog, BuilderInputSource, BuilderTemplateId } from "@playcraft/contracts";
+import { createLocalPlaycraftService, type LocalBuilderInput } from "./index.js";
 import type { BuilderExecutionResult } from "@playcraft/builder";
 
 export interface LocalServiceCliIo {

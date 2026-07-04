@@ -12,6 +12,18 @@ describe("local Playcraft service", () => {
     const catalog = service.catalog();
 
     expect(PLAYCRAFT_SERVICE_PACKAGE).toBe("@playcraft/service");
+    expect(catalog.kind).toBe("builder-catalog");
+    expect(catalog.defaultTemplateId).toBe("template.memory-match");
+    expect(catalog.retrieval).toEqual({
+      current: "bundled-local",
+      planned: "server-catalog"
+    });
+    expect(catalog.assetEdit).toMatchObject({
+      supported: true,
+      acceptedKeys: ["theme", "items"],
+      maxItems: 12,
+      localReplacementFolders: true
+    });
     expect(catalog.tools.map((tool) => tool.toolName)).toEqual([
       "tool:assemble-game",
       "tool:update-game",
@@ -79,7 +91,8 @@ describe("local Playcraft service", () => {
     };
 
     expect(runLocalServiceCli(["catalog", "--json"], io)).toBe(0);
-    const catalog = JSON.parse(out.pop() ?? "{}") as { templates: Array<{ id: string }> };
+    const catalog = JSON.parse(out.pop() ?? "{}") as { kind: string; templates: Array<{ id: string }> };
+    expect(catalog.kind).toBe("builder-catalog");
     expect(catalog.templates.map((template) => template.id)).toEqual([
       "template.memory-match",
       "template.sorting",

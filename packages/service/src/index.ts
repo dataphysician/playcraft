@@ -1,12 +1,13 @@
 import {
+  BuilderCatalogSchema,
   BuilderInputRequestSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
+  type BuilderCatalog,
   type BuilderCommand,
   type BuilderInputRequest,
   type BuilderInputSource,
-  type BuilderTemplateId,
-  type GameTemplateDefinition
+  type BuilderTemplateId
 } from "@playcraft/contracts";
 import {
   createBuilderCommandHandler,
@@ -17,11 +18,6 @@ import { gameTemplateDefinitions } from "@playcraft/packs";
 
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
 export const DEFAULT_TEMPLATE_ID = "template.memory-match" as BuilderTemplateId;
-
-export interface BuilderCatalog {
-  templates: GameTemplateDefinition[];
-  tools: ReturnType<BuilderCommandHandler["listTools"]>;
-}
 
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
@@ -49,10 +45,26 @@ export class LocalPlaycraftService {
   }
 
   catalog(): BuilderCatalog {
-    return {
+    return BuilderCatalogSchema.parse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-catalog.local",
+      version: "1.0.0",
+      kind: "builder-catalog",
+      defaultTemplateId: DEFAULT_TEMPLATE_ID,
       templates: this.handler.listTemplates(),
-      tools: this.handler.listTools()
-    };
+      tools: this.handler.listTools(),
+      acceptedInputSources: ["text", "speech-transcript"],
+      assetEdit: {
+        supported: true,
+        acceptedKeys: ["theme", "items"],
+        maxItems: 12,
+        localReplacementFolders: true
+      },
+      retrieval: {
+        current: "bundled-local",
+        planned: "server-catalog"
+      }
+    });
   }
 
   assemble(input: LocalBuilderInput): BuilderExecutionResult {

@@ -41,6 +41,20 @@ describe("public contract schemas", () => {
         sourceId: "validator.contract"
       }
     });
+    const builderToolFixture = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-tool.fixture",
+      version: "1.0.0",
+      kind: "builder-tool",
+      toolName: "tool:assemble-game",
+      displayName: "Assemble game",
+      description: "Assemble a game from a registered template.",
+      actionName: "assemble-game",
+      acceptedInputSources: ["text", "speech-transcript"],
+      localOnly: true,
+      emittedEvents: ["builder:profile-ready"],
+      requiredContracts: ["BuilderCommandSchema", "GameTemplateDefinitionSchema"]
+    };
 
     const fixtures = {
       PlaycraftAssemblyRequestSchema: {
@@ -95,18 +109,27 @@ describe("public contract schemas", () => {
         }
       },
       BuilderToolDefinitionSchema: {
+        ...builderToolFixture
+      },
+      BuilderCatalogSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        id: "builder-tool.fixture",
+        id: "builder-catalog.fixture",
         version: "1.0.0",
-        kind: "builder-tool",
-        toolName: "tool:assemble-game",
-        displayName: "Assemble game",
-        description: "Assemble a game from a registered template.",
-        actionName: "assemble-game",
+        kind: "builder-catalog",
+        defaultTemplateId: "template.memory-match",
+        templates: gameTemplateDefinitions,
+        tools: [builderToolFixture],
         acceptedInputSources: ["text", "speech-transcript"],
-        localOnly: true,
-        emittedEvents: ["builder:profile-ready"],
-        requiredContracts: ["BuilderCommandSchema", "GameTemplateDefinitionSchema"]
+        assetEdit: {
+          supported: true,
+          acceptedKeys: ["theme", "items"],
+          maxItems: 12,
+          localReplacementFolders: true
+        },
+        retrieval: {
+          current: "bundled-local",
+          planned: "server-catalog"
+        }
       },
       BuilderCommandSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

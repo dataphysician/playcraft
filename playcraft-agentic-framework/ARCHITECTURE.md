@@ -37,7 +37,7 @@ The core must not depend on a specific app framework, route system, database, au
 | Assets | Provider-neutral asset requests, capability manifests, deterministic stub provider, provenance records. |
 | Renderer | Trusted React component registry and render requests. |
 | Builder tools | Local CLI/API actions that assemble templates, update asset levers, preview trusted interactions, and expose the tool/template catalog. |
-| Service | Local app/API facade that normalizes text and Moonshine Streaming CPU transcript records, resolves template/asset edit intent, and calls builder tools. |
+| Service | Local app/API facade that emits `BuilderCatalog`, normalizes text and Moonshine Streaming CPU transcript records, resolves template/asset edit intent, and calls builder tools. |
 | Studio/shells | Vite React studio and Tauri Mobile-facing shell that consume the service without moving contracts, registries, or game rules into the app layer. |
 
 ## 3. Protocol Boundaries
@@ -53,7 +53,7 @@ The core must not depend on a specific app framework, route system, database, au
 
 Builder input is provider-neutral: text requests and Moonshine Streaming CPU-only speech transcripts both become `BuilderInputRequest` records before they reach the builder service.
 
-The current user-facing app path is `apps/studio` for the web studio and `apps/mobile-shell` for a Tauri Mobile-facing shell. Both route assembly through `@playcraft/service`, which can later be replaced by a server-backed adapter as long as it preserves the same Studio client contract. Agents can also use the `playcraft-service` CLI bin for catalog, assemble, update, and preview commands over the same local contract.
+The current user-facing app path is `apps/studio` for the web studio and `apps/mobile-shell` for a Tauri Mobile-facing shell. Both route assembly through `@playcraft/service`, which can later be replaced by a server-backed adapter as long as it preserves the same Studio client contract. Agents can also use the `playcraft-service` CLI bin for catalog, assemble, update, and preview commands over the same validated `BuilderCatalog` contract.
 
 ## 4. AG-UI Mapping
 

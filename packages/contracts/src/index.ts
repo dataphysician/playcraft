@@ -525,6 +525,29 @@ export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
 }).strict();
 export type BuilderToolDefinition = z.infer<typeof BuilderToolDefinitionSchema>;
 
+export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("builder-catalog"),
+  defaultTemplateId: BuilderTemplateIdSchema,
+  templates: z.array(GameTemplateDefinitionSchema).min(1),
+  tools: z.array(BuilderToolDefinitionSchema).min(1),
+  acceptedInputSources: z.array(BuilderInputSourceSchema).min(1),
+  assetEdit: z
+    .object({
+      supported: z.literal(true),
+      acceptedKeys: z.array(z.enum(["theme", "items"])).min(1),
+      maxItems: z.number().int().positive(),
+      localReplacementFolders: z.boolean()
+    })
+    .strict(),
+  retrieval: z
+    .object({
+      current: z.literal("bundled-local"),
+      planned: z.literal("server-catalog")
+    })
+    .strict()
+}).strict();
+export type BuilderCatalog = z.infer<typeof BuilderCatalogSchema>;
+
 export const BuilderAssetEditSchema = z
   .object({
     theme: z.string().min(1).max(80).optional(),
@@ -602,6 +625,7 @@ export const PublicContractSchemas = {
   GameTemplateDefinitionSchema,
   BuilderInputRequestSchema,
   BuilderToolDefinitionSchema,
+  BuilderCatalogSchema,
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
   BuilderCommandResultSchema
