@@ -61,13 +61,20 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
     return React.createElement(PreviewFailure, { failure: { code: "invalid-request", message } });
   }
 
-  const request =
-    selectedComponentKey === undefined
-      ? replay.renderRequests[0]
-      : replay.renderRequests.find((candidate, index) => renderRequestKey(candidate, index) === selectedComponentKey) ??
-        replay.renderRequests[0];
+  const request = selectedComponentKey === undefined
+    ? replay.renderRequests[0]
+    : replay.renderRequests.find((candidate, index) => renderRequestKey(candidate, index) === selectedComponentKey);
 
   if (!request) {
+    if (selectedComponentKey !== undefined) {
+      return React.createElement(PreviewFailure, {
+        failure: {
+          code: "invalid-request",
+          message: `selected trusted preview component ${selectedComponentKey} is not available in profile ${profile.id}`
+        }
+      });
+    }
+
     return React.createElement("div", { role: "status" }, "No trusted preview request is available.");
   }
 

@@ -732,4 +732,15 @@ describe("studio UI", () => {
     expect(screen.getByTestId("trusted-preview-error").textContent).toContain("invalid-request");
     expect(screen.getByTestId("trusted-preview-error").textContent).toContain("component.unknown");
   });
+
+  it("fails closed when a selected trusted preview component is not in the replay", () => {
+    render(React.createElement(TrustedPreview, {
+      profile: profileA,
+      selectedComponentKey: "component.not-in-profile"
+    }));
+
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("invalid-request");
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("component.not-in-profile");
+    expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
+  });
 });

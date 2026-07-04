@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Trusted Preview Selection
+
+Milestone:
+- Trusted preview now treats an explicitly selected component key that is missing from replay as an invalid request.
+- The preview still defaults to the first render request only when no component was selected.
+- Stale or incorrect Developer-tab component selections no longer silently render a different component.
+
+Supportive changes:
+- Studio UI tests now cover selected trusted preview misses and assert the preview surface is not rendered.
+- Source scans now block the old selected-key miss fallback to the first render request.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps Developer-tab preview selection contract-shaped and fail-closed without app-local component fallbacks, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Assembly Request Template Selection
 
 Milestone:

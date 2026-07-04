@@ -220,6 +220,14 @@ describe("import-light boundaries and source scans", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps trusted preview selected component misses fail-closed", () => {
+    const source = readSource("apps/studio/src/trusted-preview.tsx");
+
+    expect(source).toContain("selected trusted preview component");
+    expect(source).not.toContain("??\n        replay.renderRequests[0]");
+    expect(source).not.toContain("?? replay.renderRequests[0]");
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),
