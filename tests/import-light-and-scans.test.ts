@@ -541,6 +541,17 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).not.toContain("alias.includes");
   });
 
+  it("keeps builder tool display names explicit instead of description-derived", () => {
+    const builderSource = readSource("packages/builder/src/index.ts");
+
+    expect(builderSource).toContain('"Assemble Game"');
+    expect(builderSource).toContain('"Update Game"');
+    expect(builderSource).toContain('"Preview Action"');
+    expect(builderSource).toContain("displayName,");
+    expect(builderSource).not.toContain("description.split");
+    expect(builderSource).not.toContain("displayName: description");
+  });
+
   it("keeps Studio chat asset summaries session-owned instead of prompt-parsed", () => {
     const source = readSource("apps/studio/src/studio-app.tsx");
 

@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Builder Tool Display Names
+
+Milestone:
+- Builder tool display names are now explicit metadata in the builder tool table.
+- The agent-facing catalog no longer derives `displayName` from the first sentence of `description`.
+- Callable action schemas, accepted input sources, and emitted events remain unchanged.
+
+Supportive changes:
+- Builder tests validate display names for every tool action.
+- Source scans now block description-derived builder tool display names from returning.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps agent-facing tool metadata explicit and forward-only without description parsing heuristics, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Catalog-Owned Studio Input Source Controls
 
 Milestone:
