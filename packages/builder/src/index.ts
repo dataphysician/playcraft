@@ -49,6 +49,12 @@ import {
 
 export const PLAYCRAFT_BUILDER_PACKAGE = "@playcraft/builder";
 
+export const BUILDER_SESSION_POLICY = {
+  defaultAssembleSessionId: "builder.cli",
+  defaultBatchSessionId: "builder.batch",
+  defaultCatalogSessionId: "builder.cli"
+} as const;
+
 export const BuilderPreviewPayloadSchema = z
   .object({
     componentId: z.string().min(1),
@@ -125,7 +131,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     }
   }
 
-  assembleTemplates(templateIds: BuilderTemplateId[], sessionId = "builder.batch"): BuilderExecutionResult[] {
+  assembleTemplates(templateIds: BuilderTemplateId[], sessionId = BUILDER_SESSION_POLICY.defaultBatchSessionId): BuilderExecutionResult[] {
     return templateIds.map((templateId, index) =>
       this.execute({
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

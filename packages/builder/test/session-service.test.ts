@@ -6,7 +6,12 @@ import {
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderCommand
 } from "@playcraft/contracts";
-import { BuilderPreviewPayloadSchema, PlaycraftBuilderSessionService, createBuilderCommandHandler as createHandler } from "../src/index.js";
+import {
+  BUILDER_SESSION_POLICY,
+  BuilderPreviewPayloadSchema,
+  PlaycraftBuilderSessionService,
+  createBuilderCommandHandler as createHandler
+} from "../src/index.js";
 import { runBuilderCli } from "../src/cli.js";
 
 const BuilderCliBatchOutputSchema = z.array(
@@ -35,10 +40,12 @@ describe("builder session service", () => {
   it("assembles bundled templates through the shared command handler", () => {
     const handler = createHandler();
     const outputs = handler.assembleTemplates(["template.memory-match", "template.sorting"], "session.batch");
+    const defaultOutputs = handler.assembleTemplates(["template.memory-match"]);
 
     expect(outputs).toHaveLength(2);
     expect(outputs[0].result.profile?.id).toBe("profile.memory-match.mvp");
     expect(outputs[1].result.profile?.id).toBe("profile.sorting.mvp");
+    expect(defaultOutputs[0]?.result.sessionId).toBe(BUILDER_SESSION_POLICY.defaultBatchSessionId);
     expect(handler.listTemplates()).toHaveLength(24);
     expect(handler.listTemplates().slice(0, 3).map((template) => template.id)).toEqual([
       "template.memory-match",
@@ -77,6 +84,14 @@ describe("builder session service", () => {
     expect(tools.find((tool) => tool.actionName === "import-profile")?.argumentsSchema.fields.profile).toEqual({
       type: "object",
       required: true
+    });
+  });
+
+  it("publishes builder-local CLI session policy for first-run commands", () => {
+    expect(BUILDER_SESSION_POLICY).toEqual({
+      defaultAssembleSessionId: "builder.cli",
+      defaultBatchSessionId: "builder.batch",
+      defaultCatalogSessionId: "builder.cli"
     });
   });
 

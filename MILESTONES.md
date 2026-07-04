@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Builder CLI Session Policy
+
+Milestone:
+- The lower-level builder package now publishes `BUILDER_SESSION_POLICY` for first-run CLI session IDs.
+- Builder batch assembly and builder CLI assemble/catalog commands consume that policy instead of scattering `builder.cli` and `builder.batch` fallback literals through command construction.
+- Session-bound builder CLI commands still require explicit `--session`.
+
+Supportive changes:
+- Builder tests now validate the published session policy and default batch session behavior.
+- Source scans now block returning to direct `builder.cli` or `builder.batch` fallback expressions in the builder CLI.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps lower-level builder CLI defaults explicit and forward-only without hidden session targeting for session-bound commands, hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+
 ## 2026-07-04 - Studio Delegates Input Source Policy
 
 Milestone:

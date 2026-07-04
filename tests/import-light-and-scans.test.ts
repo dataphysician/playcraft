@@ -404,7 +404,10 @@ describe("import-light boundaries and source scans", () => {
     expect(builderCliSource).toContain("function requiredSessionId");
     expect(builderCliSource).toContain('throw new Error(`${commandName} requires --session`)');
     expect(builderCliSource).toContain('mappedName === "assemble-game"');
+    expect(builderCliSource).toContain("BUILDER_SESSION_POLICY.defaultAssembleSessionId");
+    expect(builderCliSource).toContain("BUILDER_SESSION_POLICY.defaultBatchSessionId");
     expect(builderCliSource).not.toContain('sessionId: args.sessionId ?? "builder.cli"');
+    expect(builderCliSource).not.toContain('args.sessionId ?? "builder.batch"');
     expect(builderCliSource).not.toContain('id: `builder-command.${args.sessionId ?? "cli"}.${mappedName}`');
   });
 

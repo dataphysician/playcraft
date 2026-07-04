@@ -1,7 +1,7 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
 import { BuilderTemplateIdSchema, PLAYCRAFT_SCHEMA_VERSION, type BuilderTemplateId } from "@playcraft/contracts";
-import { createBuilderCommandHandler, type BuilderExecutionResult } from "./index.js";
+import { BUILDER_SESSION_POLICY, createBuilderCommandHandler, type BuilderExecutionResult } from "./index.js";
 
 export interface BuilderCliIo {
   stdout(message: string): void;
@@ -26,13 +26,13 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
 
     if (commandName === "batch") {
       const templateIds = handler.listTemplates().map((template) => BuilderTemplateIdSchema.parse(template.id));
-      const outputs = handler.assembleTemplates(templateIds, args.sessionId ?? "builder.batch");
+      const outputs = handler.assembleTemplates(templateIds, args.sessionId ?? BUILDER_SESSION_POLICY.defaultBatchSessionId);
       writeResult(outputs, Boolean(args.json), io);
       return 0;
     }
 
     if (commandName === "catalog") {
-      const sessionId = args.sessionId ?? "builder.cli";
+      const sessionId = args.sessionId ?? BUILDER_SESSION_POLICY.defaultCatalogSessionId;
       const result = handler.execute({
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: `builder-command.${sessionId}.catalog`,
@@ -52,7 +52,7 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
     }
 
     const sessionId = mappedName === "assemble-game"
-      ? args.sessionId ?? "builder.cli"
+      ? args.sessionId ?? BUILDER_SESSION_POLICY.defaultAssembleSessionId
       : requiredSessionId(args, commandName);
     const result = handler.execute({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
