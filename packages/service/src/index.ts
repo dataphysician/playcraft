@@ -209,11 +209,11 @@ export class LocalPlaycraftService {
     }
 
     if (request.actionName === "get-session") {
-      return serviceResponse(request, { session: this.getSession(request.sessionId ?? "service.session") });
+      return serviceResponse(request, { session: this.getSession(serviceRequestSessionId(request)) });
     }
 
     if (request.actionName === "export-profile") {
-      return serviceResponse(request, { profileExport: this.exportProfile(request.sessionId ?? "service.session") });
+      return serviceResponse(request, { profileExport: this.exportProfile(serviceRequestSessionId(request)) });
     }
 
     if (request.actionName === "import-profile") {
@@ -222,12 +222,12 @@ export class LocalPlaycraftService {
         ? {
             assetEdit: profileExport.assetEdit,
             profile: profileExport.profile,
-            sessionId: request.sessionId ?? profileExport.sessionId
+            sessionId: serviceRequestSessionId(request)
           }
         : {
             assetEdit: request.assetEdit,
             profile: request.profile,
-            sessionId: request.sessionId
+            sessionId: serviceRequestSessionId(request)
           };
       if (!importPayload.profile) {
         throw new Error("import-profile requires exactly one profile payload");
@@ -244,7 +244,7 @@ export class LocalPlaycraftService {
     }
 
     if (request.actionName === "preview") {
-      const sessionId = request.sessionId ?? "service.session";
+      const sessionId = serviceRequestSessionId(request);
       return serviceResponse(request, {
         execution: serializeExecution(this.preview(sessionId)),
         session: this.getSession(sessionId)
@@ -267,7 +267,7 @@ export class LocalPlaycraftService {
       });
     }
 
-    const sessionId = request.sessionId ?? "service.session";
+    const sessionId = serviceRequestSessionId(request);
     const output = this.update({
       assetEdit: request.assetEdit,
       sessionId,
@@ -822,6 +822,14 @@ function serviceResponse(
     actionName: request.actionName,
     ...payload
   });
+}
+
+function serviceRequestSessionId(request: BuilderServiceRequest): string {
+  if (!request.sessionId) {
+    throw new Error(`${request.actionName} requires sessionId`);
+  }
+
+  return request.sessionId;
 }
 
 function mergeSessionState(snapshot: BuilderSessionSnapshot, state: LocalSessionState | undefined): BuilderSessionSnapshot {

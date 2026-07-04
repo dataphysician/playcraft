@@ -291,9 +291,12 @@ describe("import-light boundaries and source scans", () => {
     const serviceSource = readSource("packages/service/src/index.ts");
 
     expect(contractSource).toContain("profileExport imports carry asset edits in the export");
+    expect(contractSource).toContain("requests require sessionId");
+    expect(serviceSource).toContain("function serviceRequestSessionId");
     expect(serviceSource).not.toContain("request.profile ?? profileExport?.profile");
     expect(serviceSource).not.toContain("request.assetEdit ?? profileExport?.assetEdit");
     expect(serviceSource).not.toContain("request.templateId ?? profileExport?.templateId");
+    expect(serviceSource).not.toContain("request.sessionId ?? profileExport.sessionId");
   });
 
   it("keeps service CLI response output action-scoped instead of payload-precedence based", () => {

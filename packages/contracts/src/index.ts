@@ -868,6 +868,10 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   profile: GameAssemblyProfileSchema.optional(),
   profileExport: BuilderProfileExportSchema.optional()
 }).strict()
+  .refine((value) => !["update", "preview", "get-session", "export-profile", "import-profile"].includes(value.actionName) || Boolean(value.sessionId), {
+    message: "update, preview, get-session, export-profile, and import-profile requests require sessionId",
+    path: ["sessionId"]
+  })
   .refine((value) => value.actionName !== "assemble" || Boolean(value.text || value.speechTranscript), {
     message: "assemble requests require text or a Moonshine transcript record",
     path: ["text"]

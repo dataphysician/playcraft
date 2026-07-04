@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Service Request Sessions
+
+Milestone:
+- Session-bound service actions now require `sessionId` at the request schema boundary.
+- Service request handling now uses an explicit session helper for update, preview, get-session, export-profile, and import-profile.
+- Profile-export imports no longer fall back to the exported source session when the request omits a target session.
+
+Supportive changes:
+- Contract tests now reject missing-session update, preview, export, and raw import requests.
+- Service CLI tests now reject preview/get-session calls without `--session`.
+- Source scans now block profile-export session fallback in service imports.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps service-session operations explicit and forward-only without hidden session fallbacks, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Required Preview Tool Action
 
 Milestone:

@@ -576,6 +576,48 @@ describe("public contract schemas", () => {
     expect(
       BuilderServiceRequestSchema.safeParse({
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.preview-without-session",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "preview"
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.update-without-session",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "update",
+        text: "make it toys"
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.export-without-session",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "export-profile"
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.raw-import-without-session",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "import-profile",
+        profile: assembleMvpProfiles()[0]
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-service-request.test.catalog-with-profile",
         version: "1.0.0",
         kind: "builder-service-request",

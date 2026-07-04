@@ -802,6 +802,12 @@ describe("local Playcraft service", () => {
     expect(runLocalServiceCli(["export-profile", "--asset-theme", "toys"], io)).toBe(1);
     expect(err.pop()).toMatch(/export-profile does not accept asset edit flags/u);
 
+    expect(runLocalServiceCli(["preview", "--json"], io)).toBe(1);
+    expect(err.pop()).toMatch(/requests require sessionId/u);
+
+    expect(runLocalServiceCli(["get-session", "--json"], io)).toBe(1);
+    expect(err.pop()).toMatch(/requests require sessionId/u);
+
     expect(runLocalServiceCli(["catalog", "--provider", "remote"], io)).toBe(1);
     expect(err.pop()).toMatch(/unknown option: --provider/u);
   });
