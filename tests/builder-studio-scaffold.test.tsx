@@ -19,9 +19,13 @@ function readJson<T>(path: string): T {
 describe("builder/studio workspace scaffold", () => {
   it("wires the workspace, root scripts, tsconfig references, and package aliases", () => {
     const workspace = readText("pnpm-workspace.yaml");
+    const readme = readText("README.md");
     const rootPackage = readJson<{ scripts: Record<string, string> }>("package.json");
     const tsconfig = readJson<{ references: Array<{ path: string }>; compilerOptions: { paths: Record<string, string[]> } }>("tsconfig.json");
 
+    expect(readme).toContain("pnpm serve:service");
+    expect(readme).toContain("VITE_PLAYCRAFT_SERVICE_URL=http://127.0.0.1:8787/playcraft");
+    expect(readme).toContain("playcraft-service catalog --json");
     expect(workspace).toContain('  - "apps/*"');
     expect(rootPackage.scripts["dev:studio"]).toBe("pnpm --filter @playcraft/studio dev");
     expect(rootPackage.scripts["build:studio"]).toBe("pnpm --filter @playcraft/studio build");
