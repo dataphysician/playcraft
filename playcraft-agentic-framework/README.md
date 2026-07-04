@@ -54,7 +54,7 @@ The core framework packages must be buildable and testable without network acces
 
 ## Middleweight Later Path
 
-Current middleweight app work includes the Vite studio, local service, visual game preview, developer timeline, and a Tauri Mobile-facing webview scaffold. Later docs may specify profile import/export, richer curated packs, and real provider adapters. These are not core requirements.
+Current middleweight app work includes the Vite studio, local service, visual game preview, developer timeline, and a Tauri Mobile-facing webview scaffold. Later docs may specify richer curated local packs, server catalog retrieval, and asset-library adapters. Hosted provider SDK adapters are not part of the framework path.
 
 ## Explicit Rejections
 

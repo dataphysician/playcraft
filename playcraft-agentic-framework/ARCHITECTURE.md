@@ -214,7 +214,7 @@ Every pack manifest must declare:
 - Import-light status.
 - Network/credential/native requirements, if any.
 
-V1 packs must be local and import-light. Middleweight packs may wrap real providers or richer studio components, but those adapters must stay outside core packages.
+V1 packs must be local and import-light. Middleweight packs may add richer studio components, curated asset folders, and server catalog retrieval, but hosted provider SDK adapters are outside the framework path.
 
 ## 11. Safety and Privacy
 
@@ -245,7 +245,7 @@ Core packages must import and test without:
 - Next.js APIs.
 - Tauri APIs.
 
-Provider adapters, app routes, persistence repositories, and native shells live outside the import-light boundary.
+App routes, persistence repositories, hosted retrieval services, and native shells live outside the import-light boundary.
 
 ## 13. Old Architecture Rejections
 

@@ -38,7 +38,7 @@ The first useful domain is child-friendly educational mini games, but the framew
 | Product developers | A reusable way to assemble safe, replayable mini games. |
 | Designers | Theme/component packs that keep assembled games coherent. |
 | QA and safety reviewers | Inspectable profiles, event logs, validation results, provenance, and deterministic replay. |
-| Future pack authors | A stable extension model for mechanics, rules, components, themes, and providers. |
+| Future pack authors | A stable extension model for mechanics, rules, components, themes, and local asset sources. |
 | Parents and educators | Predictable child-friendly games assembled from reviewed primitives. |
 
 ## 4. Core Product Model
@@ -54,8 +54,8 @@ The first useful domain is child-friendly educational mini games, but the framew
 | `RuleModuleDefinition` | Event/rule logic for progression, hints, retry, scoring, completion, safety, and celebration. |
 | `ComponentManifest` | Trusted frontend render capability for one or more mechanics. |
 | `ThemePack` | Visual/audio style bundle with accessibility and policy constraints. |
-| `AssetGenerationRequest` | Provider-neutral request for image, audio, video, animation, or text assets. |
-| `AssetProviderCapabilityManifest` | Machine-readable provider capability and constraint record. |
+| `AssetGenerationRequest` | Local asset-source request for image, audio, animation, or text assets. |
+| `AssetProviderCapabilityManifest` | Machine-readable local asset-source capability and constraint record. |
 | `GeneratedAssetRecord` | Provenance-rich output of an asset request. |
 | `PlaycraftAgUiEventEnvelope` | Validated Playcraft payload carried inside AG-UI `Custom` events. |
 | `PlaycraftEventRecord` | Normalized runtime/replay event emitted by mechanics, rules, components, and tools. |
@@ -180,8 +180,8 @@ Each profile must be assembled through registries and deterministic stubs, then 
 1. User or agent provides intent.
 2. Intent parser emits `PlaycraftAssemblyRequest`.
 3. Planner selects domain profile, safety policy pack, mechanics, rules, theme, components, and asset needs from registries.
-4. Asset requester emits provider-neutral `AssetGenerationRequest` records.
-5. Stub asset provider returns deterministic `GeneratedAssetRecord` values.
+4. Asset requester emits local asset-source `AssetGenerationRequest` records.
+5. Deterministic local asset source returns `GeneratedAssetRecord` values.
 6. Safety evaluator checks text, asset metadata, mechanics, age/domain fit, privacy, and policy.
 7. Assembly validator checks schemas, registry references, event graph, component bindings, assets, safety, and replay readiness.
 8. AG-UI stream reports progress, state, custom events, policy findings, and validation results.
@@ -198,7 +198,7 @@ The framework must reject these old abstractions:
 - No Next.js API routes as framework core.
 - No app-specific database, auth, dashboard, or deployment assumptions in core docs.
 - No behavior-changing defaults hidden as bare constants in core logic.
-- No real-provider integration required for default tests.
+- No hosted provider integration in the framework path.
 
 ## 13. Success Criteria
 

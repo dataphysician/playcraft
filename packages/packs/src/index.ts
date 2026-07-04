@@ -825,7 +825,7 @@ function component(
   supportedMechanicIds: string[],
   emittedTools: FrontendToolDefinition[],
   fields: Record<string, { type: "string" | "number" | "boolean" | "object" | "array" | "record"; required: boolean; minItems?: number }>,
-  requiredAssets: Array<{ binding: string; contentTypes: Array<"image" | "audio" | "video" | "animation" | "text">; required: boolean }>
+  requiredAssets: Array<{ binding: string; contentTypes: Array<"image" | "audio" | "animation" | "text">; required: boolean }>
 ): ComponentManifest {
   return {
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

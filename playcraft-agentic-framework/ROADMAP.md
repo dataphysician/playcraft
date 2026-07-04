@@ -10,7 +10,7 @@
 
 ## 1. Roadmap Principle
 
-Playcraft should start as a small local framework that a coding agent can implement, test, and reason about. Studio UX, native packaging, real providers, and richer debugging should grow around a stable core after the lightweight v1 proves the contracts.
+Playcraft should start as a small local framework that a coding agent can implement, test, and reason about. Studio UX, native packaging, server catalog retrieval, local asset libraries, and richer debugging should grow around a stable core after the lightweight v1 proves the contracts.
 
 ## 2. Lightweight V1 Scope
 
@@ -61,7 +61,7 @@ After v1 gates pass, continue hardening middleweight runtime/studio features:
 - Visual inspector and debug timeline for AG-UI events, Playcraft events, state snapshots, rule traces, safety findings, and asset provenance.
 - Profile import/export for `GameAssemblyProfile` bundles.
 - Curated local packs for mechanics, components, themes, sounds, icons, and safe starter assets.
-- Real provider adapters behind `AssetProviderCapabilityManifest` records.
+- Server catalog retrieval for curated local asset packs and trusted components.
 - Repository interfaces for optional persistence.
 - Native packaging hardening after static client behavior, local cache policy, and offline profile import/export are proven.
 
@@ -72,19 +72,19 @@ Current implementation notes, July 4, 2026:
 - Milestones reached: local service envelope, HTTP service transport, CLI service surface, Studio and Mobile shell service wiring, local Moonshine transcript input, bundled asset-edit catalog, catalog-driven Studio request tips, per-session service state, and profile export/import.
 - Supportive changes: stale provider/avatar references are covered by source scans, app entrypoints are documented, request examples come from service catalog data instead of hardcoded Studio text, and imported profiles are replay-checked before becoming active.
 
-## 6. Provider Adapter Path
+## 6. Server Catalog and Asset Source Path
 
-Real providers are optional adapters, not v1 dependencies.
+Hosted provider SDK adapters are not part of the framework path. The future server path retrieves trusted component manifests, templates, and curated asset-source metadata while preserving the same local service contracts.
 
-Adapter requirements:
+Server retrieval requirements:
 
-- Register through `AssetProviderCapabilityManifest`.
-- Declare network, credential, cost, latency, safety, format, duration/dimension, and seed support.
+- Register local asset-source capability through `AssetProviderCapabilityManifest`.
+- Declare network, credential, safety, format, dimension, and seed support.
 - Return `GeneratedAssetRecord` values with provenance.
-- Be skipped by default tests unless explicitly enabled.
-- Never require provider SDK imports from contracts/core packages.
+- Keep default tests local and deterministic.
+- Never require hosted provider SDK imports from contracts/core packages.
 
-Provider selection must be capability-driven and must not branch on provider names in core.
+Asset-source selection must be capability-driven and must not branch on provider names in core.
 
 ## 7. Studio Path
 

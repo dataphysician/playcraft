@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Local Asset Contract Cleanup
+
+Milestone:
+- V1 asset content contracts now accept only image, audio, animation, and text.
+- Canonical framework docs now describe local asset sources, curated packs, and server catalog retrieval instead of hosted SDK adapters.
+- Root docs no longer advertise any hosted provider dependency in the framework path.
+
+Supportive changes:
+- Added schema coverage that rejects `video` as an `AssetContentTypeSchema` value.
+- Updated pack helper types to match the narrowed public asset content contract.
+- Reworded roadmap, PRD, architecture, and developer guide language around asset-source retrieval.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/assets/test/stub-provider.test.ts packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+
+Constraint notes:
+- Keeps text and Moonshine Streaming CPU transcript input as the only user-input path.
+- Keeps future expansion focused on local/server catalog retrieval rather than provider SDK stacks.
+
 ## 2026-07-04 - Interactive Preview Contract Hardening
 
 Milestone:

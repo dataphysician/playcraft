@@ -242,7 +242,7 @@ Default verification must include:
 - Replay tests reconstructing memory match, sorting, and sequence repeat from saved `GameAssemblyProfile` records.
 - Trusted renderer tests that reject unknown component IDs, unregistered capabilities, invalid props, and generated runtime code.
 - Import-light tests proving contracts/core/registries import without AI SDKs, network clients, GPU/model packages, credentials, database clients, Next.js, or Tauri.
-- Source scans against hardcoded defaults, `GameType` core branching, provider-name branching, arbitrary generated React/runtime code, Next.js route dependencies in core, database/auth/dashboard assumptions, and real-provider-only paths.
+- Source scans against hardcoded defaults, `GameType` core branching, provider-name branching, arbitrary generated React/runtime code, Next.js route dependencies in core, database/auth/dashboard assumptions, and hosted-provider paths.
 
 Suggested scan targets:
 
@@ -300,7 +300,7 @@ The exact paths can change, but the gates cannot.
 ## 13. Development Rules
 
 - Contracts before integrations.
-- Deterministic stubs before real providers.
+- Deterministic local asset sources before server retrieval.
 - Registries over conditionals.
 - Profiles and manifests over hardcoded defaults.
 - AG-UI standard events over custom transport.

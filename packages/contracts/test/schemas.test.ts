@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  AssetContentTypeSchema,
   ComponentRenderRequestSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   PlaycraftAgUiEventEnvelopeSchema,
@@ -397,5 +398,10 @@ describe("public contract schemas", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it("keeps v1 asset content types local to sprite, sound, animation, and text assets", () => {
+    expect(AssetContentTypeSchema.options).toEqual(["image", "audio", "animation", "text"]);
+    expect(AssetContentTypeSchema.safeParse("video").success).toBe(false);
   });
 });
