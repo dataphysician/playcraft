@@ -1,5 +1,23 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Builder CLI Catalog Parity
+
+Milestone:
+- `playcraft-builder batch` now assembles every registered local template from the builder handler catalog instead of a hard-coded MVP subset.
+- The lower-level builder CLI now validates `--template` through `BuilderTemplateIdSchema` before command execution.
+- Sequence Repeat is included in batch assembly parity with Memory Match and Sorting.
+
+Supportive changes:
+- Added builder CLI coverage for all registered template batch output.
+- Added builder CLI coverage for rejecting malformed template IDs at the argument boundary.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+
+Constraint notes:
+- Keeps CLI assembly surfaces catalog-driven as new local templates are registered.
+- Does not add hosted services, generated runtime code, auth, database state, or compatibility aliases.
+
 ## 2026-07-04 - Service Envelope Producer Validation
 
 Milestone:

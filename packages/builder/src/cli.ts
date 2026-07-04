@@ -1,6 +1,6 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
-import { PLAYCRAFT_SCHEMA_VERSION, type BuilderTemplateId } from "@playcraft/contracts";
+import { BuilderTemplateIdSchema, PLAYCRAFT_SCHEMA_VERSION, type BuilderTemplateId } from "@playcraft/contracts";
 import { createBuilderCommandHandler, type BuilderExecutionResult } from "./index.js";
 
 export interface BuilderCliIo {
@@ -20,12 +20,13 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
     return 1;
   }
 
-  const args = parseArgs(rest);
-  const handler = createBuilderCommandHandler();
-
   try {
+    const args = parseArgs(rest);
+    const handler = createBuilderCommandHandler();
+
     if (commandName === "batch") {
-      const outputs = handler.assembleTemplates(["template.memory-match", "template.sorting"], args.sessionId ?? "builder.batch");
+      const templateIds = handler.listTemplates().map((template) => BuilderTemplateIdSchema.parse(template.id));
+      const outputs = handler.assembleTemplates(templateIds, args.sessionId ?? "builder.batch");
       writeResult(outputs, Boolean(args.json), io);
       return 0;
     }
@@ -74,7 +75,7 @@ function parseArgs(argv: string[]): { template?: BuilderTemplateId; sessionId?: 
   for (let index = 0; index < argv.length; index += 1) {
     const entry = argv[index];
     if (entry === "--template") {
-      output.template = argv[index + 1] as BuilderTemplateId;
+      output.template = BuilderTemplateIdSchema.parse(argv[index + 1]);
       index += 1;
     } else if (entry === "--session") {
       output.sessionId = argv[index + 1];

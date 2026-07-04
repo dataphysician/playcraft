@@ -189,7 +189,7 @@ describe("builder session service", () => {
     expect(preview.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("tool:preview-interaction"))).toBe(false);
   });
 
-  it("keeps CLI batch output in parity with the shared command handler", () => {
+  it("keeps CLI batch output in parity with all registered templates", () => {
     const stdout: string[] = [];
     const stderr: string[] = [];
     const exitCode = runBuilderCli(["batch", "--json", "--session", "session.cli"], {
@@ -201,7 +201,24 @@ describe("builder session service", () => {
     expect(stderr).toEqual([]);
 
     const parsed = JSON.parse(stdout.join("\n")) as Array<{ result: { profile?: { id: string } } }>;
-    expect(parsed.map((entry) => entry.result.profile?.id)).toEqual(["profile.memory-match.mvp", "profile.sorting.mvp"]);
+    expect(parsed.map((entry) => entry.result.profile?.id)).toEqual([
+      "profile.memory-match.mvp",
+      "profile.sorting.mvp",
+      "profile.sequence-repeat.mvp"
+    ]);
+  });
+
+  it("validates builder CLI template IDs before command execution", () => {
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const exitCode = runBuilderCli(["assemble", "--template", "memory-match"], {
+      stdout: (message) => stdout.push(message),
+      stderr: (message) => stderr.push(message)
+    });
+
+    expect(exitCode).toBe(1);
+    expect(stdout).toEqual([]);
+    expect(stderr.join("\n")).toMatch(/builder template IDs must start with template/u);
   });
 });
 
