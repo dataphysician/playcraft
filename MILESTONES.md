@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Service Request Action Contract Cleanup
+
+Milestone:
+- `BuilderServiceRequest` now rejects input text/transcripts on no-input actions such as preview, catalog, reset, get-session, export-profile, and import-profile.
+- Profile import payloads are accepted only by `import-profile`; assemble and update no longer accept profile import bodies.
+- CLI seed-and-run conveniences still work, but follow the clean envelope by sending text only to the seed assemble request.
+
+Supportive changes:
+- Added schema coverage for action-specific request payload rejection.
+- Added service runtime coverage rejecting preview requests with input text.
+- Updated the CLI request builder to include text/transcript fields only for assemble/update and profile payloads only for import-profile.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts`
+
+Constraint notes:
+- Keeps the local service transport aligned with the builder tool input contract.
+- Does not add hosted services, generated runtime code, auth, database state, or compatibility aliases.
+
 ## 2026-07-04 - Builder Tool Input Contract Cleanup
 
 Milestone:

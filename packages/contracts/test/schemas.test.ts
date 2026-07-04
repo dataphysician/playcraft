@@ -444,4 +444,41 @@ describe("public contract schemas", () => {
       }).success
     ).toBe(false);
   });
+
+  it("keeps service request payload fields scoped to the selected action", () => {
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.preview-with-text",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "preview",
+        sessionId: "session.preview",
+        text: "memory game with dinosaurs"
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.catalog-with-profile",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "catalog",
+        profile: assembleMvpProfiles()[0]
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.import-with-text",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "import-profile",
+        profile: assembleMvpProfiles()[0],
+        text: "memory game"
+      }).success
+    ).toBe(false);
+  });
 });

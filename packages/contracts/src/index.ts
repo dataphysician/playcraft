@@ -775,6 +775,22 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
     message: "update requests require text or a Moonshine transcript record",
     path: ["text"]
   })
+  .refine((value) => ["assemble", "update"].includes(value.actionName) || (!value.text && !value.source && !value.speechTranscript), {
+    message: "only assemble and update service requests may include input text or transcript records",
+    path: ["text"]
+  })
+  .refine((value) => ["assemble", "update", "import-profile"].includes(value.actionName) || (!value.templateId && !value.assetEdit), {
+    message: "template and asset edits are only accepted by assemble, update, or import-profile requests",
+    path: ["templateId"]
+  })
+  .refine((value) => value.actionName === "import-profile" || (!value.profile && !value.profileExport), {
+    message: "profile import payloads are only accepted by import-profile requests",
+    path: ["profile"]
+  })
+  .refine((value) => !["assemble", "update"].includes(value.actionName) || (!value.profile && !value.profileExport), {
+    message: "assemble and update requests must not include profile import payloads",
+    path: ["profile"]
+  })
   .refine((value) => !value.speechTranscript || value.source !== "text", {
     message: "Moonshine transcript records must not use text source",
     path: ["source"]

@@ -147,27 +147,28 @@ function isCliCommand(commandName: string): commandName is CliCommand {
 function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: string = commandName): BuilderServiceRequest {
   const transcriptText = args.transcriptText?.trim();
   const text = transcriptText || args.text?.trim();
-  if ((commandName === "assemble" || commandName === "update") && !text) {
+  const inputCommand = commandName === "assemble" || commandName === "update";
+  if (inputCommand && !text) {
     throw new Error("assemble, update, and preview-with-assemble require --text or --transcript");
   }
-  if (args.source === "speech-transcript" && !transcriptText) {
+  if (inputCommand && args.source === "speech-transcript" && !transcriptText) {
     throw new Error("speech-transcript source requires --transcript so the CLI can send a Moonshine transcript record");
   }
   const profileExport = parseProfileExportJson(args.profileExportJson);
   const profile = args.profileJson ? JSON.parse(args.profileJson) : undefined;
-
-  return {
+  const request: BuilderServiceRequest = {
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
     id: `builder-service-request.cli.${idSuffix}`,
     version: "1.0.0",
     kind: "builder-service-request",
     actionName: commandName,
-    assetEdit: args.assetEdit,
-    profile,
-    profileExport,
-    sessionId: args.sessionId,
-    source: transcriptText ? "speech-transcript" : args.source ?? "text",
-    speechTranscript: transcriptText
+    sessionId: args.sessionId
+  };
+
+  if (inputCommand) {
+    request.assetEdit = args.assetEdit;
+    request.source = transcriptText ? "speech-transcript" : args.source ?? "text";
+    request.speechTranscript = transcriptText
       ? createMoonshineTranscriptRecord({
           id: `moonshine-transcript.cli.${idSuffix}`,
           metadata: {
@@ -175,10 +176,19 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
           },
           text: transcriptText
         })
-      : undefined,
-    templateId: args.templateId,
-    text: text || undefined
-  };
+      : undefined;
+    request.templateId = args.templateId;
+    request.text = text || undefined;
+  }
+
+  if (commandName === "import-profile") {
+    request.assetEdit = args.assetEdit;
+    request.profile = profile;
+    request.profileExport = profileExport;
+    request.templateId = args.templateId;
+  }
+
+  return request;
 }
 
 function parseProfileExportJson(value: string | undefined): BuilderProfileExport | undefined {

@@ -142,6 +142,22 @@ describe("local Playcraft service", () => {
     ).toThrow(/Moonshine transcript record/u);
   });
 
+  it("rejects input payloads on no-input service actions", () => {
+    const service = createLocalPlaycraftService();
+
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.preview-input",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "preview",
+        sessionId: "session.preview-input",
+        text: "Memory game with dinosaurs"
+      })
+    ).toThrow(/only assemble and update/u);
+  });
+
   it("handles validated service API requests for local and future server transports", () => {
     const service = createLocalPlaycraftService();
     const transcript = createMoonshineTranscriptRecord({
