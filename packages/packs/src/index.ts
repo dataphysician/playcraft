@@ -203,6 +203,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     description: "A toddler-safe card reveal game that asks the player to find visual pairs.",
     capabilityTags: ["game:memory-match", "mechanic:match-pairs"],
     requestAliases: ["memory", "memory game", "memory match", "matching cards", "card pairs", "pair match"],
+    exampleRequest: "Memory game",
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
     assetPrompt: "friendly starter card illustrations for a child-safe memory match game",
@@ -232,6 +233,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     description: "A toddler-safe categorization game that asks the player to move items into matching bins.",
     capabilityTags: ["game:sorting", "mechanic:sort-into-bins"],
     requestAliases: ["sort", "sorting", "sorting game", "category", "categories", "color bins", "group by color"],
+    exampleRequest: "Sorting game",
     profileId: "profile.sorting.mvp",
     profileName: "Sorting MVP",
     assetPrompt: "simple colorful shapes for a child-safe sorting game",
@@ -261,6 +263,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     description: "A toddler-safe pattern game that asks the player to repeat a short sequence.",
     capabilityTags: ["game:sequence-repeat", "mechanic:sequence-repeat"],
     requestAliases: ["sequence", "sequence repeat", "pattern", "repeat", "repeat pattern", "copy the pattern"],
+    exampleRequest: "Sequence repeat",
     profileId: "profile.sequence-repeat.mvp",
     profileName: "Sequence Repeat MVP",
     assetPrompt: "soft glowing buttons for a child-safe sequence repeat game",
@@ -562,6 +565,7 @@ export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.ma
     description: template.description,
     capabilityTags: template.capabilityTags,
     requestAliases: template.requestAliases,
+    exampleRequest: template.exampleRequest,
     assemblyRequestId: mvpAssemblyRequests[index].id,
     profileId: template.profileId,
     supportedAgeBands: ["2-3", "4-6", "7-9"],
@@ -1217,6 +1221,7 @@ interface MvpProfileTemplate {
   description: string;
   capabilityTags: string[];
   requestAliases: string[];
+  exampleRequest: string;
   profileId: string;
   profileName: string;
   assetPrompt: string;
@@ -1228,6 +1233,7 @@ interface MvpProfileTemplate {
 
 function memoryTemplate(input: {
   aliases: string[];
+  exampleRequest?: string;
   label: string;
   name: string;
   pairItems: string[];
@@ -1245,6 +1251,7 @@ function memoryTemplate(input: {
     description: `A toddler-safe matching game for ${input.title.toLowerCase()}.`,
     capabilityTags: [`game:${input.slug}`, "mechanic:match-pairs"],
     requestAliases: input.aliases,
+    exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
@@ -1266,6 +1273,7 @@ function memoryTemplate(input: {
 function sortingTemplate(input: {
   aliases: string[];
   bins: string[];
+  exampleRequest?: string;
   hint: string;
   items: string[];
   label: string;
@@ -1285,6 +1293,7 @@ function sortingTemplate(input: {
     description: `A toddler-safe sorting game for ${input.title.toLowerCase()}.`,
     capabilityTags: [`game:${input.slug}`, "mechanic:sort-into-bins"],
     requestAliases: input.aliases,
+    exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
@@ -1306,6 +1315,7 @@ function sortingTemplate(input: {
 
 function sequenceTemplate(input: {
   aliases: string[];
+  exampleRequest?: string;
   items: string[];
   label: string;
   name: string;
@@ -1325,6 +1335,7 @@ function sequenceTemplate(input: {
     description: `A toddler-safe sequence game for ${input.title.toLowerCase()}.`,
     capabilityTags: [`game:${input.slug}`, "mechanic:sequence-repeat"],
     requestAliases: input.aliases,
+    exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
@@ -1350,6 +1361,10 @@ function pairedCards(items: string[]): { cards: string[]; pairs: Record<string, 
     cards.map((card, index) => [card, `pair-${Math.floor(index / 2) + 1}`])
   );
   return { cards, pairs };
+}
+
+function sentenceCase(value: string): string {
+  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
 }
 
 function findMechanicByCapability(capability: string): MechanicDefinition {

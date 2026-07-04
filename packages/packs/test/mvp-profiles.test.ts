@@ -89,6 +89,11 @@ describe("MVP profile pack", () => {
       "template.animal-sound-pattern"
     ]));
     expect(gameTemplateDefinitions.find((template) => template.id === "template.sorting")?.requestAliases).toContain("group by color");
+    expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.exampleRequest)).toEqual([
+      "Memory game",
+      "Sorting game",
+      "Sequence repeat"
+    ]);
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)
     );

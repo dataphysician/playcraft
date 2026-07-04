@@ -88,6 +88,11 @@ describe("local Playcraft service", () => {
       "template.animal-sound-pattern"
     ]));
     expect(catalog.templates.find((template) => template.id === "template.memory-match")?.requestAliases).toContain("matching cards");
+    expect(catalog.templates.slice(0, 3).map((template) => template.exampleRequest)).toEqual([
+      "Memory game",
+      "Sorting game",
+      "Sequence repeat"
+    ]);
   });
 
   it("assembles and updates games through text or local speech transcripts", () => {

@@ -461,6 +461,7 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   description: z.string().min(1),
   capabilityTags: z.array(CapabilityTagSchema).min(1),
   requestAliases: z.array(z.string().min(2).max(80)).min(1),
+  exampleRequest: z.string().min(2).max(120),
   assemblyRequestId: StableIdSchema,
   profileId: StableIdSchema,
   supportedAgeBands: z.array(AgeBandSchema).min(1),

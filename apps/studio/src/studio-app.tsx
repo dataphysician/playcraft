@@ -814,7 +814,7 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
   const moreGames = Math.max(0, games.length - displayedGames.length);
   const assetThemes = catalog.assetEdit.availableThemes.map((entry) => preferredAssetThemeLabel(entry));
   const examples = catalog.templates.slice(0, 3).map((template, index) => {
-    const request = sentenceCase(preferredTemplateAlias(template.requestAliases));
+    const request = sentenceCase(template.exampleRequest);
     const theme = assetThemes[index % Math.max(assetThemes.length, 1)];
     return theme ? `${request} with ${theme}` : request;
   });
@@ -828,10 +828,6 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
 
 function displayGameName(displayName: string): string {
   return displayName.replace(/\s+MVP$/u, "");
-}
-
-function preferredTemplateAlias(aliases: string[]): string {
-  return aliases.find((alias) => /\bgame\b/u.test(alias)) ?? aliases.find((alias) => alias.includes(" ")) ?? aliases[0] ?? "game request";
 }
 
 function preferredAssetThemeLabel(entry: BuilderCatalog["assetEdit"]["availableThemes"][number]): string {

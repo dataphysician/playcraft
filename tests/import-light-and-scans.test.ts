@@ -237,6 +237,16 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("JSON.parse(JSON.stringify");
   });
 
+  it("keeps Studio request examples catalog-owned instead of alias-inferred", () => {
+    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+
+    expect(contractSource).toContain("exampleRequest");
+    expect(studioSource).toContain("template.exampleRequest");
+    expect(studioSource).not.toContain("preferredTemplateAlias");
+    expect(studioSource).not.toMatch(/requestAliases\)\)/u);
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

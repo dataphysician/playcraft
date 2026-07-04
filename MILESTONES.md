@@ -1,5 +1,32 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Request Examples
+
+Milestone:
+- `GameTemplateDefinition` now includes `exampleRequest` so agent and UI clients can display sample requests without interpreting alias lists.
+- Bundled templates publish explicit example requests, with the starter templates preserving the user-facing examples shown in Studio tips.
+- Studio request tips now read `template.exampleRequest` instead of selecting aliases by local word heuristics.
+
+Supportive changes:
+- Pack and service catalog tests now assert starter template examples.
+- Source scans now block the old Studio `preferredTemplateAlias` helper from returning.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps request guidance catalog-owned and forward-only without app-local alias heuristics, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Non-Coercive Service Event Serialization
 
 Milestone:
