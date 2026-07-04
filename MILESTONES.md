@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Studio Contract Test Parsing
+
+Milestone:
+- Studio HTTP transport tests now parse intercepted service requests through `BuilderServiceRequestSchema`.
+- Studio Developer export/import tests now parse exported profile JSON through `BuilderProfileExportSchema`.
+- Studio UI contract assertions no longer rely on ad hoc JSON object casts for service request and profile export payloads.
+
+Supportive changes:
+- Preserved the raw exported JSON string for the import textarea while validating the parsed profile export contract separately.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps Studio-side local service exchanges schema-first and forward-only without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - CLI Payload Schema Parsing
 
 Milestone:

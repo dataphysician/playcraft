@@ -2,7 +2,11 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { assembleMvpProfiles } from "@playcraft/packs";
-import type { BuilderServiceRequest } from "@playcraft/contracts";
+import {
+  BuilderProfileExportSchema,
+  BuilderServiceRequestSchema,
+  type BuilderServiceRequest
+} from "@playcraft/contracts";
 import {
   createLocalPlaycraftService,
   createMoonshineTranscriptRecord,
@@ -228,7 +232,7 @@ describe("studio UI", () => {
     const service = createLocalPlaycraftService();
     vi.stubGlobal("fetch", async (_url: unknown, init: { body?: unknown } = {}) => {
       const body = typeof init.body === "string" ? init.body : "";
-      requestedActions.push((JSON.parse(body) as { actionName: string }).actionName);
+      requestedActions.push(BuilderServiceRequestSchema.parse(JSON.parse(body)).actionName);
       const response = handleServiceHttpRequestBody(body, service);
       return {
         ok: response.status >= 200 && response.status < 300,
@@ -451,7 +455,8 @@ describe("studio UI", () => {
     expect(await screen.findByText("Exported Memory Match MVP.")).toBeDefined();
     const exported = screen.getByLabelText("Profile export JSON") as HTMLTextAreaElement;
     const exportJson = exported.value;
-    expect(JSON.parse(exportJson)).toMatchObject({
+    const parsedExport = BuilderProfileExportSchema.parse(JSON.parse(exportJson));
+    expect(parsedExport).toMatchObject({
       kind: "builder-profile-export",
       profile: {
         id: "profile.memory-match.mvp"
