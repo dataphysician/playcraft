@@ -816,6 +816,10 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   .refine((value) => value.actionName !== "import-profile" || Boolean(value.profile || value.profileExport), {
     message: "import-profile requests require profile or profileExport",
     path: ["profile"]
+  })
+  .refine((value) => value.actionName !== "import-profile" || !(value.profile && value.profileExport), {
+    message: "import-profile requests accept exactly one of profile or profileExport",
+    path: ["profile"]
   });
 export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
 

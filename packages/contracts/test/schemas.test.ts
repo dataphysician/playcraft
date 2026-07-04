@@ -502,5 +502,29 @@ describe("public contract schemas", () => {
         templateId: "template.memory-match"
       }).success
     ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.import-with-two-payloads",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "import-profile",
+        profile: assembleMvpProfiles()[0],
+        profileExport: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-profile-export.test.two-payloads",
+          version: "1.0.0",
+          kind: "builder-profile-export",
+          sessionId: "session.two-payloads",
+          profile: assembleMvpProfiles()[0],
+          exportedAt: "2026-07-04T00:00:00.000Z",
+          retrieval: {
+            current: "bundled-local",
+            planned: "server-catalog"
+          }
+        }
+      }).success
+    ).toBe(false);
   });
 });

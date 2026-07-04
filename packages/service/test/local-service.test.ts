@@ -722,6 +722,26 @@ describe("local Playcraft service", () => {
     expect(JSON.stringify(cliImport.events)).toContain("tool:import-profile");
     expect(err).toEqual([]);
 
+    const ambiguousImportOut: string[] = [];
+    const ambiguousImportErr: string[] = [];
+    expect(
+      runLocalServiceCli([
+        "import-profile",
+        "--session",
+        "session.cli-import-ambiguous",
+        "--profile-json",
+        JSON.stringify(exported.profileExport?.profile),
+        "--profile-export-json",
+        JSON.stringify(exported.profileExport),
+        "--json"
+      ], {
+        stdout: (message) => ambiguousImportOut.push(message),
+        stderr: (message) => ambiguousImportErr.push(message)
+      })
+    ).toBe(1);
+    expect(ambiguousImportOut).toEqual([]);
+    expect(ambiguousImportErr.join("\n")).toMatch(/exactly one of profile or profileExport/u);
+
     const invalidImportOut: string[] = [];
     const invalidImportErr: string[] = [];
     expect(

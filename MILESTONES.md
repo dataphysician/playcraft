@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Exact Profile Import Payloads
+
+Milestone:
+- `BuilderServiceRequest` import-profile envelopes now accept exactly one of `profile` or `profileExport`.
+- Ambiguous import requests fail at schema validation instead of letting service code choose one payload.
+- CLI-built import-profile requests with both payload flags now return a contract error.
+
+Supportive changes:
+- Contract tests cover the exact-one import payload rule.
+- Service CLI tests cover ambiguous profile import flags.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- Preview placeholder component ID scan.
+- Retired sample card ID/source wording scan.
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps profile import behavior forward-only and unambiguous for agents without migration-style payload precedence, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Strict HTTP Service CLI Arguments
 
 Milestone:
