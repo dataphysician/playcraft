@@ -9,7 +9,7 @@ import {
   type BuilderServiceResponse,
   type BuilderTemplateId
 } from "@playcraft/contracts";
-import { createLocalPlaycraftService } from "./index.js";
+import { createLocalPlaycraftService, createMoonshineTranscriptRecord } from "./index.js";
 
 export interface LocalServiceCliIo {
   stdout(message: string): void;
@@ -24,6 +24,7 @@ interface ParsedArgs {
   source?: BuilderInputSource;
   templateId?: BuilderTemplateId;
   text?: string;
+  transcriptText?: string;
 }
 
 const defaultIo: LocalServiceCliIo = {
@@ -34,7 +35,7 @@ const defaultIo: LocalServiceCliIo = {
 export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|reset|request> [--text <request>] [--source <text|speech-transcript>] [--session <id>] [--asset-theme <theme>] [--asset-item <item>] [--request-json <json>] [--json]");
+    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|reset|request> [--text <request>] [--transcript <moonshine transcript>] [--source <text|speech-transcript>] [--session <id>] [--asset-theme <theme>] [--asset-item <item>] [--request-json <json>] [--json]");
     return 1;
   }
 
@@ -75,6 +76,9 @@ function parseArgs(argv: string[]): ParsedArgs {
     const entry = argv[index];
     if (entry === "--text") {
       output.text = argv[index + 1];
+      index += 1;
+    } else if (entry === "--transcript") {
+      output.transcriptText = argv[index + 1];
       index += 1;
     } else if (entry === "--source") {
       output.source = parseSource(argv[index + 1]);
@@ -125,9 +129,10 @@ function isCliCommand(commandName: string): commandName is CliCommand {
 }
 
 function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: string = commandName): BuilderServiceRequest {
-  const text = args.text?.trim();
+  const transcriptText = args.transcriptText?.trim();
+  const text = transcriptText || args.text?.trim();
   if ((commandName === "assemble" || commandName === "update") && !text) {
-    throw new Error("assemble, update, and preview-with-assemble require --text");
+    throw new Error("assemble, update, and preview-with-assemble require --text or --transcript");
   }
 
   return {
@@ -138,7 +143,16 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
     actionName: commandName,
     assetEdit: args.assetEdit,
     sessionId: args.sessionId,
-    source: args.source ?? "text",
+    source: transcriptText ? "speech-transcript" : args.source ?? "text",
+    speechTranscript: transcriptText
+      ? createMoonshineTranscriptRecord({
+          id: `moonshine-transcript.cli.${idSuffix}`,
+          metadata: {
+            origin: "playcraft-service-cli"
+          },
+          text: transcriptText
+        })
+      : undefined,
     templateId: args.templateId,
     text: text || undefined
   };

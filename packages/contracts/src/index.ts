@@ -487,12 +487,40 @@ export const SpeechTranscriptionConfigSchema = z
   .strict();
 export type SpeechTranscriptionConfig = z.infer<typeof SpeechTranscriptionConfigSchema>;
 
+export const MoonshineTranscriptSegmentSchema = z
+  .object({
+    text: z.string().min(1).max(160),
+    startMs: z.number().int().nonnegative(),
+    endMs: z.number().int().nonnegative()
+  })
+  .strict()
+  .refine((value) => value.endMs >= value.startMs, {
+    message: "transcript segment endMs must be greater than or equal to startMs",
+    path: ["endMs"]
+  });
+export type MoonshineTranscriptSegment = z.infer<typeof MoonshineTranscriptSegmentSchema>;
+
+export const MoonshineTranscriptRecordSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("moonshine-transcript"),
+  transcriptId: StableIdSchema,
+  engine: z.literal("moonshine-streaming"),
+  runtime: z.literal("cpu"),
+  localOnly: z.literal(true),
+  finalized: z.literal(true),
+  text: z.string().min(1).max(500),
+  receivedAt: z.string().datetime(),
+  segments: z.array(MoonshineTranscriptSegmentSchema).default([]),
+  metadata: z.record(JsonValueSchema).default({})
+}).strict();
+export type MoonshineTranscriptRecord = z.infer<typeof MoonshineTranscriptRecordSchema>;
+
 export const BuilderInputRequestSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-input"),
   inputId: StableIdSchema,
   source: BuilderInputSourceSchema,
   text: z.string().min(1).max(500),
   transcription: SpeechTranscriptionConfigSchema.optional(),
+  speechTranscript: MoonshineTranscriptRecordSchema.optional(),
   receivedAt: z.string().datetime(),
   metadata: z.record(JsonValueSchema).default({})
 }).strict()
@@ -500,9 +528,17 @@ export const BuilderInputRequestSchema = PublicContractBaseSchema.extend({
     message: "speech transcripts must declare the local transcription config",
     path: ["transcription"]
   })
-  .refine((value) => value.source !== "text" || !value.transcription, {
-    message: "text input must not include speech transcription config",
+  .refine((value) => value.source !== "text" || (!value.transcription && !value.speechTranscript), {
+    message: "text input must not include speech transcription config or transcript records",
     path: ["transcription"]
+  })
+  .refine((value) => !value.speechTranscript || value.source === "speech-transcript", {
+    message: "Moonshine transcript records require speech-transcript source",
+    path: ["source"]
+  })
+  .refine((value) => !value.speechTranscript || value.speechTranscript.text === value.text, {
+    message: "Moonshine transcript record text must match builder input text",
+    path: ["speechTranscript"]
   });
 export type BuilderInputRequest = z.infer<typeof BuilderInputRequestSchema>;
 
@@ -656,16 +692,25 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   sessionId: StableIdSchema.optional(),
   text: z.string().min(1).max(500).optional(),
   source: BuilderInputSourceSchema.optional(),
+  speechTranscript: MoonshineTranscriptRecordSchema.optional(),
   templateId: BuilderTemplateIdSchema.optional(),
   assetEdit: BuilderAssetEditSchema.optional()
 }).strict()
-  .refine((value) => value.actionName !== "assemble" || Boolean(value.text), {
-    message: "assemble requests require text",
+  .refine((value) => value.actionName !== "assemble" || Boolean(value.text || value.speechTranscript), {
+    message: "assemble requests require text or a Moonshine transcript record",
     path: ["text"]
   })
-  .refine((value) => value.actionName !== "update" || Boolean(value.text), {
-    message: "update requests require text",
+  .refine((value) => value.actionName !== "update" || Boolean(value.text || value.speechTranscript), {
+    message: "update requests require text or a Moonshine transcript record",
     path: ["text"]
+  })
+  .refine((value) => !value.speechTranscript || value.source !== "text", {
+    message: "Moonshine transcript records must not use text source",
+    path: ["source"]
+  })
+  .refine((value) => !value.speechTranscript || !value.text || value.text === value.speechTranscript.text, {
+    message: "service request text must match Moonshine transcript record text",
+    path: ["speechTranscript"]
   });
 export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
 
@@ -710,6 +755,7 @@ export const PublicContractSchemas = {
   PlaycraftEventRecordSchema,
   PackManifestSchema,
   GameTemplateDefinitionSchema,
+  MoonshineTranscriptRecordSchema,
   BuilderInputRequestSchema,
   BuilderToolDefinitionSchema,
   BuilderCatalogSchema,

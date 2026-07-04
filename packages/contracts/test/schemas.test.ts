@@ -66,6 +66,29 @@ describe("public contract schemas", () => {
       emittedEvents: ["builder:profile-ready"],
       requiredContracts: ["BuilderCommandSchema", "GameTemplateDefinitionSchema"]
     };
+    const moonshineTranscriptRecord = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "moonshine-transcript.fixture",
+      version: "1.0.0",
+      kind: "moonshine-transcript",
+      transcriptId: "moonshine-transcript.fixture",
+      engine: "moonshine-streaming",
+      runtime: "cpu",
+      localOnly: true,
+      finalized: true,
+      text: "memory game with dinosaurs",
+      receivedAt: "2026-07-04T00:00:00.000Z",
+      segments: [
+        {
+          text: "memory game with dinosaurs",
+          startMs: 0,
+          endMs: 1800
+        }
+      ],
+      metadata: {
+        origin: "contract-test"
+      }
+    };
 
     const fixtures = {
       PlaycraftAssemblyRequestSchema: {
@@ -101,6 +124,7 @@ describe("public contract schemas", () => {
       PlaycraftEventRecordSchema: profile.replay.eventLog[0],
       PackManifestSchema: packManifests[0],
       GameTemplateDefinitionSchema: gameTemplateDefinitions[0],
+      MoonshineTranscriptRecordSchema: moonshineTranscriptRecord,
       BuilderInputRequestSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-input.fixture",
@@ -114,6 +138,7 @@ describe("public contract schemas", () => {
           runtime: "cpu",
           localOnly: true
         },
+        speechTranscript: moonshineTranscriptRecord,
         receivedAt: "2026-07-04T00:00:00.000Z",
         metadata: {
           origin: "contract-test"

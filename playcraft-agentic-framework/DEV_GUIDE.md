@@ -28,7 +28,7 @@ Recommended package boundaries:
 | `packages/assets` | Asset request schemas, deterministic stub provider, provider manifest helpers. |
 | `packages/packs` | Initial mechanic, rule, component, theme, domain, and safety policy packs. |
 | `packages/builder` | Local builder tool handler for catalog, assemble, update, and preview actions with published argument schemas. |
-| `packages/service` | Local app/API and `playcraft-service` CLI facade for validated `BuilderServiceRequest`, `BuilderServiceResponse`, `BuilderCatalog`, `BuilderIntentResolution`, text input, Moonshine Streaming CPU transcript records, template resolution, and asset edit levers. |
+| `packages/service` | Local app/API and `playcraft-service` CLI facade for validated `BuilderServiceRequest`, `BuilderServiceResponse`, `BuilderCatalog`, `BuilderIntentResolution`, text input, `MoonshineTranscriptRecord` inputs from Moonshine Streaming CPU, template resolution, and asset edit levers. |
 | `apps/studio` | Vite React studio that renders the live toddler game, developer timeline, and trusted preview from the service transport. |
 | `apps/mobile-shell` | Tauri Mobile-facing webview shell that reuses the Studio UI and local service transport. |
 | `examples/profiles` | Saved profile fixtures for memory match, sorting, and sequence repeat. |
@@ -41,7 +41,7 @@ Use `createHttpServiceTransport` for clients that call a local/server endpoint, 
 
 The Studio and Tauri Mobile-facing shell default to an in-process transport. Set `VITE_PLAYCRAFT_SERVICE_URL=http://127.0.0.1:8787/playcraft` for either Vite app to route assembly, update, preview, and reset requests through the HTTP service boundary instead.
 
-Agents that need the exact API boundary can call `playcraft-service request --request-json '<BuilderServiceRequest JSON>' --json` and receive the full `BuilderServiceResponse` envelope. Friendly CLI commands may keep concise output for humans.
+Agents that need the exact API boundary can call `playcraft-service request --request-json '<BuilderServiceRequest JSON>' --json` and receive the full `BuilderServiceResponse` envelope. Friendly CLI commands may keep concise output for humans, and `playcraft-service assemble --transcript '<local transcript text>' --json` creates a validated Moonshine Streaming CPU transcript record before calling the same service envelope.
 
 Template request phrases belong in `GameTemplateDefinition.requestAliases`. Do not add service-side `if game == ...` branches when adding a template; the local service resolves template switches from catalog aliases and records the matched alias in `BuilderIntentResolution`.
 

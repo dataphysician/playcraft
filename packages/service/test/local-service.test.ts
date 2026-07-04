@@ -5,6 +5,7 @@ import {
   createHttpServiceTransport,
   createLocalServiceTransport,
   createLocalPlaycraftService,
+  createMoonshineTranscriptRecord,
   handleServiceHttpRequestBody,
   handleLocalServiceRequest,
   resolveBuilderInputCommand
@@ -68,6 +69,36 @@ describe("local Playcraft service", () => {
     expect(assembled.events.some((event) => JSON.stringify(event.value).includes("moonshine-streaming"))).toBe(true);
     expect(updated.result.profile?.id).toBe("profile.sorting.mvp");
     expect(updated.result.profile?.assetRequests[0]?.prompt).toContain("fruits sorting game illustrations");
+  });
+
+  it("normalizes explicit Moonshine Streaming CPU transcript records through service requests", () => {
+    const service = createLocalPlaycraftService();
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.service-request",
+      segments: [
+        {
+          text: "Sort shapes by color",
+          startMs: 0,
+          endMs: 1200
+        }
+      ],
+      text: "Sort shapes by color"
+    });
+    const response = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.transcript-record",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.transcript-record",
+      speechTranscript: transcript
+    });
+    const serializedEvents = JSON.stringify(response.execution?.events);
+
+    expect(response.execution?.result.profile?.id).toBe("profile.sorting.mvp");
+    expect(serializedEvents).toContain("moonshine-streaming");
+    expect(serializedEvents).toContain("moonshine-transcript.test.service-request");
+    expect(serializedEvents).toContain("speechTranscriptId");
   });
 
   it("handles validated service API requests for local and future server transports", () => {
@@ -336,10 +367,8 @@ describe("local Playcraft service", () => {
     expect(
       runLocalServiceCli([
         "assemble",
-        "--text",
+        "--transcript",
         "Memory game",
-        "--source",
-        "speech-transcript",
         "--asset-theme",
         "ocean animals",
         "--asset-item",
@@ -355,6 +384,7 @@ describe("local Playcraft service", () => {
     };
 
     expect(JSON.stringify(assembled.events)).toContain("moonshine-streaming");
+    expect(JSON.stringify(assembled.events)).toContain("moonshine-transcript.cli.assemble");
     expect(assembled.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
     expect(assembled.result.profile?.components[0]?.props.cards).toEqual(["dolphin-a", "dolphin-b", "turtle-a", "turtle-b"]);
     expect(err).toEqual([]);

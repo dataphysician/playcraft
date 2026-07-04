@@ -5,6 +5,7 @@ import {
   BuilderServiceExecutionSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
+  MoonshineTranscriptRecordSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
   type BuilderCatalog,
@@ -16,7 +17,9 @@ import {
   type BuilderServiceRequest,
   type BuilderServiceResponse,
   type BuilderTemplateId,
-  type JsonValue
+  type JsonValue,
+  type MoonshineTranscriptRecord,
+  type MoonshineTranscriptSegment
 } from "@playcraft/contracts";
 import {
   createBuilderCommandHandler,
@@ -32,6 +35,7 @@ export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
   sessionId?: string;
   source?: BuilderInputSource;
+  speechTranscript?: MoonshineTranscriptRecord;
   templateId?: BuilderTemplateId;
   text: string;
 }
@@ -160,9 +164,10 @@ export class LocalPlaycraftService {
           this.assemble({
             assetEdit: request.assetEdit,
             sessionId: request.sessionId,
-            source: request.source ?? "text",
+            source: sourceForServiceRequest(request),
+            speechTranscript: request.speechTranscript,
             templateId: request.templateId,
-            text: request.text ?? ""
+            text: textForServiceRequest(request)
           })
         )
       });
@@ -173,9 +178,10 @@ export class LocalPlaycraftService {
         this.update({
           assetEdit: request.assetEdit,
           sessionId: request.sessionId ?? "service.session",
-          source: request.source ?? "text",
+          source: sourceForServiceRequest(request),
+          speechTranscript: request.speechTranscript,
           templateId: request.templateId,
-          text: request.text ?? ""
+          text: textForServiceRequest(request)
         })
       )
     });
@@ -189,6 +195,7 @@ export class LocalPlaycraftService {
       assetEdit: input.assetEdit,
       sequence: this.inputCounter,
       source: input.source ?? "text",
+      speechTranscript: input.speechTranscript,
       templateId: input.templateId,
       text: input.text
     });
@@ -299,6 +306,7 @@ export function resolveBuilderInputCommand(input: {
   assetEdit?: BuilderAssetEdit;
   sequence: number;
   source: BuilderInputSource;
+  speechTranscript?: MoonshineTranscriptRecord;
   templateId?: BuilderTemplateId;
   text: string;
 }): ResolvedBuilderInputCommand {
@@ -306,6 +314,7 @@ export function resolveBuilderInputCommand(input: {
   const request = createBuilderInputRequest({
     sequence: input.sequence,
     source: input.source,
+    speechTranscript: input.speechTranscript,
     text: commandText
   });
   const templateMatch = templateMatchForText(commandText);
@@ -360,8 +369,15 @@ export function resolveBuilderInputCommand(input: {
 export function createBuilderInputRequest(input: {
   sequence: number;
   source: BuilderInputSource;
+  speechTranscript?: MoonshineTranscriptRecord;
   text: string;
 }): BuilderInputRequest {
+  const speechTranscript =
+    input.source === "speech-transcript"
+      ? input.speechTranscript ?? createMoonshineTranscriptRecord({ sequence: input.sequence, text: input.text })
+      : undefined;
+  const text = speechTranscript?.text ?? input.text;
+
   return BuilderInputRequestSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
     id: `builder-input.local.${input.sequence}`,
@@ -369,20 +385,63 @@ export function createBuilderInputRequest(input: {
     kind: "builder-input",
     inputId: `builder-input.local.${input.sequence}`,
     source: input.source,
-    text: input.text,
-    transcription:
-      input.source === "speech-transcript"
-        ? {
-            engine: "moonshine-streaming",
-            runtime: "cpu",
-            localOnly: true
-          }
-        : undefined,
+    text,
+    transcription: input.source === "speech-transcript" ? MOONSHINE_STREAMING_CPU_TRANSCRIPTION : undefined,
+    speechTranscript,
     receivedAt: "2026-07-04T00:00:00.000Z",
     metadata: {
-      origin: "playcraft.local-service"
+      origin: "playcraft.local-service",
+      ...(speechTranscript ? { speechTranscriptId: speechTranscript.transcriptId } : {})
     }
   });
+}
+
+export const MOONSHINE_STREAMING_CPU_TRANSCRIPTION = {
+  engine: "moonshine-streaming",
+  runtime: "cpu",
+  localOnly: true
+} as const;
+
+export function createMoonshineTranscriptRecord(input: {
+  id?: string;
+  metadata?: Record<string, JsonValue>;
+  receivedAt?: string;
+  segments?: MoonshineTranscriptSegment[];
+  sequence?: number;
+  text: string;
+  transcriptId?: string;
+}): MoonshineTranscriptRecord {
+  const id = input.id ?? `moonshine-transcript.local.${input.sequence ?? 1}`;
+  return MoonshineTranscriptRecordSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id,
+    version: "1.0.0",
+    kind: "moonshine-transcript",
+    transcriptId: input.transcriptId ?? id,
+    engine: MOONSHINE_STREAMING_CPU_TRANSCRIPTION.engine,
+    runtime: MOONSHINE_STREAMING_CPU_TRANSCRIPTION.runtime,
+    localOnly: MOONSHINE_STREAMING_CPU_TRANSCRIPTION.localOnly,
+    finalized: true,
+    text: input.text.trim(),
+    receivedAt: input.receivedAt ?? "2026-07-04T00:00:00.000Z",
+    segments: input.segments ?? [],
+    metadata: {
+      origin: "playcraft.local-moonshine-streaming-cpu",
+      ...input.metadata
+    }
+  });
+}
+
+function sourceForServiceRequest(request: BuilderServiceRequest): BuilderInputSource {
+  if (request.speechTranscript) {
+    return "speech-transcript";
+  }
+
+  return request.source ?? "text";
+}
+
+function textForServiceRequest(request: BuilderServiceRequest): string {
+  return request.speechTranscript?.text ?? request.text ?? "";
 }
 
 interface TemplateTextMatch {
