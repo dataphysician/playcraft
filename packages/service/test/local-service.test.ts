@@ -22,7 +22,11 @@ import {
   resolveBuilderInputCommand
 } from "../src/index.js";
 import { runLocalServiceCli } from "../src/cli.js";
-import { createPlaycraftHttpServer, parsePlaycraftHttpServerCliArgs } from "../src/http-server.js";
+import {
+  PLAYCRAFT_HTTP_SERVICE_POLICY,
+  createPlaycraftHttpServer,
+  parsePlaycraftHttpServerCliArgs
+} from "../src/http-server.js";
 
 describe("local Playcraft service", () => {
   it("publishes local tools and bundled templates for shells", () => {
@@ -824,6 +828,14 @@ describe("local Playcraft service", () => {
   });
 
   it("parses the HTTP service CLI surface without silent option fallbacks", () => {
+    expect(PLAYCRAFT_HTTP_SERVICE_POLICY).toEqual({
+      defaultHost: "127.0.0.1",
+      defaultMaxBodyBytes: 1024 * 1024,
+      defaultPort: 8787,
+      defaultRoute: "/playcraft",
+      urlParseBase: "http://127.0.0.1"
+    });
+
     expect(parsePlaycraftHttpServerCliArgs([
       "--host",
       "127.0.0.1",

@@ -427,6 +427,23 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).not.toContain(`input.receivedAt ?? "${localTimestamp}"`);
   });
 
+  it("keeps local HTTP service defaults policy-owned", () => {
+    const source = readSource("packages/service/src/http-server.ts");
+
+    expect(source).toContain("PLAYCRAFT_HTTP_SERVICE_POLICY");
+    expect(source).toContain("PLAYCRAFT_SCHEMA_VERSION");
+    expect(source).toContain("PLAYCRAFT_HTTP_SERVICE_POLICY.defaultRoute");
+    expect(source).toContain("PLAYCRAFT_HTTP_SERVICE_POLICY.defaultHost");
+    expect(source).toContain("PLAYCRAFT_HTTP_SERVICE_POLICY.defaultPort");
+    expect(source).toContain("PLAYCRAFT_HTTP_SERVICE_POLICY.defaultMaxBodyBytes");
+    expect(source).toContain("PLAYCRAFT_HTTP_SERVICE_POLICY.urlParseBase");
+    expect(source).not.toContain('const DEFAULT_ROUTE = "/playcraft"');
+    expect(source).not.toContain("const DEFAULT_MAX_BODY_BYTES");
+    expect(source).not.toContain('input.host ?? "127.0.0.1"');
+    expect(source).not.toContain("input.port ?? 8787");
+    expect(source).not.toContain('schemaVersion: "playcraft.v1"');
+  });
+
   it("keeps service CLI response output action-scoped instead of payload-precedence based", () => {
     const source = readSource("packages/service/src/cli.ts");
 

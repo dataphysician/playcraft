@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Service HTTP Policy
+
+Milestone:
+- The service HTTP helper now exports `PLAYCRAFT_HTTP_SERVICE_POLICY` for local route, host, port, URL parse base, and request body limit defaults.
+- HTTP server creation, startup, request parsing, and service error/health envelopes consume that policy and shared schema version instead of private route/host/port/schema literals.
+- Local HTTP remains lightweight while its future server boundary defaults are inspectable.
+
+Supportive changes:
+- Service tests validate the published HTTP policy.
+- Source scans now block private HTTP route, host, port, max-body, and schema-version defaults from returning.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps local/server transport setup explicit and forward-only without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+
 ## 2026-07-04 - Contract-Owned Local Timestamp
 
 Milestone:

@@ -5,6 +5,7 @@ declare const process: {
 };
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+import { PLAYCRAFT_SCHEMA_VERSION } from "@playcraft/contracts";
 import {
   createLocalPlaycraftService,
   handleServiceHttpRequestBody,
@@ -23,13 +24,18 @@ export interface PlaycraftHttpServerStart {
   url: string;
 }
 
-const DEFAULT_ROUTE = "/playcraft";
-const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
+export const PLAYCRAFT_HTTP_SERVICE_POLICY = {
+  defaultHost: "127.0.0.1",
+  defaultMaxBodyBytes: 1024 * 1024,
+  defaultPort: 8787,
+  defaultRoute: "/playcraft",
+  urlParseBase: "http://127.0.0.1"
+} as const;
 
 export function createPlaycraftHttpServer(options: PlaycraftHttpServerOptions = {}): Server {
   const service = options.service ?? createLocalPlaycraftService();
-  const route = normalizeRoute(options.route ?? DEFAULT_ROUTE);
-  const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
+  const route = normalizeRoute(options.route ?? PLAYCRAFT_HTTP_SERVICE_POLICY.defaultRoute);
+  const maxBodyBytes = options.maxBodyBytes ?? PLAYCRAFT_HTTP_SERVICE_POLICY.defaultMaxBodyBytes;
 
   return createServer((request, response) => {
     void handleHttpRequest({ maxBodyBytes, request, response, route, service }).catch((error: unknown) => {
@@ -39,7 +45,7 @@ export function createPlaycraftHttpServer(options: PlaycraftHttpServerOptions = 
           "content-type": "application/json"
         },
         body: JSON.stringify({
-          schemaVersion: "playcraft.v1",
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
           kind: "builder-service-error",
           message: error instanceof Error ? error.message : String(error)
         })
@@ -54,8 +60,8 @@ export function startPlaycraftHttpServer(input: {
   route?: string;
   service?: LocalPlaycraftService;
 } = {}): Promise<PlaycraftHttpServerStart> {
-  const host = input.host ?? "127.0.0.1";
-  const route = normalizeRoute(input.route ?? DEFAULT_ROUTE);
+  const host = input.host ?? PLAYCRAFT_HTTP_SERVICE_POLICY.defaultHost;
+  const route = normalizeRoute(input.route ?? PLAYCRAFT_HTTP_SERVICE_POLICY.defaultRoute);
   const server = createPlaycraftHttpServer({
     route,
     service: input.service
@@ -63,9 +69,9 @@ export function startPlaycraftHttpServer(input: {
 
   return new Promise((resolve, reject) => {
     server.on("error", reject);
-    server.listen(input.port ?? 8787, host, () => {
+    server.listen(input.port ?? PLAYCRAFT_HTTP_SERVICE_POLICY.defaultPort, host, () => {
       const address = server.address();
-      const port = typeof address === "object" && address ? address.port : input.port ?? 8787;
+      const port = typeof address === "object" && address ? address.port : input.port ?? PLAYCRAFT_HTTP_SERVICE_POLICY.defaultPort;
       resolve({
         server,
         url: `http://${host}:${port}${route}`
@@ -93,7 +99,7 @@ async function handleHttpRequest(input: {
   route: string;
   service: LocalPlaycraftService;
 }): Promise<void> {
-  const url = new URL(input.request.url ?? "/", "http://127.0.0.1");
+  const url = new URL(input.request.url ?? "/", PLAYCRAFT_HTTP_SERVICE_POLICY.urlParseBase);
 
   if (input.request.method === "GET" && url.pathname === "/health") {
     writeResponse(input.response, {
@@ -102,7 +108,7 @@ async function handleHttpRequest(input: {
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        schemaVersion: "playcraft.v1",
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         kind: "builder-service-health",
         ok: true
       })
@@ -117,7 +123,7 @@ async function handleHttpRequest(input: {
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        schemaVersion: "playcraft.v1",
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         kind: "builder-service-error",
         message: `unknown route ${url.pathname}`
       })
@@ -133,7 +139,7 @@ async function handleHttpRequest(input: {
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        schemaVersion: "playcraft.v1",
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         kind: "builder-service-error",
         message: "builder service endpoint requires POST"
       })
