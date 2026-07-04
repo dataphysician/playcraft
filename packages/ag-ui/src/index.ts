@@ -9,22 +9,26 @@ import {
   PlaycraftEventRecordSchema,
   SchemaIssueSchema,
   StableIdSchema,
+  JsonValueSchema,
   schemaIssue,
+  type JsonValue,
   type PlaycraftAgUiEventEnvelope
 } from "@playcraft/contracts";
 
-export type AgUiEventType =
-  | "RunStarted"
-  | "RunFinished"
-  | "RunError"
-  | "StepStarted"
-  | "StepFinished"
-  | "StateSnapshot"
-  | "StateDelta"
-  | "Activity"
-  | "ToolCall"
-  | "ToolResult"
-  | "Custom";
+export const AgUiEventTypeSchema = z.enum([
+  "RunStarted",
+  "RunFinished",
+  "RunError",
+  "StepStarted",
+  "StepFinished",
+  "StateSnapshot",
+  "StateDelta",
+  "Activity",
+  "ToolCall",
+  "ToolResult",
+  "Custom"
+]);
+export type AgUiEventType = z.infer<typeof AgUiEventTypeSchema>;
 
 export interface AgUiEvent<TValue = unknown> {
   type: AgUiEventType;
@@ -33,6 +37,16 @@ export interface AgUiEvent<TValue = unknown> {
   timestamp: string;
   value: TValue;
 }
+
+export const AgUiEventSchema = z
+  .object({
+    type: AgUiEventTypeSchema,
+    eventId: StableIdSchema,
+    runId: StableIdSchema,
+    timestamp: z.string().datetime(),
+    value: JsonValueSchema
+  })
+  .strict();
 
 export const ReplayReadyPayloadSchema = z
   .object({
@@ -63,6 +77,20 @@ export const BuiltInPayloadSchemas = {
 } as const;
 
 export type PayloadSchemaRegistry = Record<string, z.ZodType<unknown>>;
+
+export function parseAgUiEvent(eventInput: unknown): AgUiEvent<JsonValue> {
+  const parsed = AgUiEventSchema.safeParse(eventInput);
+  if (parsed.success) {
+    return parsed.data;
+  }
+
+  const typeProbe = z.object({ type: z.unknown() }).passthrough().safeParse(eventInput);
+  if (typeProbe.success && typeof typeProbe.data.type === "string" && !AgUiEventTypeSchema.safeParse(typeProbe.data.type).success) {
+    throw new Error(`unknown AG-UI event type: ${typeProbe.data.type}`);
+  }
+
+  throw new Error(`invalid AG-UI event: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`);
+}
 
 export function runStarted(runId: string, sequence = 0): AgUiEvent<{ runId: string }> {
   return baseEvent("RunStarted", runId, sequence, { runId });

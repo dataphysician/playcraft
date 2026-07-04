@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   activity,
   createPlaycraftEnvelope,
+  parseAgUiEvent,
   playcraftCustomEvent,
   runFinished,
   runStarted,
@@ -27,6 +28,43 @@ describe("AG-UI-compatible events", () => {
     expect(activity("run.test", "asset", "progress", "Generating").value.status).toBe("progress");
     expect(toolCall("run.test", "tool:select-item", { itemId: "a" }).value.args).toEqual({ itemId: "a" });
     expect(toolResult("run.test", "tool:select-item", { accepted: true }).value.result).toEqual({ accepted: true });
+  });
+
+  it("parses inbound AG-UI event JSON through a strict event contract", () => {
+    const parsed = parseAgUiEvent({
+      type: "ToolCall",
+      eventId: "agui.run.test.0001.toolcall",
+      runId: "run.test",
+      timestamp: "2026-06-27T00:00:00.000Z",
+      value: {
+        toolName: "tool:reveal-card",
+        args: {
+          cardId: "memory-card-1-a"
+        }
+      }
+    });
+
+    expect(parsed.type).toBe("ToolCall");
+    expect(parsed.value).toEqual({
+      toolName: "tool:reveal-card",
+      args: {
+        cardId: "memory-card-1-a"
+      }
+    });
+    expect(() => parseAgUiEvent({
+      type: "NotAnAgUiEvent",
+      eventId: "agui.run.test.0002.invalid",
+      runId: "run.test",
+      timestamp: "2026-06-27T00:00:00.000Z",
+      value: {}
+    })).toThrow(/unknown AG-UI event type/u);
+    expect(() => parseAgUiEvent({
+      type: "ToolCall",
+      eventId: "agui.run.test.0003.invalid",
+      runId: "run.test",
+      timestamp: "not-a-date",
+      value: {}
+    })).toThrow(/invalid AG-UI event/u);
   });
 
   it("validates Playcraft custom envelopes before emission", () => {

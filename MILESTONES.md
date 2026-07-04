@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Schema-Backed Studio Event Ingestion
+
+Milestone:
+- `@playcraft/ag-ui` now exports a strict AG-UI event type schema and parser for inbound service events.
+- Studio local-client timeline ingestion now delegates service event validation to `parseAgUiEvent` instead of reflecting fields from unknown JSON.
+- Unknown AG-UI event types and malformed event envelopes fail through the shared AG-UI parser.
+
+Supportive changes:
+- AG-UI tests now cover valid inbound event parsing, unknown event-type rejection, and malformed event rejection.
+- Studio source scans now keep service event ingestion schema-backed and free of app-local `Reflect.get` parsing.
+
+Validation:
+- `pnpm test packages/ag-ui/test/events.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps the local service-to-Studio event boundary contract-owned and forward-only without app-local event heuristics, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Contract-Kind Registry Compatibility
 
 Milestone:

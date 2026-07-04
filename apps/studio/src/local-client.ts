@@ -1,4 +1,4 @@
-import type { AgUiEvent, AgUiEventType } from "@playcraft/ag-ui";
+import { parseAgUiEvent, type AgUiEvent } from "@playcraft/ag-ui";
 import {
   BuilderServiceRequestSchema,
   PLAYCRAFT_SCHEMA_VERSION,
@@ -205,7 +205,7 @@ function mapTransportResponse<T>(
 }
 
 function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
-  return typeof value === "object" && value !== null && typeof Reflect.get(value, "then") === "function";
+  return typeof value === "object" && value !== null && "then" in value && typeof value.then === "function";
 }
 
 function timelineEntry(eventInput: JsonValue, sequence: number, timelineIdPrefix: string): StudioTimelineEntry {
@@ -222,52 +222,10 @@ function timelineEntry(eventInput: JsonValue, sequence: number, timelineIdPrefix
 }
 
 function agUiEventFromJson(eventInput: JsonValue): StudioAgUiEvent {
-  if (typeof eventInput !== "object" || eventInput === null || Array.isArray(eventInput)) {
-    throw new Error("service event must be a JSON object");
-  }
-
-  const type = Reflect.get(eventInput, "type");
-  const eventId = Reflect.get(eventInput, "eventId");
-  const runId = Reflect.get(eventInput, "runId");
-  const timestamp = Reflect.get(eventInput, "timestamp");
-  if (
-    typeof type !== "string" ||
-    typeof eventId !== "string" ||
-    typeof runId !== "string" ||
-    typeof timestamp !== "string"
-  ) {
-    throw new Error("service event is missing AG-UI envelope fields");
-  }
-
-  return {
-    type: agUiEventTypeFromString(type),
-    eventId,
-    runId,
-    timestamp,
-    value: Reflect.get(eventInput, "value")
-  };
+  return parseAgUiEvent(eventInput);
 }
 
 type StudioAgUiEvent = AgUiEvent;
-
-function agUiEventTypeFromString(type: string): AgUiEventType {
-  switch (type) {
-    case "RunStarted":
-    case "RunFinished":
-    case "RunError":
-    case "StepStarted":
-    case "StepFinished":
-    case "StateSnapshot":
-    case "StateDelta":
-    case "Activity":
-    case "ToolCall":
-    case "ToolResult":
-    case "Custom":
-      return type;
-    default:
-      throw new Error(`unknown AG-UI event type: ${type}`);
-  }
-}
 
 function kindForEvent(event: StudioAgUiEvent): StudioTimelineKind {
   if (event.type === "StateSnapshot" || event.type === "StateDelta") {

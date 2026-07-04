@@ -156,6 +156,14 @@ describe("import-light boundaries and source scans", () => {
     expect(registryTestSource).not.toContain('supportedModalities: ["audio"]');
   });
 
+  it("keeps Studio service event ingestion schema-backed", () => {
+    const source = readSource("apps/studio/src/local-client.ts");
+
+    expect(source).toContain("parseAgUiEvent");
+    expect(source).not.toContain("Reflect.get");
+    expect(source).not.toContain("agUiEventTypeFromString");
+  });
+
   it("keeps retired sample memory-card IDs out of source and fixtures", () => {
     const blockedTerms = ["cat", "sun"].flatMap((item) => [`${item}-a`, `${item}-b`]);
     const checkedFiles = repoSourceFiles().filter((path) =>
