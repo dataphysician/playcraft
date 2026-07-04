@@ -25,6 +25,15 @@ describe("studio asset library", () => {
     expect(createProfileLibraryAssetReplacements(fruitProfile!)["card:fruit-1-a"]?.altText).toBe("fruit 1 sprite");
   });
 
+  it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toybox" });
+    const profile = session.profiles.at(-1);
+
+    expect(profile).toBeDefined();
+    expect(createProfileLibraryAssetReplacements(profile!)["card:toybox-1-a"]).toBeUndefined();
+  });
+
   it("renders the Playcraft card back and replacement card sprites", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 

@@ -201,10 +201,9 @@ function addMetadataValue(values: Set<string>, value: JsonValue | undefined): vo
 
 function valuesMatchTheme(values: string[], theme: string): boolean {
   const terms = themeTerms(theme);
-  return values.some((value) => {
-    const normalized = normalizeText(value);
-    return terms.some((term) => normalized.includes(term));
-  });
+  return values.some((value) =>
+    terms.some((term) => tokenSequenceIncludes(normalizedTokens(value), normalizedTokens(term)))
+  );
 }
 
 function themeTerms(theme: string): string[] {
@@ -223,7 +222,11 @@ function themeTerms(theme: string): string[] {
 function spriteForIdentifier(identifier: string, themeFolders: string[], index: number): ReplacementSprite | undefined {
   const normalized = slugLabel(identifier);
   const themeSprites = replacementSprites.filter((sprite) => themeFolders.includes(sprite.theme));
-  const candidates = themeSprites.length > 0 ? themeSprites : replacementSprites;
+  if (themeSprites.length === 0) {
+    return undefined;
+  }
+
+  const candidates = themeSprites;
   const exact = candidates.find((sprite) => normalized === sprite.id || normalized.endsWith(`-${sprite.id}`));
   if (exact) {
     return exact;

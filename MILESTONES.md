@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Replaceable Asset Theme Matching
+
+Milestone:
+- Studio replaceable sprites now require an explicit local theme-folder match before substituting card/item/choice art.
+- Theme matching uses normalized token sequences instead of substring checks, so names such as `toybox` do not accidentally select the `toys` folder.
+- Unknown requested themes now leave profile cards/items without local replacement sprites until a matching asset folder is added.
+
+Supportive changes:
+- Added Studio asset-library coverage for an unknown `toybox` theme that must not borrow unrelated toy sprites.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps `+with {asset}` replacement behavior folder-driven and forward-extensible without generated runtime code, hosted providers, auth, database state, or compatibility fallbacks.
+
 ## 2026-07-04 - Sorting Bin Asset Catalog
 
 Milestone:
