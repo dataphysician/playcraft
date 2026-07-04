@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Studio Runtime Endpoint Policy
+
+Milestone:
+- The Studio package now exports `STUDIO_RUNTIME_POLICY` for the app-shell service endpoint environment variable.
+- Studio and Mobile shell app entrypoints resolve `VITE_PLAYCRAFT_SERVICE_URL` through `serviceEndpointFromStudioRuntimeEnv` instead of reading the env variable directly.
+- The local in-process default and optional local HTTP service endpoint remain behaviorally unchanged while the future server retrieval boundary is explicit.
+
+Supportive changes:
+- Studio tests validate endpoint policy export, trimming, blank-env handling, and absent-env handling.
+- Source scans now block direct service endpoint env reads from Studio and Mobile shell app entrypoints.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps app-shell service endpoint resolution explicit and forward-only without hosted providers, generated runtime code, auth, database state, native shell work, or removed hosted conversation stack instances.
+
 ## 2026-07-04 - Mobile Shell Client Policy
 
 Milestone:

@@ -454,6 +454,20 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain('options.timelineIdPrefix ?? "timeline"');
   });
 
+  it("keeps app shell service endpoint env access policy-owned", () => {
+    const studioAppSource = readSource("apps/studio/src/App.tsx");
+    const mobileAppSource = readSource("apps/mobile-shell/src/App.tsx");
+    const studioClientSource = readSource("apps/studio/src/local-client.ts");
+
+    expect(studioClientSource).toContain("STUDIO_RUNTIME_POLICY");
+    expect(studioClientSource).toContain('serviceEndpointEnvName: "VITE_PLAYCRAFT_SERVICE_URL"');
+    expect(studioClientSource).toContain("serviceEndpointFromStudioRuntimeEnv");
+    expect(studioAppSource).toContain("serviceEndpointFromStudioRuntimeEnv(import.meta.env)");
+    expect(mobileAppSource).toContain("serviceEndpointFromStudioRuntimeEnv(import.meta.env)");
+    expect(studioAppSource).not.toContain("import.meta.env.VITE_PLAYCRAFT_SERVICE_URL");
+    expect(mobileAppSource).not.toContain("import.meta.env.VITE_PLAYCRAFT_SERVICE_URL");
+  });
+
   it("keeps Mobile shell client defaults policy-owned", () => {
     const source = readSource("apps/mobile-shell/src/mobile-client.ts");
 

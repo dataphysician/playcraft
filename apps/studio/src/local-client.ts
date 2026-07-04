@@ -26,6 +26,17 @@ export const STUDIO_CLIENT_POLICY = {
   defaultTimelineIdPrefix: "timeline"
 } as const;
 
+export const STUDIO_RUNTIME_POLICY = {
+  serviceEndpointEnvName: "VITE_PLAYCRAFT_SERVICE_URL"
+} as const;
+
+export type StudioRuntimeEnv = Partial<Record<typeof STUDIO_RUNTIME_POLICY.serviceEndpointEnvName, string | undefined>>;
+
+export function serviceEndpointFromStudioRuntimeEnv(env: StudioRuntimeEnv): string | undefined {
+  const serviceEndpoint = env[STUDIO_RUNTIME_POLICY.serviceEndpointEnvName]?.trim();
+  return serviceEndpoint ? serviceEndpoint : undefined;
+}
+
 export function createConfiguredStudioClient(options: ConfiguredStudioClientOptions = {}): StudioClient {
   const serviceEndpoint = options.serviceEndpoint?.trim();
 

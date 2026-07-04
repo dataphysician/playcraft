@@ -17,9 +17,11 @@ import {
 } from "@playcraft/service";
 import {
   STUDIO_CLIENT_POLICY,
+  STUDIO_RUNTIME_POLICY,
   createConfiguredStudioClient,
   createLocalStudioClient,
-  createStudioClientFromServiceTransport
+  createStudioClientFromServiceTransport,
+  serviceEndpointFromStudioRuntimeEnv
 } from "../apps/studio/src/local-client.js";
 import { LiveGame } from "../apps/studio/src/live-game.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
@@ -65,6 +67,17 @@ describe("studio UI", () => {
       defaultSessionId: "studio.session",
       defaultTimelineIdPrefix: "timeline"
     });
+  });
+
+  it("publishes Studio runtime endpoint policy for app shells", () => {
+    expect(STUDIO_RUNTIME_POLICY).toEqual({
+      serviceEndpointEnvName: "VITE_PLAYCRAFT_SERVICE_URL"
+    });
+    expect(serviceEndpointFromStudioRuntimeEnv({ VITE_PLAYCRAFT_SERVICE_URL: " http://127.0.0.1:8787/playcraft " })).toBe(
+      "http://127.0.0.1:8787/playcraft"
+    );
+    expect(serviceEndpointFromStudioRuntimeEnv({ VITE_PLAYCRAFT_SERVICE_URL: " " })).toBeUndefined();
+    expect(serviceEndpointFromStudioRuntimeEnv({})).toBeUndefined();
   });
 
   it("normalizes local text and Moonshine transcript inputs into template commands", () => {
