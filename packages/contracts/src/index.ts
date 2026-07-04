@@ -465,6 +465,22 @@ export type GameTemplateAssetPromptKind = z.infer<typeof GameTemplateAssetPrompt
 export const GameTemplateLiveSurfaceKindSchema = z.enum(["memory", "sorting", "sequence"]);
 export type GameTemplateLiveSurfaceKind = z.infer<typeof GameTemplateLiveSurfaceKindSchema>;
 
+export const GameTemplateLiveSurfaceComponentCapabilitiesSchema = z
+  .object({
+    primary: CapabilityTagSchema,
+    choice: CapabilityTagSchema.optional()
+  })
+  .strict();
+export type GameTemplateLiveSurfaceComponentCapabilities = z.infer<typeof GameTemplateLiveSurfaceComponentCapabilitiesSchema>;
+
+export const GameTemplateLiveSurfaceSchema = z
+  .object({
+    kind: GameTemplateLiveSurfaceKindSchema,
+    componentCapabilities: GameTemplateLiveSurfaceComponentCapabilitiesSchema
+  })
+  .strict();
+export type GameTemplateLiveSurface = z.infer<typeof GameTemplateLiveSurfaceSchema>;
+
 export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   id: BuilderTemplateIdSchema,
   kind: z.literal("game-template"),
@@ -475,7 +491,7 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   requestAliases: z.array(z.string().min(2).max(80)).min(1),
   exampleRequest: z.string().min(2).max(120),
   assetPromptKind: GameTemplateAssetPromptKindSchema,
-  liveSurfaceKind: GameTemplateLiveSurfaceKindSchema,
+  liveSurface: GameTemplateLiveSurfaceSchema,
   assemblyRequestId: StableIdSchema,
   profileId: StableIdSchema,
   supportedAgeBands: z.array(AgeBandSchema).min(1),

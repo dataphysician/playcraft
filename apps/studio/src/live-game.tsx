@@ -3,7 +3,7 @@ import type {
   ComponentBinding,
   GameAssemblyProfile,
   GameTemplateDefinition,
-  GameTemplateLiveSurfaceKind,
+  GameTemplateLiveSurface,
   GeneratedAssetRecord,
   JsonValue
 } from "@playcraft/contracts";
@@ -151,27 +151,28 @@ function LiveGameForProfile({
   );
   const replacements = useProfileAssetReplacements(profile, mergedAssetReplacements);
   const template = liveTemplateForProfile(profile);
+  const liveSurface = template?.liveSurface;
 
-  switch (template?.liveSurfaceKind) {
+  switch (liveSurface?.kind) {
     case "memory":
       return React.createElement(MemoryGame, {
         profile,
-        component: requiredComponentByCapability(profile, "component:reveal-card-grid"),
+        component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         replacements,
         onInteraction
       });
     case "sorting":
       return React.createElement(SortingGame, {
         profile,
-        component: requiredComponentByCapability(profile, "component:sort-bins"),
+        component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         replacements,
         onInteraction
       });
     case "sequence":
       return React.createElement(SequenceGame, {
         profile,
-        sequenceComponent: requiredComponentByCapability(profile, "component:sequence-pad"),
-        choiceComponent: optionalComponentByCapability(profile, "component:choice-grid"),
+        sequenceComponent: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
+        choiceComponent: optionalComponentByCapability(profile, liveSurface.componentCapabilities.choice),
         replacements,
         onInteraction
       });
@@ -1066,7 +1067,10 @@ function requiredComponentByCapability(profile: GameAssemblyProfile, capability:
   return component;
 }
 
-function optionalComponentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding | undefined {
+function optionalComponentByCapability(profile: GameAssemblyProfile, capability: string | undefined): ComponentBinding | undefined {
+  if (!capability) {
+    return undefined;
+  }
   return profile.components.find((component) => component.renderCapability === capability);
 }
 
@@ -1302,7 +1306,7 @@ function sequenceStepStyle(item: string, revealed: boolean): React.CSSProperties
   return revealed ? { ...liveStyles.sequenceStepComplete, ...tokenPanelStyle(item) } : liveStyles.sequenceStep;
 }
 
-function gameSurfaceStyle(kind: GameTemplateLiveSurfaceKind): React.CSSProperties {
+function gameSurfaceStyle(kind: GameTemplateLiveSurface["kind"]): React.CSSProperties {
   const background =
     kind === "memory"
       ? playcraftUiAssets.backgrounds.memoryMatch

@@ -1,5 +1,33 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template-Owned Live Surface Component Roles
+
+Milestone:
+- `GameTemplateDefinition` now publishes a structured `liveSurface` contract with surface kind and component capability roles.
+- Bundled templates declare the primary live component role for memory, sorting, and sequence games.
+- Sequence templates also declare the optional choice component role used by the Live App renderer.
+
+Supportive changes:
+- Studio LiveGame now selects required/optional live components from `template.liveSurface.componentCapabilities`.
+- Pack and service catalog tests now assert the starter templates' live surface roles.
+- Source scans now block reintroducing `liveSurfaceKind` and LiveGame-local component capability literals.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- Removed vendor/conversation-stack/private-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps playable Live App component selection contract-owned and forward-only without UI-local component role decisions, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Shared Live Surface Kind Type
 
 Milestone:

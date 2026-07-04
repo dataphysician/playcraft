@@ -106,11 +106,19 @@ describe("MVP profile pack", () => {
       "sorting-game",
       "sequence-buttons"
     ]);
-    expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.liveSurfaceKind)).toEqual([
+    expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.liveSurface.kind)).toEqual([
       "memory",
       "sorting",
       "sequence"
     ]);
+    expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.liveSurface.componentCapabilities.primary)).toEqual([
+      "component:reveal-card-grid",
+      "component:sort-bins",
+      "component:sequence-pad"
+    ]);
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.sequence-repeat")?.liveSurface.componentCapabilities.choice).toBe(
+      "component:choice-grid"
+    );
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)
     );

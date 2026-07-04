@@ -711,10 +711,15 @@ describe("local Playcraft service", () => {
       "Sorting",
       "Sequence Repeat"
     ]);
-    expect(catalog.templates.slice(0, 3).map((template) => template.liveSurfaceKind)).toEqual([
+    expect(catalog.templates.slice(0, 3).map((template) => template.liveSurface.kind)).toEqual([
       "memory",
       "sorting",
       "sequence"
+    ]);
+    expect(catalog.templates.slice(0, 3).map((template) => template.liveSurface.componentCapabilities.primary)).toEqual([
+      "component:reveal-card-grid",
+      "component:sort-bins",
+      "component:sequence-pad"
     ]);
     expect(catalog.assetEdit.availableThemes.map((entry) => entry.theme)).toEqual([
       "dinosaurs",

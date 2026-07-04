@@ -306,15 +306,20 @@ describe("import-light boundaries and source scans", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");
 
-    expect(contractSource).toContain("liveSurfaceKind");
-    expect(packSource).toContain("liveSurfaceKind: template.liveSurfaceKind");
-    expect(liveGameSource).toContain("GameTemplateLiveSurfaceKind");
-    expect(liveGameSource).toContain("template?.liveSurfaceKind");
+    expect(contractSource).toContain("GameTemplateLiveSurfaceSchema");
+    expect(packSource).toContain("liveSurface: template.liveSurface");
+    expect(liveGameSource).toContain("GameTemplateLiveSurface");
+    expect(liveGameSource).toContain("template?.liveSurface");
+    expect(liveGameSource).toContain("liveSurface.componentCapabilities.primary");
+    expect(liveGameSource).toContain("liveSurface.componentCapabilities.choice");
+    expect(contractSource).not.toContain("liveSurfaceKind");
+    expect(packSource).not.toContain("liveSurfaceKind");
+    expect(liveGameSource).not.toContain("liveSurfaceKind");
     expect(liveGameSource).not.toContain("type GameSurfaceKind");
     expect(liveGameSource).not.toContain("componentByCapability");
-    expect(liveGameSource).not.toContain('componentByCapability(profile, "component:reveal-card-grid")');
-    expect(liveGameSource).not.toContain('componentByCapability(profile, "component:sort-bins")');
-    expect(liveGameSource).not.toContain('componentByCapability(profile, "component:sequence-pad")');
+    expect(liveGameSource).not.toContain('"component:reveal-card-grid"');
+    expect(liveGameSource).not.toContain('"component:sort-bins"');
+    expect(liveGameSource).not.toContain('"component:sequence-pad"');
   });
 
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
