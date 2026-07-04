@@ -1,5 +1,12 @@
 import React from "react";
-import type { ComponentBinding, GameAssemblyProfile, GameTemplateDefinition, GeneratedAssetRecord, JsonValue } from "@playcraft/contracts";
+import type {
+  ComponentBinding,
+  GameAssemblyProfile,
+  GameTemplateDefinition,
+  GameTemplateLiveSurfaceKind,
+  GeneratedAssetRecord,
+  JsonValue
+} from "@playcraft/contracts";
 import { gameTemplateDefinitions } from "@playcraft/packs";
 import { createProfileLibraryAssetReplacements, playcraftUiAssets, sortingBinAssetFor } from "./asset-library.js";
 import emptyGameHeroUrl from "./assets/empty-game-hero.png";
@@ -39,7 +46,6 @@ interface MemoryPairVisual {
 
 type SequencePhase = "watch" | "play" | "complete";
 type BinFeedback = "success" | "failure";
-type GameSurfaceKind = "memory" | "sequence" | "sorting";
 type SequenceFeedbackKind = "info" | "success" | "failure";
 
 interface SequenceFeedback {
@@ -1296,7 +1302,7 @@ function sequenceStepStyle(item: string, revealed: boolean): React.CSSProperties
   return revealed ? { ...liveStyles.sequenceStepComplete, ...tokenPanelStyle(item) } : liveStyles.sequenceStep;
 }
 
-function gameSurfaceStyle(kind: GameSurfaceKind): React.CSSProperties {
+function gameSurfaceStyle(kind: GameTemplateLiveSurfaceKind): React.CSSProperties {
   const background =
     kind === "memory"
       ? playcraftUiAssets.backgrounds.memoryMatch

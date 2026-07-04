@@ -308,7 +308,9 @@ describe("import-light boundaries and source scans", () => {
 
     expect(contractSource).toContain("liveSurfaceKind");
     expect(packSource).toContain("liveSurfaceKind: template.liveSurfaceKind");
+    expect(liveGameSource).toContain("GameTemplateLiveSurfaceKind");
     expect(liveGameSource).toContain("template?.liveSurfaceKind");
+    expect(liveGameSource).not.toContain("type GameSurfaceKind");
     expect(liveGameSource).not.toContain("componentByCapability");
     expect(liveGameSource).not.toContain('componentByCapability(profile, "component:reveal-card-grid")');
     expect(liveGameSource).not.toContain('componentByCapability(profile, "component:sort-bins")');

@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Shared Live Surface Kind Type
+
+Milestone:
+- Studio LiveGame now imports `GameTemplateLiveSurfaceKind` from the public contracts package for surface-specific styling.
+- The local duplicate `GameSurfaceKind` union was removed from the Studio app.
+
+Supportive changes:
+- Source scans now require LiveGame to use the contract surface kind and block reintroducing the local duplicate union.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps Live App surface vocabulary contract-owned and forward-only without app-local duplicate kind aliases, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Template-Owned Live App Surface Selection
 
 Milestone:
