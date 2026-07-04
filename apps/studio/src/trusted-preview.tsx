@@ -36,10 +36,7 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
   return replay.renderRequests.map((request, index) => {
     const manifest = manifestForRenderRequest(request);
     const componentId = request.componentId;
-    const componentCapability = request.componentCapability ?? manifest?.renderCapability;
-    if (!componentCapability) {
-      throw new Error(`trusted preview request ${request.id} does not include a concrete component identity`);
-    }
+    const componentCapability = request.componentCapability;
 
     return {
       componentKey: renderRequestKey(request, index),

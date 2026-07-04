@@ -73,7 +73,7 @@ export class TrustedComponentRegistry {
       return failure("unknown-component", "no registered trusted component matched the request");
     }
 
-    if (request.componentCapability && entry.manifest.renderCapability !== request.componentCapability) {
+    if (entry.manifest.renderCapability !== request.componentCapability) {
       return failure("unsupported-capability", `component ${entry.manifest.id} does not support ${request.componentCapability}`);
     }
 

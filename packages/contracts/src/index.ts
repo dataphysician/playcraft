@@ -322,7 +322,7 @@ export const ComponentRenderRequestSchema = PublicContractBaseSchema.extend({
   kind: z.literal("component-render-request"),
   profileId: StableIdSchema,
   componentId: StableIdSchema,
-  componentCapability: CapabilityTagSchema.optional(),
+  componentCapability: CapabilityTagSchema,
   mechanicBindingId: StableIdSchema,
   props: z.record(JsonValueSchema),
   assetBindings: z.record(StableIdSchema).default({}),

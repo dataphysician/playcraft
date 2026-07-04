@@ -381,11 +381,16 @@ describe("import-light boundaries and source scans", () => {
     const previewSource = readSource("apps/studio/src/trusted-preview.tsx");
 
     expect(contractSource).toContain("componentId: StableIdSchema");
+    expect(contractSource).toContain("componentCapability: CapabilityTagSchema");
     expect(contractSource).not.toContain("componentId: StableIdSchema.optional()");
+    expect(contractSource).not.toContain("componentCapability: CapabilityTagSchema.optional()");
     expect(contractSource).not.toContain("componentId or componentCapability is required");
     expect(rendererSource).toContain("entry.manifest.id === request.componentId");
+    expect(rendererSource).toContain("entry.manifest.renderCapability !== request.componentCapability");
     expect(rendererSource).not.toContain("entry.manifest.renderCapability === request.componentCapability");
     expect(previewSource).toContain("candidate.id === request.componentId");
+    expect(previewSource).not.toContain("request.componentCapability ??");
+    expect(previewSource).not.toContain("manifest?.renderCapability");
     expect(previewSource).not.toContain("candidate.renderCapability === request.componentCapability");
     expect(previewSource).not.toContain("request.componentCapability).");
   });

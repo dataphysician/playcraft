@@ -449,6 +449,9 @@ describe("public contract schemas", () => {
     };
 
     expect(ComponentRenderRequestSchema.safeParse(request).success).toBe(true);
+    const missingCapabilityRequest: Partial<typeof request> = { ...request };
+    delete missingCapabilityRequest.componentCapability;
+    expect(ComponentRenderRequestSchema.safeParse(missingCapabilityRequest).success).toBe(false);
     expect(ComponentRenderRequestSchema.safeParse({ ...request, fallbackPolicy: "skip-component" }).success).toBe(false);
   });
 

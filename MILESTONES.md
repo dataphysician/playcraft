@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Self-Describing Render Request Identity
+
+Milestone:
+- Component render requests now require both a concrete `componentId` and `componentCapability`.
+- Trusted preview summaries no longer derive missing render capabilities from registered manifests.
+- Trusted renderer capability validation now checks the requested capability directly for every render request.
+
+Supportive changes:
+- Contract tests now reject render requests that omit `componentCapability`.
+- Source scans now block optional render capability fields and Studio manifest-derived capability fallback.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/renderer/test/trusted-renderer.test.tsx`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps render requests fully self-describing and forward-only without capability fallback inference, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Fail-Closed Render Requests Only
 
 Milestone:
