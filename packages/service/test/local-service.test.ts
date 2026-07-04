@@ -569,6 +569,11 @@ describe("local Playcraft service", () => {
 
     expect(runLocalServiceCli(["assemble", "--source", "speech-transcript", "--text", "Memory game"], io)).toBe(1);
     expect(err.pop()).toMatch(/requires --transcript/u);
+
+    const outputCount = out.length;
+    expect(runLocalServiceCli(["assemble", "--template", "memory-match", "--text", "Memory game"], io)).toBe(1);
+    expect(out).toHaveLength(outputCount);
+    expect(err.pop()).toMatch(/builder template IDs must start with template/u);
   });
 
   it("exports and imports profiles through the service envelope and CLI", () => {

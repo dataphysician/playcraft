@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Service CLI Template Validation
+
+Milestone:
+- `playcraft-service --template` now validates template IDs through `BuilderTemplateIdSchema` before constructing local service requests.
+- Service CLI argument parsing now runs inside the CLI error boundary, so malformed template IDs report as normal CLI failures instead of escaping.
+- Invalid template strings are rejected before agent-facing assemble/update/import commands can reach service dispatch.
+
+Supportive changes:
+- Added CLI coverage for rejecting a malformed service `--template` value with the shared contract error message.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps the local agent CLI surface schema-first and aligned with the builder CLI.
+- Does not add hosted services, generated runtime code, auth, database state, or compatibility aliases.
+
 ## 2026-07-04 - Sequence Round Contract
 
 Milestone:

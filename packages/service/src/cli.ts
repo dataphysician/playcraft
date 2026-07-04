@@ -3,6 +3,7 @@ declare const process: { argv: string[]; exit(code?: number): never };
 import {
   BuilderProfileExportSchema,
   BuilderServiceRequestSchema,
+  BuilderTemplateIdSchema,
   GameAssemblyProfileSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
@@ -46,10 +47,10 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
     return 1;
   }
 
-  const args = parseArgs(rest);
-  const service = createLocalPlaycraftService();
-
   try {
+    const args = parseArgs(rest);
+    const service = createLocalPlaycraftService();
+
     if (commandName === "request") {
       const response = service.handle(parseServiceRequestJson(args.requestJson));
       writeServiceEnvelopeResponse(response, Boolean(args.json), io);
@@ -94,7 +95,7 @@ function parseArgs(argv: string[]): ParsedArgs {
       output.sessionId = argv[index + 1];
       index += 1;
     } else if (entry === "--template") {
-      output.templateId = argv[index + 1] as BuilderTemplateId;
+      output.templateId = BuilderTemplateIdSchema.parse(argv[index + 1]);
       index += 1;
     } else if (entry === "--asset-theme") {
       output.assetEdit = {
