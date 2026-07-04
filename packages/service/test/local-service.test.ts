@@ -492,6 +492,40 @@ describe("local Playcraft service", () => {
     });
   });
 
+  it("records ambiguous template text without silently reporting a normal active-template decision", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.sorting",
+      sequence: 1,
+      source: "text",
+      text: "Memory game or repeat pattern with toys"
+    });
+
+    expect(resolved.templateId).toBe("template.sorting");
+    expect(resolved.resolution.templateDecision).toMatchObject({
+      source: "ambiguous-template-match",
+      matchedTemplateIds: ["template.memory-match", "template.sequence-repeat"]
+    });
+    expect(resolved.resolution.assetDecision).toMatchObject({
+      source: "catalog-asset-alias",
+      matchedText: "toys"
+    });
+  });
+
+  it("records ambiguous template text when selecting the default template", () => {
+    const resolved = resolveBuilderInputCommand({
+      sequence: 1,
+      source: "text",
+      text: "Sort or memory game"
+    });
+
+    expect(resolved.templateId).toBe("template.memory-match");
+    expect(resolved.resolution.templateDecision).toMatchObject({
+      source: "ambiguous-template-match",
+      matchedTemplateIds: ["template.memory-match", "template.sorting"]
+    });
+    expect(resolved.resolution.assetDecision.source).toBe("none");
+  });
+
   it("records explicit template and asset-edit decisions without text guessing", () => {
     const resolved = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",

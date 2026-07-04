@@ -625,6 +625,13 @@ function templateDecisionFor(input: {
     return { source: "text-match", templateId: input.matchedTemplateIds[0] };
   }
 
+  if (input.matchedTemplateIds.length > 1) {
+    return {
+      source: "ambiguous-template-match",
+      templateId: input.activeTemplateId ?? DEFAULT_TEMPLATE_ID
+    };
+  }
+
   if (input.activeTemplateId) {
     return { source: "active-template", templateId: input.activeTemplateId };
   }

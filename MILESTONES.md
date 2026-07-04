@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Ambiguous Template Resolution
+
+Milestone:
+- `BuilderIntentResolution` now has an explicit `ambiguous-template-match` source for text that matches multiple game templates.
+- The local service resolver keeps selecting the active or default template for ambiguous requests, but no longer reports that selection as a normal active/default decision.
+- Ambiguous requests still preserve matched template IDs, aliases, and asset-edit decisions for Studio/agent inspection.
+
+Supportive changes:
+- Added resolver coverage for ambiguous active-template and default-template selection paths.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts packages/contracts/test/schemas.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Makes template switching heuristics inspectable without introducing hosted providers, compatibility migration code, generated runtime code, auth, or database state.
+- Keeps local text/Moonshine transcript flows deterministic and contract-first.
+
 ## 2026-07-04 - Template ID Contract Tightening
 
 Milestone:

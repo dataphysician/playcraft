@@ -626,7 +626,7 @@ export const BuilderIntentResolutionSchema = PublicContractBaseSchema.extend({
   selectedTemplateId: BuilderTemplateIdSchema,
   templateDecision: z
     .object({
-      source: z.enum(["explicit-template-id", "text-match", "active-template", "default-template"]),
+      source: z.enum(["explicit-template-id", "text-match", "ambiguous-template-match", "active-template", "default-template"]),
       matchedTemplateIds: z.array(BuilderTemplateIdSchema).default([]),
       matchedCapabilityTags: z.array(CapabilityTagSchema).default([]),
       matchedRequestAliases: z.array(z.string().min(2).max(80)).default([])
