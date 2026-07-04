@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import React from "react";
-import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { handleServiceHttpRequestBody } from "@playcraft/service";
 
 import { App } from "../apps/mobile-shell/src/App.js";
 import { createMobileShellStudioClient } from "../apps/mobile-shell/src/mobile-client.js";
@@ -13,10 +14,16 @@ function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(join(root, path), "utf8")) as T;
 }
 
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
 describe("Tauri mobile shell", () => {
   it("declares a local-first Tauri Mobile-facing package and config", () => {
     const packageJson = readJson<{ dependencies: Record<string, string>; name: string }>("apps/mobile-shell/package.json");
     const tauriConfig = readJson<{
+      app: { security: { csp: string } };
       build: { devUrl: string; frontendDist: string };
       bundle: { active: boolean };
       identifier: string;
@@ -33,6 +40,7 @@ describe("Tauri mobile shell", () => {
     expect(tauriConfig.build.devUrl).toBe("http://127.0.0.1:5174");
     expect(tauriConfig.build.frontendDist).toBe("../dist");
     expect(tauriConfig.bundle.active).toBe(false);
+    expect(tauriConfig.app.security.csp).toContain("http://127.0.0.1:8787");
   });
 
   it("assembles games through the local Playcraft service client", () => {
@@ -44,6 +52,30 @@ describe("Tauri mobile shell", () => {
 
     expect(session.activeProfileId).toBe("profile.memory-match.mvp");
     expect(session.profiles[0].assetRequests[0]?.prompt).toContain("toys memory card illustrations");
+    expect(session.timeline.some((entry) => entry.detail.includes("moonshine-streaming"))).toBe(true);
+  });
+
+  it("can target the local HTTP service endpoint instead of the in-process transport", async () => {
+    const requestedUrls: string[] = [];
+    vi.stubGlobal("fetch", async (url: unknown, init: { body?: unknown } = {}) => {
+      requestedUrls.push(String(url));
+      const response = handleServiceHttpRequestBody(typeof init.body === "string" ? init.body : "");
+      return {
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        text: async () => response.body
+      };
+    });
+
+    const client = createMobileShellStudioClient("http://127.0.0.1:8787/playcraft");
+    const session = await client.assembleFromIntent({
+      idea: "Repeat a pattern with gems",
+      source: "speech-transcript"
+    });
+
+    expect(requestedUrls).toEqual(["http://127.0.0.1:8787/playcraft"]);
+    expect(session.activeProfileId).toBe("profile.sequence-repeat.mvp");
+    expect(session.profiles[0].assetRequests[0]?.prompt).toContain("gems sequence game button illustrations");
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-streaming"))).toBe(true);
   });
 

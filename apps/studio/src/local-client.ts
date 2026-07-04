@@ -7,15 +7,27 @@ import {
   type JsonValue
 } from "@playcraft/contracts";
 
-import { createLocalServiceTransport, type BuilderServiceTransport } from "@playcraft/service";
+import { createHttpServiceTransport, createLocalServiceTransport, type BuilderServiceTransport } from "@playcraft/service";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry, StudioTimelineKind } from "./types.js";
 
-export function createLocalStudioClient(): StudioClient {
+export interface ConfiguredStudioClientOptions {
+  defaultSessionId?: string;
+  serviceEndpoint?: string;
+  timelineIdPrefix?: string;
+}
+
+export function createConfiguredStudioClient(options: ConfiguredStudioClientOptions = {}): StudioClient {
+  const serviceEndpoint = options.serviceEndpoint?.trim();
+
   return createStudioClientFromServiceTransport({
-    defaultSessionId: "studio.session",
-    timelineIdPrefix: "timeline",
-    transport: createLocalServiceTransport()
+    defaultSessionId: options.defaultSessionId ?? "studio.session",
+    timelineIdPrefix: options.timelineIdPrefix ?? "timeline",
+    transport: serviceEndpoint ? createHttpServiceTransport({ endpoint: serviceEndpoint }) : createLocalServiceTransport()
   });
+}
+
+export function createLocalStudioClient(): StudioClient {
+  return createConfiguredStudioClient();
 }
 
 export function createStudioClientFromServiceTransport(options: {

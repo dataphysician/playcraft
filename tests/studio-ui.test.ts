@@ -2,15 +2,18 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { assembleMvpProfiles } from "@playcraft/packs";
-import { resolveBuilderInputCommand } from "@playcraft/service";
-import { createLocalStudioClient } from "../apps/studio/src/local-client.js";
+import { handleServiceHttpRequestBody, resolveBuilderInputCommand } from "@playcraft/service";
+import { createConfiguredStudioClient, createLocalStudioClient } from "../apps/studio/src/local-client.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
 import { TrustedPreview } from "../apps/studio/src/trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "../apps/studio/src/types.js";
 
 const [profileA, profileB] = assembleMvpProfiles();
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 function timelineEntry(id: string, title: string, kind: StudioTimelineEntry["kind"], profileId?: string): StudioTimelineEntry {
   return {
@@ -81,6 +84,31 @@ describe("studio UI", () => {
     expect(await screen.findByLabelText("Chat history")).toBeDefined();
     expect(screen.getByText("Transcript")).toBeDefined();
     expect(screen.getAllByText(/memory game with dinosaurs/iu).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("can assemble through a configured HTTP service endpoint", async () => {
+    const requestedUrls: string[] = [];
+    vi.stubGlobal("fetch", async (url: unknown, init: { body?: unknown } = {}) => {
+      requestedUrls.push(String(url));
+      const response = handleServiceHttpRequestBody(typeof init.body === "string" ? init.body : "");
+      return {
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        text: async () => response.body
+      };
+    });
+
+    const client = createConfiguredStudioClient({ serviceEndpoint: "http://127.0.0.1:8787/playcraft" });
+    const session = await client.assembleFromIntent({
+      idea: "Sort shapes by color",
+      source: "text"
+    });
+
+    expect(requestedUrls).toEqual(["http://127.0.0.1:8787/playcraft"]);
+    expect(session.activeProfileId).toBe("profile.sorting.mvp");
+    expect(session.profiles[0].profileName).toBe("Sorting MVP");
+    expect(session.timeline.length).toBeGreaterThan(0);
+    expect(session.timeline.some((entry) => entry.detail.includes("template.sorting"))).toBe(true);
   });
 
   it("shows available games and asset edits in the request tips tooltip", () => {

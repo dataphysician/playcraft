@@ -1,10 +1,9 @@
-import { createLocalServiceTransport } from "@playcraft/service";
-import { createStudioClientFromServiceTransport, type StudioClient } from "@playcraft/studio";
+import { createConfiguredStudioClient, type StudioClient } from "@playcraft/studio";
 
-export function createMobileShellStudioClient(): StudioClient {
-  return createStudioClientFromServiceTransport({
+export function createMobileShellStudioClient(serviceEndpoint?: string): StudioClient {
+  return createConfiguredStudioClient({
     defaultSessionId: "mobile.session",
-    timelineIdPrefix: "mobile.timeline",
-    transport: createLocalServiceTransport()
+    serviceEndpoint,
+    timelineIdPrefix: "mobile.timeline"
   });
 }
