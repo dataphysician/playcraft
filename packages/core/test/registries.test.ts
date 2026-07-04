@@ -103,6 +103,12 @@ describe("capability registries", () => {
       kind: "loose-entry",
       compatibleDomainProfiles: ["domain.alias"],
       compatibleSafetyPolicies: ["safety.alias"],
+      supportedDomains: ["domain.alias"],
+      safetyPolicyIds: ["safety.alias"],
+      supportedAgeBands: ["adult"],
+      ageBands: ["adult"],
+      supportedModalities: ["audio"],
+      modalities: ["audio"],
       compatibility: {
         domainProfileIds: ["domain.current"],
         safetyPolicyIds: ["safety.current"],

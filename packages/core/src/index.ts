@@ -514,17 +514,19 @@ function domainProfileIdsForEntry(entry: RegistryEntry): string[] {
     return [entry.id];
   }
 
-  const supportedDomains = getStringArray(entry, "supportedDomains");
-  return supportedDomains.length > 0 ? supportedDomains : compatibilityStringArray(entry, "domainProfileIds");
+  if (entry.kind === "component" || entry.kind === "theme" || entry.kind === "safety-policy") {
+    return getStringArray(entry, "supportedDomains");
+  }
+
+  return compatibilityStringArray(entry, "domainProfileIds");
 }
 
 function safetyPolicyIdsForEntry(entry: RegistryEntry): string[] {
-  const safetyPolicyIds = getStringArray(entry, "safetyPolicyIds");
-  if (safetyPolicyIds.length > 0) {
-    return safetyPolicyIds;
+  if (entry.kind === "component") {
+    return getStringArray(entry, "safetyPolicyIds");
   }
 
-  if (typeof entry.defaultSafetyPolicyId === "string") {
+  if (entry.kind === "domain-profile" && typeof entry.defaultSafetyPolicyId === "string") {
     return [entry.defaultSafetyPolicyId];
   }
 
@@ -532,21 +534,25 @@ function safetyPolicyIdsForEntry(entry: RegistryEntry): string[] {
 }
 
 function ageBandsForEntry(entry: RegistryEntry): string[] {
-  const supportedAgeBands = getStringArray(entry, "supportedAgeBands");
-  if (supportedAgeBands.length > 0) {
-    return supportedAgeBands;
+  if (entry.kind === "mechanic" || entry.kind === "component" || entry.kind === "theme") {
+    return getStringArray(entry, "supportedAgeBands");
   }
 
-  const ageBands = getStringArray(entry, "ageBands");
-  return ageBands.length > 0 ? ageBands : compatibilityStringArray(entry, "ageBands");
+  if (entry.kind === "domain-profile" || entry.kind === "safety-policy") {
+    return getStringArray(entry, "ageBands");
+  }
+
+  return compatibilityStringArray(entry, "ageBands");
 }
 
 function modalitiesForEntry(entry: RegistryEntry): string[] {
-  const supportedModalities = getStringArray(entry, "supportedModalities");
-  if (supportedModalities.length > 0) {
-    return supportedModalities;
+  if (entry.kind === "mechanic") {
+    return getStringArray(entry, "supportedModalities");
   }
 
-  const modalities = getStringArray(entry, "modalities");
-  return modalities.length > 0 ? modalities : compatibilityStringArray(entry, "modalities");
+  if (entry.kind === "domain-profile") {
+    return getStringArray(entry, "modalities");
+  }
+
+  return compatibilityStringArray(entry, "modalities");
 }

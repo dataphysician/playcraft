@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Registry Kind-Specific Compatibility Fields
+
+Milestone:
+- Core registry compatibility checks now read supported domains, safety policies, age bands, and modalities only from current kind-specific contract fields.
+- Loose registry entries no longer get opportunistic support from stale top-level compatibility aliases.
+- Mechanics and rules continue to use the canonical `compatibility` object while components, themes, domains, and safety policies use their explicit current contract fields.
+
+Supportive changes:
+- Strengthened core registry coverage with stale loose-entry aliases for domains, safety policies, age bands, and modalities.
+
+Validation:
+- `pnpm test packages/core/test/registries.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps registry selection forward-only and contract-shaped without migration compatibility probing, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Operational Resume Prompt De-Hosted
 
 Milestone:
