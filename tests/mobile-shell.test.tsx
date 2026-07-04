@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createMoonshineTranscriptRecord, handleServiceHttpRequestBody } from "@playcraft/service";
 
@@ -9,9 +10,33 @@ import { App } from "../apps/mobile-shell/src/App.js";
 import { createMobileShellStudioClient } from "../apps/mobile-shell/src/mobile-client.js";
 
 const root = process.cwd();
+const packageJsonSchema = z
+  .object({
+    dependencies: z.record(z.string()),
+    name: z.string()
+  })
+  .passthrough();
+const tauriConfigSchema = z
+  .object({
+    app: z
+      .object({
+        security: z.object({ csp: z.string() }).passthrough()
+      })
+      .passthrough(),
+    build: z
+      .object({
+        devUrl: z.string(),
+        frontendDist: z.string()
+      })
+      .passthrough(),
+    bundle: z.object({ active: z.boolean() }).passthrough(),
+    identifier: z.string(),
+    productName: z.string()
+  })
+  .passthrough();
 
-function readJson<T>(path: string): T {
-  return JSON.parse(readFileSync(join(root, path), "utf8")) as T;
+function readJson<TSchema extends z.ZodTypeAny>(path: string, schema: TSchema): z.infer<TSchema> {
+  return schema.parse(JSON.parse(readFileSync(join(root, path), "utf8")));
 }
 
 afterEach(() => {
@@ -21,14 +46,8 @@ afterEach(() => {
 
 describe("Tauri mobile shell", () => {
   it("declares a local-first Tauri Mobile-facing package and config", () => {
-    const packageJson = readJson<{ dependencies: Record<string, string>; name: string }>("apps/mobile-shell/package.json");
-    const tauriConfig = readJson<{
-      app: { security: { csp: string } };
-      build: { devUrl: string; frontendDist: string };
-      bundle: { active: boolean };
-      identifier: string;
-      productName: string;
-    }>("apps/mobile-shell/src-tauri/tauri.conf.json");
+    const packageJson = readJson("apps/mobile-shell/package.json", packageJsonSchema);
+    const tauriConfig = readJson("apps/mobile-shell/src-tauri/tauri.conf.json", tauriConfigSchema);
 
     expect(packageJson.name).toBe("@playcraft/mobile-shell");
     expect(packageJson.dependencies).toMatchObject({

@@ -52,11 +52,19 @@ describe("studio asset library", () => {
     fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Memory game with dinosaurs" } });
     fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
 
-    expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
+    const dinosaurCards = await screen.findAllByRole("button", { name: /dinosaur-\d-[ab]/u });
+    const dinosaurCard = dinosaurCards[0];
+    if (!dinosaurCard) {
+      throw new Error("No rendered dinosaur card was available.");
+    }
+    const expectedSpriteName = dinosaurCard.getAttribute("aria-label")?.replace(/-[ab]$/u, "").replace(/-/gu, " ");
+    if (!expectedSpriteName) {
+      throw new Error("Rendered dinosaur card did not expose an accessible card label.");
+    }
     expect(screen.getAllByTestId("playcraft-card-back").length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole("button", { name: "dinosaur-1-a" }));
-    expect(await screen.findByRole("img", { name: "dinosaur 1 sprite" })).toBeDefined();
+    fireEvent.click(dinosaurCard);
+    expect(await screen.findByRole("img", { name: `${expectedSpriteName} sprite` })).toBeDefined();
   });
 
   it("renders generated sorting bin assets", async () => {

@@ -1,27 +1,53 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import { render, screen } from "@testing-library/react";
 import { App } from "../apps/studio/src/App.js";
 import { PLAYCRAFT_BUILDER_PACKAGE } from "@playcraft/builder";
 import { PLAYCRAFT_SERVICE_PACKAGE } from "@playcraft/service";
 
 const root = process.cwd();
+const stringRecordSchema = z.record(z.string());
+const rootPackageJsonSchema = z
+  .object({
+    scripts: stringRecordSchema
+  })
+  .passthrough();
+const workspacePackageJsonSchema = z
+  .object({
+    bin: stringRecordSchema.default({}),
+    dependencies: stringRecordSchema,
+    devDependencies: stringRecordSchema.default({}),
+    name: z.string(),
+    scripts: stringRecordSchema.default({})
+  })
+  .passthrough();
+const tsconfigJsonSchema = z
+  .object({
+    compilerOptions: z
+      .object({
+        paths: z.record(z.array(z.string()))
+      })
+      .passthrough(),
+    references: z.array(z.object({ path: z.string() }).passthrough())
+  })
+  .passthrough();
 
 function readText(path: string): string {
   return readFileSync(join(root, path), "utf8");
 }
 
-function readJson<T>(path: string): T {
-  return JSON.parse(readText(path)) as T;
+function readJson<TSchema extends z.ZodTypeAny>(path: string, schema: TSchema): z.infer<TSchema> {
+  return schema.parse(JSON.parse(readText(path)));
 }
 
 describe("builder/studio workspace scaffold", () => {
   it("wires the workspace, root scripts, tsconfig references, and package aliases", () => {
     const workspace = readText("pnpm-workspace.yaml");
     const readme = readText("README.md");
-    const rootPackage = readJson<{ scripts: Record<string, string> }>("package.json");
-    const tsconfig = readJson<{ references: Array<{ path: string }>; compilerOptions: { paths: Record<string, string[]> } }>("tsconfig.json");
+    const rootPackage = readJson("package.json", rootPackageJsonSchema);
+    const tsconfig = readJson("tsconfig.json", tsconfigJsonSchema);
 
     expect(readme).toContain("pnpm serve:service");
     expect(readme).toContain("VITE_PLAYCRAFT_SERVICE_URL=http://127.0.0.1:8787/playcraft");
@@ -47,20 +73,10 @@ describe("builder/studio workspace scaffold", () => {
   });
 
   it("defines builder, service, studio, and mobile package manifests with the expected boundaries", () => {
-    const builderPackage = readJson<{ name: string; dependencies: Record<string, string> }>("packages/builder/package.json");
-    const servicePackage = readJson<{ bin: Record<string, string>; name: string; dependencies: Record<string, string> }>("packages/service/package.json");
-    const studioPackage = readJson<{
-      name: string;
-      scripts: Record<string, string>;
-      dependencies: Record<string, string>;
-      devDependencies: Record<string, string>;
-    }>("apps/studio/package.json");
-    const mobilePackage = readJson<{
-      name: string;
-      scripts: Record<string, string>;
-      dependencies: Record<string, string>;
-      devDependencies: Record<string, string>;
-    }>("apps/mobile-shell/package.json");
+    const builderPackage = readJson("packages/builder/package.json", workspacePackageJsonSchema);
+    const servicePackage = readJson("packages/service/package.json", workspacePackageJsonSchema);
+    const studioPackage = readJson("apps/studio/package.json", workspacePackageJsonSchema);
+    const mobilePackage = readJson("apps/mobile-shell/package.json", workspacePackageJsonSchema);
 
     expect(PLAYCRAFT_BUILDER_PACKAGE).toBe("@playcraft/builder");
     expect(PLAYCRAFT_SERVICE_PACKAGE).toBe("@playcraft/service");

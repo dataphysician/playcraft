@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Scaffold JSON Fixture Schema Parsing
+
+Milestone:
+- Builder/Studio scaffold tests now parse package and tsconfig JSON through Zod schemas before assertions.
+- Mobile shell tests now parse package and Tauri config JSON through Zod schemas before assertions.
+- Test JSON helpers infer return types from schemas instead of caller-supplied structural generics.
+
+Supportive changes:
+- Removed the remaining generic `JSON.parse(...) as T` fixture assertions from workspace and mobile shell scaffold tests.
+- Stabilized the Studio asset-library sprite assertion so it follows the shuffled memory-card label it clicks.
+
+Validation:
+- `pnpm test tests/builder-studio-scaffold.test.tsx`
+- `pnpm test tests/mobile-shell.test.tsx`
+- `pnpm test tests/studio-asset-library.test.tsx`
+- JSON fixture cast scan across tests, apps, and packages.
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps Studio/Mobile shell scaffold verification contract-shaped and local without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Generic Text Resolution Label Scan
 
 Milestone:
