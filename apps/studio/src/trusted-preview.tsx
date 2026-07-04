@@ -23,6 +23,7 @@ export interface TrustedPreviewComponentSummary {
   componentCapability: string;
   mechanicBindingId: string;
   emittedToolNames: string[];
+  interactionSummary: string;
   expectedEmittedEvents: string[];
 }
 
@@ -44,9 +45,20 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
       componentCapability,
       mechanicBindingId: request.mechanicBindingId,
       emittedToolNames: manifest?.emittedTools.map((tool) => tool.toolName) ?? [],
+      interactionSummary: interactionSummaryFor(manifest?.emittedTools.map((tool) => tool.toolName) ?? [], request.expectedEmittedEvents),
       expectedEmittedEvents: [...request.expectedEmittedEvents]
     };
   });
+}
+
+function interactionSummaryFor(toolNames: string[], expectedEmittedEvents: string[]): string {
+  if (toolNames.length > 0) {
+    return `tools: ${toolNames.join(", ")}`;
+  }
+
+  return expectedEmittedEvents.length > 0
+    ? `events: ${expectedEmittedEvents.join(", ")}`
+    : "events: none";
 }
 
 export function TrustedPreview({ profile, selectedComponentKey, onInteraction }: TrustedPreviewProps): React.ReactElement {

@@ -757,6 +757,17 @@ describe("import-light boundaries and source scans", () => {
     expect(previewSource).not.toContain("request.componentCapability).");
   });
 
+  it("keeps Studio trusted component interaction summaries replay-owned", () => {
+    const appSource = readSource("apps/studio/src/studio-app.tsx");
+    const previewSource = readSource("apps/studio/src/trusted-preview.tsx");
+
+    expect(previewSource).toContain("interactionSummaryFor");
+    expect(previewSource).toContain("expectedEmittedEvents.join");
+    expect(appSource).toContain("component.interactionSummary");
+    expect(appSource).not.toContain('"display-only"');
+    expect(appSource).not.toContain("component.emittedToolNames.length > 0 ? component.emittedToolNames.join");
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

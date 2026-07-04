@@ -926,7 +926,7 @@ function ComponentInventoryPanel({
             React.createElement(
               "span",
               { style: shellStyles.componentToolLine },
-              component.emittedToolNames.length > 0 ? component.emittedToolNames.join(", ") : "display-only"
+              component.interactionSummary
             )
           )
         )

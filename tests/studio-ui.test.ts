@@ -461,6 +461,8 @@ describe("studio UI", () => {
     expect(screen.getByText("Validation: valid")).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.reveal-card-grid/u })).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.celebration-overlay/u })).toBeDefined();
+    expect(screen.getByText("tools: tool:reveal-card")).toBeDefined();
+    expect(screen.getAllByText("events: none").length).toBeGreaterThanOrEqual(1);
 
     fireEvent.click(screen.getByRole("button", { name: /component\.celebration-overlay/u }));
     expect(await screen.findByText("You found every pair.")).toBeDefined();
@@ -483,7 +485,8 @@ describe("studio UI", () => {
     expect(summaries).toEqual(expect.arrayContaining([
       expect.objectContaining({
         componentId: "component.reveal-card-grid",
-        componentCapability: "component:reveal-card-grid"
+        componentCapability: "component:reveal-card-grid",
+        interactionSummary: "tools: tool:reveal-card"
       })
     ]));
     expect(summaries.map((summary) => summary.componentId)).not.toContain("component.unresolved");

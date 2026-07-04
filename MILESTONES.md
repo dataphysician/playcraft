@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Replay-Owned Component Interaction Summaries
+
+Milestone:
+- Trusted preview component summaries now include an `interactionSummary` derived from emitted tools or replay expected events.
+- Studio Developer component rows render that summary instead of app-local `display-only` text.
+- Non-interactive trusted components now show explicit replay-owned event information.
+
+Supportive changes:
+- Studio UI tests verify tool-backed and no-event component summaries in the Developer tab.
+- Source scans now block app-local `display-only` component summaries from returning.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps Studio Developer component metadata replay-owned and forward-only without local presentation fallbacks, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Explicit Paired Card Sprite Matching
 
 Milestone:
