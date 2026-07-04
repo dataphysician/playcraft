@@ -61,11 +61,11 @@ export type BuilderAgUiEvent = AgUiEvent;
 export const builderToolDefinitions: BuilderToolDefinition[] = [
   builderTool("builder-tool.assemble-game", "tool:assemble-game", "Assemble a mini-game from a registered local template.", "assemble-game", ["text", "speech-transcript"]),
   builderTool("builder-tool.update-game", "tool:update-game", "Update the active mini-game template or its asset edit levers.", "update-game", ["text", "speech-transcript"]),
-  builderTool("builder-tool.preview-action", "tool:preview-action", "Replay one trusted UI interaction against the active profile.", "preview-action", ["text"]),
-  builderTool("builder-tool.list-builder-tools", "tool:list-builder-tools", "List the local Playcraft builder tools and bundled game templates.", "list-builder-tools", ["text"]),
-  builderTool("builder-tool.get-session", "tool:get-session", "Inspect the active local builder session snapshot.", "get-session", ["text"]),
-  builderTool("builder-tool.export-profile", "tool:export-profile", "Export the active validated game profile for reuse.", "export-profile", ["text"]),
-  builderTool("builder-tool.import-profile", "tool:import-profile", "Import a validated game profile into a local session.", "import-profile", ["text"])
+  builderTool("builder-tool.preview-action", "tool:preview-action", "Replay one trusted UI interaction against the active profile.", "preview-action", []),
+  builderTool("builder-tool.list-builder-tools", "tool:list-builder-tools", "List the local Playcraft builder tools and bundled game templates.", "list-builder-tools", []),
+  builderTool("builder-tool.get-session", "tool:get-session", "Inspect the active local builder session snapshot.", "get-session", []),
+  builderTool("builder-tool.export-profile", "tool:export-profile", "Export the active validated game profile for reuse.", "export-profile", []),
+  builderTool("builder-tool.import-profile", "tool:import-profile", "Import a validated game profile into a local session.", "import-profile", [])
 ];
 
 const TEMPLATE_BY_ID = new Map(gameTemplateDefinitions.map((template) => [template.id, template]));

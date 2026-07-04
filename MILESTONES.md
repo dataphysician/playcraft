@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Builder Tool Input Contract Cleanup
+
+Milestone:
+- Builder tool definitions now distinguish input-driven tools from session/profile actions.
+- Assemble and update advertise text plus Moonshine transcript input; preview, list, get-session, export, and import advertise no input source.
+- The Studio Developer catalog shows each tool's input source contract instead of implying every action takes text.
+
+Supportive changes:
+- Relaxed `BuilderToolDefinitionSchema.acceptedInputSources` so action-only tools can declare an empty source list.
+- Added builder and service catalog coverage for no-input session/profile tools.
+- Added Studio UI coverage for visible input-source summaries in the agent tool catalog.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts`
+
+Constraint notes:
+- Keeps the CLI/API tool surface contract-first and honest about which tools consume user text/transcripts.
+- Does not add hosted services, generated runtime code, auth, database state, or compatibility aliases.
+
 ## 2026-07-04 - Deterministic Local Asset Source Cleanup
 
 Milestone:

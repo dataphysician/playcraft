@@ -449,6 +449,7 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               { key: tool.id, style: shellStyles.catalogItem },
               React.createElement("strong", null, tool.toolName),
               React.createElement("span", { style: shellStyles.catalogMeta }, tool.actionName),
+              React.createElement("span", { style: shellStyles.catalogMeta }, toolInputSourceSummary(tool.acceptedInputSources)),
               React.createElement("span", { style: shellStyles.catalogMeta }, toolArgumentsSummary(tool.argumentsSchema.fields))
             )
           )
@@ -497,6 +498,10 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
 function toolArgumentsSummary(fields: BuilderCatalog["tools"][number]["argumentsSchema"]["fields"]): string {
   const summary = Object.entries(fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
   return summary.length > 0 ? summary.join(", ") : "no arguments";
+}
+
+function toolInputSourceSummary(sources: BuilderCatalog["tools"][number]["acceptedInputSources"]): string {
+  return sources.length > 0 ? `input: ${sources.join(", ")}` : "input: none";
 }
 
 function ProfilePortabilityPanel({

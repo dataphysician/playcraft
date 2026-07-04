@@ -568,7 +568,7 @@ export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
   description: z.string().min(1),
   actionName: BuilderActionNameSchema,
   argumentsSchema: JsonObjectSchemaDescriptorSchema,
-  acceptedInputSources: z.array(BuilderInputSourceSchema).min(1),
+  acceptedInputSources: z.array(BuilderInputSourceSchema).default([]),
   localOnly: z.boolean(),
   emittedEvents: z.array(CapabilityTagSchema).default([]),
   requiredContracts: z.array(z.string().min(1)).min(1)

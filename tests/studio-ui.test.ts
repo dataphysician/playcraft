@@ -222,6 +222,8 @@ describe("studio UI", () => {
     expect(screen.getByText("tool:assemble-game")).toBeDefined();
     expect(screen.getByText("tool:export-profile")).toBeDefined();
     expect(screen.getByText("assemble-game")).toBeDefined();
+    expect(screen.getAllByText("input: text, speech-transcript").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("input: none").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Memory Match MVP")).toBeDefined();
     expect(screen.getByText("memory, memory game, memory match")).toBeDefined();
