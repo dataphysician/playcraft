@@ -796,8 +796,8 @@ describe("local Playcraft service", () => {
       "templates:",
       "- Memory Match [template.memory-match] try: Memory game; aliases: memory, memory game, memory match",
       "tools:",
-      "- Assemble Game [tool:assemble-game -> assemble-game] input: Text, Transcript",
-      "- Preview Action [tool:preview-action -> preview-action] input: none",
+      "- Assemble Game [tool:assemble-game -> assemble-game] input: Text, Transcript; args: assetEdit:object, input:object, sessionId:string, templateId*:string",
+      "- Preview Action [tool:preview-action -> preview-action] input: none; args: interaction*:object, sessionId*:string",
       "asset edits: dinosaurs, toys, ocean animals, fruit"
     ]));
     out.length = 0;

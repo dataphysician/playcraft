@@ -15,7 +15,8 @@ import {
   type BuilderServiceRequest,
   type BuilderServiceResponse,
   type BuilderTemplateId,
-  type GameAssemblyProfile
+  type GameAssemblyProfile,
+  type JsonObjectSchemaDescriptor
 } from "@playcraft/contracts";
 import { createLocalPlaycraftService, createMoonshineTranscriptRecord } from "./index.js";
 
@@ -312,7 +313,9 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
 
   io.stdout("tools:");
   for (const tool of catalog.tools) {
-    io.stdout(`- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${toolInputSourceSummary(catalog, tool.acceptedInputSources)}`);
+    io.stdout(
+      `- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${toolInputSourceSummary(catalog, tool.acceptedInputSources)}; ${toolArgumentsSummary(catalog, tool.argumentsSchema)}`
+    );
   }
 
   io.stdout(`asset edits: ${catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel).join(", ")}`);
@@ -327,6 +330,11 @@ function toolInputSourceSummary(
   }
 
   return `input: ${sources.map((source) => requiredInputSourceOption(catalog, source).displayLabel).join(", ")}`;
+}
+
+function toolArgumentsSummary(catalog: BuilderCatalog, schema: JsonObjectSchemaDescriptor): string {
+  const summary = Object.entries(schema.fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
+  return `${catalog.toolPresentation.argumentsPrefix}: ${summary.length > 0 ? summary.join(", ") : catalog.toolPresentation.noArgumentsLabel}`;
 }
 
 function requiredInputSourceOption(catalog: BuilderCatalog, source: BuilderInputSource): BuilderInputSourceOption {

@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Service CLI Tool Argument Summaries
+
+Milestone:
+- `playcraft-service catalog` now prints each agent tool's argument summary in the plain-text CLI catalog output.
+- Local service CLI argument summaries render from `catalog.toolPresentation` and each tool's `argumentsSchema`.
+- Agent-facing CLI users can inspect input sources and callable tool arguments without requiring JSON output.
+
+Supportive changes:
+- Service CLI tests verify plain catalog rows include both input-source and argument-contract summaries.
+- Source scans now require the service CLI to consume `tool.argumentsSchema` and catalog-published argument presentation labels.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps the local agent-facing service CLI catalog contract-shaped and forward-only without app-local argument labels, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Catalog-Owned Tool Argument Presentation
 
 Milestone:

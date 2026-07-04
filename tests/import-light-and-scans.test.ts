@@ -265,6 +265,9 @@ describe("import-light boundaries and source scans", () => {
     expect(cliSource).toContain("template.exampleRequest");
     expect(cliSource).toContain("tool.displayName");
     expect(cliSource).toContain("catalog.input.noInputLabel");
+    expect(cliSource).toContain("tool.argumentsSchema");
+    expect(cliSource).toContain("catalog.toolPresentation.argumentsPrefix");
+    expect(cliSource).toContain("catalog.toolPresentation.noArgumentsLabel");
     expect(cliSource).toContain("requiredInputSourceOption");
     expect(cliSource).toContain("catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel)");
     expect(cliSource).not.toContain("catalog.templates.map((template) => template.id)");
