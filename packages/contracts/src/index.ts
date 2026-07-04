@@ -308,18 +308,14 @@ export type PlaycraftEventRecord = z.infer<typeof PlaycraftEventRecordSchema>;
 export const ComponentRenderRequestSchema = PublicContractBaseSchema.extend({
   kind: z.literal("component-render-request"),
   profileId: StableIdSchema,
-  componentId: StableIdSchema.optional(),
+  componentId: StableIdSchema,
   componentCapability: CapabilityTagSchema.optional(),
   mechanicBindingId: StableIdSchema,
   props: z.record(JsonValueSchema),
   assetBindings: z.record(StableIdSchema).default({}),
   expectedEmittedEvents: z.array(CapabilityTagSchema).default([]),
   fallbackPolicy: z.enum(["fail-closed", "skip-component"])
-}).strict()
-  .refine((value) => Boolean(value.componentId || value.componentCapability), {
-    message: "componentId or componentCapability is required",
-    path: ["componentId"]
-  });
+}).strict();
 export type ComponentRenderRequest = z.infer<typeof ComponentRenderRequestSchema>;
 
 export const PlaycraftAssemblyRequestSchema = PublicContractBaseSchema.extend({

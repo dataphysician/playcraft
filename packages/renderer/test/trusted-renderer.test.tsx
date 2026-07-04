@@ -2,7 +2,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
-  PLAYCRAFT_SCHEMA_VERSION,
   type ComponentRenderRequest
 } from "@playcraft/contracts";
 import { replayProfile } from "@playcraft/core";
@@ -91,20 +90,12 @@ describe("trusted renderer", () => {
     }
   });
 
-  it("requires component identity or capability", () => {
+  it("requires a concrete component id", () => {
     const registry = registerPlaycraftTrustedComponents();
-    const { assets } = firstRenderRequest();
+    const { request, assets } = firstRenderRequest();
     const result = registry.render({
-      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-      id: "render.invalid",
-      version: "1.0.0",
-      kind: "component-render-request",
-      profileId: "profile.invalid",
-      mechanicBindingId: "profile.invalid.mechanic.1",
-      props: {},
-      assetBindings: {},
-      expectedEmittedEvents: [],
-      fallbackPolicy: "fail-closed"
+      ...request,
+      componentId: undefined
     }, assets);
 
     expect(result.ok).toBe(false);

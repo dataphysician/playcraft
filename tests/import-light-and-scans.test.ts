@@ -346,6 +346,21 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).not.toContain('component.renderCapability === "component:sequence-pad"');
   });
 
+  it("keeps trusted rendering component-id concrete without capability fallback dispatch", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const rendererSource = readSource("packages/renderer/src/index.tsx");
+    const previewSource = readSource("apps/studio/src/trusted-preview.tsx");
+
+    expect(contractSource).toContain("componentId: StableIdSchema");
+    expect(contractSource).not.toContain("componentId: StableIdSchema.optional()");
+    expect(contractSource).not.toContain("componentId or componentCapability is required");
+    expect(rendererSource).toContain("entry.manifest.id === request.componentId");
+    expect(rendererSource).not.toContain("entry.manifest.renderCapability === request.componentCapability");
+    expect(previewSource).toContain("candidate.id === request.componentId");
+    expect(previewSource).not.toContain("candidate.renderCapability === request.componentCapability");
+    expect(previewSource).not.toContain("request.componentCapability).");
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

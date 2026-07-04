@@ -35,9 +35,9 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
 
   return replay.renderRequests.map((request, index) => {
     const manifest = manifestForRenderRequest(request);
-    const componentId = request.componentId ?? manifest?.id;
+    const componentId = request.componentId;
     const componentCapability = request.componentCapability ?? manifest?.renderCapability;
-    if (!componentId || !componentCapability) {
+    if (!componentCapability) {
       throw new Error(`trusted preview request ${request.id} does not include a concrete component identity`);
     }
 
@@ -104,23 +104,11 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
 }
 
 function renderRequestKey(request: ComponentRenderRequest, index: number): string {
-  if (request.componentId) {
-    return request.componentId;
-  }
-
-  if (request.componentCapability) {
-    return `${request.componentCapability}.${index}`;
-  }
-
-  throw new Error(`trusted preview request ${request.id} does not include a component identity`);
+  return `${request.componentId}.${index}`;
 }
 
 function manifestForRenderRequest(request: ComponentRenderRequest) {
-  return manifests.find(
-    (candidate) =>
-      candidate.id === request.componentId ||
-      (request.componentCapability !== undefined && candidate.renderCapability === request.componentCapability)
-  );
+  return manifests.find((candidate) => candidate.id === request.componentId);
 }
 
 function PreviewFailure({ failure }: { failure: TrustedRenderFailure["error"] }): React.ReactElement {

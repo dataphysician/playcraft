@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Concrete Component Render Requests
+
+Milestone:
+- `ComponentRenderRequest` now requires a concrete `componentId`.
+- Trusted renderer dispatch now resolves components by manifest ID only.
+- Studio trusted preview keys and manifest lookup now use component IDs instead of capability fallback matching.
+
+Supportive changes:
+- Renderer tests now reject render requests that omit `componentId`.
+- Source scans now block capability-fallback dispatch from returning in contracts, renderer, and Studio trusted preview.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/renderer/test/trusted-renderer.test.tsx`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Refined provider/key literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps trusted rendering profile-contract driven and forward-only without component-capability fallback dispatch, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Template-Owned Asset Edit Operations
 
 Milestone:
