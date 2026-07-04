@@ -23,7 +23,9 @@
       "@playcraft/renderer": ["packages/renderer/src/index.tsx"],
       "@playcraft/packs": ["packages/packs/src/index.ts"],
       "@playcraft/builder": ["packages/builder/src/index.ts"],
-      "@playcraft/studio": ["apps/studio/src/index.ts"]
+      "@playcraft/service": ["packages/service/src/index.ts"],
+      "@playcraft/studio": ["apps/studio/src/index.ts"],
+      "@playcraft/mobile-shell": ["apps/mobile-shell/src/App.tsx"]
     }
   }
 }

@@ -2,7 +2,7 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { assembleMvpProfiles } from "@playcraft/packs";
-import { resolveStudioInputCommand } from "../apps/studio/src/input-adapter.js";
+import { resolveBuilderInputCommand } from "@playcraft/service";
 import { createLocalStudioClient } from "../apps/studio/src/local-client.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
 import { TrustedPreview } from "../apps/studio/src/trusted-preview.js";
@@ -40,13 +40,13 @@ function setElementRect(
 
 describe("studio UI", () => {
   it("normalizes local text and speech transcript inputs into template commands", () => {
-    const text = resolveStudioInputCommand({
+    const text = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",
       sequence: 1,
       source: "text",
       text: "Sort shapes by color"
     });
-    const speech = resolveStudioInputCommand({
+    const speech = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",
       sequence: 2,
       source: "speech-transcript",

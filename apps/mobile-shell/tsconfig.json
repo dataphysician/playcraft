@@ -8,11 +8,8 @@
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "references": [
     { "path": "../../packages/contracts" },
-    { "path": "../../packages/core" },
-    { "path": "../../packages/ag-ui" },
-    { "path": "../../packages/renderer" },
-    { "path": "../../packages/packs" },
     { "path": "../../packages/builder" },
-    { "path": "../../packages/service" }
+    { "path": "../../packages/service" },
+    { "path": "../studio" }
   ]
 }

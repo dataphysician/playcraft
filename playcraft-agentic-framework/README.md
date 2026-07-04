@@ -42,12 +42,14 @@ The v1 target is intentionally small and local-first:
 - Trusted React renderer for registered components only.
 - Replay harness for saved `GameAssemblyProfile` records.
 - Three MVP profiles: memory match, sorting, and sequence repeat.
+- Local service facade for text requests and Moonshine Streaming CPU transcript records.
+- Vite Studio and a Tauri Mobile-facing shell that assemble games through the local service.
 
-V1 must be buildable and testable without network access, credentials, AI SDKs, GPU, model weights, a database, or Tauri.
+The core framework packages must be buildable and testable without network access, credentials, AI SDKs, GPU, model weights, a database, or a native shell. The mobile shell is an app layer around the same local service, not a core dependency.
 
 ## Middleweight Later Path
 
-Later docs may specify a Vite studio app, Tauri/Tauri Mobile shell, visual inspector/debug timeline, profile import/export, curated packs, and real provider adapters. These are not v1 core requirements.
+Current middleweight app work includes the Vite studio, local service, visual game preview, developer timeline, and a Tauri Mobile-facing webview scaffold. Later docs may specify profile import/export, richer curated packs, and real provider adapters. These are not core requirements.
 
 ## Explicit Rejections
 

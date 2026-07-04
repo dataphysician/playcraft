@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Local Playcraft shell capability set. The builder runs in the bundled webview and does not need network, filesystem, shell, or microphone permissions for text/transcript input records.",
+  "windows": ["main"],
+  "permissions": []
+}

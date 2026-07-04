@@ -13,7 +13,7 @@
 
 Build the lightweight v1 as import-light TypeScript packages first. Do not start from the older Next.js app, database schema, auth model, dashboard, or OpenAI route shape.
 
-The v1 core must be usable without network access, credentials, AI SDKs, GPU, model weights, database services, or Tauri. Real providers, Vite studio UX, and Tauri shells are later layers around the core, not prerequisites.
+The v1 core must be usable without network access, credentials, AI SDKs, GPU, model weights, database services, or native-shell APIs. Real providers, Vite studio UX, and Tauri shells are app layers around the core, not prerequisites.
 
 ## 2. Package Boundaries
 
@@ -21,15 +21,19 @@ Recommended package boundaries:
 
 | Package | Responsibility |
 |---------|----------------|
-| `packages/playcraft-contracts` | Zod schemas, TypeScript types, schema versions, fixture builders. |
-| `packages/playcraft-core` | Registries, assembly validation, deterministic planning interfaces, rule evaluation, safety policy evaluation, replay model. |
-| `packages/playcraft-ag-ui` | AG-UI event mapping, Playcraft custom envelopes, typed frontend tools, stream helpers. |
-| `packages/playcraft-renderer` | Trusted React renderer, component registry, component manifest validation. |
-| `packages/playcraft-assets` | Asset request schemas, deterministic stub provider, provider manifest helpers. |
-| `packages/playcraft-packs` | Initial mechanic, rule, component, theme, domain, and safety policy packs. |
+| `packages/contracts` | Zod schemas, TypeScript types, schema versions, fixture builders. |
+| `packages/core` | Registries, assembly validation, deterministic planning interfaces, rule evaluation, safety policy evaluation, replay model. |
+| `packages/ag-ui` | AG-UI event mapping, Playcraft custom envelopes, typed frontend tools, stream helpers. |
+| `packages/renderer` | Trusted React renderer, component registry, component manifest validation. |
+| `packages/assets` | Asset request schemas, deterministic stub provider, provider manifest helpers. |
+| `packages/packs` | Initial mechanic, rule, component, theme, domain, and safety policy packs. |
+| `packages/builder` | Local builder tool handler for catalog, assemble, update, and preview actions. |
+| `packages/service` | Local app/API facade for text input, Moonshine Streaming CPU transcript records, template resolution, and asset edit levers. |
+| `apps/studio` | Vite React studio that renders the live toddler game, developer timeline, and trusted preview from the service contract. |
+| `apps/mobile-shell` | Tauri Mobile-facing webview shell that reuses the Studio UI and local service contract. |
 | `examples/profiles` | Saved profile fixtures for memory match, sorting, and sequence repeat. |
 
-Do not put framework core logic behind Next.js API routes. A Node service, Vite studio, or Tauri shell can use the packages later.
+Do not put framework core logic behind Next.js API routes, native commands, or app-specific stores. The service, studio, and mobile shell consume the packages; they do not define framework contracts.
 
 ## 3. Stack Defaults
 
@@ -42,7 +46,7 @@ Do not put framework core logic behind Next.js API routes. A Node service, Vite 
 | Styling | Tailwind plus focused component CSS for game surfaces, only in renderer/studio layers. |
 | Protocol | AG-UI standard events plus validated Playcraft `Custom` envelopes. |
 | Persistence | JSON fixtures first; repository interfaces later. |
-| Native shell | Tauri/Tauri Mobile later; never required by core. |
+| Native shell | Tauri/Tauri Mobile only in app shells; never required by core. |
 
 ## 4. Contract Order
 
@@ -233,10 +237,10 @@ Default verification must include:
 Suggested scan targets:
 
 ```bash
-rg "GameType|MEMORY_MATCH|PATTERN_MATCH|SORTING" packages/playcraft-core packages/playcraft-contracts
-rg "providerName|if \\(provider|switch \\(provider" packages/playcraft-core packages/playcraft-assets
-rg "next/server|NextRequest|PrismaClient|NextAuth|OPENAI_API_KEY|process\\.env" packages/playcraft-core packages/playcraft-contracts
-rg "eval\\(|new Function|dangerouslySetInnerHTML" packages/playcraft-renderer
+rg "GameType|MEMORY_MATCH|PATTERN_MATCH|SORTING" packages/core packages/contracts
+rg "providerName|if \\(provider|switch \\(provider" packages/core packages/assets packages/builder packages/service apps/studio
+rg "next/server|NextRequest|PrismaClient|NextAuth|OPENAI_API_KEY|process\\.env" packages/core packages/contracts packages/service
+rg "eval\\(|new Function|dangerouslySetInnerHTML" packages/renderer packages/builder packages/service apps/studio
 ```
 
 The exact paths can change, but the gates cannot.
@@ -279,8 +283,9 @@ The exact paths can change, but the gates cannot.
 
 ### Milestone 7: Middleweight Shells
 
-- Add Vite studio only after v1 core gates pass.
-- Add Tauri/Tauri Mobile shell only after static client behavior is stable.
+- Keep Vite studio wired to `@playcraft/service`, not direct duplicated command execution.
+- Keep the Tauri Mobile-facing shell as a thin webview adapter over the Studio client contract.
+- Keep native permissions empty until a platform capability strictly requires a bridge.
 
 ## 13. Development Rules
 

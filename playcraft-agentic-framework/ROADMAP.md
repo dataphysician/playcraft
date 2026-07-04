@@ -24,8 +24,9 @@ V1 includes:
 - Trusted React renderer for registered components only.
 - Replay harness for saved `GameAssemblyProfile` records.
 - Three MVP profiles: memory match, sorting, and sequence repeat.
+- Local builder service that exposes catalog, assemble, update, and preview actions to user-facing shells.
 
-V1 excludes network, credentials, AI SDKs, GPU, model weights, database services, Tauri, auth, dashboards, billing, and production deployment assumptions.
+V1 core excludes network, credentials, AI SDKs, GPU, model weights, database services, native-shell APIs, auth, dashboards, billing, and production deployment assumptions. App shells may wrap the local service as long as the core packages remain import-light.
 
 ## 3. V1 Milestone Path
 
@@ -52,16 +53,17 @@ These profiles are fixtures assembled from registries, not hardcoded game types.
 
 ## 5. Middleweight Path
 
-After v1 gates pass, add middleweight runtime/studio features:
+After v1 gates pass, continue hardening middleweight runtime/studio features:
 
-- Vite studio app for authoring, preview, replay, and inspection.
+- Vite studio app for authoring, preview, replay, and inspection. Current package: `apps/studio`.
+- Local shell/API facade for catalog, assemble, update, preview, and text/transcript normalization. Current package: `packages/service`.
+- Tauri Mobile-facing webview scaffold around the Studio UI. Current package: `apps/mobile-shell`.
 - Visual inspector and debug timeline for AG-UI events, Playcraft events, state snapshots, rule traces, safety findings, and asset provenance.
 - Profile import/export for `GameAssemblyProfile` bundles.
 - Curated local packs for mechanics, components, themes, sounds, icons, and safe starter assets.
 - Real provider adapters behind `AssetProviderCapabilityManifest` records.
 - Repository interfaces for optional persistence.
-- Tauri shell after the static Vite client is stable.
-- Tauri Mobile shell after desktop packaging and offline profile/cache behavior are proven.
+- Native packaging hardening after static client behavior, local cache policy, and offline profile import/export are proven.
 
 Middleweight work must not move core assembly semantics into app routes, Tauri commands, database models, or provider SDK adapters.
 

@@ -6,9 +6,12 @@
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "build": "tsc -b",
+    "build:mobile": "pnpm --filter @playcraft/mobile-shell build",
     "build:studio": "pnpm --filter @playcraft/studio build",
+    "dev:mobile": "pnpm --filter @playcraft/mobile-shell dev",
     "dev:studio": "pnpm --filter @playcraft/studio dev",
     "test": "vitest run",
+    "typecheck:mobile": "pnpm --filter @playcraft/mobile-shell typecheck",
     "typecheck": "tsc -b",
     "typecheck:studio": "pnpm --filter @playcraft/studio typecheck"
   },

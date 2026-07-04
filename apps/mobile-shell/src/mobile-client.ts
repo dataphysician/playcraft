@@ -1,10 +1,9 @@
 import type { BuilderAgUiEvent, BuilderExecutionResult } from "@playcraft/builder";
 import type { GameAssemblyProfile } from "@playcraft/contracts";
-
 import { createLocalPlaycraftService } from "@playcraft/service";
-import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry, StudioTimelineKind } from "./types.js";
+import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry, StudioTimelineKind } from "@playcraft/studio";
 
-export function createLocalStudioClient(): StudioClient {
+export function createMobileShellStudioClient(): StudioClient {
   const service = createLocalPlaycraftService();
   const profiles = new Map<string, GameAssemblyProfile>();
   const timeline: StudioTimelineEntry[] = [];
@@ -27,7 +26,7 @@ export function createLocalStudioClient(): StudioClient {
 
   return {
     assembleFromIntent(input) {
-      const sessionId = input.sessionId ?? "studio.session";
+      const sessionId = input.sessionId ?? "mobile.session";
       return snapshotFromOutput(
         sessionId,
         service.assemble({
@@ -57,7 +56,7 @@ export function createLocalStudioClient(): StudioClient {
 
 function timelineEntry(event: BuilderAgUiEvent, sequence: number): StudioTimelineEntry {
   return {
-    id: `timeline.${String(sequence).padStart(4, "0")}`,
+    id: `mobile.timeline.${String(sequence).padStart(4, "0")}`,
     kind: kindForEvent(event),
     title: titleForEvent(event),
     detail: JSON.stringify(event.value, null, 2),

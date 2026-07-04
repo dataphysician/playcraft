@@ -1,22 +1,18 @@
 {
-  "name": "@playcraft/studio",
+  "name": "@playcraft/mobile-shell",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "preview": "vite preview",
     "typecheck": "tsc -b"
   },
   "dependencies": {
-    "@playcraft/ag-ui": "workspace:*",
     "@playcraft/builder": "workspace:*",
     "@playcraft/contracts": "workspace:*",
-    "@playcraft/core": "workspace:*",
-    "@playcraft/packs": "workspace:*",
-    "@playcraft/renderer": "workspace:*",
     "@playcraft/service": "workspace:*",
+    "@playcraft/studio": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
