@@ -4,6 +4,7 @@ import {
   createLocalPlaycraftService,
   resolveBuilderInputCommand
 } from "../src/index.js";
+import { runLocalServiceCli } from "../src/cli.js";
 
 describe("local Playcraft service", () => {
   it("publishes local tools and bundled templates for shells", () => {
@@ -67,5 +68,48 @@ describe("local Playcraft service", () => {
 
     expect(resolved.templateId).toBe("template.memory-match");
     expect(resolved.assetEdit).toBeUndefined();
+  });
+
+  it("exposes a CLI surface for catalog, transcript, and asset-edit requests", () => {
+    const out: string[] = [];
+    const err: string[] = [];
+    const io = {
+      stdout: (message: string) => out.push(message),
+      stderr: (message: string) => err.push(message)
+    };
+
+    expect(runLocalServiceCli(["catalog", "--json"], io)).toBe(0);
+    const catalog = JSON.parse(out.pop() ?? "{}") as { templates: Array<{ id: string }> };
+    expect(catalog.templates.map((template) => template.id)).toEqual([
+      "template.memory-match",
+      "template.sorting",
+      "template.sequence-repeat"
+    ]);
+
+    expect(
+      runLocalServiceCli([
+        "assemble",
+        "--text",
+        "Memory game",
+        "--source",
+        "speech-transcript",
+        "--asset-theme",
+        "ocean animals",
+        "--asset-item",
+        "dolphin",
+        "--asset-item",
+        "turtle",
+        "--json"
+      ], io)
+    ).toBe(0);
+    const assembled = JSON.parse(out.pop() ?? "{}") as {
+      events: Array<{ value: unknown }>;
+      result: { profile?: { assetRequests: Array<{ prompt: string }>; components: Array<{ props: { cards?: string[] } }> } };
+    };
+
+    expect(JSON.stringify(assembled.events)).toContain("moonshine-streaming");
+    expect(assembled.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
+    expect(assembled.result.profile?.components[0]?.props.cards).toEqual(["dolphin-a", "dolphin-b", "turtle-a", "turtle-b"]);
+    expect(err).toEqual([]);
   });
 });

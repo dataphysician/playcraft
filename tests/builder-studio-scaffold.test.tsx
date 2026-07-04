@@ -43,7 +43,7 @@ describe("builder/studio workspace scaffold", () => {
 
   it("defines builder, service, studio, and mobile package manifests with the expected boundaries", () => {
     const builderPackage = readJson<{ name: string; dependencies: Record<string, string> }>("packages/builder/package.json");
-    const servicePackage = readJson<{ name: string; dependencies: Record<string, string> }>("packages/service/package.json");
+    const servicePackage = readJson<{ bin: Record<string, string>; name: string; dependencies: Record<string, string> }>("packages/service/package.json");
     const studioPackage = readJson<{
       name: string;
       scripts: Record<string, string>;
@@ -69,6 +69,7 @@ describe("builder/studio workspace scaffold", () => {
     });
     expect(builderPackage.dependencies).not.toHaveProperty("@playcraft/renderer");
     expect(servicePackage.name).toBe("@playcraft/service");
+    expect(servicePackage.bin["playcraft-service"]).toBe("./dist/cli.js");
     expect(servicePackage.dependencies).toMatchObject({
       "@playcraft/builder": "workspace:*",
       "@playcraft/contracts": "workspace:*",

@@ -53,7 +53,7 @@ The core must not depend on a specific app framework, route system, database, au
 
 Builder input is provider-neutral: text requests and Moonshine Streaming CPU-only speech transcripts both become `BuilderInputRequest` records before they reach the builder service.
 
-The current user-facing app path is `apps/studio` for the web studio and `apps/mobile-shell` for a Tauri Mobile-facing shell. Both route assembly through `@playcraft/service`, which can later be replaced by a server-backed adapter as long as it preserves the same Studio client contract.
+The current user-facing app path is `apps/studio` for the web studio and `apps/mobile-shell` for a Tauri Mobile-facing shell. Both route assembly through `@playcraft/service`, which can later be replaced by a server-backed adapter as long as it preserves the same Studio client contract. Agents can also use the `playcraft-service` CLI bin for catalog, assemble, update, and preview commands over the same local contract.
 
 ## 4. AG-UI Mapping
 
