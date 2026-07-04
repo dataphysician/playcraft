@@ -299,6 +299,20 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).not.toContain("request.sessionId ?? profileExport.sessionId");
   });
 
+  it("keeps session-bound service methods free of default service sessions", () => {
+    const serviceSource = readSource("packages/service/src/index.ts");
+
+    expect(serviceSource).toContain("preview(sessionId: string)");
+    expect(serviceSource).toContain("getSession(sessionId: string)");
+    expect(serviceSource).toContain("exportProfile(sessionId: string)");
+    expect(serviceSource).toContain("sessionId: string }): BuilderExecutionResult");
+    expect(serviceSource).toContain('const sessionId = input.sessionId ?? "service.session";');
+    expect(serviceSource).not.toContain('preview(sessionId = "service.session")');
+    expect(serviceSource).not.toContain('getSession(sessionId = "service.session")');
+    expect(serviceSource).not.toContain('exportProfile(sessionId = "service.session")');
+    expect(serviceSource).not.toContain("sessionId?: string }): BuilderExecutionResult");
+  });
+
   it("keeps service CLI response output action-scoped instead of payload-precedence based", () => {
     const source = readSource("packages/service/src/cli.ts");
 

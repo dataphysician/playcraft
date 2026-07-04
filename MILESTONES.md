@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Service Method Sessions
+
+Milestone:
+- Session-bound `LocalPlaycraftService` methods now require callers to pass an explicit session ID.
+- Public preview, session snapshot, export, and import methods no longer carry `service.session` defaults.
+
+Supportive changes:
+- Source scans now pin explicit service method signatures and block default service-session regressions.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps service API calls forward-only and intentional without hidden default sessions, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Explicit Service Request Sessions
 
 Milestone:

@@ -131,7 +131,7 @@ export class LocalPlaycraftService {
     return this.execute("update-game", input.sessionId, resolved);
   }
 
-  preview(sessionId = "service.session"): BuilderExecutionResult {
+  preview(sessionId: string): BuilderExecutionResult {
     this.commandCounter += 1;
     const output = this.handler.execute({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -146,11 +146,11 @@ export class LocalPlaycraftService {
     return output;
   }
 
-  getSession(sessionId = "service.session"): BuilderSessionSnapshot {
+  getSession(sessionId: string): BuilderSessionSnapshot {
     return mergeSessionState(this.handler.getSessionSnapshot(sessionId), this.sessionState.get(sessionId));
   }
 
-  exportProfile(sessionId = "service.session"): BuilderProfileExport {
+  exportProfile(sessionId: string): BuilderProfileExport {
     const session = this.getSession(sessionId);
     if (!session.profile) {
       throw new Error(`session ${sessionId} does not have an active profile to export`);
@@ -175,8 +175,8 @@ export class LocalPlaycraftService {
     });
   }
 
-  importProfile(input: { assetEdit?: BuilderAssetEdit; profile: GameAssemblyProfile; sessionId?: string }): BuilderExecutionResult {
-    const sessionId = input.sessionId ?? "service.session";
+  importProfile(input: { assetEdit?: BuilderAssetEdit; profile: GameAssemblyProfile; sessionId: string }): BuilderExecutionResult {
+    const sessionId = input.sessionId;
     this.commandCounter += 1;
     const output = this.handler.importProfile(
       sessionId,
