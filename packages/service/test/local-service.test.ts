@@ -17,7 +17,7 @@ import {
   resolveBuilderInputCommand
 } from "../src/index.js";
 import { runLocalServiceCli } from "../src/cli.js";
-import { createPlaycraftHttpServer } from "../src/http-server.js";
+import { createPlaycraftHttpServer, parsePlaycraftHttpServerCliArgs } from "../src/http-server.js";
 
 describe("local Playcraft service", () => {
   it("publishes local tools and bundled templates for shells", () => {
@@ -633,6 +633,27 @@ describe("local Playcraft service", () => {
 
     expect(runLocalServiceCli(["catalog", "--provider", "remote"], io)).toBe(1);
     expect(err.pop()).toMatch(/unknown option: --provider/u);
+  });
+
+  it("parses the HTTP service CLI surface without silent option fallbacks", () => {
+    expect(parsePlaycraftHttpServerCliArgs([
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "0",
+      "--route",
+      "playcraft"
+    ])).toEqual({
+      host: "127.0.0.1",
+      port: 0,
+      route: "/playcraft"
+    });
+
+    expect(() => parsePlaycraftHttpServerCliArgs(["--host"])).toThrow(/--host requires a value/u);
+    expect(() => parsePlaycraftHttpServerCliArgs(["--route", "--port"])).toThrow(/--route requires a value/u);
+    expect(() => parsePlaycraftHttpServerCliArgs(["--port", "abc"])).toThrow(/--port requires an integer/u);
+    expect(() => parsePlaycraftHttpServerCliArgs(["--port", "70000"])).toThrow(/--port requires an integer/u);
+    expect(() => parsePlaycraftHttpServerCliArgs(["--provider", "remote"])).toThrow(/unknown option: --provider/u);
   });
 
   it("exports and imports profiles through the service envelope and CLI", () => {

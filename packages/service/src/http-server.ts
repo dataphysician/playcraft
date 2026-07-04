@@ -75,7 +75,7 @@ export function startPlaycraftHttpServer(input: {
 }
 
 export async function runPlaycraftHttpServerCli(argv: string[] = process.argv.slice(2)): Promise<void> {
-  const options = parseServeArgs(argv);
+  const options = parsePlaycraftHttpServerCliArgs(argv);
   const started = await startPlaycraftHttpServer(options);
   console.log(`playcraft-service-http listening ${started.url}`);
 
@@ -166,24 +166,44 @@ function writeResponse(response: ServerResponse, output: BuilderServiceHttpRespo
   response.end(output.body);
 }
 
-function parseServeArgs(argv: string[]): { host?: string; port?: number; route?: string } {
+export function parsePlaycraftHttpServerCliArgs(argv: string[]): { host?: string; port?: number; route?: string } {
   const output: { host?: string; port?: number; route?: string } = {};
 
   for (let index = 0; index < argv.length; index += 1) {
     const entry = argv[index];
     if (entry === "--host") {
-      output.host = argv[index + 1];
+      output.host = requiredServeFlagValue(argv, index, entry);
       index += 1;
     } else if (entry === "--port") {
-      output.port = Number(argv[index + 1]);
+      output.port = parsePort(requiredServeFlagValue(argv, index, entry));
       index += 1;
     } else if (entry === "--route") {
-      output.route = argv[index + 1];
+      output.route = normalizeRoute(requiredServeFlagValue(argv, index, entry));
       index += 1;
+    } else {
+      throw new Error(`unknown option: ${entry}`);
     }
   }
 
   return output;
+}
+
+function requiredServeFlagValue(argv: string[], index: number, flag: string): string {
+  const value = argv[index + 1];
+  if (!value || value.startsWith("--")) {
+    throw new Error(`${flag} requires a value`);
+  }
+
+  return value;
+}
+
+function parsePort(value: string): number {
+  const port = Number(value);
+  if (!Number.isInteger(port) || port < 0 || port > 65535) {
+    throw new Error(`--port requires an integer from 0 to 65535`);
+  }
+
+  return port;
 }
 
 function normalizeRoute(route: string): string {

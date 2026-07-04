@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Strict HTTP Service CLI Arguments
+
+Milestone:
+- The local `playcraft-service-http` CLI now rejects unknown options instead of silently ignoring them.
+- `--host`, `--port`, and `--route` now fail with explicit missing-value errors.
+- HTTP server CLI ports are validated as integers from 0 to 65535, and routes are normalized at parse time.
+
+Supportive changes:
+- Exported a testable HTTP server CLI parser for local/server transport setup.
+- Service tests now cover valid parser normalization, missing values, invalid ports, and unknown options.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps the local HTTP transport setup explicit and contract-shaped without silent server CLI fallbacks, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Strict Local CLI Arguments
 
 Milestone:
