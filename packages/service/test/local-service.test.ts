@@ -451,6 +451,24 @@ describe("local Playcraft service", () => {
     expect(resolved.resolution.assetDecision.source).toBe("none");
   });
 
+  it("uses catalog request aliases to suppress template-only asset edits", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Change this game to repeat pattern"
+    });
+
+    expect(resolved.templateId).toBe("template.sequence-repeat");
+    expect(resolved.assetEdit).toBeUndefined();
+    expect(resolved.resolution.templateDecision).toMatchObject({
+      source: "text-match",
+      matchedRequestAliases: expect.arrayContaining(["repeat pattern"]),
+      matchedTemplateIds: ["template.sequence-repeat"]
+    });
+    expect(resolved.resolution.assetDecision.source).toBe("none");
+  });
+
   it("classifies explicit asset-folder requests as freeform asset edits", () => {
     const resolved = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",

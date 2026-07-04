@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog Template Alias Asset Guard
+
+Milestone:
+- Service text asset parsing now suppresses template-only asset edits through bundled template `requestAliases`.
+- The game/profile/challenge asset matcher no longer carries a hard-coded memory/sorting/sequence prefix list.
+- Template switch requests such as `Change this game to repeat pattern` stay asset-edit free because the catalog owns that alias.
+
+Supportive changes:
+- Added service resolver coverage for catalog alias-driven suppression of template-only asset edits.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps text/Moonshine intent resolution catalog-driven and forward-only without template-name compatibility lists, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Service JSON Boundary Parsing
 
 Milestone:
