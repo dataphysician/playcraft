@@ -301,6 +301,20 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain("promptForAssetEdit(profile");
   });
 
+  it("keeps Live App surface selection template-owned instead of component-priority inferred", () => {
+    const liveGameSource = readSource("apps/studio/src/live-game.tsx");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const packSource = readSource("packages/packs/src/index.ts");
+
+    expect(contractSource).toContain("liveSurfaceKind");
+    expect(packSource).toContain("liveSurfaceKind: template.liveSurfaceKind");
+    expect(liveGameSource).toContain("template?.liveSurfaceKind");
+    expect(liveGameSource).not.toContain("componentByCapability");
+    expect(liveGameSource).not.toContain('componentByCapability(profile, "component:reveal-card-grid")');
+    expect(liveGameSource).not.toContain('componentByCapability(profile, "component:sort-bins")');
+    expect(liveGameSource).not.toContain('componentByCapability(profile, "component:sequence-pad")');
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

@@ -659,6 +659,21 @@ describe("studio UI", () => {
     expect(await screen.findByText("Sequence complete.")).toBeDefined();
   });
 
+  it("routes the live game from the template surface contract instead of component priority", async () => {
+    const memoryComponent = profileA.components.find((component) => component.renderCapability === "component:reveal-card-grid");
+    expect(memoryComponent).toBeDefined();
+
+    const profile = {
+      ...profileC,
+      components: [memoryComponent!, ...profileC.components]
+    };
+
+    render(React.createElement(LiveGame, { profile }));
+
+    expect(screen.getByRole("button", { name: "Start Round" })).toBeDefined();
+    expect(screen.queryByRole("button", { name: "memory-card-1-a" })).toBeNull();
+  });
+
   it("uses exact token color aliases instead of substring token styling", () => {
     const profile = {
       ...profileC,

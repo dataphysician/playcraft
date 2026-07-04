@@ -1,5 +1,33 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template-Owned Live App Surface Selection
+
+Milestone:
+- `GameTemplateDefinition` now publishes `liveSurfaceKind` for the playable Live App renderer surface.
+- Bundled templates declare whether they render as memory, sorting, or sequence games.
+- Studio LiveGame now resolves the profile template by `assemblyRequestId` and routes from `template.liveSurfaceKind` instead of probing components in priority order.
+
+Supportive changes:
+- Pack and service catalog tests now assert starter template live surface kinds.
+- Studio UI tests cover a sequence profile that includes an extra memory component and still renders as sequence.
+- Source scans now block the removed LiveGame component-priority selection helper from returning.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps Live App rendering contract-owned and forward-only without component-presence priority heuristics, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Literal Freeform Asset Folder Names
 
 Milestone:

@@ -1,5 +1,6 @@
 import React from "react";
-import type { ComponentBinding, GameAssemblyProfile, GeneratedAssetRecord, JsonValue } from "@playcraft/contracts";
+import type { ComponentBinding, GameAssemblyProfile, GameTemplateDefinition, GeneratedAssetRecord, JsonValue } from "@playcraft/contracts";
+import { gameTemplateDefinitions } from "@playcraft/packs";
 import { createProfileLibraryAssetReplacements, playcraftUiAssets, sortingBinAssetFor } from "./asset-library.js";
 import emptyGameHeroUrl from "./assets/empty-game-hero.png";
 
@@ -143,26 +144,31 @@ function LiveGameForProfile({
     [assetReplacements, libraryAssetReplacements]
   );
   const replacements = useProfileAssetReplacements(profile, mergedAssetReplacements);
-  const memory = componentByCapability(profile, "component:reveal-card-grid");
-  const sortBins = componentByCapability(profile, "component:sort-bins");
-  const sequence = componentByCapability(profile, "component:sequence-pad");
+  const template = liveTemplateForProfile(profile);
 
-  if (memory) {
-    return React.createElement(MemoryGame, { profile, component: memory, replacements, onInteraction });
-  }
-
-  if (sortBins) {
-    return React.createElement(SortingGame, { profile, component: sortBins, replacements, onInteraction });
-  }
-
-  if (sequence) {
-    return React.createElement(SequenceGame, {
-      profile,
-      sequenceComponent: sequence,
-      choiceComponent: componentByCapability(profile, "component:choice-grid"),
-      replacements,
-      onInteraction
-    });
+  switch (template?.liveSurfaceKind) {
+    case "memory":
+      return React.createElement(MemoryGame, {
+        profile,
+        component: requiredComponentByCapability(profile, "component:reveal-card-grid"),
+        replacements,
+        onInteraction
+      });
+    case "sorting":
+      return React.createElement(SortingGame, {
+        profile,
+        component: requiredComponentByCapability(profile, "component:sort-bins"),
+        replacements,
+        onInteraction
+      });
+    case "sequence":
+      return React.createElement(SequenceGame, {
+        profile,
+        sequenceComponent: requiredComponentByCapability(profile, "component:sequence-pad"),
+        choiceComponent: optionalComponentByCapability(profile, "component:choice-grid"),
+        replacements,
+        onInteraction
+      });
   }
 
   return React.createElement(
@@ -1042,7 +1048,19 @@ function CompletionPanel({
   );
 }
 
-function componentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding | undefined {
+function liveTemplateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | undefined {
+  return gameTemplateDefinitions.find((template) => template.assemblyRequestId === profile.assemblyRequestId);
+}
+
+function requiredComponentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding {
+  const component = optionalComponentByCapability(profile, capability);
+  if (!component) {
+    throw new Error(`profile ${profile.id} is missing required live surface component ${capability}`);
+  }
+  return component;
+}
+
+function optionalComponentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding | undefined {
   return profile.components.find((component) => component.renderCapability === capability);
 }
 

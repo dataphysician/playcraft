@@ -462,6 +462,9 @@ export const GameTemplateAssetPromptKindSchema = z.enum([
 ]);
 export type GameTemplateAssetPromptKind = z.infer<typeof GameTemplateAssetPromptKindSchema>;
 
+export const GameTemplateLiveSurfaceKindSchema = z.enum(["memory", "sorting", "sequence"]);
+export type GameTemplateLiveSurfaceKind = z.infer<typeof GameTemplateLiveSurfaceKindSchema>;
+
 export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   id: BuilderTemplateIdSchema,
   kind: z.literal("game-template"),
@@ -472,6 +475,7 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   requestAliases: z.array(z.string().min(2).max(80)).min(1),
   exampleRequest: z.string().min(2).max(120),
   assetPromptKind: GameTemplateAssetPromptKindSchema,
+  liveSurfaceKind: GameTemplateLiveSurfaceKindSchema,
   assemblyRequestId: StableIdSchema,
   profileId: StableIdSchema,
   supportedAgeBands: z.array(AgeBandSchema).min(1),

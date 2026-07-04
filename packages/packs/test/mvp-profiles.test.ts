@@ -106,6 +106,11 @@ describe("MVP profile pack", () => {
       "sorting-game",
       "sequence-buttons"
     ]);
+    expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.liveSurfaceKind)).toEqual([
+      "memory",
+      "sorting",
+      "sequence"
+    ]);
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)
     );

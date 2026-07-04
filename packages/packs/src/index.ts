@@ -25,6 +25,7 @@ import {
   type GameAssemblyProfile,
   type GameTemplateAssetPromptKind,
   type GameTemplateDefinition,
+  type GameTemplateLiveSurfaceKind,
   type GeneratedAssetRecord,
   type JsonValue,
   type MechanicDefinition,
@@ -207,6 +208,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     requestAliases: ["memory", "memory game", "memory match", "matching cards", "card pairs", "pair match"],
     exampleRequest: "Memory game",
     assetPromptKind: "memory-cards",
+    liveSurfaceKind: "memory",
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
     assetPrompt: "friendly starter card illustrations for a child-safe memory match game",
@@ -239,6 +241,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     requestAliases: ["sort", "sorting", "sorting game", "category", "categories", "color bins", "group by color"],
     exampleRequest: "Sorting game",
     assetPromptKind: "sorting-game",
+    liveSurfaceKind: "sorting",
     profileId: "profile.sorting.mvp",
     profileName: "Sorting MVP",
     assetPrompt: "simple colorful shapes for a child-safe sorting game",
@@ -271,6 +274,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     requestAliases: ["sequence", "sequence repeat", "pattern", "repeat", "repeat pattern", "copy the pattern"],
     exampleRequest: "Sequence repeat",
     assetPromptKind: "sequence-buttons",
+    liveSurfaceKind: "sequence",
     profileId: "profile.sequence-repeat.mvp",
     profileName: "Sequence Repeat MVP",
     assetPrompt: "soft glowing buttons for a child-safe sequence repeat game",
@@ -596,6 +600,7 @@ export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.ma
     requestAliases: template.requestAliases,
     exampleRequest: template.exampleRequest,
     assetPromptKind: template.assetPromptKind,
+    liveSurfaceKind: template.liveSurfaceKind,
     assemblyRequestId: mvpAssemblyRequests[index].id,
     profileId: template.profileId,
     supportedAgeBands: ["2-3", "4-6", "7-9"],
@@ -1254,6 +1259,7 @@ interface MvpProfileTemplate {
   requestAliases: string[];
   exampleRequest: string;
   assetPromptKind: GameTemplateAssetPromptKind;
+  liveSurfaceKind: GameTemplateLiveSurfaceKind;
   profileId: string;
   profileName: string;
   assetPrompt: string;
@@ -1287,6 +1293,7 @@ function memoryTemplate(input: {
     requestAliases: input.aliases,
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     assetPromptKind: "memory-cards",
+    liveSurfaceKind: "memory",
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
@@ -1332,6 +1339,7 @@ function sortingTemplate(input: {
     requestAliases: input.aliases,
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     assetPromptKind: "sorting-game",
+    liveSurfaceKind: "sorting",
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
@@ -1377,6 +1385,7 @@ function sequenceTemplate(input: {
     requestAliases: input.aliases,
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     assetPromptKind: "sequence-buttons",
+    liveSurfaceKind: "sequence",
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,

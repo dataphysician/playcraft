@@ -711,6 +711,11 @@ describe("local Playcraft service", () => {
       "Sorting",
       "Sequence Repeat"
     ]);
+    expect(catalog.templates.slice(0, 3).map((template) => template.liveSurfaceKind)).toEqual([
+      "memory",
+      "sorting",
+      "sequence"
+    ]);
     expect(catalog.assetEdit.availableThemes.map((entry) => entry.theme)).toEqual([
       "dinosaurs",
       "toys",
