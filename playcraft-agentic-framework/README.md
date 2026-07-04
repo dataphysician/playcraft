@@ -36,7 +36,7 @@ The v1 target is intentionally small and local-first:
 
 - TypeScript contracts and Zod schemas.
 - Mechanic, rule, component, theme, and asset source registries.
-- Deterministic stub planner and deterministic stub asset source.
+- Deterministic local planner and deterministic local asset source.
 - Builder tool contracts for assembling a game, updating a game, previewing trusted interactions, and listing local tools/templates.
 - AG-UI adapter with validated Playcraft `Custom` envelopes.
 - Trusted React renderer for registered components only.
@@ -73,6 +73,6 @@ The cleanroom documentation is acceptable when:
 - This folder is named as the canonical source of truth.
 - The old root PRD reads as superseded, not active architecture.
 - The root README no longer advertises the old app stack as the future target.
-- V1 can be implemented offline with deterministic stubs and import-light packages.
+- V1 can be implemented offline with deterministic local tools and import-light packages.
 - Middleweight studio/runtime features are clearly later path items.
 - The developer guide includes schema, registry, AG-UI envelope, replay, trusted renderer, import-light, and source-scan gates.

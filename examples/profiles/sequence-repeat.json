@@ -169,17 +169,17 @@
       "kind": "generated-asset",
       "requestId": "asset-request.profile.sequence-repeat.mvp",
       "assetId": "asset.40272302",
-      "sourceId": "asset-source.stub-deterministic",
+      "sourceId": "asset-source.local-deterministic",
       "contentType": "image",
       "format": "svg",
-      "uri": "stub://image/40272302.svg",
+      "uri": "local-asset://image/40272302.svg",
       "altText": "Deterministic image asset for soft glowing buttons for a child-safe sequence repeat game",
       "metadata": {
         "promptDigest": "40272302",
-        "source": "deterministic-stub"
+        "source": "deterministic-local"
       },
       "provenance": {
-        "sourceManifestId": "asset-source.stub-deterministic",
+        "sourceManifestId": "asset-source.local-deterministic",
         "sourceManifestVersion": "1.0.0",
         "deterministic": true,
         "seed": "seed-sequence-repeat",

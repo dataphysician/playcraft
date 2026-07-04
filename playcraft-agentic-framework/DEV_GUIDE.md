@@ -7,7 +7,7 @@
 | Version | 1.0.0-cleanroom |
 | Date | 2026-06-27 |
 | Status | Canonical developer guide |
-| Primary stack | TypeScript, Zod, React, AG-UI events, deterministic stubs |
+| Primary stack | TypeScript, Zod, React, AG-UI events, deterministic local tools |
 
 ## 1. Implementation Posture
 
@@ -25,7 +25,7 @@ Recommended package boundaries:
 | `packages/core` | Registries, assembly validation, deterministic planning interfaces, rule evaluation, safety policy evaluation, replay model. |
 | `packages/ag-ui` | AG-UI event mapping, Playcraft custom envelopes, typed frontend tools, stream helpers. |
 | `packages/renderer` | Trusted React renderer, component registry, component manifest validation. |
-| `packages/assets` | Asset request schemas, deterministic stub asset source, asset source manifest helpers. |
+| `packages/assets` | Asset request schemas, deterministic local asset source, asset source manifest helpers. |
 | `packages/packs` | Initial mechanic, rule, component, theme, domain, and safety policy packs. |
 | `packages/builder` | Local builder tool handler for catalog, assemble, update, and preview actions with published argument schemas. |
 | `packages/service` | Local app/API and `playcraft-service` CLI facade for validated `BuilderServiceRequest`, `BuilderServiceResponse`, `BuilderCatalog`, `BuilderIntentResolution`, text input, `MoonshineTranscriptRecord` inputs from Moonshine Streaming CPU, template resolution, and asset edit levers. |
@@ -111,14 +111,14 @@ Registry lookup must return structured match results:
 
 Tests must prove that registry selection does not rely on `GameType`, source names, or hardcoded app route logic.
 
-## 6. Deterministic Stubs
+## 6. Deterministic Local Tools
 
-V1 needs deterministic local stubs:
+V1 needs deterministic local tools:
 
-- Stub planner: converts known fixture requests into memory match, sorting, and sequence repeat profiles through registries.
-- Stub asset source: returns stable fake asset records for the same request and seed policy.
-- Stub safety evaluator: applies explicit local policy fixtures.
-- Stub persistence: reads/writes JSON fixtures only if needed by tests or examples.
+- Local deterministic planner: converts known fixture requests into memory match, sorting, and sequence repeat profiles through registries.
+- Deterministic local asset source: returns stable local asset records for the same request and seed policy.
+- Local safety evaluator: applies explicit local policy fixtures.
+- Fixture persistence: reads/writes JSON fixtures only if needed by tests or examples.
 
 Stub outputs must be replayable and stable in default tests.
 
@@ -213,7 +213,7 @@ Implement pure steps first:
 5. Select components by mechanic render needs and props schemas.
 6. Select theme pack.
 7. Generate local asset-source asset requests.
-8. Resolve assets through deterministic stub asset source.
+8. Resolve assets through the deterministic local asset source.
 9. Build `GameAssemblyProfile`.
 10. Validate profile schemas, registry references, event graph, component bindings, assets, policy, and replay readiness.
 11. Emit AG-UI lifecycle/state/custom events through the adapter.
@@ -271,7 +271,7 @@ The exact paths can change, but the gates cannot.
 
 ### Milestone 3: Deterministic Assembly
 
-- Add stub planner and stub asset source.
+- Add deterministic local planner and deterministic local asset source.
 - Generate saved profile fixtures for memory match, sorting, and sequence repeat.
 - Validate replay readiness.
 

@@ -182,17 +182,17 @@
       "kind": "generated-asset",
       "requestId": "asset-request.profile.sorting.mvp",
       "assetId": "asset.c8a5dc09",
-      "sourceId": "asset-source.stub-deterministic",
+      "sourceId": "asset-source.local-deterministic",
       "contentType": "image",
       "format": "svg",
-      "uri": "stub://image/c8a5dc09.svg",
+      "uri": "local-asset://image/c8a5dc09.svg",
       "altText": "Deterministic image asset for simple colorful shapes for a child-safe sorting game",
       "metadata": {
         "promptDigest": "c8a5dc09",
-        "source": "deterministic-stub"
+        "source": "deterministic-local"
       },
       "provenance": {
-        "sourceManifestId": "asset-source.stub-deterministic",
+        "sourceManifestId": "asset-source.local-deterministic",
         "sourceManifestVersion": "1.0.0",
         "deterministic": true,
         "seed": "seed-sorting",

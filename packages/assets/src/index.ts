@@ -18,7 +18,7 @@ export interface LocalAssetSourceOptions {
   manifest?: AssetSourceCapabilityManifest;
 }
 
-export const LOCAL_ASSET_SOURCE_ID = "asset-source.stub-deterministic";
+export const LOCAL_ASSET_SOURCE_ID = "asset-source.local-deterministic";
 export const LOCAL_ASSET_SOURCE_VERSION = "1.0.0";
 
 export function createLocalAssetSourceManifest(overrides: Partial<AssetSourceCapabilityManifest> = {}): AssetSourceCapabilityManifest {
@@ -27,8 +27,8 @@ export function createLocalAssetSourceManifest(overrides: Partial<AssetSourceCap
     id: LOCAL_ASSET_SOURCE_ID,
     version: LOCAL_ASSET_SOURCE_VERSION,
     kind: "asset-source",
-    displayName: "Deterministic Stub Asset Source",
-    capabilityTags: ["asset:stub", "asset:offline", "asset:deterministic"],
+    displayName: "Deterministic Local Asset Source",
+    capabilityTags: ["asset:local", "asset:offline", "asset:deterministic"],
     contentTypes: ["image", "audio", "text"],
     formats: ["svg", "png", "wav", "plain-text", "json"],
     seedSupport: true,
@@ -100,11 +100,11 @@ export class DeterministicLocalAssetSource {
       sourceId: this.manifest.id,
       contentType: request.contentType,
       format: request.format,
-      uri: `stub://${request.contentType}/${digest}.${request.format}`,
+      uri: `local-asset://${request.contentType}/${digest}.${request.format}`,
       altText: `Deterministic ${request.contentType} asset for ${request.prompt}`,
       metadata: {
         promptDigest: digest,
-        source: "deterministic-stub"
+        source: "deterministic-local"
       },
       provenance: {
         sourceManifestId: this.manifest.id,

@@ -16,7 +16,7 @@ const fixtureByProfileId: Record<string, string> = {
 };
 
 describe("MVP profile pack", () => {
-  it("assembles memory match, sorting, and sequence repeat profiles from registries and deterministic stubs", () => {
+  it("assembles memory match, sorting, and sequence repeat profiles from registries and deterministic local tools", () => {
     const profiles = assembleMvpProfiles();
 
     expect(profiles.map((profile) => profile.id)).toEqual([
@@ -25,7 +25,7 @@ describe("MVP profile pack", () => {
       "profile.sequence-repeat.mvp"
     ]);
     expect(profiles.every((profile) => profile.validation.valid)).toBe(true);
-    expect(profiles.every((profile) => profile.assets.every((asset) => asset.sourceId === "asset-source.stub-deterministic"))).toBe(true);
+    expect(profiles.every((profile) => profile.assets.every((asset) => asset.sourceId === "asset-source.local-deterministic"))).toBe(true);
   });
 
   it("keeps saved profile fixtures in sync with deterministic assembly", () => {

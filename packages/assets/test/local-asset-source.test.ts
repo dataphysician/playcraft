@@ -26,7 +26,7 @@ const request: AssetGenerationRequest = {
   metadata: {}
 };
 
-describe("deterministic stub asset source", () => {
+describe("deterministic local asset source", () => {
   it("returns stable generated asset records for the same request and seed", () => {
     const source = new DeterministicLocalAssetSource();
 

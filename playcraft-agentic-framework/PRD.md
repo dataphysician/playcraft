@@ -94,8 +94,8 @@ Required v1 capabilities:
 
 - TypeScript contracts and Zod schemas for public interfaces.
 - Mechanic, rule, component, theme, and asset source registries.
-- Deterministic stub planner.
-- Deterministic stub asset source.
+- Deterministic local planner.
+- Deterministic local asset source.
 - AG-UI adapter with validated Playcraft `Custom` envelopes.
 - Trusted React renderer that can render registered components only.
 - Replay harness that reconstructs a game from saved `GameAssemblyProfile` records.
@@ -170,7 +170,7 @@ Every component must have a `ComponentManifest` with props schema, supported mec
 | Sorting | `tap-to-select`, `sort-into-bins`, `retry-loop` | Category validation, guided retry, completion | `ChoiceGrid`, `SortBins`, `HintBubble` |
 | Sequence Repeat | `sequence-repeat`, `tap-to-select`, `timed-celebration` | Progression, attempt feedback, hint | `SequencePad`, `ChoiceGrid`, `CelebrationOverlay` |
 
-Each profile must be assembled through registries and deterministic stubs, then replayed from the saved `GameAssemblyProfile`.
+Each profile must be assembled through registries and deterministic local tools, then replayed from the saved `GameAssemblyProfile`.
 
 ## 11. Authoring Flow
 
@@ -205,7 +205,7 @@ The first useful version succeeds when:
 - AG-UI carries lifecycle, state, activity, tool, and Playcraft custom messages.
 - Every Playcraft `Custom` event envelope is schema-validated.
 - The frontend renders only registered trusted React components.
-- Deterministic stubs build and replay profiles offline.
+- Deterministic local tools build and replay profiles offline.
 - A saved `GameAssemblyProfile` reconstructs the same playable game.
 - Safety policy and domain profile selection can change validation behavior without changing AG-UI handling.
 - Registry tests prove selection is capability-driven, not game-type or source-name branching.

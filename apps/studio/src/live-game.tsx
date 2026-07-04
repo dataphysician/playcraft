@@ -112,7 +112,7 @@ export function LiveGame({ profile, assetReplacements, onInteraction }: LiveGame
 function EmptyGameHero(): React.ReactElement {
   return React.createElement(
     "section",
-    { "aria-label": "Live app preview placeholder", style: liveStyles.emptyState },
+    { "aria-label": "Live app empty state", style: liveStyles.emptyState },
     React.createElement("img", {
       alt: "Children playing a colorful game together",
       src: emptyGameHeroUrl,

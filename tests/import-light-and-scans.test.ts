@@ -91,6 +91,24 @@ describe("import-light boundaries and source scans", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps public local asset source names free of stub terminology", () => {
+    const blockedTerms = [
+      "asset-source." + "stub-deterministic",
+      "deterministic-" + "stub",
+      "stub" + "://",
+      "asset:" + "stub",
+      "Deterministic " + "Stub",
+      "stub " + "asset source",
+      "stub " + "planner"
+    ];
+    const violations = repoSourceFiles().flatMap((path) => {
+      const source = readSource(path);
+      return blockedTerms.some((term) => source.includes(term)) ? [path] : [];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

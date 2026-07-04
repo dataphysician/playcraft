@@ -18,8 +18,8 @@ V1 includes:
 
 - TypeScript contracts and Zod schemas.
 - Mechanic/rule/component/theme/asset source/domain/safety registries.
-- Deterministic stub planner.
-- Deterministic stub asset source.
+- Deterministic local planner.
+- Deterministic local asset source.
 - AG-UI adapter with validated Playcraft `Custom` envelopes.
 - Trusted React renderer for registered components only.
 - Replay harness for saved `GameAssemblyProfile` records.
@@ -34,7 +34,7 @@ V1 core excludes network, credentials, AI SDKs, GPU, model weights, database ser
 |-----------|---------------|
 | Contract kernel | Public schemas, fixtures, and schema tests exist. |
 | Registry kernel | Mechanics, rules, components, themes, asset sources, domains, and safety policies register and select by capability. |
-| Deterministic assembly | Stub planner and stub asset source produce stable MVP profiles. |
+| Deterministic assembly | Deterministic local planner and asset source produce stable MVP profiles. |
 | AG-UI adapter | Lifecycle/state/activity/tool/custom event mapping is tested, and Playcraft envelopes validate. |
 | Trusted renderer | Registered MVP components render from manifests and reject unknown/invalid requests. |
 | Replay harness | Saved MVP profiles replay without planning or asset generation. |

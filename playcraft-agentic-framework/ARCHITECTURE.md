@@ -34,7 +34,7 @@ The core must not depend on a specific app framework, route system, database, au
 | Contracts | Zod schemas and TypeScript types for every public object. |
 | Core | Registries, assembly validation, rules, safety evaluation, replay, deterministic planner interfaces. |
 | Packs | Versioned mechanics, rules, components, themes, asset sources, domain profiles, and safety policies. |
-| Assets | Local asset-source asset requests, capability manifests, deterministic stub asset source, provenance records. |
+| Assets | Local asset-source asset requests, capability manifests, deterministic local asset source, provenance records. |
 | Renderer | Trusted React component registry and render requests. |
 | Builder tools | Local CLI/API actions that assemble templates, update asset levers, preview trusted interactions, and expose callable argument schemas plus template request aliases in the tool/template catalog. |
 | Service | Local app/API facade that accepts validated `BuilderServiceRequest` envelopes, emits `BuilderServiceResponse`, normalizes text and Moonshine Streaming CPU transcript records, emits `BuilderIntentResolution`, and calls builder tools. |

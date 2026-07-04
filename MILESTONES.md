@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Deterministic Local Asset Source Cleanup
+
+Milestone:
+- Public asset-source IDs, capability tags, generated asset URIs, metadata, fixtures, and docs now describe the bundled asset path as deterministic local infrastructure instead of placeholder infrastructure.
+- Generated assets now use `asset-source.local-deterministic`, `local-asset://...`, and `deterministic-local` provenance metadata.
+- Pack validation helper naming no longer describes successful validation records as placeholders.
+
+Supportive changes:
+- Updated saved profile fixtures and asset/core/AG-UI expectations to the local deterministic source ID.
+- Reworded framework docs to deterministic local planner/source/tools.
+- Added a source-scan guard against reintroducing old placeholder asset-source IDs, URI schemes, and public placeholder planner/source terminology.
+
+Validation:
+- `pnpm test packages/assets/test/local-asset-source.test.ts packages/packs/test/mvp-profiles.test.ts packages/core/test/registries.test.ts packages/ag-ui/test/events.test.ts tests/import-light-and-scans.test.ts`
+
+Constraint notes:
+- Keeps asset generation local, deterministic, offline, and credential-free.
+- Does not add hosted asset services, generated runtime code, auth, database state, or migration compatibility.
+
 ## 2026-07-04 - Profile Contract Portability Cleanup
 
 Milestone:

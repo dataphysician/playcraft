@@ -72,7 +72,7 @@ describe("AG-UI-compatible events", () => {
       payload: { not: "an asset record" },
       provenance: {
         role: "asset_source",
-        sourceId: "asset-source.stub-deterministic"
+        sourceId: "asset-source.local-deterministic"
       }
     });
 

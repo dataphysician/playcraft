@@ -474,7 +474,7 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
         .map((asset) => asset.requestId),
       eventLog: [replayEvent]
     },
-    validation: placeholderValidation(template.profileId)
+    validation: validAssemblyResult(template.profileId)
   });
 
   return GameAssemblyProfileSchema.parse({
@@ -875,7 +875,7 @@ function requireSelected<T extends { id: string }>(result: { selected: T | null;
   return result.selected;
 }
 
-function placeholderValidation(profileId: string) {
+function validAssemblyResult(profileId: string) {
   return AssemblyValidationResultSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
     id: `validation.${profileId}`,

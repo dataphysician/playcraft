@@ -158,17 +158,17 @@
       "kind": "generated-asset",
       "requestId": "asset-request.profile.memory-match.mvp",
       "assetId": "asset.6f02986c",
-      "sourceId": "asset-source.stub-deterministic",
+      "sourceId": "asset-source.local-deterministic",
       "contentType": "image",
       "format": "svg",
-      "uri": "stub://image/6f02986c.svg",
+      "uri": "local-asset://image/6f02986c.svg",
       "altText": "Deterministic image asset for friendly animal cards for a child-safe memory match game",
       "metadata": {
         "promptDigest": "6f02986c",
-        "source": "deterministic-stub"
+        "source": "deterministic-local"
       },
       "provenance": {
-        "sourceManifestId": "asset-source.stub-deterministic",
+        "sourceManifestId": "asset-source.local-deterministic",
         "sourceManifestVersion": "1.0.0",
         "deterministic": true,
         "seed": "seed-memory-match",
