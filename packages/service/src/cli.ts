@@ -5,6 +5,7 @@ import {
   type BuilderAssetEdit,
   type BuilderCatalog,
   type BuilderInputSource,
+  type BuilderProfileExport,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
   type BuilderTemplateId
@@ -19,6 +20,8 @@ export interface LocalServiceCliIo {
 interface ParsedArgs {
   assetEdit?: BuilderAssetEdit;
   json?: boolean;
+  profileExportJson?: string;
+  profileJson?: string;
   requestJson?: string;
   sessionId?: string;
   source?: BuilderInputSource;
@@ -35,7 +38,7 @@ const defaultIo: LocalServiceCliIo = {
 export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|reset|request> [--text <request>] [--transcript <moonshine transcript>] [--source <text|speech-transcript>] [--session <id>] [--asset-theme <theme>] [--asset-item <item>] [--request-json <json>] [--json]");
+    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request> [--text <request>] [--transcript <moonshine transcript>] [--source <text|speech-transcript>] [--session <id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
     return 1;
   }
 
@@ -50,7 +53,7 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
     }
 
     if (isCliCommand(commandName)) {
-      if (commandName === "preview" && args.text) {
+      if ((commandName === "preview" || commandName === "get-session" || commandName === "export-profile") && (args.text || args.transcriptText)) {
         service.handle(serviceRequest("assemble", args, "service.cli.preview.seed"));
       }
       const response = service.handle(serviceRequest(commandName, args));
@@ -101,6 +104,12 @@ function parseArgs(argv: string[]): ParsedArgs {
     } else if (entry === "--request-json") {
       output.requestJson = argv[index + 1];
       index += 1;
+    } else if (entry === "--profile-json") {
+      output.profileJson = argv[index + 1];
+      index += 1;
+    } else if (entry === "--profile-export-json") {
+      output.profileExportJson = argv[index + 1];
+      index += 1;
     } else if (entry === "--json") {
       output.json = true;
     }
@@ -125,7 +134,14 @@ function parseSource(value: string | undefined): BuilderInputSource {
 }
 
 function isCliCommand(commandName: string): commandName is CliCommand {
-  return commandName === "catalog" || commandName === "assemble" || commandName === "update" || commandName === "preview" || commandName === "reset";
+  return commandName === "catalog" ||
+    commandName === "assemble" ||
+    commandName === "update" ||
+    commandName === "preview" ||
+    commandName === "get-session" ||
+    commandName === "export-profile" ||
+    commandName === "import-profile" ||
+    commandName === "reset";
 }
 
 function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: string = commandName): BuilderServiceRequest {
@@ -134,6 +150,8 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
   if ((commandName === "assemble" || commandName === "update") && !text) {
     throw new Error("assemble, update, and preview-with-assemble require --text or --transcript");
   }
+  const profileExport = parseProfileExportJson(args.profileExportJson);
+  const profile = args.profileJson ? JSON.parse(args.profileJson) : undefined;
 
   return {
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -142,6 +160,8 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
     kind: "builder-service-request",
     actionName: commandName,
     assetEdit: args.assetEdit,
+    profile,
+    profileExport,
     sessionId: args.sessionId,
     source: transcriptText ? "speech-transcript" : args.source ?? "text",
     speechTranscript: transcriptText
@@ -158,6 +178,10 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
   };
 }
 
+function parseProfileExportJson(value: string | undefined): BuilderProfileExport | undefined {
+  return value ? JSON.parse(value) as BuilderProfileExport : undefined;
+}
+
 function parseServiceRequestJson(value: string | undefined): BuilderServiceRequest {
   if (!value) {
     throw new Error("request command requires --request-json");
@@ -167,7 +191,7 @@ function parseServiceRequestJson(value: string | undefined): BuilderServiceReque
 }
 
 function writeResponse(response: BuilderServiceResponse, json: boolean, io: LocalServiceCliIo): void {
-  const payload = response.catalog ?? response.execution ?? { reset: response.reset === true };
+  const payload = response.catalog ?? response.profileExport ?? response.execution ?? response.session ?? { reset: response.reset === true };
 
   if (json) {
     io.stdout(JSON.stringify(payload, null, 2));
@@ -181,6 +205,16 @@ function writeResponse(response: BuilderServiceResponse, json: boolean, io: Loca
 
   if (response.execution) {
     io.stdout(`${response.execution.result.sessionId}: ${response.execution.result.profile?.profileName ?? "preview"}`);
+    return;
+  }
+
+  if (response.profileExport) {
+    io.stdout(`${response.profileExport.sessionId}: exported ${response.profileExport.profile.profileName}`);
+    return;
+  }
+
+  if (response.session) {
+    io.stdout(`${response.session.sessionId}: ${response.session.profile?.profileName ?? "empty session"}`);
     return;
   }
 

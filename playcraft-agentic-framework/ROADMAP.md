@@ -24,7 +24,7 @@ V1 includes:
 - Trusted React renderer for registered components only.
 - Replay harness for saved `GameAssemblyProfile` records.
 - Three MVP profiles: memory match, sorting, and sequence repeat.
-- Local builder service that exposes catalog, assemble, update, and preview actions to user-facing shells.
+- Local builder service that exposes catalog, assemble, update, preview, session lookup, and profile export/import actions to user-facing shells.
 
 V1 core excludes network, credentials, AI SDKs, GPU, model weights, database services, native-shell APIs, auth, dashboards, billing, and production deployment assumptions. App shells may wrap the local service as long as the core packages remain import-light.
 
@@ -56,7 +56,7 @@ These profiles are fixtures assembled from registries, not hardcoded game types.
 After v1 gates pass, continue hardening middleweight runtime/studio features:
 
 - Vite studio app for authoring, preview, replay, and inspection. Current package: `apps/studio`.
-- Local shell/API facade for catalog, assemble, update, preview, and text/transcript normalization. Current package: `packages/service`.
+- Local shell/API facade for catalog, assemble, update, preview, session lookup, profile export/import, and text/transcript normalization. Current package: `packages/service`.
 - Tauri Mobile-facing webview scaffold around the Studio UI. Current package: `apps/mobile-shell`.
 - Visual inspector and debug timeline for AG-UI events, Playcraft events, state snapshots, rule traces, safety findings, and asset provenance.
 - Profile import/export for `GameAssemblyProfile` bundles.
@@ -69,8 +69,8 @@ Middleweight work must not move core assembly semantics into app routes, Tauri c
 
 Current implementation notes, July 4, 2026:
 
-- Milestones reached: local service envelope, HTTP service transport, CLI service surface, Studio and Mobile shell service wiring, local Moonshine transcript input, bundled asset-edit catalog, and catalog-driven Studio request tips.
-- Supportive changes: stale provider/avatar references are covered by source scans, app entrypoints are documented, and request examples now come from service catalog data instead of hardcoded Studio text.
+- Milestones reached: local service envelope, HTTP service transport, CLI service surface, Studio and Mobile shell service wiring, local Moonshine transcript input, bundled asset-edit catalog, catalog-driven Studio request tips, per-session service state, and profile export/import.
+- Supportive changes: stale provider/avatar references are covered by source scans, app entrypoints are documented, request examples come from service catalog data instead of hardcoded Studio text, and imported profiles are replay-checked before becoming active.
 
 ## 6. Provider Adapter Path
 

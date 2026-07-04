@@ -542,7 +542,15 @@ export const BuilderInputRequestSchema = PublicContractBaseSchema.extend({
   });
 export type BuilderInputRequest = z.infer<typeof BuilderInputRequestSchema>;
 
-export const BuilderActionNameSchema = z.enum(["assemble-game", "update-game", "preview-action", "list-builder-tools"]);
+export const BuilderActionNameSchema = z.enum([
+  "assemble-game",
+  "update-game",
+  "preview-action",
+  "list-builder-tools",
+  "get-session",
+  "export-profile",
+  "import-profile"
+]);
 export type BuilderActionName = z.infer<typeof BuilderActionNameSchema>;
 
 export const BuilderTemplateIdSchema = StableIdSchema.refine((value) => value.startsWith("template."), {
@@ -646,6 +654,7 @@ export const BuilderCommandSchema = PublicContractBaseSchema.extend({
   templateId: BuilderTemplateIdSchema.optional(),
   input: BuilderInputRequestSchema.optional(),
   assetEdit: BuilderAssetEditSchema.optional(),
+  profile: GameAssemblyProfileSchema.optional(),
   interaction: z
     .object({
       action: z.enum(["primary"]).default("primary")
@@ -653,9 +662,13 @@ export const BuilderCommandSchema = PublicContractBaseSchema.extend({
     .strict()
     .optional()
 }).strict()
-  .refine((value) => value.actionName === "preview-action" || value.actionName === "list-builder-tools" || Boolean(value.templateId), {
+  .refine((value) => !["assemble-game", "update-game"].includes(value.actionName) || Boolean(value.templateId), {
     message: "assemble and update actions require a templateId",
     path: ["templateId"]
+  })
+  .refine((value) => value.actionName !== "import-profile" || Boolean(value.profile), {
+    message: "import profile actions require a profile",
+    path: ["profile"]
   });
 export type BuilderCommand = z.infer<typeof BuilderCommandSchema>;
 
@@ -684,7 +697,50 @@ export const BuilderCommandResultSchema = PublicContractBaseSchema.extend({
 }).strict();
 export type BuilderCommandResult = z.infer<typeof BuilderCommandResultSchema>;
 
-export const BuilderServiceActionNameSchema = z.enum(["catalog", "assemble", "update", "preview", "reset"]);
+export const BuilderSessionSnapshotSchema = z
+  .object({
+    schemaVersion: z.literal(PLAYCRAFT_SCHEMA_VERSION),
+    kind: z.literal("builder-session-snapshot"),
+    sessionId: StableIdSchema,
+    activeTemplateId: BuilderTemplateIdSchema.optional(),
+    activeProfileId: StableIdSchema.optional(),
+    activeAssetEdit: BuilderAssetEditSchema.optional(),
+    profile: GameAssemblyProfileSchema.optional(),
+    preview: BuilderPreviewStateSchema,
+    validation: AssemblyValidationResultSchema.optional(),
+    updatedAt: z.string().datetime()
+  })
+  .strict();
+export type BuilderSessionSnapshot = z.infer<typeof BuilderSessionSnapshotSchema>;
+
+export const BuilderProfileExportSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("builder-profile-export"),
+  sessionId: StableIdSchema,
+  templateId: BuilderTemplateIdSchema.optional(),
+  assetEdit: BuilderAssetEditSchema.optional(),
+  profile: GameAssemblyProfileSchema,
+  preview: BuilderPreviewStateSchema.optional(),
+  validation: AssemblyValidationResultSchema.optional(),
+  exportedAt: z.string().datetime(),
+  retrieval: z
+    .object({
+      current: z.literal("bundled-local"),
+      planned: z.literal("server-catalog")
+    })
+    .strict()
+}).strict();
+export type BuilderProfileExport = z.infer<typeof BuilderProfileExportSchema>;
+
+export const BuilderServiceActionNameSchema = z.enum([
+  "catalog",
+  "assemble",
+  "update",
+  "preview",
+  "reset",
+  "get-session",
+  "export-profile",
+  "import-profile"
+]);
 export type BuilderServiceActionName = z.infer<typeof BuilderServiceActionNameSchema>;
 
 export const BuilderServiceExecutionSchema = z
@@ -704,7 +760,9 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   source: BuilderInputSourceSchema.optional(),
   speechTranscript: MoonshineTranscriptRecordSchema.optional(),
   templateId: BuilderTemplateIdSchema.optional(),
-  assetEdit: BuilderAssetEditSchema.optional()
+  assetEdit: BuilderAssetEditSchema.optional(),
+  profile: GameAssemblyProfileSchema.optional(),
+  profileExport: BuilderProfileExportSchema.optional()
 }).strict()
   .refine((value) => value.actionName !== "assemble" || Boolean(value.text || value.speechTranscript), {
     message: "assemble requests require text or a Moonshine transcript record",
@@ -721,6 +779,10 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   .refine((value) => !value.speechTranscript || !value.text || value.text === value.speechTranscript.text, {
     message: "service request text must match Moonshine transcript record text",
     path: ["speechTranscript"]
+  })
+  .refine((value) => value.actionName !== "import-profile" || Boolean(value.profile || value.profileExport), {
+    message: "import-profile requests require profile or profileExport",
+    path: ["profile"]
   });
 export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
 
@@ -730,6 +792,8 @@ export const BuilderServiceResponseSchema = PublicContractBaseSchema.extend({
   actionName: BuilderServiceActionNameSchema,
   catalog: BuilderCatalogSchema.optional(),
   execution: BuilderServiceExecutionSchema.optional(),
+  session: BuilderSessionSnapshotSchema.optional(),
+  profileExport: BuilderProfileExportSchema.optional(),
   reset: z.literal(true).optional()
 }).strict()
   .refine((value) => value.actionName !== "catalog" || Boolean(value.catalog), {
@@ -738,6 +802,18 @@ export const BuilderServiceResponseSchema = PublicContractBaseSchema.extend({
   })
   .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || Boolean(value.execution), {
     message: "assemble, update, and preview responses require execution output",
+    path: ["execution"]
+  })
+  .refine((value) => value.actionName !== "get-session" || Boolean(value.session), {
+    message: "get-session responses require a session snapshot",
+    path: ["session"]
+  })
+  .refine((value) => value.actionName !== "export-profile" || Boolean(value.profileExport), {
+    message: "export-profile responses require a profile export",
+    path: ["profileExport"]
+  })
+  .refine((value) => value.actionName !== "import-profile" || Boolean(value.execution && value.session), {
+    message: "import-profile responses require execution output and a session snapshot",
     path: ["execution"]
   })
   .refine((value) => value.actionName !== "reset" || value.reset === true, {
@@ -773,6 +849,8 @@ export const PublicContractSchemas = {
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
   BuilderCommandResultSchema,
+  BuilderSessionSnapshotSchema,
+  BuilderProfileExportSchema,
   BuilderServiceExecutionSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema

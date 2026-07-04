@@ -47,6 +47,10 @@ describe("builder session service", () => {
       type: "object",
       required: false
     });
+    expect(tools.find((tool) => tool.actionName === "import-profile")?.argumentsSchema.fields.profile).toEqual({
+      type: "object",
+      required: true
+    });
   });
 
   it("emits validated lifecycle, state, activity, tool, custom, replay, and preview events for builds", () => {
@@ -105,6 +109,29 @@ describe("builder session service", () => {
 
     expect(after.result.profile?.id).toBe("profile.sorting.mvp");
     expect(after.result.preview.interactionCount).toBe(2);
+  });
+
+  it("imports a validated profile into a previewable session", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.sequence-repeat" })).result.profile;
+    expect(exported).toBeDefined();
+
+    const target = new PlaycraftBuilderSessionService();
+    const imported = target.importProfile("session.imported", exported!);
+    const preview = target.execute(command({
+      actionName: "preview-action",
+      id: "builder-command.test.preview-imported",
+      interaction: { action: "primary" },
+      sessionId: "session.imported",
+      templateId: undefined
+    }));
+    const snapshot = target.getSessionSnapshot("session.imported");
+
+    expect(imported.result.profile?.id).toBe("profile.sequence-repeat.mvp");
+    expect(imported.events.map((event) => event.type)).toEqual(expect.arrayContaining(["RunStarted", "ToolCall", "StateSnapshot", "Custom", "RunFinished"]));
+    expect(snapshot.activeTemplateId).toBe("template.sequence-repeat");
+    expect(preview.result.preview.interactionCount).toBe(1);
+    expect(preview.result.profile?.id).toBe("profile.sequence-repeat.mvp");
   });
 
   it("keeps CLI batch output in parity with the shared command handler", () => {

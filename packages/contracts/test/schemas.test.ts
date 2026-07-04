@@ -235,6 +235,55 @@ describe("public contract schemas", () => {
         },
         validation: profile.validation
       },
+      BuilderSessionSnapshotSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        kind: "builder-session-snapshot",
+        sessionId: "session.fixture",
+        activeProfileId: profile.id,
+        activeTemplateId: "template.memory-match",
+        activeAssetEdit: {
+          theme: "dinosaurs"
+        },
+        profile,
+        preview: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          sessionId: "session.fixture",
+          activeProfileId: profile.id,
+          activeTemplateId: "template.memory-match",
+          activeComponentId: renderRequest.componentId,
+          renderedComponentIds: [renderRequest.componentId],
+          interactionCount: 0
+        },
+        validation: profile.validation,
+        updatedAt: "2026-07-04T00:00:00.000Z"
+      },
+      BuilderProfileExportSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-profile-export.fixture",
+        version: "1.0.0",
+        kind: "builder-profile-export",
+        sessionId: "session.fixture",
+        templateId: "template.memory-match",
+        assetEdit: {
+          theme: "dinosaurs"
+        },
+        profile,
+        preview: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          sessionId: "session.fixture",
+          activeProfileId: profile.id,
+          activeTemplateId: "template.memory-match",
+          activeComponentId: renderRequest.componentId,
+          renderedComponentIds: [renderRequest.componentId],
+          interactionCount: 0
+        },
+        validation: profile.validation,
+        exportedAt: "2026-07-04T00:00:00.000Z",
+        retrieval: {
+          current: "bundled-local",
+          planned: "server-catalog"
+        }
+      },
       BuilderServiceExecutionSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         result: {

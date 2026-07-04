@@ -20,6 +20,7 @@ import {
   BuilderCommandResultSchema,
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
+  BuilderSessionSnapshotSchema,
   BuilderTemplateIdSchema,
   BuilderToolDefinitionSchema,
   PLAYCRAFT_SCHEMA_VERSION,
@@ -27,6 +28,7 @@ import {
   type BuilderCommand,
   type BuilderCommandResult,
   type BuilderPreviewState,
+  type BuilderSessionSnapshot,
   type BuilderTemplateId,
   type BuilderToolDefinition,
   type GameAssemblyProfile,
@@ -60,7 +62,10 @@ export const builderToolDefinitions: BuilderToolDefinition[] = [
   builderTool("builder-tool.assemble-game", "tool:assemble-game", "Assemble a mini-game from a registered local template.", "assemble-game", ["text", "speech-transcript"]),
   builderTool("builder-tool.update-game", "tool:update-game", "Update the active mini-game template or its asset edit levers.", "update-game", ["text", "speech-transcript"]),
   builderTool("builder-tool.preview-action", "tool:preview-action", "Replay one trusted UI interaction against the active profile.", "preview-action", ["text"]),
-  builderTool("builder-tool.list-builder-tools", "tool:list-builder-tools", "List the local Playcraft builder tools and bundled game templates.", "list-builder-tools", ["text"])
+  builderTool("builder-tool.list-builder-tools", "tool:list-builder-tools", "List the local Playcraft builder tools and bundled game templates.", "list-builder-tools", ["text"]),
+  builderTool("builder-tool.get-session", "tool:get-session", "Inspect the active local builder session snapshot.", "get-session", ["text"]),
+  builderTool("builder-tool.export-profile", "tool:export-profile", "Export the active validated game profile for reuse.", "export-profile", ["text"]),
+  builderTool("builder-tool.import-profile", "tool:import-profile", "Import a validated game profile into a local session.", "import-profile", ["text"])
 ];
 
 const TEMPLATE_BY_ID = new Map(gameTemplateDefinitions.map((template) => [template.id, template]));
@@ -82,6 +87,8 @@ export interface BuilderExecutionResult {
 export interface BuilderCommandHandler {
   execute(command: BuilderCommand): BuilderExecutionResult;
   assembleTemplates(templateIds: BuilderTemplateId[], sessionId?: string): BuilderExecutionResult[];
+  getSessionSnapshot(sessionId: string): BuilderSessionSnapshot;
+  importProfile(sessionId: string, profile: GameAssemblyProfile, commandId?: string): BuilderExecutionResult;
   listTools(): BuilderToolDefinition[];
   listTemplates(): GameTemplateDefinition[];
 }
@@ -104,6 +111,14 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
         return this.previewAction(session, command);
       case "list-builder-tools":
         return this.catalogResult(session, command);
+      case "get-session":
+      case "export-profile":
+        return this.sessionResult(session, command);
+      case "import-profile":
+        if (!command.profile) {
+          throw new Error("import-profile requires a profile");
+        }
+        return this.importProfile(command.sessionId, command.profile, command.id);
       default:
         throw new Error(`unsupported command ${(command as { actionName: string }).actionName}`);
     }
@@ -131,6 +146,69 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     return [...gameTemplateDefinitions];
   }
 
+  getSessionSnapshot(sessionId: string): BuilderSessionSnapshot {
+    return snapshotForSession(this.getOrCreateSession(sessionId));
+  }
+
+  importProfile(sessionId: string, profileInput: GameAssemblyProfile, commandId = `builder-command.${sessionId}.import-profile`): BuilderExecutionResult {
+    const session = this.getOrCreateSession(sessionId);
+    const profile = GameAssemblyProfileSchema.parse(profileInput);
+    const template = templateForProfile(profile);
+    const replay = replayProfile(profile, this.registries);
+    const preview = previewForReplay(sessionId, template.id as BuilderTemplateId, profile, replay, session.preview);
+
+    session.templateId = template.id as BuilderTemplateId;
+    session.profile = profile;
+    session.replay = replay;
+    session.preview = preview;
+
+    const result = BuilderCommandResultSchema.parse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: `builder-result.${commandId}`,
+      version: "1.0.0",
+      kind: "builder-command-result",
+      commandId,
+      sessionId: session.sessionId,
+      profile,
+      preview,
+      validation: profile.validation
+    });
+    const runId = `${sessionId}.${template.id}.import`;
+
+    return {
+      result,
+      events: [
+        runStarted(runId, 0),
+        toolCall(runId, "tool:import-profile", { profileId: profile.id, templateId: template.id }, 1),
+        toolResult(runId, "tool:import-profile", { profileId: profile.id, valid: profile.validation.valid }, 2),
+        stateSnapshot(runId, { sessionId, templateId: template.id, profileId: profile.id }, 3),
+        playcraftCustomEvent(
+          createPlaycraftEnvelope({
+            eventId: `event.${profile.id}.imported`,
+            profileId: profile.id,
+            runId,
+            payloadType: "profile.validated",
+            payload: profile,
+            provenance: { role: "validator", sourceId: "builder-session-service" }
+          }),
+          { sequence: 4 }
+        ),
+        playcraftCustomEvent(
+          createPlaycraftEnvelope({
+            eventId: `event.${profile.id}.import.replay.ready`,
+            profileId: profile.id,
+            runId,
+            payloadType: "replay.ready",
+            payload: { profileId: profile.id, replayable: profile.validation.valid },
+            provenance: { role: "validator", sourceId: "builder-session-service" }
+          }),
+          { sequence: 5 }
+        ),
+        runFinished(runId, 6)
+      ]
+    };
+  }
+
   private buildOrUpdate(session: BuilderSessionRecord, command: BuilderCommand): BuilderExecutionResult {
     const templateId = BuilderTemplateIdSchema.parse(command.templateId);
     const template = templateForId(templateId);
@@ -138,17 +216,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const runId = `${command.sessionId}.${templateId}`;
     const profile = applyAssetEdit(this.planner.assemble(request), command.assetEdit, this.assetProvider, this.registries);
     const replay = replayProfile(profile, this.registries);
-    const preview = BuilderPreviewStateSchema.parse({
-      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-      sessionId: session.sessionId,
-      activeProfileId: profile.id,
-      activeTemplateId: templateId,
-      activeComponentId: replay.renderRequests[0]?.componentId,
-      renderedComponentIds: replay.renderRequests.map((entry) => entry.componentId ?? entry.componentCapability ?? "unknown"),
-      interactionCount: session.preview.interactionCount,
-      lastToolName: session.preview.lastToolName,
-      lastToolPayload: session.preview.lastToolPayload
-    });
+    const preview = previewForReplay(session.sessionId, templateId, profile, replay, session.preview);
 
     session.templateId = templateId;
     session.profile = profile;
@@ -344,6 +412,31 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     return { result, events };
   }
 
+  private sessionResult(session: BuilderSessionRecord, command: BuilderCommand): BuilderExecutionResult {
+    const result = BuilderCommandResultSchema.parse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: `builder-result.${command.id}`,
+      version: "1.0.0",
+      kind: "builder-command-result",
+      commandId: command.id,
+      sessionId: session.sessionId,
+      profile: session.profile,
+      preview: session.preview,
+      validation: session.profile?.validation
+    });
+    const runId = `${command.sessionId}.${command.actionName}`;
+    const toolName = command.actionName === "export-profile" ? "tool:export-profile" : "tool:get-session";
+
+    return {
+      result,
+      events: [
+        toolCall(runId, toolName, { sessionId: session.sessionId }, 0),
+        toolResult(runId, toolName, { profileId: session.profile?.id ?? null, templateId: session.templateId ?? null }, 1),
+        stateSnapshot(runId, snapshotForSession(session), 2)
+      ]
+    };
+  }
+
   private getOrCreateSession(sessionId: string): BuilderSessionRecord {
     const existing = this.sessions.get(sessionId);
     if (existing) {
@@ -362,6 +455,40 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     this.sessions.set(sessionId, created);
     return created;
   }
+}
+
+function snapshotForSession(session: BuilderSessionRecord): BuilderSessionSnapshot {
+  return BuilderSessionSnapshotSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    kind: "builder-session-snapshot",
+    sessionId: session.sessionId,
+    activeTemplateId: session.templateId,
+    activeProfileId: session.profile?.id,
+    profile: session.profile,
+    preview: session.preview,
+    validation: session.profile?.validation,
+    updatedAt: "2026-07-04T00:00:00.000Z"
+  });
+}
+
+function previewForReplay(
+  sessionId: string,
+  templateId: BuilderTemplateId,
+  profile: GameAssemblyProfile,
+  replay: ReplayResult,
+  previousPreview: BuilderPreviewState
+): BuilderPreviewState {
+  return BuilderPreviewStateSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    sessionId,
+    activeProfileId: profile.id,
+    activeTemplateId: templateId,
+    activeComponentId: replay.renderRequests[0]?.componentId,
+    renderedComponentIds: replay.renderRequests.map((entry) => entry.componentId ?? entry.componentCapability ?? "unknown"),
+    interactionCount: previousPreview.interactionCount,
+    lastToolName: previousPreview.lastToolName,
+    lastToolPayload: previousPreview.lastToolPayload
+  });
 }
 
 export function createBuilderCommandHandler(): BuilderCommandHandler {
@@ -383,6 +510,15 @@ function templateForId(templateId: BuilderTemplateId): GameTemplateDefinition {
   if (!template) {
     throw new Error(`unknown game template ${templateId}`);
   }
+  return template;
+}
+
+function templateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition {
+  const template = gameTemplateDefinitions.find((entry) => entry.profileId === profile.id);
+  if (!template) {
+    throw new Error(`profile ${profile.id} is not backed by a bundled game template`);
+  }
+
   return template;
 }
 
@@ -434,6 +570,16 @@ function builderToolArgumentsSchema(actionName: BuilderToolDefinition["actionNam
     },
     "list-builder-tools": {
       sessionId: optionalString
+    },
+    "get-session": {
+      sessionId: requiredString
+    },
+    "export-profile": {
+      sessionId: requiredString
+    },
+    "import-profile": {
+      profile: { type: "object", required: true },
+      sessionId: requiredString
     }
   };
 

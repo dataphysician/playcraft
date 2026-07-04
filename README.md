@@ -38,9 +38,10 @@ Ask the CLI what an agent can assemble:
 pnpm --filter @playcraft/service exec playcraft-service catalog --json
 pnpm --filter @playcraft/service exec playcraft-service assemble --text "Memory game with dinosaurs" --json
 pnpm --filter @playcraft/service exec playcraft-service assemble --transcript "Sort shapes by color" --json
+pnpm --filter @playcraft/service exec playcraft-service export-profile --text "Memory game with dinosaurs" --json
 ```
 
-The catalog exposes bundled templates, callable builder tools, accepted input sources, and local replacement themes such as dinosaurs, toys, dolphins/ocean animals, and fruits.
+The catalog exposes bundled templates, callable builder tools, accepted input sources, profile get/export/import actions, and local replacement themes such as dinosaurs, toys, dolphins/ocean animals, and fruits.
 
 ## Architecture
 

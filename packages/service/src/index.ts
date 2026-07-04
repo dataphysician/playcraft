@@ -2,9 +2,11 @@ import {
   BuilderCatalogSchema,
   BuilderInputRequestSchema,
   BuilderIntentResolutionSchema,
+  BuilderProfileExportSchema,
   BuilderServiceExecutionSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
+  BuilderSessionSnapshotSchema,
   MoonshineTranscriptRecordSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
@@ -14,10 +16,13 @@ import {
   type BuilderInputRequest,
   type BuilderInputSource,
   type BuilderIntentResolution,
+  type BuilderProfileExport,
   type BuilderServiceExecution,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
+  type BuilderSessionSnapshot,
   type BuilderTemplateId,
+  type GameAssemblyProfile,
   type JsonValue,
   type MoonshineTranscriptRecord,
   type MoonshineTranscriptSegment
@@ -99,8 +104,7 @@ export class LocalPlaycraftService {
   private readonly handler: BuilderCommandHandler;
   private inputCounter = 0;
   private commandCounter = 0;
-  private activeAssetEdit: BuilderAssetEdit | undefined;
-  private activeTemplateId: BuilderTemplateId = DEFAULT_TEMPLATE_ID;
+  private readonly sessionState = new Map<string, LocalSessionState>();
 
   constructor(handler: BuilderCommandHandler = createBuilderCommandHandler()) {
     this.handler = handler;
@@ -131,22 +135,21 @@ export class LocalPlaycraftService {
   }
 
   assemble(input: LocalBuilderInput): BuilderExecutionResult {
-    const resolved = this.resolveInput(input);
-    this.activeTemplateId = resolved.templateId;
-    this.activeAssetEdit = resolved.assetEdit;
-    return this.execute("assemble-game", input.sessionId ?? "service.session", resolved);
+    const sessionId = input.sessionId ?? "service.session";
+    const resolved = this.resolveInput(sessionId, input);
+    this.updateSessionState(sessionId, resolved);
+    return this.execute("assemble-game", sessionId, resolved);
   }
 
   update(input: LocalBuilderInput & { sessionId: string }): BuilderExecutionResult {
-    const resolved = this.resolveInput(input);
-    this.activeTemplateId = resolved.templateId;
-    this.activeAssetEdit = resolved.assetEdit;
+    const resolved = this.resolveInput(input.sessionId, input);
+    this.updateSessionState(input.sessionId, resolved);
     return this.execute("update-game", input.sessionId, resolved);
   }
 
   preview(sessionId = "service.session"): BuilderExecutionResult {
     this.commandCounter += 1;
-    return this.handler.execute({
+    const output = this.handler.execute({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: `builder-command.${sessionId}.${this.commandCounter}`,
       version: "1.0.0",
@@ -155,13 +158,58 @@ export class LocalPlaycraftService {
       actionName: "preview-action",
       interaction: { action: "primary" }
     });
+    this.refreshSessionStateFromResult(sessionId, output.result);
+    return output;
+  }
+
+  getSession(sessionId = "service.session"): BuilderSessionSnapshot {
+    return mergeSessionState(this.handler.getSessionSnapshot(sessionId), this.sessionState.get(sessionId));
+  }
+
+  exportProfile(sessionId = "service.session"): BuilderProfileExport {
+    const session = this.getSession(sessionId);
+    if (!session.profile) {
+      throw new Error(`session ${sessionId} does not have an active profile to export`);
+    }
+
+    return BuilderProfileExportSchema.parse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: `builder-profile-export.${sessionId}`,
+      version: "1.0.0",
+      kind: "builder-profile-export",
+      sessionId,
+      templateId: session.activeTemplateId,
+      assetEdit: session.activeAssetEdit,
+      profile: session.profile,
+      preview: session.preview,
+      validation: session.validation,
+      exportedAt: "2026-07-04T00:00:00.000Z",
+      retrieval: {
+        current: "bundled-local",
+        planned: "server-catalog"
+      }
+    });
+  }
+
+  importProfile(input: { assetEdit?: BuilderAssetEdit; profile: GameAssemblyProfile; sessionId?: string; templateId?: BuilderTemplateId }): BuilderExecutionResult {
+    const sessionId = input.sessionId ?? "service.session";
+    this.commandCounter += 1;
+    const output = this.handler.importProfile(
+      sessionId,
+      input.profile,
+      `builder-command.${sessionId}.${this.commandCounter}`
+    );
+    this.sessionState.set(sessionId, {
+      activeAssetEdit: input.assetEdit,
+      activeTemplateId: input.templateId ?? output.result.preview.activeTemplateId
+    });
+    return output;
   }
 
   reset(): void {
     this.inputCounter = 0;
     this.commandCounter = 0;
-    this.activeAssetEdit = undefined;
-    this.activeTemplateId = DEFAULT_TEMPLATE_ID;
+    this.sessionState.clear();
   }
 
   handle(requestInput: BuilderServiceRequest): BuilderServiceResponse {
@@ -176,46 +224,77 @@ export class LocalPlaycraftService {
       return serviceResponse(request, { reset: true });
     }
 
-    if (request.actionName === "preview") {
+    if (request.actionName === "get-session") {
+      return serviceResponse(request, { session: this.getSession(request.sessionId ?? "service.session") });
+    }
+
+    if (request.actionName === "export-profile") {
+      return serviceResponse(request, { profileExport: this.exportProfile(request.sessionId ?? "service.session") });
+    }
+
+    if (request.actionName === "import-profile") {
+      const profileExport = request.profileExport;
+      const profile = request.profile ?? profileExport?.profile;
+      if (!profile) {
+        throw new Error("import-profile requires profile or profileExport");
+      }
+      const output = this.importProfile({
+        assetEdit: request.assetEdit ?? profileExport?.assetEdit,
+        profile,
+        sessionId: request.sessionId ?? profileExport?.sessionId,
+        templateId: request.templateId ?? profileExport?.templateId
+      });
       return serviceResponse(request, {
-        execution: serializeExecution(this.preview(request.sessionId ?? "service.session"))
+        execution: serializeExecution(output),
+        session: this.getSession(output.result.sessionId)
+      });
+    }
+
+    if (request.actionName === "preview") {
+      const sessionId = request.sessionId ?? "service.session";
+      return serviceResponse(request, {
+        execution: serializeExecution(this.preview(sessionId)),
+        session: this.getSession(sessionId)
       });
     }
 
     if (request.actionName === "assemble") {
+      const sessionId = request.sessionId ?? "service.session";
+      const output = this.assemble({
+        assetEdit: request.assetEdit,
+        sessionId,
+        source: sourceForServiceRequest(request),
+        speechTranscript: request.speechTranscript,
+        templateId: request.templateId,
+        text: textForServiceRequest(request)
+      });
       return serviceResponse(request, {
-        execution: serializeExecution(
-          this.assemble({
-            assetEdit: request.assetEdit,
-            sessionId: request.sessionId,
-            source: sourceForServiceRequest(request),
-            speechTranscript: request.speechTranscript,
-            templateId: request.templateId,
-            text: textForServiceRequest(request)
-          })
-        )
+        execution: serializeExecution(output),
+        session: this.getSession(sessionId)
       });
     }
 
+    const sessionId = request.sessionId ?? "service.session";
+    const output = this.update({
+      assetEdit: request.assetEdit,
+      sessionId,
+      source: sourceForServiceRequest(request),
+      speechTranscript: request.speechTranscript,
+      templateId: request.templateId,
+      text: textForServiceRequest(request)
+    });
     return serviceResponse(request, {
-      execution: serializeExecution(
-        this.update({
-          assetEdit: request.assetEdit,
-          sessionId: request.sessionId ?? "service.session",
-          source: sourceForServiceRequest(request),
-          speechTranscript: request.speechTranscript,
-          templateId: request.templateId,
-          text: textForServiceRequest(request)
-        })
-      )
+      execution: serializeExecution(output),
+      session: this.getSession(sessionId)
     });
   }
 
-  private resolveInput(input: LocalBuilderInput): ResolvedBuilderInputCommand {
+  private resolveInput(sessionId: string, input: LocalBuilderInput): ResolvedBuilderInputCommand {
     this.inputCounter += 1;
+    const state = this.sessionState.get(sessionId);
     return resolveBuilderInputCommand({
-      activeAssetEdit: this.activeAssetEdit,
-      activeTemplateId: this.activeTemplateId,
+      activeAssetEdit: state?.activeAssetEdit,
+      activeTemplateId: state?.activeTemplateId ?? DEFAULT_TEMPLATE_ID,
       assetEdit: input.assetEdit,
       sequence: this.inputCounter,
       source: input.source ?? "text",
@@ -231,7 +310,7 @@ export class LocalPlaycraftService {
     resolved: ResolvedBuilderInputCommand
   ): BuilderExecutionResult {
     this.commandCounter += 1;
-    return this.handler.execute({
+    const output = this.handler.execute({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: `builder-command.${sessionId}.${this.commandCounter}`,
       version: "1.0.0",
@@ -242,7 +321,29 @@ export class LocalPlaycraftService {
       input: resolved.input,
       assetEdit: resolved.assetEdit
     });
+    this.refreshSessionStateFromResult(sessionId, output.result);
+    return output;
   }
+
+  private updateSessionState(sessionId: string, resolved: ResolvedBuilderInputCommand): void {
+    this.sessionState.set(sessionId, {
+      activeAssetEdit: resolved.assetEdit,
+      activeTemplateId: resolved.templateId
+    });
+  }
+
+  private refreshSessionStateFromResult(sessionId: string, result: BuilderExecutionResult["result"]): void {
+    const existing = this.sessionState.get(sessionId);
+    this.sessionState.set(sessionId, {
+      activeAssetEdit: existing?.activeAssetEdit,
+      activeTemplateId: result.preview.activeTemplateId ?? existing?.activeTemplateId
+    });
+  }
+}
+
+interface LocalSessionState {
+  activeAssetEdit?: BuilderAssetEdit;
+  activeTemplateId?: BuilderTemplateId;
 }
 
 export function createLocalPlaycraftService(handler?: BuilderCommandHandler): LocalPlaycraftService {
@@ -566,6 +667,7 @@ function assetEditForText(text: string): TextAssetEdit | undefined {
   const theme =
     matchTheme(normalized, /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
     matchTheme(normalized, /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
+    matchKnownAssetTheme(normalized, /\b(?:make|change|switch|update)\s+(?:it|this|them)\s+(?:(?:to|with|as|for)\s+)?([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
     matchTheme(normalized, /\b(?:memory|match|matching|sort|sorting|sequence|repeat)?\s*(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
     matchTheme(normalized, /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u);
 
@@ -593,6 +695,22 @@ function matchTheme(text: string, pattern: RegExp): string | undefined {
 
   const candidate = cleanAssetTheme(match[1]);
   return candidate.length > 0 && !isTemplateOnlyTheme(candidate) ? candidate : undefined;
+}
+
+function matchKnownAssetTheme(text: string, pattern: RegExp): string | undefined {
+  const candidate = matchTheme(text, pattern);
+  if (!candidate) {
+    return undefined;
+  }
+
+  return isKnownAssetTheme(candidate) ? candidate : undefined;
+}
+
+function isKnownAssetTheme(value: string): boolean {
+  const tokens = normalizedTokens(value).join(" ");
+  return localAssetEditCatalog.some((entry) =>
+    [entry.theme, ...entry.aliases].some((alias) => normalizedTokens(alias).join(" ") === tokens)
+  );
 }
 
 function isTemplateOnlyTheme(value: string): boolean {
@@ -624,7 +742,13 @@ function serializeExecution(output: BuilderExecutionResult): BuilderServiceExecu
 
 function serviceResponse(
   request: BuilderServiceRequest,
-  payload: { catalog?: BuilderCatalog; execution?: BuilderServiceExecution; reset?: true }
+  payload: {
+    catalog?: BuilderCatalog;
+    execution?: BuilderServiceExecution;
+    profileExport?: BuilderProfileExport;
+    reset?: true;
+    session?: BuilderSessionSnapshot;
+  }
 ): BuilderServiceResponse {
   return BuilderServiceResponseSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -634,6 +758,14 @@ function serviceResponse(
     requestId: request.id,
     actionName: request.actionName,
     ...payload
+  });
+}
+
+function mergeSessionState(snapshot: BuilderSessionSnapshot, state: LocalSessionState | undefined): BuilderSessionSnapshot {
+  return BuilderSessionSnapshotSchema.parse({
+    ...snapshot,
+    activeAssetEdit: state?.activeAssetEdit,
+    activeTemplateId: state?.activeTemplateId ?? snapshot.activeTemplateId
   });
 }
 

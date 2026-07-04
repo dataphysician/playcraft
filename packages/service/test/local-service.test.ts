@@ -45,7 +45,10 @@ describe("local Playcraft service", () => {
       "tool:assemble-game",
       "tool:update-game",
       "tool:preview-action",
-      "tool:list-builder-tools"
+      "tool:list-builder-tools",
+      "tool:get-session",
+      "tool:export-profile",
+      "tool:import-profile"
     ]);
     expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId).toEqual({
       type: "string",
@@ -53,6 +56,10 @@ describe("local Playcraft service", () => {
     });
     expect(catalog.tools.find((tool) => tool.actionName === "update-game")?.argumentsSchema.fields.sessionId).toEqual({
       type: "string",
+      required: true
+    });
+    expect(catalog.tools.find((tool) => tool.actionName === "import-profile")?.argumentsSchema.fields.profile).toEqual({
+      type: "object",
       required: true
     });
     expect(catalog.templates.map((template) => template.id)).toEqual([
@@ -145,6 +152,53 @@ describe("local Playcraft service", () => {
     expect(assembled.execution?.events.some((event) => JSON.stringify(event).includes("moonshine-streaming"))).toBe(true);
     expect(updated.execution?.result.profile?.id).toBe("profile.sorting.mvp");
     expect(updated.execution?.result.profile?.assetRequests[0]?.prompt).toContain("fruit sorting game illustrations");
+  });
+
+  it("keeps active template and asset edit state isolated per local session", () => {
+    const service = createLocalPlaycraftService();
+
+    const alpha = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.session-alpha",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.alpha",
+      text: "Memory game with dinosaurs"
+    });
+    const beta = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.session-beta",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.beta",
+      text: "Sort shapes by color with fruits"
+    });
+    const alphaUpdate = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.session-alpha-update",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "update",
+      sessionId: "session.alpha",
+      text: "make it toys"
+    });
+    const betaSession = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.session-beta-get",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "get-session",
+      sessionId: "session.beta"
+    });
+
+    expect(alpha.session?.activeTemplateId).toBe("template.memory-match");
+    expect(beta.session?.activeTemplateId).toBe("template.sorting");
+    expect(alphaUpdate.execution?.result.profile?.id).toBe("profile.memory-match.mvp");
+    expect(alphaUpdate.session?.activeAssetEdit?.theme).toBe("toys");
+    expect(betaSession.session?.activeTemplateId).toBe("template.sorting");
+    expect(betaSession.session?.activeAssetEdit?.theme).toBe("fruits");
   });
 
   it("routes in-process transport requests through the same service envelope", () => {
@@ -369,6 +423,7 @@ describe("local Playcraft service", () => {
     };
     expect(catalog.kind).toBe("builder-catalog");
     expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId.required).toBe(true);
+    expect(catalog.tools.find((tool) => tool.actionName === "export-profile")?.argumentsSchema.fields.sessionId.required).toBe(true);
     expect(catalog.templates.map((template) => template.id)).toEqual([
       "template.memory-match",
       "template.sorting",
@@ -406,6 +461,99 @@ describe("local Playcraft service", () => {
     expect(assembled.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
     expect(assembled.result.profile?.components[0]?.props.cards).toEqual(["dolphin-a", "dolphin-b", "turtle-a", "turtle-b"]);
     expect(err).toEqual([]);
+  });
+
+  it("exports and imports profiles through the service envelope and CLI", () => {
+    const service = createLocalPlaycraftService();
+    const assembled = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.export-source",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.export-source",
+      text: "Repeat a pattern with ocean animals"
+    });
+    const exported = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.export-profile",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "export-profile",
+      sessionId: "session.export-source"
+    });
+    const imported = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.import-profile",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "import-profile",
+      sessionId: "session.import-target",
+      profileExport: exported.profileExport
+    });
+    const preview = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.import-preview",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "preview",
+      sessionId: "session.import-target"
+    });
+
+    expect(assembled.session?.activeAssetEdit?.theme).toBe("ocean animals");
+    expect(exported.profileExport?.profile.id).toBe("profile.sequence-repeat.mvp");
+    expect(exported.profileExport?.assetEdit?.theme).toBe("ocean animals");
+    expect(imported.session?.activeTemplateId).toBe("template.sequence-repeat");
+    expect(imported.session?.activeAssetEdit?.theme).toBe("ocean animals");
+    expect(preview.execution?.result.preview.interactionCount).toBe(1);
+    expect(preview.execution?.result.profile?.id).toBe("profile.sequence-repeat.mvp");
+
+    const out: string[] = [];
+    const err: string[] = [];
+    expect(
+      runLocalServiceCli([
+        "import-profile",
+        "--session",
+        "session.cli-import",
+        "--profile-export-json",
+        JSON.stringify(exported.profileExport),
+        "--json"
+      ], {
+        stdout: (message) => out.push(message),
+        stderr: (message) => err.push(message)
+      })
+    ).toBe(0);
+    const cliImport = JSON.parse(out.pop() ?? "{}") as {
+      events: Array<unknown>;
+      result: { profile?: { id: string }; preview: { activeTemplateId?: string } };
+    };
+    expect(cliImport.result.profile?.id).toBe("profile.sequence-repeat.mvp");
+    expect(cliImport.result.preview.activeTemplateId).toBe("template.sequence-repeat");
+    expect(JSON.stringify(cliImport.events)).toContain("tool:import-profile");
+    expect(err).toEqual([]);
+
+    const exportOut: string[] = [];
+    const exportErr: string[] = [];
+    expect(
+      runLocalServiceCli([
+        "export-profile",
+        "--text",
+        "Memory game with dinosaurs",
+        "--json"
+      ], {
+        stdout: (message) => exportOut.push(message),
+        stderr: (message) => exportErr.push(message)
+      })
+    ).toBe(0);
+    const cliExport = JSON.parse(exportOut.pop() ?? "{}") as {
+      kind: string;
+      profile: { id: string };
+      templateId?: string;
+    };
+    expect(cliExport.kind).toBe("builder-profile-export");
+    expect(cliExport.profile.id).toBe("profile.memory-match.mvp");
+    expect(cliExport.templateId).toBe("template.memory-match");
+    expect(exportErr).toEqual([]);
   });
 
   it("lets agents submit the exact service request envelope through the CLI", () => {
