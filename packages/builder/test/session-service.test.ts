@@ -83,7 +83,9 @@ describe("builder session service", () => {
 
     const previewEvent = customEvents.find((event) => (event.value as { payloadType: string }).payloadType === "preview.rendered");
     expect(previewEvent).toBeDefined();
-    expect(() => BuilderPreviewPayloadSchema.parse((previewEvent?.value as { payload: unknown }).payload)).not.toThrow();
+    const previewPayload = BuilderPreviewPayloadSchema.parse((previewEvent?.value as { payload: unknown }).payload);
+    expect(previewPayload.componentId).toBe("component.reveal-card-grid");
+    expect(previewPayload.renderedComponentIds).toContain(previewPayload.componentId);
   });
 
   it("emits a state delta for profile updates", () => {
@@ -204,7 +206,8 @@ describe("builder session service", () => {
       expect(output.events.map((event) => event.type)).toEqual(expect.arrayContaining(["ToolCall", "ToolResult", "StateDelta", "Custom"]));
       expect(output.result.preview.interactionCount).toBeGreaterThan(0);
       expect(output.result.preview.lastToolName).toMatch(/^tool:/u);
-      expect(output.result.preview.lastToolPayload).toEqual(expect.objectContaining({ componentId: expect.any(String) }));
+      expect(output.result.preview.lastToolPayload).toEqual(expect.objectContaining({ componentId: output.result.preview.activeComponentId }));
+      expect(output.result.preview.renderedComponentIds).toContain(output.result.preview.activeComponentId);
     }
 
     expect(after.result.profile?.id).toBe("profile.sorting.mvp");

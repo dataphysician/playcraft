@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Concrete Preview Component IDs
+
+Milestone:
+- Builder preview payloads now require concrete replay component IDs instead of serializing placeholder component IDs.
+- Preview state rendered-component lists are built from validated replay component IDs only.
+- Preview-action payloads now fail closed if replay state lacks a concrete component ID.
+
+Supportive changes:
+- Builder tests assert preview payload component IDs are present in rendered component IDs.
+- Source scans now block placeholder preview component IDs in builder and service code.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Preview placeholder component ID scan in builder and service source.
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps agent-facing preview events contract-shaped and inspectable without fake component identifiers, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Neutral Memory Profile Baseline
 
 Milestone:

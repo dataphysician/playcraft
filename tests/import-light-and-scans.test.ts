@@ -162,6 +162,24 @@ describe("import-light boundaries and source scans", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps builder preview payloads free of placeholder component IDs", () => {
+    const blockedTerms = [
+      ["unknown", "component"].join("."),
+      ["component", "unknown"].join("."),
+      `"${"unknown"}"`
+    ];
+    const checkedFiles = [
+      "packages/builder/src/index.ts",
+      "packages/service/src/index.ts"
+    ];
+    const violations = checkedFiles.flatMap((path) => {
+      const source = readSource(path);
+      return blockedTerms.some((term) => source.includes(term)) ? [path] : [];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

@@ -292,7 +292,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
           runId,
           payloadType: "preview.rendered",
           payload: {
-            componentId: preview.activeComponentId ?? "unknown.component",
+            componentId: requirePreviewComponentId(preview),
             renderedComponentIds: preview.renderedComponentIds,
             interactionCount: preview.interactionCount
           },
@@ -347,7 +347,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       throw new Error("session has no interactive render requests to preview");
     }
 
-    const componentId = renderRequest.componentId ?? renderRequest.componentCapability ?? "component.unknown";
+    const componentId = requireRenderRequestComponentId(renderRequest);
     const toolName = renderRequest.expectedEmittedEvents[0];
     if (!toolName) {
       throw new Error(`interactive render request ${renderRequest.id} does not declare an emitted tool`);
@@ -408,7 +408,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
           runId,
           payloadType: "preview.rendered",
           payload: {
-            componentId: nextPreview.activeComponentId ?? "unknown.component",
+            componentId: requirePreviewComponentId(nextPreview),
             renderedComponentIds: nextPreview.renderedComponentIds,
             interactionCount: nextPreview.interactionCount
           },
@@ -494,12 +494,30 @@ function previewForReplay(
     sessionId,
     activeProfileId: profile.id,
     activeTemplateId: templateId,
-    activeComponentId: interactiveRequest?.componentId ?? replay.renderRequests[0]?.componentId,
-    renderedComponentIds: replay.renderRequests.map((entry) => entry.componentId ?? entry.componentCapability ?? "unknown"),
+    activeComponentId: interactiveRequest
+      ? requireRenderRequestComponentId(interactiveRequest)
+      : requireRenderRequestComponentId(replay.renderRequests[0]),
+    renderedComponentIds: replay.renderRequests.map(requireRenderRequestComponentId),
     interactionCount: previousPreview.interactionCount,
     lastToolName: previousPreview.lastToolName,
     lastToolPayload: previousPreview.lastToolPayload
   });
+}
+
+function requirePreviewComponentId(preview: BuilderPreviewState): string {
+  if (!preview.activeComponentId) {
+    throw new Error(`preview state for session ${preview.sessionId} does not include an active component id`);
+  }
+
+  return preview.activeComponentId;
+}
+
+function requireRenderRequestComponentId(renderRequest: ReplayResult["renderRequests"][number] | undefined): string {
+  if (!renderRequest?.componentId) {
+    throw new Error("replay render request does not include a concrete component id");
+  }
+
+  return renderRequest.componentId;
 }
 
 function interactiveRenderRequestForReplay(replay: ReplayResult): ReplayResult["renderRequests"][number] | undefined {
