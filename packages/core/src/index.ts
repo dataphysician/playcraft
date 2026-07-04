@@ -512,7 +512,11 @@ function getStringArrayFromRecord(record: unknown, key: string): string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : [];
 }
 
-function compatibilityStringArray(entry: RegistryEntry, key: string): string[] {
+function contractCompatibilityStringArray(entry: RegistryEntry, key: string): string[] {
+  if (entry.kind !== "mechanic" && entry.kind !== "rule-module") {
+    return [];
+  }
+
   return getStringArrayFromRecord(entry.compatibility, key);
 }
 
@@ -525,7 +529,7 @@ function domainProfileIdsForEntry(entry: RegistryEntry): string[] {
     return getStringArray(entry, "supportedDomains");
   }
 
-  return compatibilityStringArray(entry, "domainProfileIds");
+  return contractCompatibilityStringArray(entry, "domainProfileIds");
 }
 
 function safetyPolicyIdsForEntry(entry: RegistryEntry): string[] {
@@ -537,7 +541,7 @@ function safetyPolicyIdsForEntry(entry: RegistryEntry): string[] {
     return [entry.defaultSafetyPolicyId];
   }
 
-  return compatibilityStringArray(entry, "safetyPolicyIds");
+  return contractCompatibilityStringArray(entry, "safetyPolicyIds");
 }
 
 function ageBandsForEntry(entry: RegistryEntry): string[] {
@@ -549,7 +553,7 @@ function ageBandsForEntry(entry: RegistryEntry): string[] {
     return getStringArray(entry, "ageBands");
   }
 
-  return compatibilityStringArray(entry, "ageBands");
+  return contractCompatibilityStringArray(entry, "ageBands");
 }
 
 function modalitiesForEntry(entry: RegistryEntry): string[] {
@@ -561,5 +565,5 @@ function modalitiesForEntry(entry: RegistryEntry): string[] {
     return getStringArray(entry, "modalities");
   }
 
-  return compatibilityStringArray(entry, "modalities");
+  return contractCompatibilityStringArray(entry, "modalities");
 }

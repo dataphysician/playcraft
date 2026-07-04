@@ -145,6 +145,17 @@ describe("import-light boundaries and source scans", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps registry compatibility selection contract-kind explicit", () => {
+    const coreSource = readSource("packages/core/src/index.ts");
+    const registryTestSource = readSource("packages/core/test/registries.test.ts");
+
+    expect(coreSource).not.toContain("function " + "compatibilityStringArray");
+    expect(coreSource).toContain('entry.kind !== "mechanic" && entry.kind !== "rule-module"');
+    expect(registryTestSource).not.toContain('supportedDomains: ["domain.alias"]');
+    expect(registryTestSource).not.toContain('supportedAgeBands: ["adult"]');
+    expect(registryTestSource).not.toContain('supportedModalities: ["audio"]');
+  });
+
   it("keeps retired sample memory-card IDs out of source and fixtures", () => {
     const blockedTerms = ["cat", "sun"].flatMap((item) => [`${item}-a`, `${item}-b`]);
     const checkedFiles = repoSourceFiles().filter((path) =>

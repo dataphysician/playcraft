@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Contract-Kind Registry Compatibility
+
+Milestone:
+- Core registry compatibility selection now reads `compatibility` constraints only from contract kinds that own that field: mechanics and rule modules.
+- Unknown loose registry entries no longer get generic compatibility-object interpretation.
+- Stale compatibility alias fields are rejected at the public contract boundary instead of being treated as runtime selection metadata.
+
+Supportive changes:
+- Core registry tests now cover strict rejection of compatibility alias fields on mechanic contracts.
+- Source scans now prevent the generic compatibility fallback helper and old loose-entry alias fixture from returning.
+
+Validation:
+- `pnpm test packages/core/test/registries.test.ts`
+- `pnpm test packages/core/test/planner.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps registry selection forward-only and contract-shaped without compatibility shims, hosted providers, generated runtime code, auth, database state, or broad legacy metadata inference.
+
 ## 2026-07-04 - Expanded Local Game Catalog And Catalog-Only Rethemes
 
 Milestone:

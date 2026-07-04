@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 import { CapabilityRegistry, type RegistryEntry } from "../src/index.js";
 import { createDefaultRegistries } from "@playcraft/packs";
+import { MechanicDefinitionSchema } from "@playcraft/contracts";
 
 describe("capability registries", () => {
   it("selects mechanics by capability and returns structured rejections", () => {
@@ -85,30 +85,44 @@ describe("capability registries", () => {
     expect(result.warnings.length).toBeGreaterThan(0);
   });
 
-  it("ignores stale compatibility alias fields during selection", () => {
+  it("rejects stale compatibility alias fields at the contract boundary", () => {
+    const registries = createDefaultRegistries();
+    const mechanic = registries.mechanics.select({ ids: ["mechanic.match-pairs"] }).selected;
+
+    expect(MechanicDefinitionSchema.safeParse({
+      ...mechanic,
+      compatibleDomainProfiles: ["domain.alias"],
+      compatibleSafetyPolicies: ["safety.alias"],
+      safetyPolicyIds: ["safety.alias"],
+      ageBands: ["adult"],
+      modalities: ["audio"]
+    }).success).toBe(false);
+  });
+
+  it("does not use compatibility objects from unknown loose entry kinds", () => {
     type LooseEntry = RegistryEntry & { kind: string };
-    const looseEntrySchema: z.ZodType<LooseEntry> = z.custom<LooseEntry>((value) =>
-      typeof value === "object" &&
-      value !== null &&
-      !Array.isArray(value) &&
-      typeof Reflect.get(value, "id") === "string" &&
-      typeof Reflect.get(value, "version") === "string" &&
-      typeof Reflect.get(value, "kind") === "string"
-    );
+    const looseEntrySchema = {
+      parse(value: unknown): LooseEntry {
+        if (
+          typeof value !== "object" ||
+          value === null ||
+          Array.isArray(value) ||
+          typeof Reflect.get(value, "id") !== "string" ||
+          typeof Reflect.get(value, "version") !== "string" ||
+          typeof Reflect.get(value, "kind") !== "string"
+        ) {
+          throw new Error("invalid loose registry entry");
+        }
+
+        return value as LooseEntry;
+      }
+    };
     const registry = new CapabilityRegistry("loose", looseEntrySchema);
 
     registry.register({
       id: "loose.entry",
       version: "1.0.0",
       kind: "loose-entry",
-      compatibleDomainProfiles: ["domain.alias"],
-      compatibleSafetyPolicies: ["safety.alias"],
-      supportedDomains: ["domain.alias"],
-      safetyPolicyIds: ["safety.alias"],
-      supportedAgeBands: ["adult"],
-      ageBands: ["adult"],
-      supportedModalities: ["audio"],
-      modalities: ["audio"],
       compatibility: {
         domainProfileIds: ["domain.current"],
         safetyPolicyIds: ["safety.current"],
@@ -118,18 +132,12 @@ describe("capability registries", () => {
     });
 
     const result = registry.select({
-      domainProfileId: "domain.alias",
-      safetyPolicyId: "safety.alias",
+      domainProfileId: "domain.other",
+      safetyPolicyId: "safety.other",
       ageBand: "adult",
       modality: "audio"
     });
 
-    expect(result.selected).toBeNull();
-    expect(result.rejected[0]?.reasons).toEqual([
-      "domain domain.alias is not supported",
-      "safety policy safety.alias is not supported",
-      "age band adult is not supported",
-      "modality audio is not supported"
-    ]);
+    expect(result.selected?.id).toBe("loose.entry");
   });
 });
