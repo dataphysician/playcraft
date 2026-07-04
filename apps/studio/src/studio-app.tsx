@@ -1,5 +1,5 @@
 import React from "react";
-import type { BuilderCatalog, BuilderInputSource, GameAssemblyProfile } from "@playcraft/contracts";
+import type { BuilderCatalog, BuilderInputSource, BuilderProfileExport, GameAssemblyProfile } from "@playcraft/contracts";
 import { LiveGame, type LiveGameInteraction } from "./live-game.js";
 import {
   TrustedPreview,
@@ -15,7 +15,7 @@ export interface StudioAppProps {
 }
 
 type StudioTab = "live" | "developer";
-type PendingCommand = "generate" | "update";
+type PendingCommand = "export" | "generate" | "import" | "update";
 
 interface ChatMessage {
   id: string;
@@ -34,6 +34,9 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const [error, setError] = React.useState<string | null>(null);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [catalog, setCatalog] = React.useState<BuilderCatalog | undefined>();
+  const [profileExportText, setProfileExportText] = React.useState("");
+  const [profileImportText, setProfileImportText] = React.useState("");
+  const [profileTransferStatus, setProfileTransferStatus] = React.useState<string | null>(null);
 
   const activeProfile = session ? findActiveProfile(session) : undefined;
   const selectedEntry = session?.timeline.find((entry) => entry.id === selectedTimelineId) ?? session?.timeline.at(-1);
@@ -116,8 +119,65 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
           text: chatSummaryForSession(mode, nextSession)
         }
       ]);
+      setProfileTransferStatus(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : mode === "generate" ? "Generate failed." : "Update failed.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function handleExportProfile(): Promise<void> {
+    if (!session?.sessionId || !client.exportProfile) {
+      setProfileTransferStatus("No active profile export tool is available.");
+      return;
+    }
+
+    setPending("export");
+    setError(null);
+    try {
+      const exported = await Promise.resolve(client.exportProfile(session.sessionId));
+      setProfileExportText(JSON.stringify(exported, null, 2));
+      setProfileImportText("");
+      setProfileTransferStatus(`Exported ${exported.profile.profileName}.`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Profile export failed.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function handleImportProfile(): Promise<void> {
+    if (!client.importProfile) {
+      setProfileTransferStatus("No active profile import tool is available.");
+      return;
+    }
+
+    const text = (profileImportText.trim() || profileExportText.trim());
+    if (!text) {
+      setProfileTransferStatus("Paste a profile export first.");
+      return;
+    }
+
+    setPending("import");
+    setError(null);
+    try {
+      const profileExport = JSON.parse(text) as BuilderProfileExport;
+      const nextSession = await Promise.resolve(client.importProfile({ profileExport, sessionId: session?.sessionId }));
+      setSession(nextSession);
+      setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
+      setActiveTab("developer");
+      setProfileTransferStatus(`Imported ${findActiveProfile(nextSession)?.profileName ?? "profile"}.`);
+      setMessages((current) => [
+        ...current,
+        {
+          id: `message.studio.${current.length + 1}`,
+          speaker: "Studio",
+          text: `Imported ${findActiveProfile(nextSession)?.profileName ?? "profile"} from profile export.`
+        }
+      ]);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Profile import failed.");
     } finally {
       setPending(null);
     }
@@ -138,6 +198,9 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     setPending(null);
     setError(null);
     setMessages([]);
+    setProfileExportText("");
+    setProfileImportText("");
+    setProfileTransferStatus(null);
     setActiveTab("live");
   }
 
@@ -206,11 +269,20 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
         ? React.createElement(LiveGame, { profile: activeProfile, onInteraction: handleInteraction })
         : React.createElement(DeveloperPanel, {
             activeProfile,
+            canExportProfile: Boolean(client.exportProfile),
+            canImportProfile: Boolean(client.importProfile),
             componentSummaries,
             messages,
+            pending,
+            profileExportText,
+            profileImportText,
+            profileTransferStatus,
             selectedComponentKey,
             selectedEntry,
             session,
+            onExportProfile: handleExportProfile,
+            onImportProfile: handleImportProfile,
+            onProfileImportTextChange: setProfileImportText,
             onSelectComponent: setSelectedComponentKey,
             onSelectTimeline: setSelectedTimelineId,
             onInteraction: handleInteraction
@@ -233,21 +305,39 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
 
 function DeveloperPanel({
   activeProfile,
+  canExportProfile,
+  canImportProfile,
   componentSummaries,
   messages,
+  pending,
+  profileExportText,
+  profileImportText,
+  profileTransferStatus,
   selectedComponentKey,
   selectedEntry,
   session,
+  onExportProfile,
+  onImportProfile,
+  onProfileImportTextChange,
   onSelectComponent,
   onSelectTimeline,
   onInteraction
 }: {
   activeProfile: GameAssemblyProfile | undefined;
+  canExportProfile: boolean;
+  canImportProfile: boolean;
   componentSummaries: TrustedPreviewComponentSummary[];
   messages: ChatMessage[];
+  pending: PendingCommand | null;
+  profileExportText: string;
+  profileImportText: string;
+  profileTransferStatus: string | null;
   selectedComponentKey: string | undefined;
   selectedEntry: StudioTimelineEntry | undefined;
   session: StudioSessionSnapshot | undefined;
+  onExportProfile: () => void;
+  onImportProfile: () => void;
+  onProfileImportTextChange: (value: string) => void;
   onSelectComponent: (componentKey: string) => void;
   onSelectTimeline: (timelineId: string) => void;
   onInteraction: (interaction: TrustedPreviewInteraction) => void;
@@ -260,6 +350,18 @@ function DeveloperPanel({
       { style: shellStyles.centerPanel },
       React.createElement("h2", null, activeProfile ? activeProfile.profileName : "Developer"),
       messages.length > 0 ? React.createElement(ChatHistoryPanel, { messages }) : null,
+      React.createElement(ProfilePortabilityPanel, {
+        canExportProfile,
+        canImportProfile,
+        hasActiveProfile: Boolean(activeProfile && session?.sessionId),
+        pending,
+        profileExportText,
+        profileImportText,
+        profileTransferStatus,
+        onExportProfile,
+        onImportProfile,
+        onProfileImportTextChange
+      }),
       activeProfile && componentSummaries.length > 0
         ? React.createElement(ComponentInventoryPanel, {
             components: componentSummaries,
@@ -281,6 +383,85 @@ function DeveloperPanel({
       selectedEntry,
       onSelectTimeline
     })
+  );
+}
+
+function ProfilePortabilityPanel({
+  canExportProfile,
+  canImportProfile,
+  hasActiveProfile,
+  pending,
+  profileExportText,
+  profileImportText,
+  profileTransferStatus,
+  onExportProfile,
+  onImportProfile,
+  onProfileImportTextChange
+}: {
+  canExportProfile: boolean;
+  canImportProfile: boolean;
+  hasActiveProfile: boolean;
+  pending: PendingCommand | null;
+  profileExportText: string;
+  profileImportText: string;
+  profileTransferStatus: string | null;
+  onExportProfile: () => void;
+  onImportProfile: () => void;
+  onProfileImportTextChange: (value: string) => void;
+}): React.ReactElement {
+  return React.createElement(
+    "section",
+    { "aria-label": "Profile portability", style: shellStyles.portabilityPanel },
+    React.createElement("h3", null, "Profile tools"),
+    React.createElement(
+      "div",
+      { style: shellStyles.portabilityActions },
+      React.createElement(
+        "button",
+        {
+          type: "button",
+          disabled: !canExportProfile || !hasActiveProfile || pending !== null,
+          onClick: onExportProfile,
+          style: shellStyles.secondaryButton
+        },
+        pending === "export" ? "Exporting..." : "Export Profile"
+      ),
+      React.createElement(
+        "button",
+        {
+          type: "button",
+          disabled: !canImportProfile || pending !== null,
+          onClick: onImportProfile,
+          style: shellStyles.primaryButton
+        },
+        pending === "import" ? "Importing..." : "Import Profile"
+      )
+    ),
+    profileTransferStatus ? React.createElement("p", { role: "status", style: shellStyles.portabilityStatus }, profileTransferStatus) : null,
+    profileExportText
+      ? React.createElement(
+          "label",
+          { style: shellStyles.portabilityField },
+          React.createElement("span", { style: shellStyles.fieldLabel }, "Profile export JSON"),
+          React.createElement("textarea", {
+            readOnly: true,
+            value: profileExportText,
+            rows: 5,
+            style: shellStyles.portabilityTextarea
+          })
+        )
+      : null,
+    React.createElement(
+      "label",
+      { style: shellStyles.portabilityField },
+      React.createElement("span", { style: shellStyles.fieldLabel }, "Import profile export JSON"),
+      React.createElement("textarea", {
+        value: profileImportText,
+        onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => onProfileImportTextChange(event.target.value),
+        rows: 5,
+        style: shellStyles.portabilityTextarea
+      })
+    )
   );
 }
 
@@ -688,6 +869,47 @@ const shellStyles = {
     borderRadius: "8px",
     padding: "1rem",
     background: "#ffffff"
+  },
+  portabilityPanel: {
+    border: "1px solid #d4d4d8",
+    borderRadius: "8px",
+    padding: "1rem",
+    background: "#ffffff",
+    display: "grid",
+    gap: "0.75rem"
+  },
+  portabilityActions: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    gap: "0.5rem",
+    alignItems: "center"
+  },
+  portabilityField: {
+    display: "grid",
+    gap: "0.35rem"
+  },
+  fieldLabel: {
+    fontWeight: 700,
+    fontSize: "0.875rem"
+  },
+  portabilityTextarea: {
+    width: "100%",
+    boxSizing: "border-box" as const,
+    minHeight: "7rem",
+    resize: "vertical" as const,
+    border: "1px solid #a1a1aa",
+    borderRadius: "8px",
+    padding: "0.65rem",
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+    fontSize: "0.78rem",
+    lineHeight: 1.35,
+    color: "#18181b",
+    background: "#fafafa"
+  },
+  portabilityStatus: {
+    margin: 0,
+    color: "#0f766e",
+    fontWeight: 700
   },
   commandForm: {
     display: "flex",

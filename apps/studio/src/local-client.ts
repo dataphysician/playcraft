@@ -2,6 +2,7 @@ import type { BuilderAgUiEvent } from "@playcraft/builder";
 import {
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderCatalog,
+  type BuilderProfileExport,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
   type GameAssemblyProfile,
@@ -53,8 +54,9 @@ export function createStudioClientFromServiceTransport(options: {
     timeline.push(...entries);
 
     return {
+      activeAssetEdit: response.session?.activeAssetEdit,
       sessionId,
-      activeProfileId: response.execution.result.profile?.id,
+      activeProfileId: response.session?.activeProfileId ?? response.execution.result.profile?.id,
       profiles: Array.from(profiles.values()),
       timeline: [...timeline]
     };
@@ -97,6 +99,24 @@ export function createStudioClientFromServiceTransport(options: {
         (response) => snapshotFromResponse(sessionId, response)
       );
     },
+    exportProfile(sessionId) {
+      return mapTransportResponse(
+        options.transport.send(nextRequest("export-profile", { sessionId })),
+        (response) => profileExportFromResponse(response)
+      );
+    },
+    importProfile(input) {
+      const sessionId = input.sessionId ?? input.profileExport.sessionId ?? options.defaultSessionId;
+      return mapTransportResponse(
+        options.transport.send(
+          nextRequest("import-profile", {
+            profileExport: input.profileExport,
+            sessionId
+          })
+        ),
+        (response) => snapshotFromResponse(sessionId, response)
+      );
+    },
     requestChange(input) {
       const speechTranscript = input.speechTranscript;
       return mapTransportResponse(
@@ -117,6 +137,14 @@ export function createStudioClientFromServiceTransport(options: {
       timeline.length = 0;
     }
   };
+}
+
+function profileExportFromResponse(response: BuilderServiceResponse): BuilderProfileExport {
+  if (!response.profileExport) {
+    throw new Error(`${response.actionName} response did not include profile export output`);
+  }
+
+  return response.profileExport;
 }
 
 function catalogFromResponse(response: BuilderServiceResponse): BuilderCatalog {

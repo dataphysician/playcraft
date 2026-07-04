@@ -45,8 +45,9 @@ The v1 target is intentionally small and local-first:
 - Local service facade with validated `BuilderServiceRequest` and `BuilderServiceResponse` envelopes for text requests and `MoonshineTranscriptRecord` inputs from Moonshine Streaming CPU transcript records.
 - In-process and HTTP JSON service transports over the same request/response envelope, including a local `playcraft-service-http` server.
 - Studio and Tauri Mobile-facing shells that default to the in-process local service and can call the HTTP service by setting `VITE_PLAYCRAFT_SERVICE_URL`.
-- `playcraft-service` CLI surface for catalog, assemble, update, preview, reset, raw `BuilderServiceRequest` envelopes, `--transcript` Moonshine transcript input, and asset-edit requests with callable argument schemas, catalog-driven template aliases, and discoverable local replacement themes.
+- `playcraft-service` CLI surface for catalog, assemble, update, preview, get-session, export-profile, import-profile, reset, raw `BuilderServiceRequest` envelopes, `--transcript` Moonshine transcript input, and asset-edit requests with callable argument schemas, catalog-driven template aliases, and discoverable local replacement themes.
 - Vite Studio and a Tauri Mobile-facing shell that assemble games through the shared service transport.
+- Studio Developer profile tools that export/import validated profile bundles through the same service transport.
 
 The core framework packages must be buildable and testable without network access, credentials, AI SDKs, GPU, model weights, a database, or a native shell. The mobile shell is an app layer around the same local service, not a core dependency.
 

@@ -287,6 +287,40 @@ describe("studio UI", () => {
     expect(screen.getByText("Updated Memory Match MVP with toys assets.")).toBeDefined();
   });
 
+  it("exports and imports profiles from the Developer tab through the Studio client", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Memory game with dinosaurs" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+
+    expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Export Profile" }));
+
+    expect(await screen.findByText("Exported Memory Match MVP.")).toBeDefined();
+    const exported = screen.getByLabelText("Profile export JSON") as HTMLTextAreaElement;
+    const exportJson = exported.value;
+    expect(JSON.parse(exportJson)).toMatchObject({
+      kind: "builder-profile-export",
+      profile: {
+        id: "profile.memory-match.mvp"
+      },
+      assetEdit: {
+        theme: "dinosaurs"
+      }
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Start Over" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+    fireEvent.change(screen.getByLabelText("Import profile export JSON"), { target: { value: exportJson } });
+    fireEvent.click(screen.getByRole("button", { name: "Import Profile" }));
+
+    expect(await screen.findByText("Imported Memory Match MVP.")).toBeDefined();
+    expect(screen.getByText("Memory Match MVP")).toBeDefined();
+    fireEvent.click(screen.getByRole("tab", { name: "Live App" }));
+    expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
+  });
+
   it("plays the sorting profile with bin validation", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
