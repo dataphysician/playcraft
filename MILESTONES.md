@@ -1,5 +1,32 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Expanded Local Game Catalog And Catalog-Only Rethemes
+
+Milestone:
+- The local MVP game catalog now publishes 24 deterministic toddler-safe templates across memory, sorting, and sequence-repeat families.
+- Each expanded template now carries its own request label, request capabilities, deterministic seed, profile metadata, and local assembly recipe path.
+- Game/profile/challenge retheme wording now triggers asset edits only for catalog-known local asset themes.
+
+Supportive changes:
+- Builder, pack, and service tests now assert the expanded template catalog count while preserving the original three starter templates first.
+- Service intent tests preserve catalog rethemes such as "Change game to toys" while rejecting vague freeform game rethemes such as "Change game to space robots".
+
+Validation:
+- `pnpm test packages/core/test/planner.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- Broad service asset-intent heuristic scan.
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps game assembly and text/Moonshine intent resolution catalog-driven and forward-only without broad game retheme guessing, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Action-Exact Service Responses
 
 Milestone:

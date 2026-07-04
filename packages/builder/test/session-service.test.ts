@@ -39,7 +39,8 @@ describe("builder session service", () => {
     expect(outputs).toHaveLength(2);
     expect(outputs[0].result.profile?.id).toBe("profile.memory-match.mvp");
     expect(outputs[1].result.profile?.id).toBe("profile.sorting.mvp");
-    expect(handler.listTemplates().map((template) => template.id)).toEqual([
+    expect(handler.listTemplates()).toHaveLength(24);
+    expect(handler.listTemplates().slice(0, 3).map((template) => template.id)).toEqual([
       "template.memory-match",
       "template.sorting",
       "template.sequence-repeat"
@@ -301,7 +302,8 @@ describe("builder session service", () => {
     expect(stderr).toEqual([]);
 
     const parsed = BuilderCliBatchOutputSchema.parse(JSON.parse(stdout.join("\n")));
-    expect(parsed.map((entry) => entry.result.profile?.id)).toEqual([
+    expect(parsed).toHaveLength(24);
+    expect(parsed.slice(0, 3).map((entry) => entry.result.profile?.id)).toEqual([
       "profile.memory-match.mvp",
       "profile.sorting.mvp",
       "profile.sequence-repeat.mvp"

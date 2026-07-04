@@ -677,7 +677,7 @@ function assetEditForText(text: string): TextAssetEdit | undefined {
     matchAssetTheme(normalized, /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request") ??
     matchAssetTheme(normalized, /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request") ??
     matchCatalogAssetTheme(normalized, /\b(?:make|change|switch|update)\s+(?:it|this|them)\s+(?:(?:to|with|as|for)\s+)?([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchAssetTheme(normalized, /\b(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request") ??
+    matchCatalogAssetTheme(normalized, /\b(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
     matchAssetTheme(normalized, /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request");
 
   if (!match) {

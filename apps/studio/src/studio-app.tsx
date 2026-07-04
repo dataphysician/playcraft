@@ -810,6 +810,8 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
   }
 
   const games = catalog.templates.map((template) => displayGameName(template.displayName));
+  const displayedGames = games.slice(0, 5);
+  const moreGames = Math.max(0, games.length - displayedGames.length);
   const assetThemes = catalog.assetEdit.availableThemes.map((entry) => preferredAssetThemeLabel(entry));
   const examples = catalog.templates.slice(0, 3).map((template, index) => {
     const request = sentenceCase(preferredTemplateAlias(template.requestAliases));
@@ -818,7 +820,7 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
   });
 
   return [
-    `Available games: ${joinList(games)}.`,
+    `Available games: ${joinList(displayedGames)}${moreGames > 0 ? `, plus ${moreGames} more` : ""}.`,
     `Asset edits: ${joinList(assetThemes.map((theme) => `with ${theme}`))}.`,
     `Try: ${examples.join("; ")}.`
   ];

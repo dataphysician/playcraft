@@ -194,15 +194,12 @@ export const packManifests = [
   packManifest("pack.safety.mvp", "safety-policy-pack", safetyPolicyPacks.flatMap((entry) => entry.rules.flatMap((ruleEntry) => ruleEntry.capabilityTags)), ["SafetyPolicyPackSchema"])
 ].map((entry) => PackManifestSchema.parse(entry));
 
-export const mvpAssemblyRequests: PlaycraftAssemblyRequest[] = [
-  request("request.memory-match.mvp", "Animal memory match", ["game:memory-match", "mechanic:match-pairs"], "seed-memory-match"),
-  request("request.sorting.mvp", "Sort shapes by color", ["game:sorting", "mechanic:sort-into-bins"], "seed-sorting"),
-  request("request.sequence-repeat.mvp", "Repeat a friendly light pattern", ["game:sequence-repeat", "mechanic:sequence-repeat"], "seed-sequence-repeat")
-];
-
 const mvpTemplates: MvpProfileTemplate[] = [
   {
     id: "template.memory-match",
+    requestLabel: "Animal memory match",
+    requestedCapabilities: ["game:memory-match", "mechanic:match-pairs"],
+    deterministicSeed: "seed-memory-match",
     description: "A toddler-safe card reveal game that asks the player to find visual pairs.",
     capabilityTags: ["game:memory-match", "mechanic:match-pairs"],
     requestAliases: ["memory", "memory game", "memory match", "matching cards", "card pairs", "pair match"],
@@ -229,6 +226,9 @@ const mvpTemplates: MvpProfileTemplate[] = [
   },
   {
     id: "template.sorting",
+    requestLabel: "Sort shapes by color",
+    requestedCapabilities: ["game:sorting", "mechanic:sort-into-bins"],
+    deterministicSeed: "seed-sorting",
     description: "A toddler-safe categorization game that asks the player to move items into matching bins.",
     capabilityTags: ["game:sorting", "mechanic:sort-into-bins"],
     requestAliases: ["sort", "sorting", "sorting game", "category", "categories", "color bins", "group by color"],
@@ -255,6 +255,9 @@ const mvpTemplates: MvpProfileTemplate[] = [
   },
   {
     id: "template.sequence-repeat",
+    requestLabel: "Repeat a friendly light pattern",
+    requestedCapabilities: ["game:sequence-repeat", "mechanic:sequence-repeat"],
+    deterministicSeed: "seed-sequence-repeat",
     description: "A toddler-safe pattern game that asks the player to repeat a short sequence.",
     capabilityTags: ["game:sequence-repeat", "mechanic:sequence-repeat"],
     requestAliases: ["sequence", "sequence repeat", "pattern", "repeat", "repeat pattern", "copy the pattern"],
@@ -278,8 +281,276 @@ const mvpTemplates: MvpProfileTemplate[] = [
       "component:choice-grid": { title: "Light buttons", prompt: "Choose the next light.", items: ["green", "yellow", "blue"] },
       "component:celebration-overlay": { message: "Sequence complete." }
     }
-  }
+  },
+  memoryTemplate({
+    slug: "shape-memory",
+    name: "Shape Memory MVP",
+    label: "Shape memory cards",
+    aliases: ["shape memory", "shape match cards", "matching shapes", "find shape pairs"],
+    prompt: "friendly shape cards for a child-safe memory game",
+    title: "Shape pairs",
+    pairItems: ["circle", "star"],
+    seed: "seed-shape-memory"
+  }),
+  memoryTemplate({
+    slug: "color-memory",
+    name: "Color Memory MVP",
+    label: "Color memory cards",
+    aliases: ["color memory", "color match cards", "matching colors", "find color pairs"],
+    prompt: "friendly color cards for a child-safe memory game",
+    title: "Color pairs",
+    pairItems: ["red", "blue"],
+    seed: "seed-color-memory"
+  }),
+  memoryTemplate({
+    slug: "number-memory",
+    name: "Number Memory MVP",
+    label: "Number memory cards",
+    aliases: ["number memory", "number match cards", "matching numbers", "find number pairs"],
+    prompt: "friendly number cards for a child-safe memory game",
+    title: "Number pairs",
+    pairItems: ["number-1", "number-2"],
+    seed: "seed-number-memory"
+  }),
+  memoryTemplate({
+    slug: "letter-memory",
+    name: "Letter Memory MVP",
+    label: "Letter memory cards",
+    aliases: ["letter memory", "letter match cards", "matching letters", "find letter pairs"],
+    prompt: "friendly letter cards for a child-safe memory game",
+    title: "Letter pairs",
+    pairItems: ["letter-a", "letter-b"],
+    seed: "seed-letter-memory"
+  }),
+  memoryTemplate({
+    slug: "emotion-match",
+    name: "Emotion Match MVP",
+    label: "Emotion matching cards",
+    aliases: ["emotion match", "feeling pairs", "matching feelings", "happy sad pairs"],
+    prompt: "friendly feeling cards for a child-safe memory game",
+    title: "Feeling pairs",
+    pairItems: ["happy", "calm"],
+    seed: "seed-emotion-match"
+  }),
+  memoryTemplate({
+    slug: "sound-picture-match",
+    name: "Sound Picture Match MVP",
+    label: "Sound picture matching cards",
+    aliases: ["sound picture match", "sound picture pairs", "match sounds to pictures"],
+    prompt: "friendly sound picture cards for a child-safe matching game",
+    title: "Sound picture pairs",
+    pairItems: ["bell", "drum"],
+    seed: "seed-sound-picture-match"
+  }),
+  sortingTemplate({
+    slug: "color-sorting",
+    name: "Color Sorting MVP",
+    label: "Sort toys by color",
+    aliases: ["color sorting", "sort by color", "put colors in bins"],
+    prompt: "simple colorful toys for a child-safe color sorting game",
+    title: "Color sort",
+    promptText: "Put each toy in the matching color bin.",
+    items: ["red car", "blue boat", "red ball"],
+    bins: ["red", "blue"],
+    targets: { "red car": "red", "blue boat": "blue", "red ball": "red" },
+    hint: "Match the color first.",
+    seed: "seed-color-sorting"
+  }),
+  sortingTemplate({
+    slug: "shape-sorting",
+    name: "Shape Sorting MVP",
+    label: "Sort shapes by shape",
+    aliases: ["shape sorting", "sort by shape", "put shapes in bins"],
+    prompt: "simple friendly shapes for a child-safe shape sorting game",
+    title: "Shape sort",
+    promptText: "Put each shape in the matching bin.",
+    items: ["circle cookie", "square block", "circle button"],
+    bins: ["circle", "square"],
+    targets: { "circle cookie": "circle", "square block": "square", "circle button": "circle" },
+    hint: "Look at the outline.",
+    seed: "seed-shape-sorting"
+  }),
+  sortingTemplate({
+    slug: "size-sorting",
+    name: "Size Sorting MVP",
+    label: "Sort objects by size",
+    aliases: ["size sorting", "sort big and small", "big small bins"],
+    prompt: "friendly big and small objects for a child-safe sorting game",
+    title: "Size sort",
+    promptText: "Put each object in the big or small bin.",
+    items: ["big teddy", "small cup", "big drum"],
+    bins: ["big", "small"],
+    targets: { "big teddy": "big", "small cup": "small", "big drum": "big" },
+    hint: "Compare how much space it takes.",
+    seed: "seed-size-sorting"
+  }),
+  sortingTemplate({
+    slug: "habitat-sorting",
+    name: "Habitat Sorting MVP",
+    label: "Sort animals by home",
+    aliases: ["habitat sorting", "animal homes", "sort animals by home"],
+    prompt: "friendly animals and homes for a child-safe sorting game",
+    title: "Animal homes",
+    promptText: "Move each animal to its home.",
+    items: ["fish", "bird", "turtle"],
+    bins: ["water", "sky"],
+    targets: { fish: "water", bird: "sky", turtle: "water" },
+    hint: "Think about where it likes to live.",
+    seed: "seed-habitat-sorting"
+  }),
+  sortingTemplate({
+    slug: "food-sorting",
+    name: "Food Sorting MVP",
+    label: "Sort foods by group",
+    aliases: ["food sorting", "sort foods", "fruit vegetable bins"],
+    prompt: "friendly food pictures for a child-safe sorting game",
+    title: "Food sort",
+    promptText: "Put each food in the matching group.",
+    items: ["apple", "carrot", "banana"],
+    bins: ["fruit", "vegetable"],
+    targets: { apple: "fruit", carrot: "vegetable", banana: "fruit" },
+    hint: "Fruit is sweet; vegetables grow in gardens too.",
+    seed: "seed-food-sorting"
+  }),
+  sortingTemplate({
+    slug: "clean-up-sorting",
+    name: "Clean Up Sorting MVP",
+    label: "Sort toys for clean up",
+    aliases: ["clean up sorting", "toy clean up", "sort toys into baskets"],
+    prompt: "friendly toy baskets for a child-safe clean up sorting game",
+    title: "Clean up sort",
+    promptText: "Put each toy in the right basket.",
+    items: ["block", "crayon", "doll"],
+    bins: ["blocks", "art"],
+    targets: { block: "blocks", crayon: "art", doll: "blocks" },
+    hint: "Match it to the basket label.",
+    seed: "seed-clean-up-sorting"
+  }),
+  sequenceTemplate({
+    slug: "color-pattern",
+    name: "Color Pattern MVP",
+    label: "Repeat a color pattern",
+    aliases: ["color pattern", "repeat colors", "copy color pattern"],
+    prompt: "soft color buttons for a child-safe pattern game",
+    title: "Color pattern",
+    promptText: "Tap the colors in the same order.",
+    items: ["red", "yellow", "blue"],
+    sequence: ["red", "yellow", "red"],
+    rounds: [["red", "yellow", "red"], ["blue", "red", "yellow"], ["red", "blue", "yellow", "red"]],
+    seed: "seed-color-pattern"
+  }),
+  sequenceTemplate({
+    slug: "rhythm-repeat",
+    name: "Rhythm Repeat MVP",
+    label: "Repeat a rhythm",
+    aliases: ["rhythm repeat", "copy rhythm", "repeat beat pattern"],
+    prompt: "friendly drum buttons for a child-safe rhythm repeat game",
+    title: "Rhythm repeat",
+    promptText: "Tap the rhythm pattern.",
+    items: ["tap", "clap", "shake"],
+    sequence: ["tap", "clap", "tap"],
+    rounds: [["tap", "clap", "tap"], ["shake", "tap", "clap"], ["tap", "shake", "clap", "tap"]],
+    seed: "seed-rhythm-repeat"
+  }),
+  sequenceTemplate({
+    slug: "count-along",
+    name: "Count Along MVP",
+    label: "Repeat a counting pattern",
+    aliases: ["count along", "counting pattern", "repeat numbers"],
+    prompt: "friendly number buttons for a child-safe counting pattern game",
+    title: "Count along",
+    promptText: "Tap the numbers in order.",
+    items: ["one", "two", "three"],
+    sequence: ["one", "two", "one"],
+    rounds: [["one", "two", "one"], ["one", "two", "three"], ["two", "three", "one", "two"]],
+    seed: "seed-count-along"
+  }),
+  sequenceTemplate({
+    slug: "daily-routine",
+    name: "Daily Routine MVP",
+    label: "Repeat a daily routine",
+    aliases: ["daily routine", "routine sequence", "morning routine pattern"],
+    prompt: "friendly routine icons for a child-safe sequence game",
+    title: "Daily routine",
+    promptText: "Tap the routine steps in order.",
+    items: ["wash", "brush", "play"],
+    sequence: ["wash", "brush", "play"],
+    rounds: [["wash", "brush", "play"], ["brush", "play", "wash"], ["wash", "play", "brush", "wash"]],
+    seed: "seed-daily-routine"
+  }),
+  sequenceTemplate({
+    slug: "movement-pattern",
+    name: "Movement Pattern MVP",
+    label: "Repeat a movement pattern",
+    aliases: ["movement pattern", "copy movement", "repeat actions"],
+    prompt: "friendly movement icons for a child-safe pattern game",
+    title: "Movement pattern",
+    promptText: "Tap the action cards in order.",
+    items: ["jump", "spin", "wave"],
+    sequence: ["jump", "wave", "jump"],
+    rounds: [["jump", "wave", "jump"], ["spin", "jump", "wave"], ["wave", "jump", "spin", "wave"]],
+    seed: "seed-movement-pattern"
+  }),
+  sequenceTemplate({
+    slug: "animal-sound-pattern",
+    name: "Animal Sound Pattern MVP",
+    label: "Repeat animal sound pattern",
+    aliases: ["animal sound pattern", "repeat animal sounds", "copy animal sounds"],
+    prompt: "friendly animal sound buttons for a child-safe sequence game",
+    title: "Animal sounds",
+    promptText: "Tap the animal sounds in order.",
+    items: ["moo", "quack", "baa"],
+    sequence: ["moo", "quack", "moo"],
+    rounds: [["moo", "quack", "moo"], ["baa", "moo", "quack"], ["quack", "baa", "moo", "quack"]],
+    seed: "seed-animal-sound-pattern"
+  }),
+  memoryTemplate({
+    slug: "picture-word-match",
+    name: "Picture Word Match MVP",
+    label: "Match pictures and words",
+    aliases: ["picture word match", "match picture words", "word picture pairs"],
+    prompt: "friendly picture and word cards for a child-safe matching game",
+    title: "Picture word pairs",
+    pairItems: ["picture", "word"],
+    seed: "seed-picture-word-match"
+  }),
+  sortingTemplate({
+    slug: "pattern-sorting",
+    name: "Pattern Sorting MVP",
+    label: "Sort objects by pattern",
+    aliases: ["pattern sorting", "sort stripes and dots", "pattern bins"],
+    prompt: "friendly patterned objects for a child-safe sorting game",
+    title: "Pattern sort",
+    promptText: "Put each object with the matching pattern.",
+    items: ["striped sock", "dotted cup", "striped scarf"],
+    bins: ["stripes", "dots"],
+    targets: { "striped sock": "stripes", "dotted cup": "dots", "striped scarf": "stripes" },
+    hint: "Look for stripes or dots.",
+    seed: "seed-pattern-sorting"
+  }),
+  sequenceTemplate({
+    slug: "shape-pattern",
+    name: "Shape Pattern MVP",
+    label: "Repeat a shape pattern",
+    aliases: ["shape pattern", "repeat shapes", "copy shape pattern"],
+    prompt: "friendly shape buttons for a child-safe pattern game",
+    title: "Shape pattern",
+    promptText: "Tap the shapes in the same order.",
+    items: ["circle", "square", "star"],
+    sequence: ["circle", "square", "circle"],
+    rounds: [["circle", "square", "circle"], ["star", "circle", "square"], ["square", "star", "circle", "square"]],
+    seed: "seed-shape-pattern"
+  })
 ];
+
+export const mvpAssemblyRequests: PlaycraftAssemblyRequest[] = mvpTemplates.map((template) =>
+  request(
+    `request.${template.id.slice("template.".length)}.mvp`,
+    template.requestLabel,
+    template.requestedCapabilities,
+    template.deterministicSeed
+  )
+);
 
 export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.map((template, index) =>
   GameTemplateDefinitionSchema.parse({
@@ -940,6 +1211,9 @@ function packManifest(id: string, kind: "mechanic-pack" | "rule-pack" | "compone
 
 interface MvpProfileTemplate {
   id: string;
+  requestLabel: string;
+  requestedCapabilities: string[];
+  deterministicSeed: string;
   description: string;
   capabilityTags: string[];
   requestAliases: string[];
@@ -950,6 +1224,132 @@ interface MvpProfileTemplate {
   ruleCategories: string[];
   componentCapabilities: string[];
   propsByCapability: Record<string, Record<string, JsonValue>>;
+}
+
+function memoryTemplate(input: {
+  aliases: string[];
+  label: string;
+  name: string;
+  pairItems: string[];
+  prompt: string;
+  seed: string;
+  slug: string;
+  title: string;
+}): MvpProfileTemplate {
+  const pairs = pairedCards(input.pairItems);
+  return {
+    id: `template.${input.slug}`,
+    requestLabel: input.label,
+    requestedCapabilities: [`game:${input.slug}`],
+    deterministicSeed: input.seed,
+    description: `A toddler-safe matching game for ${input.title.toLowerCase()}.`,
+    capabilityTags: [`game:${input.slug}`, "mechanic:match-pairs"],
+    requestAliases: input.aliases,
+    profileId: `profile.${input.slug}.mvp`,
+    profileName: input.name,
+    assetPrompt: input.prompt,
+    mechanicCapabilities: ["mechanic:tap-to-reveal", "mechanic:match-pairs", "feedback:celebration"],
+    ruleCategories: ["pair-matching", "retry", "hint", "completion"],
+    componentCapabilities: ["component:reveal-card-grid", "component:celebration-overlay"],
+    propsByCapability: {
+      "component:reveal-card-grid": {
+        title: input.title,
+        cards: pairs.cards,
+        pairs: pairs.pairs,
+        columns: 2
+      },
+      "component:celebration-overlay": { message: `${input.title} complete.` }
+    }
+  };
+}
+
+function sortingTemplate(input: {
+  aliases: string[];
+  bins: string[];
+  hint: string;
+  items: string[];
+  label: string;
+  name: string;
+  prompt: string;
+  promptText: string;
+  seed: string;
+  slug: string;
+  targets: Record<string, string>;
+  title: string;
+}): MvpProfileTemplate {
+  return {
+    id: `template.${input.slug}`,
+    requestLabel: input.label,
+    requestedCapabilities: [`game:${input.slug}`],
+    deterministicSeed: input.seed,
+    description: `A toddler-safe sorting game for ${input.title.toLowerCase()}.`,
+    capabilityTags: [`game:${input.slug}`, "mechanic:sort-into-bins"],
+    requestAliases: input.aliases,
+    profileId: `profile.${input.slug}.mvp`,
+    profileName: input.name,
+    assetPrompt: input.prompt,
+    mechanicCapabilities: ["mechanic:tap-to-select", "mechanic:sort-into-bins", "support:retry", "support:hint"],
+    ruleCategories: ["category-validation", "retry", "completion"],
+    componentCapabilities: ["component:choice-grid", "component:sort-bins", "component:hint-bubble"],
+    propsByCapability: {
+      "component:choice-grid": { title: input.title, prompt: input.promptText, items: input.items },
+      "component:sort-bins": {
+        title: input.title,
+        items: input.items,
+        bins: input.bins,
+        targets: input.targets
+      },
+      "component:hint-bubble": { hint: input.hint }
+    }
+  };
+}
+
+function sequenceTemplate(input: {
+  aliases: string[];
+  items: string[];
+  label: string;
+  name: string;
+  prompt: string;
+  promptText: string;
+  rounds: string[][];
+  seed: string;
+  sequence: string[];
+  slug: string;
+  title: string;
+}): MvpProfileTemplate {
+  return {
+    id: `template.${input.slug}`,
+    requestLabel: input.label,
+    requestedCapabilities: [`game:${input.slug}`],
+    deterministicSeed: input.seed,
+    description: `A toddler-safe sequence game for ${input.title.toLowerCase()}.`,
+    capabilityTags: [`game:${input.slug}`, "mechanic:sequence-repeat"],
+    requestAliases: input.aliases,
+    profileId: `profile.${input.slug}.mvp`,
+    profileName: input.name,
+    assetPrompt: input.prompt,
+    mechanicCapabilities: ["mechanic:sequence-repeat", "mechanic:tap-to-select", "feedback:celebration"],
+    ruleCategories: ["progression", "attempt-feedback", "hint"],
+    componentCapabilities: ["component:sequence-pad", "component:choice-grid", "component:celebration-overlay"],
+    propsByCapability: {
+      "component:sequence-pad": {
+        title: input.title,
+        prompt: input.promptText,
+        sequence: input.sequence,
+        rounds: input.rounds
+      },
+      "component:choice-grid": { title: input.title, prompt: input.promptText, items: input.items },
+      "component:celebration-overlay": { message: `${input.title} complete.` }
+    }
+  };
+}
+
+function pairedCards(items: string[]): { cards: string[]; pairs: Record<string, string> } {
+  const cards = items.slice(0, 2).flatMap((item) => [`${item}-a`, `${item}-b`]);
+  const pairs = Object.fromEntries(
+    cards.map((card, index) => [card, `pair-${Math.floor(index / 2) + 1}`])
+  );
+  return { cards, pairs };
 }
 
 function findMechanicByCapability(capability: string): MechanicDefinition {

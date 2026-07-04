@@ -71,11 +71,18 @@ describe("local Playcraft service", () => {
       type: "object",
       required: true
     });
-    expect(catalog.templates.map((template) => template.id)).toEqual([
+    expect(catalog.templates).toHaveLength(24);
+    expect(catalog.templates.slice(0, 3).map((template) => template.id)).toEqual([
       "template.memory-match",
       "template.sorting",
       "template.sequence-repeat"
     ]);
+    expect(catalog.templates.map((template) => template.id)).toEqual(expect.arrayContaining([
+      "template.color-sorting",
+      "template.shape-memory",
+      "template.daily-routine",
+      "template.animal-sound-pattern"
+    ]));
     expect(catalog.templates.find((template) => template.id === "template.memory-match")?.requestAliases).toContain("matching cards");
   });
 
@@ -457,6 +464,28 @@ describe("local Playcraft service", () => {
     expect(resolved.resolution.assetDecision.source).toBe("none");
   });
 
+  it("only treats game/profile/challenge retheme wording as asset edits for catalog themes", () => {
+    const catalogTheme = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Change game to toys"
+    });
+    const freeformTheme = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 2,
+      source: "text",
+      text: "Change game to space robots"
+    });
+
+    expect(catalogTheme.templateId).toBe("template.memory-match");
+    expect(catalogTheme.assetEdit).toEqual({ theme: "toys" });
+    expect(catalogTheme.resolution.assetDecision.source).toBe("catalog-asset-alias");
+    expect(freeformTheme.templateId).toBe("template.memory-match");
+    expect(freeformTheme.assetEdit).toBeUndefined();
+    expect(freeformTheme.resolution.assetDecision.source).toBe("none");
+  });
+
   it("uses catalog request aliases to suppress template-only asset edits", () => {
     const resolved = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",
@@ -582,7 +611,8 @@ describe("local Playcraft service", () => {
     expect(catalog.kind).toBe("builder-catalog");
     expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId.required).toBe(true);
     expect(catalog.tools.find((tool) => tool.actionName === "export-profile")?.argumentsSchema.fields.sessionId.required).toBe(true);
-    expect(catalog.templates.map((template) => template.id)).toEqual([
+    expect(catalog.templates).toHaveLength(24);
+    expect(catalog.templates.slice(0, 3).map((template) => template.id)).toEqual([
       "template.memory-match",
       "template.sorting",
       "template.sequence-repeat"

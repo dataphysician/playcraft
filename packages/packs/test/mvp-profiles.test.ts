@@ -16,10 +16,11 @@ const fixtureByProfileId: Record<string, string> = {
 };
 
 describe("MVP profile pack", () => {
-  it("assembles memory match, sorting, and sequence repeat profiles from registries and deterministic local tools", () => {
+  it("assembles 20+ template profiles from registries and deterministic local tools", () => {
     const profiles = assembleMvpProfiles();
 
-    expect(profiles.map((profile) => profile.id)).toEqual([
+    expect(profiles).toHaveLength(24);
+    expect(profiles.slice(0, 3).map((profile) => profile.id)).toEqual([
       "profile.memory-match.mvp",
       "profile.sorting.mvp",
       "profile.sequence-repeat.mvp"
@@ -33,7 +34,11 @@ describe("MVP profile pack", () => {
 
     for (const request of mvpAssemblyRequests) {
       const assembled = planner.assemble(request);
-      const path = fileURLToPath(new URL(fixtureByProfileId[assembled.id], import.meta.url));
+      const fixturePath = fixtureByProfileId[assembled.id];
+      if (!fixturePath) {
+        continue;
+      }
+      const path = fileURLToPath(new URL(fixturePath, import.meta.url));
       const saved = JSON.parse(readFileSync(path, "utf8"));
 
       expect(saved).toEqual(assembled);
@@ -69,12 +74,20 @@ describe("MVP profile pack", () => {
   });
 
   it("publishes bundled game templates for the builder catalog", () => {
-    expect(gameTemplateDefinitions.map((template) => template.id)).toEqual([
+    expect(gameTemplateDefinitions).toHaveLength(24);
+    expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.id)).toEqual([
       "template.memory-match",
       "template.sorting",
       "template.sequence-repeat"
     ]);
+    expect(new Set(gameTemplateDefinitions.map((template) => template.id)).size).toBe(gameTemplateDefinitions.length);
     expect(gameTemplateDefinitions.every((template) => template.localFirst)).toBe(true);
+    expect(gameTemplateDefinitions.map((template) => template.id)).toEqual(expect.arrayContaining([
+      "template.color-sorting",
+      "template.shape-memory",
+      "template.daily-routine",
+      "template.animal-sound-pattern"
+    ]));
     expect(gameTemplateDefinitions.find((template) => template.id === "template.sorting")?.requestAliases).toContain("group by color");
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)
