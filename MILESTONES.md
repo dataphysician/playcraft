@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Strict Local CLI Arguments
+
+Milestone:
+- Builder and service CLIs now reject unknown options instead of silently ignoring them.
+- Value-bearing CLI flags now fail with explicit missing-value errors.
+- Service CLI `--source` now accepts only contract-supported input sources instead of defaulting unsupported values to text.
+
+Supportive changes:
+- Builder CLI tests cover unknown options and missing template values.
+- Service CLI tests cover unsupported input sources, missing request text values, and unknown options.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- Preview placeholder component ID scan.
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps the local agent-facing CLI surface explicit and contract-shaped without silent fallbacks, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Concrete Preview Component IDs
 
 Milestone:

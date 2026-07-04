@@ -320,6 +320,21 @@ describe("builder session service", () => {
     expect(stdout).toEqual([]);
     expect(stderr.join("\n")).toMatch(/builder template IDs must start with template/u);
   });
+
+  it("rejects unknown builder CLI options and missing values", () => {
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const io = {
+      stdout: (message: string) => stdout.push(message),
+      stderr: (message: string) => stderr.push(message)
+    };
+
+    expect(runBuilderCli(["catalog", "--provider", "remote"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/unknown option: --provider/u);
+    expect(runBuilderCli(["assemble", "--template"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/--template requires a value/u);
+    expect(stdout).toEqual([]);
+  });
 });
 
 function cardsFor(profile: ReturnType<PlaycraftBuilderSessionService["execute"]>["result"]["profile"]): unknown {

@@ -75,17 +75,28 @@ function parseArgs(argv: string[]): { template?: BuilderTemplateId; sessionId?: 
   for (let index = 0; index < argv.length; index += 1) {
     const entry = argv[index];
     if (entry === "--template") {
-      output.template = BuilderTemplateIdSchema.parse(argv[index + 1]);
+      output.template = BuilderTemplateIdSchema.parse(requiredFlagValue(argv, index, entry));
       index += 1;
     } else if (entry === "--session") {
-      output.sessionId = argv[index + 1];
+      output.sessionId = requiredFlagValue(argv, index, entry);
       index += 1;
     } else if (entry === "--json") {
       output.json = true;
+    } else {
+      throw new Error(`unknown option: ${entry}`);
     }
   }
 
   return output;
+}
+
+function requiredFlagValue(argv: string[], index: number, flag: string): string {
+  const value = argv[index + 1];
+  if (!value || value.startsWith("--")) {
+    throw new Error(`${flag} requires a value`);
+  }
+
+  return value;
 }
 
 function writeResult(result: BuilderExecutionResult | BuilderExecutionResult[], json: boolean, io: BuilderCliIo): void {

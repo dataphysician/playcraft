@@ -83,40 +83,42 @@ function parseArgs(argv: string[]): ParsedArgs {
   for (let index = 0; index < argv.length; index += 1) {
     const entry = argv[index];
     if (entry === "--text") {
-      output.text = argv[index + 1];
+      output.text = requiredFlagValue(argv, index, entry);
       index += 1;
     } else if (entry === "--transcript") {
-      output.transcriptText = argv[index + 1];
+      output.transcriptText = requiredFlagValue(argv, index, entry);
       index += 1;
     } else if (entry === "--source") {
-      output.source = parseSource(argv[index + 1]);
+      output.source = parseSource(requiredFlagValue(argv, index, entry));
       index += 1;
     } else if (entry === "--session") {
-      output.sessionId = argv[index + 1];
+      output.sessionId = requiredFlagValue(argv, index, entry);
       index += 1;
     } else if (entry === "--template") {
-      output.templateId = BuilderTemplateIdSchema.parse(argv[index + 1]);
+      output.templateId = BuilderTemplateIdSchema.parse(requiredFlagValue(argv, index, entry));
       index += 1;
     } else if (entry === "--asset-theme") {
       output.assetEdit = {
         ...output.assetEdit,
-        theme: argv[index + 1]
+        theme: requiredFlagValue(argv, index, entry)
       };
       index += 1;
     } else if (entry === "--asset-item") {
-      items.push(argv[index + 1]);
+      items.push(requiredFlagValue(argv, index, entry));
       index += 1;
     } else if (entry === "--request-json") {
-      output.requestJson = argv[index + 1];
+      output.requestJson = requiredFlagValue(argv, index, entry);
       index += 1;
     } else if (entry === "--profile-json") {
-      output.profileJson = argv[index + 1];
+      output.profileJson = requiredFlagValue(argv, index, entry);
       index += 1;
     } else if (entry === "--profile-export-json") {
-      output.profileExportJson = argv[index + 1];
+      output.profileExportJson = requiredFlagValue(argv, index, entry);
       index += 1;
     } else if (entry === "--json") {
       output.json = true;
+    } else {
+      throw new Error(`unknown option: ${entry}`);
     }
   }
 
@@ -130,12 +132,25 @@ function parseArgs(argv: string[]): ParsedArgs {
   return output;
 }
 
-function parseSource(value: string | undefined): BuilderInputSource {
+function requiredFlagValue(argv: string[], index: number, flag: string): string {
+  const value = argv[index + 1];
+  if (!value || value.startsWith("--")) {
+    throw new Error(`${flag} requires a value`);
+  }
+
+  return value;
+}
+
+function parseSource(value: string): BuilderInputSource {
+  if (value === "text") {
+    return value;
+  }
+
   if (value === "speech-transcript") {
     return value;
   }
 
-  return "text";
+  throw new Error(`unsupported input source: ${value}`);
 }
 
 function isCliCommand(commandName: string): commandName is CliCommand {
