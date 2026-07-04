@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Studio Delegates Input Source Policy
+
+Milestone:
+- The Studio service client no longer duplicates text or Moonshine input-source fallback logic when constructing assemble/update requests.
+- Studio requests now pass an input source only when the caller supplied one; omitted text defaults and transcript-record source decisions stay inside the service catalog policy.
+- Explicit Moonshine transcript records can cross the Studio transport without app-local source-label rewriting.
+
+Supportive changes:
+- Studio transport tests now verify explicit transcript records no longer require duplicated source labels.
+- Source scans now block Studio-local text and Moonshine source fallback literals.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps Studio input routing service-owned and forward-only without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+
 ## 2026-07-04 - Catalog-Owned Input Source Policy
 
 Milestone:

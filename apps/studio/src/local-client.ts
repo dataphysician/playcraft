@@ -102,7 +102,7 @@ export function createStudioClientFromServiceTransport(options: {
         options.transport.send(
           nextRequest("assemble", {
             sessionId,
-            source: moonshineTranscript ? "moonshine-transcript" : input.source ?? "text",
+            source: input.source,
             moonshineTranscript,
             text: moonshineTranscript?.text ?? input.idea
           })
@@ -144,7 +144,7 @@ export function createStudioClientFromServiceTransport(options: {
         options.transport.send(
           nextRequest("update", {
             sessionId: input.sessionId,
-            source: moonshineTranscript ? "moonshine-transcript" : input.source ?? "text",
+            source: input.source,
             moonshineTranscript,
             text: moonshineTranscript?.text ?? input.changeRequest
           })

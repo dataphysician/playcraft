@@ -221,6 +221,8 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("packages/service/src/index.ts")).not.toContain('input.source ?? "text"');
     expect(readSource("packages/service/src/index.ts")).not.toContain('request.source ?? "text"');
     expect(readSource("packages/service/src/cli.ts")).not.toContain('args.source ?? "text"');
+    expect(readSource("apps/studio/src/local-client.ts")).not.toContain('input.source ?? "text"');
+    expect(readSource("apps/studio/src/local-client.ts")).not.toContain('moonshineTranscript ? "moonshine-transcript"');
     expect(violations).toEqual([]);
   });
 

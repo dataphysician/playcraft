@@ -139,12 +139,12 @@ describe("studio UI", () => {
     expect(requests[0]).toMatchObject({
       actionName: "assemble",
       sessionId: "studio.transcript",
-      source: "moonshine-transcript",
       moonshineTranscript: {
         transcriptId: "moonshine-transcript.test.studio-client"
       },
       text: "Repeat a pattern with gems"
     });
+    expect(requests[0]?.source).toBeUndefined();
     expect(session.activeProfileId).toBe("profile.sequence-repeat.mvp");
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.studio-client"))).toBe(true);
   });
