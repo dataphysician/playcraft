@@ -30,6 +30,14 @@ describe("local Playcraft service", () => {
       "tool:preview-action",
       "tool:list-builder-tools"
     ]);
+    expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId).toEqual({
+      type: "string",
+      required: true
+    });
+    expect(catalog.tools.find((tool) => tool.actionName === "update-game")?.argumentsSchema.fields.sessionId).toEqual({
+      type: "string",
+      required: true
+    });
     expect(catalog.templates.map((template) => template.id)).toEqual([
       "template.memory-match",
       "template.sorting",
@@ -117,8 +125,13 @@ describe("local Playcraft service", () => {
     };
 
     expect(runLocalServiceCli(["catalog", "--json"], io)).toBe(0);
-    const catalog = JSON.parse(out.pop() ?? "{}") as { kind: string; templates: Array<{ id: string }> };
+    const catalog = JSON.parse(out.pop() ?? "{}") as {
+      kind: string;
+      templates: Array<{ id: string }>;
+      tools: Array<{ actionName: string; argumentsSchema: { fields: Record<string, { required: boolean; type: string }> } }>;
+    };
     expect(catalog.kind).toBe("builder-catalog");
+    expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId.required).toBe(true);
     expect(catalog.templates.map((template) => template.id)).toEqual([
       "template.memory-match",
       "template.sorting",

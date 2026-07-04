@@ -4,6 +4,9 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    emptyOutDir: false
+  },
   resolve: {
     alias: {
       "@playcraft/contracts": fileURLToPath(new URL("../../packages/contracts/src/index.ts", import.meta.url)),

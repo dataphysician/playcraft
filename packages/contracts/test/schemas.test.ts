@@ -50,6 +50,17 @@ describe("public contract schemas", () => {
       displayName: "Assemble game",
       description: "Assemble a game from a registered template.",
       actionName: "assemble-game",
+      argumentsSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        type: "object",
+        fields: {
+          assetEdit: { type: "object", required: false },
+          input: { type: "object", required: false },
+          sessionId: { type: "string", required: false },
+          templateId: { type: "string", required: true }
+        },
+        allowUnknown: false
+      },
       acceptedInputSources: ["text", "speech-transcript"],
       localOnly: true,
       emittedEvents: ["builder:profile-ready"],

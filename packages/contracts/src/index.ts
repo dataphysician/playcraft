@@ -48,6 +48,7 @@ export const JsonObjectSchemaDescriptorSchema = z
     allowUnknown: z.boolean().default(false)
   })
   .strict();
+export type JsonObjectSchemaDescriptor = z.infer<typeof JsonObjectSchemaDescriptorSchema>;
 
 export const SchemaIssueSchema = z
   .object({
@@ -518,6 +519,7 @@ export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
   displayName: z.string().min(1),
   description: z.string().min(1),
   actionName: BuilderActionNameSchema,
+  argumentsSchema: JsonObjectSchemaDescriptorSchema,
   acceptedInputSources: z.array(BuilderInputSourceSchema).min(1),
   localOnly: z.boolean(),
   emittedEvents: z.array(CapabilityTagSchema).default([]),

@@ -3,6 +3,7 @@ packages/*/dist/
 apps/*/dist/
 coverage/
 .vitest/
+*.tsbuildinfo
 .env
 .env.*
 !.env.example

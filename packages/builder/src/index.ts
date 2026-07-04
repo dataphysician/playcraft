@@ -32,6 +32,7 @@ import {
   type GameAssemblyProfile,
   type GameTemplateDefinition,
   type GeneratedAssetRecord,
+  type JsonObjectSchemaDescriptor,
   type JsonValue,
   type PlaycraftAssemblyRequest
 } from "@playcraft/contracts";
@@ -401,11 +402,47 @@ function builderTool(
     displayName: description.split(".")[0],
     description,
     actionName,
+    argumentsSchema: builderToolArgumentsSchema(actionName),
     acceptedInputSources,
     localOnly: true,
     emittedEvents: ["builder:command", "builder:profile-ready"],
     requiredContracts: ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"]
   });
+}
+
+function builderToolArgumentsSchema(actionName: BuilderToolDefinition["actionName"]): JsonObjectSchemaDescriptor {
+  const optionalString = { type: "string", required: false } as const;
+  const requiredString = { type: "string", required: true } as const;
+  const optionalObject = { type: "object", required: false } as const;
+
+  const fieldsByAction: Record<BuilderToolDefinition["actionName"], JsonObjectSchemaDescriptor["fields"]> = {
+    "assemble-game": {
+      assetEdit: optionalObject,
+      input: optionalObject,
+      sessionId: optionalString,
+      templateId: requiredString
+    },
+    "update-game": {
+      assetEdit: optionalObject,
+      input: optionalObject,
+      sessionId: requiredString,
+      templateId: requiredString
+    },
+    "preview-action": {
+      interaction: optionalObject,
+      sessionId: requiredString
+    },
+    "list-builder-tools": {
+      sessionId: optionalString
+    }
+  };
+
+  return {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    type: "object",
+    fields: fieldsByAction[actionName],
+    allowUnknown: false
+  };
 }
 
 interface NormalizedAssetEdit {

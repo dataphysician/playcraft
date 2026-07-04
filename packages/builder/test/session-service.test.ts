@@ -31,6 +31,24 @@ describe("builder session service", () => {
     ]);
   });
 
+  it("publishes callable argument schemas for every builder tool", () => {
+    const tools = createHandler().listTools();
+
+    expect(tools.every((tool) => tool.argumentsSchema.schemaVersion === PLAYCRAFT_SCHEMA_VERSION)).toBe(true);
+    expect(tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId).toEqual({
+      type: "string",
+      required: true
+    });
+    expect(tools.find((tool) => tool.actionName === "update-game")?.argumentsSchema.fields.sessionId).toEqual({
+      type: "string",
+      required: true
+    });
+    expect(tools.find((tool) => tool.actionName === "preview-action")?.argumentsSchema.fields.interaction).toEqual({
+      type: "object",
+      required: false
+    });
+  });
+
   it("emits validated lifecycle, state, activity, tool, custom, replay, and preview events for builds", () => {
     const service = new PlaycraftBuilderSessionService();
     const output = service.execute(command({ templateId: "template.memory-match" }));
