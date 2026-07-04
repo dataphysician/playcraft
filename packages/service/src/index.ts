@@ -8,6 +8,7 @@ import {
   BuilderServiceResponseSchema,
   BuilderSessionSnapshotSchema,
   BuilderTemplateIdSchema,
+  JsonValueSchema,
   MoonshineTranscriptRecordSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
@@ -753,7 +754,7 @@ function cleanAssetTheme(value: string): string {
 }
 
 function toJsonValue(value: unknown): JsonValue {
-  return JSON.parse(JSON.stringify(value)) as JsonValue;
+  return JsonValueSchema.parse(JSON.parse(JSON.stringify(value)));
 }
 
 function serializeExecution(output: BuilderExecutionResult): BuilderServiceExecution {

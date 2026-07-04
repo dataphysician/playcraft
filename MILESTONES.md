@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Service JSON Boundary Parsing
+
+Milestone:
+- Studio service event ingestion now reads JSON envelope fields through runtime checks instead of unchecked object retyping.
+- Service execution serialization now validates cloned events with `JsonValueSchema` before exposing them as service response JSON.
+- Promise response detection in the Studio service adapter no longer retypes arbitrary values as promises.
+
+Supportive changes:
+- Tightened local service and Studio adapter boundaries without changing the public service envelope shape.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps local text/Moonshine service exchanges schema-first and forward-only without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Canonical Registry Compatibility
 
 Milestone:

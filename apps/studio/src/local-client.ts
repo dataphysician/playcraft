@@ -205,7 +205,7 @@ function mapTransportResponse<T>(
 }
 
 function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
-  return typeof (value as Promise<T>).then === "function";
+  return typeof value === "object" && value !== null && typeof Reflect.get(value, "then") === "function";
 }
 
 function timelineEntry(eventInput: JsonValue, sequence: number, timelineIdPrefix: string): StudioTimelineEntry {
@@ -226,22 +226,25 @@ function agUiEventFromJson(eventInput: JsonValue): StudioAgUiEvent {
     throw new Error("service event must be a JSON object");
   }
 
-  const event = eventInput as Record<string, JsonValue>;
+  const type = Reflect.get(eventInput, "type");
+  const eventId = Reflect.get(eventInput, "eventId");
+  const runId = Reflect.get(eventInput, "runId");
+  const timestamp = Reflect.get(eventInput, "timestamp");
   if (
-    typeof event.type !== "string" ||
-    typeof event.eventId !== "string" ||
-    typeof event.runId !== "string" ||
-    typeof event.timestamp !== "string"
+    typeof type !== "string" ||
+    typeof eventId !== "string" ||
+    typeof runId !== "string" ||
+    typeof timestamp !== "string"
   ) {
     throw new Error("service event is missing AG-UI envelope fields");
   }
 
   return {
-    type: agUiEventTypeFromString(event.type),
-    eventId: event.eventId,
-    runId: event.runId,
-    timestamp: event.timestamp,
-    value: event.value
+    type: agUiEventTypeFromString(type),
+    eventId,
+    runId,
+    timestamp,
+    value: Reflect.get(eventInput, "value")
   };
 }
 
