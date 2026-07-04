@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Action-Scoped Service CLI Output
+
+Milestone:
+- Service CLI JSON output now selects payloads from `actionName` instead of response payload precedence.
+- Service CLI human summaries now align their branches with the response action contract.
+
+Supportive changes:
+- Source scans now block `catalog ?? profileExport ?? execution ?? session` response precedence from returning to the service CLI.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps agent-facing CLI output contract-shaped and forward-only without payload precedence fallbacks, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Explicit Profile Import Payloads
 
 Milestone:

@@ -233,34 +233,50 @@ function parseServiceRequestJson(value: string | undefined): BuilderServiceReque
 }
 
 function writeResponse(response: BuilderServiceResponse, json: boolean, io: LocalServiceCliIo): void {
-  const payload = response.catalog ?? response.profileExport ?? response.execution ?? response.session ?? { reset: response.reset === true };
-
   if (json) {
-    io.stdout(JSON.stringify(payload, null, 2));
+    io.stdout(JSON.stringify(payloadForResponse(response), null, 2));
     return;
   }
 
-  if (response.catalog) {
+  if (response.actionName === "catalog" && response.catalog) {
     writeCatalogSummary(response.catalog, io);
     return;
   }
 
-  if (response.execution) {
+  if (["assemble", "update", "preview", "import-profile"].includes(response.actionName) && response.execution) {
     io.stdout(`${response.execution.result.sessionId}: ${response.execution.result.profile?.profileName ?? "preview"}`);
     return;
   }
 
-  if (response.profileExport) {
+  if (response.actionName === "export-profile" && response.profileExport) {
     io.stdout(`${response.profileExport.sessionId}: exported ${response.profileExport.profile.profileName}`);
     return;
   }
 
-  if (response.session) {
+  if (response.actionName === "get-session" && response.session) {
     io.stdout(`${response.session.sessionId}: ${response.session.profile?.profileName ?? "empty session"}`);
     return;
   }
 
   io.stdout("reset: ok");
+}
+
+function payloadForResponse(response: BuilderServiceResponse): unknown {
+  switch (response.actionName) {
+    case "catalog":
+      return response.catalog;
+    case "assemble":
+    case "update":
+    case "preview":
+    case "import-profile":
+      return response.execution;
+    case "get-session":
+      return response.session;
+    case "export-profile":
+      return response.profileExport;
+    case "reset":
+      return { reset: response.reset === true };
+  }
 }
 
 function writeServiceEnvelopeResponse(response: BuilderServiceResponse, json: boolean, io: LocalServiceCliIo): void {

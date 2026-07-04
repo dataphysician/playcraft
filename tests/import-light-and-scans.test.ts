@@ -265,6 +265,15 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).not.toContain("request.templateId ?? profileExport?.templateId");
   });
 
+  it("keeps service CLI response output action-scoped instead of payload-precedence based", () => {
+    const source = readSource("packages/service/src/cli.ts");
+
+    expect(source).toContain("function payloadForResponse");
+    expect(source).toContain("switch (response.actionName)");
+    expect(source).not.toContain("response.catalog ?? response.profileExport");
+    expect(source).not.toContain("response.execution ?? response.session");
+  });
+
   it("keeps Studio request examples catalog-owned instead of alias-inferred", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");
