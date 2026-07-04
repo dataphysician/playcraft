@@ -95,6 +95,13 @@ describe("local Playcraft service", () => {
       "Sorting game",
       "Sequence repeat"
     ]);
+    expect(catalog.templates.slice(0, 5).map((template) => template.displayLabel)).toEqual([
+      "Memory Match",
+      "Sorting",
+      "Sequence Repeat",
+      "Shape Memory",
+      "Color Memory"
+    ]);
   });
 
   it("assembles and updates games through text or local speech transcripts", () => {
@@ -669,6 +676,11 @@ describe("local Playcraft service", () => {
       "template.memory-match",
       "template.sorting",
       "template.sequence-repeat"
+    ]);
+    expect(catalog.templates.slice(0, 3).map((template) => template.displayLabel)).toEqual([
+      "Memory Match",
+      "Sorting",
+      "Sequence Repeat"
     ]);
     expect(catalog.assetEdit.availableThemes.map((entry) => entry.theme)).toEqual([
       "dinosaurs",

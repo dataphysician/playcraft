@@ -798,7 +798,7 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
     return ["Available games: loading catalog.", "Asset edits: loading catalog.", "Try: loading catalog."];
   }
 
-  const games = catalog.templates.map((template) => displayGameName(template.displayName));
+  const games = catalog.templates.map((template) => template.displayLabel);
   const displayedGames = games.slice(0, 5);
   const moreGames = Math.max(0, games.length - displayedGames.length);
   const assetThemes = catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel);
@@ -813,10 +813,6 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
     `Asset edits: ${joinList(assetThemes.map((theme) => `with ${theme}`))}.`,
     `Try: ${examples.join("; ")}.`
   ];
-}
-
-function displayGameName(displayName: string): string {
-  return displayName.replace(/\s+MVP$/u, "");
 }
 
 function sentenceCase(value: string): string {

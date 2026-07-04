@@ -247,6 +247,20 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).not.toMatch(/requestAliases\)\)/u);
   });
 
+  it("keeps Studio game tip labels catalog-owned instead of suffix-stripped", () => {
+    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const packSource = readSource("packages/packs/src/index.ts");
+
+    expect(contractSource).toContain("displayLabel");
+    expect(packSource).toContain("displayLabel: template.displayLabel");
+    expect(studioSource).toContain("template.displayLabel");
+    expect(studioSource).not.toContain("displayGameName");
+    expect(studioSource).not.toContain("replace(/\\s+MVP");
+    expect(packSource).not.toContain("displayLabelForTemplateName");
+    expect(packSource).not.toContain("replace(/\\s+MVP");
+  });
+
   it("keeps Studio asset tip labels catalog-owned instead of alias-inferred", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");

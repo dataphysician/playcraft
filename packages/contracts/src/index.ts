@@ -466,6 +466,7 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   id: BuilderTemplateIdSchema,
   kind: z.literal("game-template"),
   displayName: z.string().min(1),
+  displayLabel: z.string().min(1).max(80),
   description: z.string().min(1),
   capabilityTags: z.array(CapabilityTagSchema).min(1),
   requestAliases: z.array(z.string().min(2).max(80)).min(1),

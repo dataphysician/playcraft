@@ -1,5 +1,32 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Game Tip Labels
+
+Milestone:
+- `GameTemplateDefinition` now publishes `displayLabel` for user-facing game names in request tips.
+- Bundled templates carry both full profile-facing `displayName` values and concise catalog labels such as `Memory Match` and `Sequence Repeat`.
+- Studio request tips now render `template.displayLabel` instead of stripping `MVP` suffixes locally.
+
+Supportive changes:
+- Pack and service catalog tests now assert starter template display labels.
+- Source scans now block the removed Studio suffix-stripping helper from returning.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps game request-tip presentation catalog-owned and forward-only without app-local name rewriting heuristics, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Catalog-Owned Asset Tip Labels
 
 Milestone:
