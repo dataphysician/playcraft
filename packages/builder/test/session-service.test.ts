@@ -1,7 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { PLAYCRAFT_SCHEMA_VERSION, type BuilderCommand } from "@playcraft/contracts";
+import { z } from "zod";
+import {
+  BuilderCommandResultSchema,
+  JsonValueSchema,
+  PLAYCRAFT_SCHEMA_VERSION,
+  type BuilderCommand
+} from "@playcraft/contracts";
 import { BuilderPreviewPayloadSchema, PlaycraftBuilderSessionService, createBuilderCommandHandler as createHandler } from "../src/index.js";
 import { runBuilderCli } from "../src/cli.js";
+
+const BuilderCliBatchOutputSchema = z.array(
+  z
+    .object({
+      events: z.array(JsonValueSchema),
+      result: BuilderCommandResultSchema
+    })
+    .strict()
+);
 
 function command(overrides: Partial<BuilderCommand>): BuilderCommand {
   return {
@@ -282,7 +297,7 @@ describe("builder session service", () => {
     expect(exitCode).toBe(0);
     expect(stderr).toEqual([]);
 
-    const parsed = JSON.parse(stdout.join("\n")) as Array<{ result: { profile?: { id: string } } }>;
+    const parsed = BuilderCliBatchOutputSchema.parse(JSON.parse(stdout.join("\n")));
     expect(parsed.map((entry) => entry.result.profile?.id)).toEqual([
       "profile.memory-match.mvp",
       "profile.sorting.mvp",

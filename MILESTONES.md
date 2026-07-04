@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Builder CLI Batch Output Parsing
+
+Milestone:
+- Builder CLI batch JSON tests now parse direct CLI output through a Zod batch result schema.
+- Batch result bodies validate against `BuilderCommandResultSchema`.
+- JSON-serialized builder events validate as contract `JsonValueSchema` records before assertions read profile IDs.
+
+Supportive changes:
+- Removed the structural `JSON.parse(...) as Array<...>` assertion from builder CLI batch coverage.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps agent-facing builder CLI verification contract-backed and local without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Studio Replacement Sprite Module Validation
 
 Milestone:
