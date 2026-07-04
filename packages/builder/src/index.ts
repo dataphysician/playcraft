@@ -214,7 +214,11 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const template = templateForId(templateId);
     const request = requestForTemplate(templateId);
     const runId = `${command.sessionId}.${templateId}`;
-    const profile = applyAssetEdit(this.planner.assemble(request), command.assetEdit, this.assetSource, this.registries);
+    const baseProfile =
+      command.actionName === "update-game" && session.profile && session.templateId === templateId
+        ? session.profile
+        : this.planner.assemble(request);
+    const profile = applyAssetEdit(baseProfile, command.assetEdit, this.assetSource, this.registries);
     const replay = replayProfile(profile, this.registries);
     const preview = previewForReplay(session.sessionId, templateId, profile, replay, session.preview);
 
@@ -705,13 +709,17 @@ function editComponentProps(
       };
     }
     case "component:sequence-pad":
-      const sequence = [edit.items[0], edit.items[1] ?? edit.items[0], edit.items[0]];
+      const sourceSequence = stringArrayProp(props, "sequence");
+      const sourceRounds = stringMatrixProp(props, "rounds");
+      const sequenceTokenMap = tokenMapForSequence([...sourceSequence, ...sourceRounds.flat()], edit.items);
+      const sequence = remapSequenceTokens(sourceSequence, sequenceTokenMap, edit.items[0] ?? "item");
+      const rounds = remapSequenceRounds(sourceRounds, sequenceTokenMap);
       return {
         ...props,
         title: `Repeat the ${edit.singularTheme} pattern`,
         prompt: `Tap the ${edit.singularTheme} buttons in the same order.`,
         sequence,
-        rounds: sequenceRoundsForItems(sequence, edit.items)
+        rounds: rounds.length > 0 ? rounds : [sequence]
       };
     case "component:celebration-overlay":
       return {
@@ -773,21 +781,26 @@ function pairMapForCards(cards: string[]): Record<string, string> {
   return pairs;
 }
 
-function sequenceRoundsForItems(sequence: string[], items: string[]): string[][] {
-  const fallback = sequence[0] ?? items[0] ?? "item";
-  const extra = items.find((item) => !sequence.includes(item)) ?? sequence.at(-1) ?? fallback;
-  const second = sequence[1] ?? extra;
-
-  return [
-    sequence.length > 0 ? sequence : [fallback],
-    [...sequence, extra].filter(Boolean),
-    [second, sequence[0] ?? fallback, extra, sequence[2] ?? second, second]
-  ].filter((round) => round.length > 0);
-}
-
 function defaultItemsForTheme(singularTheme: string): string[] {
   const base = slugLabel(singularTheme);
   return [`${base}-1`, `${base}-2`, `${base}-3`];
+}
+
+function remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>, fallback: string): string[] {
+  if (tokens.length === 0) {
+    return [fallback];
+  }
+
+  return tokens.map((token) => tokenMap.get(token) ?? token);
+}
+
+function remapSequenceRounds(rounds: string[][], tokenMap: Map<string, string>): string[][] {
+  return rounds.map((round) => round.map((token) => tokenMap.get(token) ?? token));
+}
+
+function tokenMapForSequence(tokens: string[], items: string[]): Map<string, string> {
+  const uniqueTokens = uniqueStrings(tokens);
+  return new Map(uniqueTokens.map((token, index) => [token, items[index % items.length] ?? token]));
 }
 
 function rewriteAssetBindings(
@@ -813,6 +826,21 @@ function stringArrayProp(props: Record<string, JsonValue>, key: string): string[
   }
 
   return value.map((entry) => (typeof entry === "string" ? entry : JSON.stringify(entry)));
+}
+
+function stringMatrixProp(props: Record<string, JsonValue>, key: string): string[][] {
+  const value = props[key];
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((entry): entry is JsonValue[] => Array.isArray(entry))
+    .map((entry) => entry.map((item) => (typeof item === "string" ? item : JSON.stringify(item))));
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
 }
 
 function cleanLabel(value: string): string {

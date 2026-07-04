@@ -129,6 +129,55 @@ describe("builder session service", () => {
     expect(edited.result.validation?.valid).toBe(true);
   });
 
+  it("updates imported sequence profiles without regenerating authored rounds from the bundled template", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.sequence-repeat" })).result.profile;
+    expect(exported).toBeDefined();
+    const custom = {
+      ...exported!,
+      id: "profile.custom-sequence",
+      components: exported!.components.map((component) => {
+        if (component.renderCapability === "component:sequence-pad") {
+          return {
+            ...component,
+            props: {
+              ...component.props,
+              sequence: ["moon"],
+              rounds: [["moon"], ["star", "moon"], ["moon", "star", "star"]]
+            }
+          };
+        }
+
+        if (component.renderCapability === "component:choice-grid") {
+          return {
+            ...component,
+            props: {
+              ...component.props,
+              items: ["moon", "star"]
+            }
+          };
+        }
+
+        return component;
+      })
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.custom-sequence", custom);
+    const edited = target.execute(command({
+      actionName: "update-game",
+      assetEdit: { theme: "gems" },
+      sessionId: "session.custom-sequence",
+      templateId: "template.sequence-repeat"
+    }));
+    const sequencePad = edited.result.profile?.components.find((component) => component.renderCapability === "component:sequence-pad");
+
+    expect(edited.result.profile?.id).toBe("profile.custom-sequence");
+    expect(sequencePad?.props.sequence).toEqual(["gem-1"]);
+    expect(sequencePad?.props.rounds).toEqual([["gem-1"], ["gem-2", "gem-1"], ["gem-1", "gem-2", "gem-2"]]);
+    expect(edited.result.validation?.valid).toBe(true);
+  });
+
   it("supports real trusted preview interactions before and after an update", () => {
     const service = new PlaycraftBuilderSessionService();
     service.execute(command({ templateId: "template.memory-match" }));

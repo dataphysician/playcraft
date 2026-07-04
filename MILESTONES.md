@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Active Profile Update Semantics
+
+Milestone:
+- Builder `update-game` now applies asset edits to the active session profile when the template is unchanged instead of reassembling from the bundled template.
+- Imported/custom sequence profiles keep their profile ID and authored `rounds` structure when assets are renamed.
+- Sequence asset edits remap existing sequence and round tokens through one token map rather than generating new progression rounds from a formula.
+
+Supportive changes:
+- Added builder coverage for updating an imported custom sequence profile with authored rounds.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps updates profile-contract driven for agent-built games without migration code, generated runtime code, hosted providers, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Token Color Catalog
 
 Milestone:
