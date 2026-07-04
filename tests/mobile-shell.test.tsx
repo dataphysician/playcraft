@@ -98,7 +98,7 @@ describe("Tauri mobile shell", () => {
   it("renders the mobile shell and generates a live game", async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Speech" }));
+    fireEvent.click(screen.getByRole("button", { name: "Transcript" }));
     fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Memory game with toys" } });
     fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
 

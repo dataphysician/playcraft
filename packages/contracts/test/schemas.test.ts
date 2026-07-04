@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   AssetContentTypeSchema,
+  BuilderInputRequestSchema,
+  BuilderServiceRequestSchema,
   ComponentRenderRequestSchema,
   InputModalitySchema,
   PLAYCRAFT_SCHEMA_VERSION,
@@ -409,5 +411,37 @@ describe("public contract schemas", () => {
   it("keeps v1 input modalities free of live microphone capture", () => {
     expect(InputModalitySchema.options).toEqual(["touch", "pointer", "keyboard", "audio"]);
     expect(InputModalitySchema.safeParse(`vo${"ice"}`).success).toBe(false);
+  });
+
+  it("requires Moonshine transcript records for transcript-sourced builder input", () => {
+    expect(
+      BuilderInputRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-input.test.missing-transcript",
+        version: "1.0.0",
+        kind: "builder-input",
+        inputId: "builder-input.test.missing-transcript",
+        source: "speech-transcript",
+        text: "memory game with dinosaurs",
+        transcription: {
+          engine: "moonshine-streaming",
+          runtime: "cpu",
+          localOnly: true
+        },
+        receivedAt: "2026-07-04T00:00:00.000Z"
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.missing-transcript",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        source: "speech-transcript",
+        text: "memory game with dinosaurs"
+      }).success
+    ).toBe(false);
   });
 });

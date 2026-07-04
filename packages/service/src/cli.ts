@@ -150,6 +150,9 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
   if ((commandName === "assemble" || commandName === "update") && !text) {
     throw new Error("assemble, update, and preview-with-assemble require --text or --transcript");
   }
+  if (args.source === "speech-transcript" && !transcriptText) {
+    throw new Error("speech-transcript source requires --transcript so the CLI can send a Moonshine transcript record");
+  }
   const profileExport = parseProfileExportJson(args.profileExportJson);
   const profile = args.profileJson ? JSON.parse(args.profileJson) : undefined;
 

@@ -692,7 +692,7 @@ function CommandBar({
             onClick: () => onInputSourceChange("speech-transcript"),
             style: inputSource === "speech-transcript" ? shellStyles.inputSourceButtonActive : shellStyles.inputSourceButton
           },
-          "Speech"
+          "Transcript"
         )
       ),
       React.createElement(

@@ -226,7 +226,7 @@ Child-friendly v1 policy must enforce:
 - No unregistered components.
 - No private child data in shared profiles.
 - No punitive failure states for ages 2-6.
-- Parent-approved modality policy for any future live microphone capture.
+- Text/transcript-only input policy for the current local builder surface.
 - Asset provenance and safety status for every generated or selected asset.
 - Age-band, content, retry, hint, session, and quiet-mode constraints.
 

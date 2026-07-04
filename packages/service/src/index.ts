@@ -499,7 +499,7 @@ export function createBuilderInputRequest(input: {
 }): BuilderInputRequest {
   const speechTranscript =
     input.source === "speech-transcript"
-      ? input.speechTranscript ?? createMoonshineTranscriptRecord({ sequence: input.sequence, text: input.text })
+      ? input.speechTranscript
       : undefined;
   const text = speechTranscript?.text ?? input.text;
 

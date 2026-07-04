@@ -53,7 +53,11 @@ function setElementRect(
 }
 
 describe("studio UI", () => {
-  it("normalizes local text and speech transcript inputs into template commands", () => {
+  it("normalizes local text and Moonshine transcript inputs into template commands", () => {
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.resolve",
+      text: "Repeat a pattern with gems"
+    });
     const text = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",
       sequence: 1,
@@ -64,7 +68,8 @@ describe("studio UI", () => {
       activeTemplateId: "template.memory-match",
       sequence: 2,
       source: "speech-transcript",
-      text: "Repeat a pattern with gems"
+      speechTranscript: transcript,
+      text: transcript.text
     });
 
     expect(text.templateId).toBe("template.sorting");
@@ -81,10 +86,10 @@ describe("studio UI", () => {
     });
   });
 
-  it("lets speech transcripts replace typed game requests", async () => {
+  it("lets transcript input replace typed game requests", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
-    fireEvent.click(screen.getByRole("button", { name: "Speech" }));
+    fireEvent.click(screen.getByRole("button", { name: "Transcript" }));
     fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Memory game with dinosaurs" } });
     fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
 
@@ -93,7 +98,7 @@ describe("studio UI", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
     expect(await screen.findByLabelText("Chat history")).toBeDefined();
-    expect(screen.getByText("Transcript")).toBeDefined();
+    expect(screen.getAllByText("Transcript").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/memory game with dinosaurs/iu).length).toBeGreaterThanOrEqual(1);
   });
 

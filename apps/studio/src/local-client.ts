@@ -2,14 +2,16 @@ import type { BuilderAgUiEvent } from "@playcraft/builder";
 import {
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderCatalog,
+  type BuilderInputSource,
   type BuilderProfileExport,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
   type GameAssemblyProfile,
-  type JsonValue
+  type JsonValue,
+  type MoonshineTranscriptRecord
 } from "@playcraft/contracts";
 
-import { createHttpServiceTransport, createLocalServiceTransport, type BuilderServiceTransport } from "@playcraft/service";
+import { createHttpServiceTransport, createLocalServiceTransport, createMoonshineTranscriptRecord, type BuilderServiceTransport } from "@playcraft/service";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry, StudioTimelineKind } from "./types.js";
 
 export interface ConfiguredStudioClientOptions {
@@ -86,7 +88,12 @@ export function createStudioClientFromServiceTransport(options: {
     },
     assembleFromIntent(input) {
       const sessionId = input.sessionId ?? options.defaultSessionId;
-      const speechTranscript = input.speechTranscript;
+      const speechTranscript = speechTranscriptForClientInput({
+        requestId: `moonshine-transcript.${options.defaultSessionId}.${requestCounter + 1}`,
+        source: input.source,
+        speechTranscript: input.speechTranscript,
+        text: input.idea
+      });
       return mapTransportResponse(
         options.transport.send(
           nextRequest("assemble", {
@@ -124,7 +131,12 @@ export function createStudioClientFromServiceTransport(options: {
       );
     },
     requestChange(input) {
-      const speechTranscript = input.speechTranscript;
+      const speechTranscript = speechTranscriptForClientInput({
+        requestId: `moonshine-transcript.${options.defaultSessionId}.${requestCounter + 1}`,
+        source: input.source,
+        speechTranscript: input.speechTranscript,
+        text: input.changeRequest
+      });
       return mapTransportResponse(
         options.transport.send(
           nextRequest("update", {
@@ -143,6 +155,29 @@ export function createStudioClientFromServiceTransport(options: {
       timeline.length = 0;
     }
   };
+}
+
+function speechTranscriptForClientInput(input: {
+  requestId: string;
+  source?: BuilderInputSource;
+  speechTranscript?: MoonshineTranscriptRecord;
+  text: string;
+}): MoonshineTranscriptRecord | undefined {
+  if (input.speechTranscript) {
+    return input.speechTranscript;
+  }
+
+  if (input.source !== "speech-transcript") {
+    return undefined;
+  }
+
+  return createMoonshineTranscriptRecord({
+    id: input.requestId,
+    metadata: {
+      origin: "playcraft-studio-transcript-input"
+    },
+    text: input.text
+  });
 }
 
 function profileExportFromResponse(response: BuilderServiceResponse): BuilderProfileExport {

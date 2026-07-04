@@ -527,6 +527,10 @@ export const BuilderInputRequestSchema = PublicContractBaseSchema.extend({
     message: "speech transcripts must declare the local transcription config",
     path: ["transcription"]
   })
+  .refine((value) => value.source !== "speech-transcript" || Boolean(value.speechTranscript), {
+    message: "speech-transcript input requires a Moonshine transcript record",
+    path: ["speechTranscript"]
+  })
   .refine((value) => value.source !== "text" || (!value.transcription && !value.speechTranscript), {
     message: "text input must not include speech transcription config or transcript records",
     path: ["transcription"]
@@ -774,6 +778,10 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   .refine((value) => !value.speechTranscript || value.source !== "text", {
     message: "Moonshine transcript records must not use text source",
     path: ["source"]
+  })
+  .refine((value) => value.source !== "speech-transcript" || Boolean(value.speechTranscript), {
+    message: "speech-transcript service requests require a Moonshine transcript record",
+    path: ["speechTranscript"]
   })
   .refine((value) => !value.speechTranscript || !value.text || value.text === value.speechTranscript.text, {
     message: "service request text must match Moonshine transcript record text",

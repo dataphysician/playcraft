@@ -72,9 +72,14 @@ describe("local Playcraft service", () => {
 
   it("assembles and updates games through text or local speech transcripts", () => {
     const service = createLocalPlaycraftService();
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.assemble",
+      text: "Memory game with dinosaurs"
+    });
     const assembled = service.assemble({
       source: "speech-transcript",
-      text: "Memory game with dinosaurs"
+      speechTranscript: transcript,
+      text: transcript.text
     });
     const updated = service.update({
       sessionId: assembled.result.sessionId,
@@ -118,8 +123,28 @@ describe("local Playcraft service", () => {
     expect(serializedEvents).toContain("speechTranscriptId");
   });
 
+  it("rejects transcript-sourced service requests without Moonshine transcript records", () => {
+    const service = createLocalPlaycraftService();
+
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.missing-transcript",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        source: "speech-transcript",
+        text: "Memory game with dinosaurs"
+      })
+    ).toThrow(/Moonshine transcript record/u);
+  });
+
   it("handles validated service API requests for local and future server transports", () => {
     const service = createLocalPlaycraftService();
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.service-api",
+      text: "Memory game with toys"
+    });
     const catalog = service.handle({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: "builder-service-request.test.catalog",
@@ -135,7 +160,8 @@ describe("local Playcraft service", () => {
       actionName: "assemble",
       sessionId: "session.service-api",
       source: "speech-transcript",
-      text: "Memory game with toys"
+      speechTranscript: transcript,
+      text: transcript.text
     });
     const updated = service.handle({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -269,6 +295,10 @@ describe("local Playcraft service", () => {
         };
       }
     });
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.http-client",
+      text: "Repeat a pattern with gems"
+    });
     const response = await transport.send({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: "builder-service-request.test.http-client",
@@ -277,7 +307,8 @@ describe("local Playcraft service", () => {
       actionName: "assemble",
       sessionId: "session.http-client",
       source: "speech-transcript",
-      text: "Repeat a pattern with gems"
+      speechTranscript: transcript,
+      text: transcript.text
     });
 
     expect(response.kind).toBe("builder-service-response");
@@ -300,6 +331,10 @@ describe("local Playcraft service", () => {
     }
 
     try {
+      const transcript = createMoonshineTranscriptRecord({
+        id: "moonshine-transcript.test.live-http",
+        text: "Memory game with dinosaurs"
+      });
       const health = await fetch(`${baseUrl}/health`);
       const healthBody = await health.json() as { ok: boolean };
       expect(health.status).toBe(200);
@@ -318,7 +353,8 @@ describe("local Playcraft service", () => {
           actionName: "assemble",
           sessionId: "session.live-http",
           source: "speech-transcript",
-          text: "Memory game with dinosaurs"
+          speechTranscript: transcript,
+          text: transcript.text
         })
       });
       const parsed = await response.json() as BuilderServiceResponse;
@@ -511,6 +547,9 @@ describe("local Playcraft service", () => {
     expect(assembled.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
     expect(assembled.result.profile?.components[0]?.props.cards).toEqual(["dolphin-a", "dolphin-b", "turtle-a", "turtle-b"]);
     expect(err).toEqual([]);
+
+    expect(runLocalServiceCli(["assemble", "--source", "speech-transcript", "--text", "Memory game"], io)).toBe(1);
+    expect(err.pop()).toMatch(/requires --transcript/u);
   });
 
   it("exports and imports profiles through the service envelope and CLI", () => {
@@ -609,6 +648,10 @@ describe("local Playcraft service", () => {
   it("lets agents submit the exact service request envelope through the CLI", () => {
     const out: string[] = [];
     const err: string[] = [];
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.cli-envelope",
+      text: "Memory game with dinosaurs"
+    });
     const request = {
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: "builder-service-request.test.cli-envelope",
@@ -617,7 +660,8 @@ describe("local Playcraft service", () => {
       actionName: "assemble",
       sessionId: "session.cli-envelope",
       source: "speech-transcript",
-      text: "Memory game with dinosaurs"
+      speechTranscript: transcript,
+      text: transcript.text
     };
 
     expect(

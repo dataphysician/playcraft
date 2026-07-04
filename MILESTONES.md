@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Moonshine Transcript Boundary Tightening
+
+Milestone:
+- Transcript-sourced builder input now requires an explicit `MoonshineTranscriptRecord` at the service contract boundary.
+- The Studio and Mobile client path can still accept transcript-mode text, but converts it into a local Moonshine Streaming CPU transcript record before sending the service envelope.
+- The Studio input toggle now says "Transcript" instead of implying live speech capture.
+
+Supportive changes:
+- Added schema and service tests rejecting `source: "speech-transcript"` without a transcript record.
+- Removed service-side transcript record fabrication from plain text.
+- Added a clearer CLI error for `--source speech-transcript` without `--transcript`.
+- Updated docs to state transcript records are created at the client/CLI edge, not inside the service.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/mobile-shell.test.tsx`
+
+Constraint notes:
+- Keeps input limited to text and local Moonshine Streaming CPU transcript records.
+- Does not add microphone capture, hosted conversation services, generated runtime code, auth, database state, or migration compatibility.
+
 ## 2026-07-04 - Asset Intent Resolution Hardening
 
 Milestone:
