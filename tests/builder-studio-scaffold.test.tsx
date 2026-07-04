@@ -27,6 +27,7 @@ describe("builder/studio workspace scaffold", () => {
     expect(rootPackage.scripts["build:studio"]).toBe("pnpm --filter @playcraft/studio build");
     expect(rootPackage.scripts["dev:mobile"]).toBe("pnpm --filter @playcraft/mobile-shell dev");
     expect(rootPackage.scripts["build:mobile"]).toBe("pnpm --filter @playcraft/mobile-shell build");
+    expect(rootPackage.scripts["serve:service"]).toBe("pnpm --filter @playcraft/service serve");
     expect(tsconfig.references).toEqual(
       expect.arrayContaining([
         { path: "./packages/builder" },
@@ -70,6 +71,7 @@ describe("builder/studio workspace scaffold", () => {
     expect(builderPackage.dependencies).not.toHaveProperty("@playcraft/renderer");
     expect(servicePackage.name).toBe("@playcraft/service");
     expect(servicePackage.bin["playcraft-service"]).toBe("./dist/cli.js");
+    expect(servicePackage.bin["playcraft-service-http"]).toBe("./dist/http-server.js");
     expect(servicePackage.dependencies).toMatchObject({
       "@playcraft/builder": "workspace:*",
       "@playcraft/contracts": "workspace:*",

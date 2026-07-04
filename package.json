@@ -10,6 +10,7 @@
     "build:studio": "pnpm --filter @playcraft/studio build",
     "dev:mobile": "pnpm --filter @playcraft/mobile-shell dev",
     "dev:studio": "pnpm --filter @playcraft/studio dev",
+    "serve:service": "pnpm --filter @playcraft/service serve",
     "test": "vitest run",
     "typecheck:mobile": "pnpm --filter @playcraft/mobile-shell typecheck",
     "typecheck": "tsc -b",

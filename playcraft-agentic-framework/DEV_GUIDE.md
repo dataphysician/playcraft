@@ -37,7 +37,7 @@ Do not put framework core logic behind Next.js API routes, native commands, or a
 
 Studio clients should talk to a `BuilderServiceTransport`; the local implementation can be in-process or HTTP JSON today, and future server adapters should preserve the same request/response schemas rather than adding app-local command formats.
 
-Use `createHttpServiceTransport` for clients that call a local/server endpoint, and `handleServiceHttpRequestBody` inside a server wrapper that receives raw JSON. These helpers intentionally avoid framework-specific server dependencies.
+Use `createHttpServiceTransport` for clients that call a local/server endpoint, `handleServiceHttpRequestBody` inside a server wrapper that receives raw JSON, and `pnpm serve:service` or `playcraft-service-http` to run the dependency-light local HTTP server. These helpers intentionally avoid framework-specific server dependencies.
 
 Agents that need the exact API boundary can call `playcraft-service request --request-json '<BuilderServiceRequest JSON>' --json` and receive the full `BuilderServiceResponse` envelope. Friendly CLI commands may keep concise output for humans.
 

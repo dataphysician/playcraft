@@ -5,16 +5,22 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "playcraft-service": "./dist/cli.js"
+    "playcraft-service": "./dist/cli.js",
+    "playcraft-service-http": "./dist/http-server.js"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./http-server": {
+      "types": "./dist/http-server.d.ts",
+      "import": "./dist/http-server.js"
     }
   },
   "scripts": {
     "build": "tsc -b",
+    "serve": "node ./dist/http-server.js",
     "typecheck": "tsc -b"
   },
   "dependencies": {

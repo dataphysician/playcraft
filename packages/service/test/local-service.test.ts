@@ -10,6 +10,7 @@ import {
   resolveBuilderInputCommand
 } from "../src/index.js";
 import { runLocalServiceCli } from "../src/cli.js";
+import { createPlaycraftHttpServer } from "../src/http-server.js";
 
 describe("local Playcraft service", () => {
   it("publishes local tools and bundled templates for shells", () => {
@@ -189,6 +190,53 @@ describe("local Playcraft service", () => {
     expect(JSON.stringify(response.execution?.events)).toContain("moonshine-streaming");
   });
 
+  it("serves live local HTTP requests over the same service envelope", async () => {
+    const server = createPlaycraftHttpServer();
+    const baseUrl = await listenOnLoopback(server).catch((error: unknown) => {
+      if (isSandboxListenDenied(error)) {
+        return undefined;
+      }
+
+      throw error;
+    });
+
+    if (!baseUrl) {
+      return;
+    }
+
+    try {
+      const health = await fetch(`${baseUrl}/health`);
+      const healthBody = await health.json() as { ok: boolean };
+      expect(health.status).toBe(200);
+      expect(healthBody.ok).toBe(true);
+
+      const response = await fetch(`${baseUrl}/playcraft`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-service-request.test.live-http",
+          version: "1.0.0",
+          kind: "builder-service-request",
+          actionName: "assemble",
+          sessionId: "session.live-http",
+          source: "speech-transcript",
+          text: "Memory game with dinosaurs"
+        })
+      });
+      const parsed = await response.json() as BuilderServiceResponse;
+
+      expect(response.status).toBe(200);
+      expect(parsed.execution?.result.sessionId).toBe("session.live-http");
+      expect(parsed.execution?.result.profile?.id).toBe("profile.memory-match.mvp");
+      expect(JSON.stringify(parsed.execution?.events)).toContain("moonshine-streaming");
+    } finally {
+      await closeServer(server);
+    }
+  });
+
   it("accepts explicit asset edit records for future local asset-library adapters", () => {
     const service = createLocalPlaycraftService();
     const assembled = service.assemble({
@@ -357,3 +405,35 @@ describe("local Playcraft service", () => {
     expect(response.execution?.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
   });
 });
+
+function listenOnLoopback(server: ReturnType<typeof createPlaycraftHttpServer>): Promise<string> {
+  return new Promise((resolve, reject) => {
+    server.on("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      if (typeof address !== "object" || !address) {
+        reject(new Error("expected HTTP server address"));
+        return;
+      }
+
+      resolve(`http://127.0.0.1:${address.port}`);
+    });
+  });
+}
+
+function closeServer(server: ReturnType<typeof createPlaycraftHttpServer>): Promise<void> {
+  return new Promise((resolve, reject) => {
+    server.close((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
+
+function isSandboxListenDenied(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "EPERM";
+}
