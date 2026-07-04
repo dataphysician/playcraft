@@ -913,6 +913,26 @@ describe("local Playcraft service", () => {
     expect(ambiguousImportOut).toEqual([]);
     expect(ambiguousImportErr.join("\n")).toMatch(/exactly one of profile or profileExport/u);
 
+    const assetOverrideImportOut: string[] = [];
+    const assetOverrideImportErr: string[] = [];
+    expect(
+      runLocalServiceCli([
+        "import-profile",
+        "--session",
+        "session.cli-import-asset-override",
+        "--profile-export-json",
+        JSON.stringify(exported.profileExport),
+        "--asset-theme",
+        "toys",
+        "--json"
+      ], {
+        stdout: (message) => assetOverrideImportOut.push(message),
+        stderr: (message) => assetOverrideImportErr.push(message)
+      })
+    ).toBe(1);
+    expect(assetOverrideImportOut).toEqual([]);
+    expect(assetOverrideImportErr.join("\n")).toMatch(/top-level assetEdit is only accepted with profile imports/u);
+
     const invalidImportOut: string[] = [];
     const invalidImportErr: string[] = [];
     expect(

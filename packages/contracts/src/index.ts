@@ -899,6 +899,10 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   .refine((value) => value.actionName !== "import-profile" || !(value.profile && value.profileExport), {
     message: "import-profile requests accept exactly one of profile or profileExport",
     path: ["profile"]
+  })
+  .refine((value) => value.actionName !== "import-profile" || !value.profileExport || !value.assetEdit, {
+    message: "profileExport imports carry asset edits in the export; top-level assetEdit is only accepted with profile imports",
+    path: ["assetEdit"]
   });
 export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
 

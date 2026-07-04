@@ -218,14 +218,24 @@ export class LocalPlaycraftService {
 
     if (request.actionName === "import-profile") {
       const profileExport = request.profileExport;
-      const profile = request.profile ?? profileExport?.profile;
-      if (!profile) {
-        throw new Error("import-profile requires profile or profileExport");
+      const importPayload = profileExport
+        ? {
+            assetEdit: profileExport.assetEdit,
+            profile: profileExport.profile,
+            sessionId: request.sessionId ?? profileExport.sessionId
+          }
+        : {
+            assetEdit: request.assetEdit,
+            profile: request.profile,
+            sessionId: request.sessionId
+          };
+      if (!importPayload.profile) {
+        throw new Error("import-profile requires exactly one profile payload");
       }
       const output = this.importProfile({
-        assetEdit: request.assetEdit ?? profileExport?.assetEdit,
-        profile,
-        sessionId: request.sessionId ?? profileExport?.sessionId
+        assetEdit: importPayload.assetEdit,
+        profile: importPayload.profile,
+        sessionId: importPayload.sessionId
       });
       return serviceResponse(request, {
         execution: serializeExecution(output),

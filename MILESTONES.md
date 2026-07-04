@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Profile Import Payloads
+
+Milestone:
+- Service `import-profile` now handles raw profiles and profile exports through exclusive payload branches instead of profile/export precedence fallback.
+- Profile-export imports keep asset edits from the export and reject separate top-level asset edit overrides.
+- Profile-export imports still allow an explicit target session while preserving the exported profile metadata.
+
+Supportive changes:
+- Service request schema tests now reject profile-export imports with top-level asset edit overrides.
+- Service CLI tests now cover rejected `--profile-export-json` plus `--asset-theme` imports.
+- Source scans now block profile/profileExport and assetEdit/profileExport nullish precedence fallbacks in the service import path.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps profile import behavior explicit and forward-only without migration-style payload precedence, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Self-Describing Render Request Identity
 
 Milestone:

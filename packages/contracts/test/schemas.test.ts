@@ -568,6 +568,30 @@ describe("public contract schemas", () => {
         }
       }).success
     ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.import-export-with-asset-edit",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "import-profile",
+        assetEdit: { theme: "toys" },
+        profileExport: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-profile-export.test.asset-edit-override",
+          version: "1.0.0",
+          kind: "builder-profile-export",
+          sessionId: "session.asset-edit-override",
+          profile: assembleMvpProfiles()[0],
+          exportedAt: "2026-07-04T00:00:00.000Z",
+          retrieval: {
+            current: "bundled-local",
+            planned: "server-catalog"
+          }
+        }
+      }).success
+    ).toBe(false);
   });
 
   it("keeps service response payload fields scoped to the selected action", () => {
