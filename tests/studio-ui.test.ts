@@ -2,8 +2,18 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { assembleMvpProfiles } from "@playcraft/packs";
-import { handleServiceHttpRequestBody, resolveBuilderInputCommand } from "@playcraft/service";
-import { createConfiguredStudioClient, createLocalStudioClient } from "../apps/studio/src/local-client.js";
+import type { BuilderServiceRequest } from "@playcraft/contracts";
+import {
+  createMoonshineTranscriptRecord,
+  handleLocalServiceRequest,
+  handleServiceHttpRequestBody,
+  resolveBuilderInputCommand
+} from "@playcraft/service";
+import {
+  createConfiguredStudioClient,
+  createLocalStudioClient,
+  createStudioClientFromServiceTransport
+} from "../apps/studio/src/local-client.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
 import { TrustedPreview } from "../apps/studio/src/trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "../apps/studio/src/types.js";
@@ -84,6 +94,47 @@ describe("studio UI", () => {
     expect(await screen.findByLabelText("Chat history")).toBeDefined();
     expect(screen.getByText("Transcript")).toBeDefined();
     expect(screen.getAllByText(/memory game with dinosaurs/iu).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("passes explicit Moonshine transcript records through the Studio service transport", async () => {
+    const requests: BuilderServiceRequest[] = [];
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.studio-client",
+      segments: [
+        {
+          text: "Repeat a pattern with gems",
+          startMs: 0,
+          endMs: 1400
+        }
+      ],
+      text: "Repeat a pattern with gems"
+    });
+    const client = createStudioClientFromServiceTransport({
+      defaultSessionId: "studio.transcript",
+      timelineIdPrefix: "timeline.transcript",
+      transport: {
+        send(request) {
+          requests.push(request);
+          return handleLocalServiceRequest(request);
+        }
+      }
+    });
+    const session = await Promise.resolve(client.assembleFromIntent({
+      idea: "ignored once transcript exists",
+      speechTranscript: transcript
+    }));
+
+    expect(requests[0]).toMatchObject({
+      actionName: "assemble",
+      sessionId: "studio.transcript",
+      source: "speech-transcript",
+      speechTranscript: {
+        transcriptId: "moonshine-transcript.test.studio-client"
+      },
+      text: "Repeat a pattern with gems"
+    });
+    expect(session.activeProfileId).toBe("profile.sequence-repeat.mvp");
+    expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.studio-client"))).toBe(true);
   });
 
   it("can assemble through a configured HTTP service endpoint", async () => {

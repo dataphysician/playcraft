@@ -77,24 +77,28 @@ export function createStudioClientFromServiceTransport(options: {
   return {
     assembleFromIntent(input) {
       const sessionId = input.sessionId ?? options.defaultSessionId;
+      const speechTranscript = input.speechTranscript;
       return mapTransportResponse(
         options.transport.send(
           nextRequest("assemble", {
             sessionId,
-            source: input.source ?? "text",
-            text: input.idea
+            source: speechTranscript ? "speech-transcript" : input.source ?? "text",
+            speechTranscript,
+            text: speechTranscript?.text ?? input.idea
           })
         ),
         (response) => snapshotFromResponse(sessionId, response)
       );
     },
     requestChange(input) {
+      const speechTranscript = input.speechTranscript;
       return mapTransportResponse(
         options.transport.send(
           nextRequest("update", {
             sessionId: input.sessionId,
-            source: input.source ?? "text",
-            text: input.changeRequest
+            source: speechTranscript ? "speech-transcript" : input.source ?? "text",
+            speechTranscript,
+            text: speechTranscript?.text ?? input.changeRequest
           })
         ),
         (response) => snapshotFromResponse(input.sessionId, response)

@@ -1,4 +1,4 @@
-import type { BuilderInputSource, GameAssemblyProfile } from "@playcraft/contracts";
+import type { BuilderInputSource, GameAssemblyProfile, MoonshineTranscriptRecord } from "@playcraft/contracts";
 
 export type StudioTimelineKind = "lifecycle" | "state" | "activity" | "tool" | "custom" | "frontend";
 
@@ -23,12 +23,14 @@ export interface StudioAssembleInput {
   sessionId?: string;
   idea: string;
   source?: BuilderInputSource;
+  speechTranscript?: MoonshineTranscriptRecord;
 }
 
 export interface StudioChangeInput {
   sessionId: string;
   changeRequest: string;
   source?: BuilderInputSource;
+  speechTranscript?: MoonshineTranscriptRecord;
 }
 
 export interface StudioClient {

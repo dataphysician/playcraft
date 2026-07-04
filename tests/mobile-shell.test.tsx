@@ -3,7 +3,7 @@ import { join } from "node:path";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { handleServiceHttpRequestBody } from "@playcraft/service";
+import { createMoonshineTranscriptRecord, handleServiceHttpRequestBody } from "@playcraft/service";
 
 import { App } from "../apps/mobile-shell/src/App.js";
 import { createMobileShellStudioClient } from "../apps/mobile-shell/src/mobile-client.js";
@@ -53,6 +53,22 @@ describe("Tauri mobile shell", () => {
     expect(session.activeProfileId).toBe("profile.memory-match.mvp");
     expect(session.profiles[0].assetRequests[0]?.prompt).toContain("toys memory card illustrations");
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-streaming"))).toBe(true);
+  });
+
+  it("passes explicit Moonshine transcript records through the mobile Studio client", async () => {
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.mobile-client",
+      text: "Memory game with dinosaurs"
+    });
+    const client = createMobileShellStudioClient();
+    const session = await Promise.resolve(client.assembleFromIntent({
+      idea: "ignored once transcript exists",
+      speechTranscript: transcript
+    }));
+
+    expect(session.activeProfileId).toBe("profile.memory-match.mvp");
+    expect(session.profiles[0].assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
+    expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.mobile-client"))).toBe(true);
   });
 
   it("can target the local HTTP service endpoint instead of the in-process transport", async () => {

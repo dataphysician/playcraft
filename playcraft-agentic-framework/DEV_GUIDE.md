@@ -39,7 +39,7 @@ Studio clients should talk to a `BuilderServiceTransport`; the local implementat
 
 Use `createHttpServiceTransport` for clients that call a local/server endpoint, `handleServiceHttpRequestBody` inside a server wrapper that receives raw JSON, and `pnpm serve:service` or `playcraft-service-http` to run the dependency-light local HTTP server. These helpers intentionally avoid framework-specific server dependencies.
 
-The Studio and Tauri Mobile-facing shell default to an in-process transport. Set `VITE_PLAYCRAFT_SERVICE_URL=http://127.0.0.1:8787/playcraft` for either Vite app to route assembly, update, preview, and reset requests through the HTTP service boundary instead.
+The Studio and Tauri Mobile-facing shell default to an in-process transport. Set `VITE_PLAYCRAFT_SERVICE_URL=http://127.0.0.1:8787/playcraft` for either Vite app to route assembly, update, preview, and reset requests through the HTTP service boundary instead. Local speech adapters should pass a validated `MoonshineTranscriptRecord` into the Studio client; typed transcript text may still use `source: "speech-transcript"` and let the service create a local transcript record.
 
 Agents that need the exact API boundary can call `playcraft-service request --request-json '<BuilderServiceRequest JSON>' --json` and receive the full `BuilderServiceResponse` envelope. Friendly CLI commands may keep concise output for humans, and `playcraft-service assemble --transcript '<local transcript text>' --json` creates a validated Moonshine Streaming CPU transcript record before calling the same service envelope.
 
