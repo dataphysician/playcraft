@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
+import { CapabilityRegistry, type RegistryEntry } from "../src/index.js";
 import { createDefaultRegistries } from "@playcraft/packs";
 
 describe("capability registries", () => {
@@ -26,6 +28,21 @@ describe("capability registries", () => {
 
     expect(result.selected?.id).toBe("rule.completion");
     expect(result.selected?.consumesEvents).toContain("rule:pair-matched");
+  });
+
+  it("checks rule compatibility from the canonical compatibility contract", () => {
+    const registries = createDefaultRegistries();
+    const result = registries.rules.select({
+      ruleCategory: "completion",
+      mechanicIds: ["mechanic.match-pairs"],
+      safetyPolicyId: "safety.not-compatible"
+    });
+
+    expect(result.selected).toBeNull();
+    expect(result.rejected.some((candidate) =>
+      candidate.id === "rule.completion" &&
+      candidate.reasons.includes("safety policy safety.not-compatible is not supported")
+    )).toBe(true);
   });
 
   it("selects trusted components by render capability", () => {
@@ -66,5 +83,47 @@ describe("capability registries", () => {
       available: "1.0.0"
     });
     expect(result.warnings.length).toBeGreaterThan(0);
+  });
+
+  it("ignores stale compatibility alias fields during selection", () => {
+    type LooseEntry = RegistryEntry & { kind: string };
+    const looseEntrySchema: z.ZodType<LooseEntry> = z.custom<LooseEntry>((value) =>
+      typeof value === "object" &&
+      value !== null &&
+      !Array.isArray(value) &&
+      typeof Reflect.get(value, "id") === "string" &&
+      typeof Reflect.get(value, "version") === "string" &&
+      typeof Reflect.get(value, "kind") === "string"
+    );
+    const registry = new CapabilityRegistry("loose", looseEntrySchema);
+
+    registry.register({
+      id: "loose.entry",
+      version: "1.0.0",
+      kind: "loose-entry",
+      compatibleDomainProfiles: ["domain.alias"],
+      compatibleSafetyPolicies: ["safety.alias"],
+      compatibility: {
+        domainProfileIds: ["domain.current"],
+        safetyPolicyIds: ["safety.current"],
+        ageBands: ["4-6"],
+        modalities: ["touch"]
+      }
+    });
+
+    const result = registry.select({
+      domainProfileId: "domain.alias",
+      safetyPolicyId: "safety.alias",
+      ageBand: "adult",
+      modality: "audio"
+    });
+
+    expect(result.selected).toBeNull();
+    expect(result.rejected[0]?.reasons).toEqual([
+      "domain domain.alias is not supported",
+      "safety policy safety.alias is not supported",
+      "age band adult is not supported",
+      "modality audio is not supported"
+    ]);
   });
 });

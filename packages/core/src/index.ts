@@ -160,28 +160,28 @@ export class CapabilityRegistry<TEntry extends RegistryEntry> {
     }
 
     if (query.domainProfileId) {
-      const domains = firstStringArray(entry, ["supportedDomains", "supportedDomainProfiles", "compatibleDomainProfiles"]);
+      const domains = domainProfileIdsForEntry(entry);
       if (domains.length > 0 && !domains.includes(query.domainProfileId)) {
         reasons.push(`domain ${query.domainProfileId} is not supported`);
       }
     }
 
     if (query.safetyPolicyId) {
-      const policies = firstStringArray(entry, ["safetyPolicyIds", "compatibleSafetyPolicies"]);
+      const policies = safetyPolicyIdsForEntry(entry);
       if (policies.length > 0 && !policies.includes(query.safetyPolicyId)) {
         reasons.push(`safety policy ${query.safetyPolicyId} is not supported`);
       }
     }
 
     if (query.ageBand) {
-      const ageBands = firstStringArray(entry, ["supportedAgeBands", "ageBands"]);
+      const ageBands = ageBandsForEntry(entry);
       if (ageBands.length > 0 && !ageBands.includes(query.ageBand)) {
         reasons.push(`age band ${query.ageBand} is not supported`);
       }
     }
 
     if (query.modality) {
-      const modalities = firstStringArray(entry, ["supportedModalities", "modalities"]);
+      const modalities = modalitiesForEntry(entry);
       if (modalities.length > 0 && !modalities.includes(query.modality)) {
         reasons.push(`modality ${query.modality} is not supported`);
       }
@@ -493,17 +493,60 @@ function keyFor(id: string, version: string): string {
 }
 
 function getStringArray(entry: RegistryEntry, key: string): string[] {
-  const value = entry[key];
+  return getStringArrayFromRecord(entry, key);
+}
+
+function getStringArrayFromRecord(record: unknown, key: string): string[] {
+  if (typeof record !== "object" || record === null || Array.isArray(record)) {
+    return [];
+  }
+
+  const value = Reflect.get(record, key);
   return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : [];
 }
 
-function firstStringArray(entry: RegistryEntry, keys: string[]): string[] {
-  for (const key of keys) {
-    const value = getStringArray(entry, key);
-    if (value.length > 0) {
-      return value;
-    }
+function compatibilityStringArray(entry: RegistryEntry, key: string): string[] {
+  return getStringArrayFromRecord(entry.compatibility, key);
+}
+
+function domainProfileIdsForEntry(entry: RegistryEntry): string[] {
+  if (entry.kind === "domain-profile") {
+    return [entry.id];
   }
 
-  return [];
+  const supportedDomains = getStringArray(entry, "supportedDomains");
+  return supportedDomains.length > 0 ? supportedDomains : compatibilityStringArray(entry, "domainProfileIds");
+}
+
+function safetyPolicyIdsForEntry(entry: RegistryEntry): string[] {
+  const safetyPolicyIds = getStringArray(entry, "safetyPolicyIds");
+  if (safetyPolicyIds.length > 0) {
+    return safetyPolicyIds;
+  }
+
+  if (typeof entry.defaultSafetyPolicyId === "string") {
+    return [entry.defaultSafetyPolicyId];
+  }
+
+  return compatibilityStringArray(entry, "safetyPolicyIds");
+}
+
+function ageBandsForEntry(entry: RegistryEntry): string[] {
+  const supportedAgeBands = getStringArray(entry, "supportedAgeBands");
+  if (supportedAgeBands.length > 0) {
+    return supportedAgeBands;
+  }
+
+  const ageBands = getStringArray(entry, "ageBands");
+  return ageBands.length > 0 ? ageBands : compatibilityStringArray(entry, "ageBands");
+}
+
+function modalitiesForEntry(entry: RegistryEntry): string[] {
+  const supportedModalities = getStringArray(entry, "supportedModalities");
+  if (supportedModalities.length > 0) {
+    return supportedModalities;
+  }
+
+  const modalities = getStringArray(entry, "modalities");
+  return modalities.length > 0 ? modalities : compatibilityStringArray(entry, "modalities");
 }

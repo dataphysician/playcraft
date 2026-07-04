@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Canonical Registry Compatibility
+
+Milestone:
+- Capability registry selection now reads domain, safety policy, age-band, and modality compatibility from current contract fields only.
+- Rule modules are filtered through their canonical `compatibility` constraints instead of bypassing policy/domain checks.
+- Stale compatibility alias fields no longer influence registry selection.
+
+Supportive changes:
+- Removed opportunistic multi-name compatibility probing from the core registry.
+- Added core registry coverage for canonical rule compatibility and ignored stale alias fields.
+
+Validation:
+- `pnpm test packages/core/test/registries.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps agent-facing registry selection forward-only and contract-driven without legacy alias compatibility, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Studio Event Boundary Validation
 
 Milestone:
