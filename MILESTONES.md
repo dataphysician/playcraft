@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit CLI Execution Summaries
+
+Milestone:
+- Builder CLI non-JSON execution output now summarizes profile results or preview state explicitly.
+- Service CLI non-JSON execution output now summarizes profile results or preview state explicitly.
+- Generic `"preview"` fallback text has been removed from CLI execution summaries.
+
+Supportive changes:
+- Source scans now guard both CLI surfaces against reintroducing preview fallback text.
+- Summary helpers read validated `BuilderCommandResult` and `BuilderServiceExecution` preview fields instead of inferring from missing profile data.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps local CLI output inspectable and contract-shaped without missing-profile fallbacks, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Contract-Shaped Builder CLI Catalog Summary
 
 Milestone:

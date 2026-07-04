@@ -467,6 +467,18 @@ describe("import-light boundaries and source scans", () => {
     expect(builderCliSource).not.toContain('id: `builder-command.${args.sessionId ?? "cli"}.${mappedName}`');
   });
 
+  it("keeps CLI execution summaries explicit instead of preview fallback text", () => {
+    const builderCliSource = readSource("packages/builder/src/cli.ts");
+    const serviceCliSource = readSource("packages/service/src/cli.ts");
+
+    expect(builderCliSource).toContain("function builderExecutionSummary");
+    expect(builderCliSource).toContain("result.preview.activeComponentId");
+    expect(serviceCliSource).toContain("function serviceExecutionSummary");
+    expect(serviceCliSource).toContain("execution.result.preview.activeComponentId");
+    expect(builderCliSource).not.toContain('?? "preview"');
+    expect(serviceCliSource).not.toContain('?? "preview"');
+  });
+
   it("keeps local service and builder timestamps contract-owned", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const builderSource = readSource("packages/builder/src/index.ts");

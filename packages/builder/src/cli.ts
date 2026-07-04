@@ -3,6 +3,7 @@ declare const process: { argv: string[]; exit(code?: number): never };
 import {
   BuilderTemplateIdSchema,
   PLAYCRAFT_SCHEMA_VERSION,
+  type BuilderCommandResult,
   type BuilderTemplateId,
   type BuilderToolDefinition,
   type GameTemplateDefinition,
@@ -130,8 +131,16 @@ function writeResult(result: BuilderExecutionResult | BuilderExecutionResult[], 
 
   const outputs = Array.isArray(result) ? result : [result];
   for (const entry of outputs) {
-    io.stdout(`${entry.result.sessionId}: ${entry.result.profile?.profileName ?? "preview"}`);
+    io.stdout(builderExecutionSummary(entry.result));
   }
+}
+
+function builderExecutionSummary(result: BuilderCommandResult): string {
+  if (result.profile) {
+    return `${result.sessionId}: ${result.profile.profileName}`;
+  }
+
+  return `${result.sessionId}: preview ${result.preview.activeComponentId} interaction ${result.preview.interactionCount}`;
 }
 
 function writeCatalogSummary(

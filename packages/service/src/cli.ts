@@ -11,6 +11,7 @@ import {
   type BuilderInputSource,
   type BuilderInputSourceOption,
   type BuilderProfileExport,
+  type BuilderServiceExecution,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
   type BuilderTemplateId,
@@ -251,7 +252,7 @@ function writeResponse(response: BuilderServiceResponse, json: boolean, io: Loca
   }
 
   if (["assemble", "update", "preview", "import-profile"].includes(response.actionName) && response.execution) {
-    io.stdout(`${response.execution.result.sessionId}: ${response.execution.result.profile?.profileName ?? "preview"}`);
+    io.stdout(serviceExecutionSummary(response.execution));
     return;
   }
 
@@ -266,6 +267,14 @@ function writeResponse(response: BuilderServiceResponse, json: boolean, io: Loca
   }
 
   io.stdout("reset: ok");
+}
+
+function serviceExecutionSummary(execution: BuilderServiceExecution): string {
+  if (execution.result.profile) {
+    return `${execution.result.sessionId}: ${execution.result.profile.profileName}`;
+  }
+
+  return `${execution.result.sessionId}: preview ${execution.result.preview.activeComponentId} interaction ${execution.result.preview.interactionCount}`;
 }
 
 function payloadForResponse(response: BuilderServiceResponse): unknown {
