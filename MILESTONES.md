@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - CLI Payload Schema Parsing
+
+Milestone:
+- Service CLI catalog JSON tests now parse through `BuilderCatalogSchema`.
+- Service CLI assemble/import JSON tests now parse through `BuilderServiceExecutionSchema`.
+- Service CLI export JSON tests now parse through `BuilderProfileExportSchema`.
+
+Supportive changes:
+- Removed test-only structural casts from service CLI payload assertions.
+- Kept CLI output validation aligned with the public service payload shapes emitted by `playcraft-service --json`.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps agent-facing CLI payload verification schema-first and local without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Service Response Test Parsing
 
 Milestone:

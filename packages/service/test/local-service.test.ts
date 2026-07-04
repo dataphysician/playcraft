@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { BuilderServiceResponseSchema, PLAYCRAFT_SCHEMA_VERSION } from "@playcraft/contracts";
+import {
+  BuilderCatalogSchema,
+  BuilderProfileExportSchema,
+  BuilderServiceExecutionSchema,
+  BuilderServiceResponseSchema,
+  PLAYCRAFT_SCHEMA_VERSION
+} from "@playcraft/contracts";
 import {
   PLAYCRAFT_SERVICE_PACKAGE,
   createHttpServiceTransport,
@@ -572,12 +578,7 @@ describe("local Playcraft service", () => {
     };
 
     expect(runLocalServiceCli(["catalog", "--json"], io)).toBe(0);
-    const catalog = JSON.parse(out.pop() ?? "{}") as {
-      assetEdit: { availableThemes: Array<{ aliases: string[]; suggestedItems: string[]; theme: string }> };
-      kind: string;
-      templates: Array<{ id: string }>;
-      tools: Array<{ actionName: string; argumentsSchema: { fields: Record<string, { required: boolean; type: string }> } }>;
-    };
+    const catalog = BuilderCatalogSchema.parse(JSON.parse(out.pop() ?? "{}"));
     expect(catalog.kind).toBe("builder-catalog");
     expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId.required).toBe(true);
     expect(catalog.tools.find((tool) => tool.actionName === "export-profile")?.argumentsSchema.fields.sessionId.required).toBe(true);
@@ -608,10 +609,7 @@ describe("local Playcraft service", () => {
         "--json"
       ], io)
     ).toBe(0);
-    const assembled = JSON.parse(out.pop() ?? "{}") as {
-      events: Array<{ value: unknown }>;
-      result: { profile?: { assetRequests: Array<{ prompt: string }>; components: Array<{ props: { cards?: string[] } }> } };
-    };
+    const assembled = BuilderServiceExecutionSchema.parse(JSON.parse(out.pop() ?? "{}"));
 
     expect(JSON.stringify(assembled.events)).toContain("moonshine-streaming");
     expect(JSON.stringify(assembled.events)).toContain("moonshine-transcript.cli.assemble");
@@ -688,10 +686,7 @@ describe("local Playcraft service", () => {
         stderr: (message) => err.push(message)
       })
     ).toBe(0);
-    const cliImport = JSON.parse(out.pop() ?? "{}") as {
-      events: Array<unknown>;
-      result: { profile?: { id: string }; preview: { activeTemplateId?: string } };
-    };
+    const cliImport = BuilderServiceExecutionSchema.parse(JSON.parse(out.pop() ?? "{}"));
     expect(cliImport.result.profile?.id).toBe("profile.sequence-repeat.mvp");
     expect(cliImport.result.preview.activeTemplateId).toBe("template.sequence-repeat");
     expect(JSON.stringify(cliImport.events)).toContain("tool:import-profile");
@@ -730,11 +725,7 @@ describe("local Playcraft service", () => {
         stderr: (message) => exportErr.push(message)
       })
     ).toBe(0);
-    const cliExport = JSON.parse(exportOut.pop() ?? "{}") as {
-      kind: string;
-      profile: { id: string };
-      templateId?: string;
-    };
+    const cliExport = BuilderProfileExportSchema.parse(JSON.parse(exportOut.pop() ?? "{}"));
     expect(cliExport.kind).toBe("builder-profile-export");
     expect(cliExport.profile.id).toBe("profile.memory-match.mvp");
     expect(cliExport.templateId).toBe("template.memory-match");
