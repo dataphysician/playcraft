@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Session-Owned Studio Service State
+
+Milestone:
+- Studio service client execution responses now require the service session snapshot.
+- Studio active profile state now comes from `response.session.activeProfileId` instead of falling back to execution result profile IDs.
+- Studio profile cache now records the profile from the session snapshot.
+
+Supportive changes:
+- Studio UI tests now reject service execution responses that omit the session snapshot.
+- Source scans now block optional session active-profile fallback in the Studio service client.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps Studio service state contract-shaped and forward-only without execution-payload fallback inference, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Action-Scoped Service CLI Output
 
 Milestone:

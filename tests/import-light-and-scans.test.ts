@@ -164,6 +164,15 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("agUiEventTypeFromString");
   });
 
+  it("keeps Studio service execution responses session-owned", () => {
+    const source = readSource("apps/studio/src/local-client.ts");
+
+    expect(source).toContain("response did not include session snapshot");
+    expect(source).toContain("response.session.activeProfileId");
+    expect(source).not.toContain("response.session?.activeProfileId");
+    expect(source).not.toContain("response.execution.result.profile?.id");
+  });
+
   it("keeps local asset edit theme metadata shared through the assets package", () => {
     const serviceSource = readSource("packages/service/src/index.ts");
     const studioAssetLibrarySource = readSource("apps/studio/src/asset-library.ts");

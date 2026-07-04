@@ -48,18 +48,21 @@ export function createStudioClientFromServiceTransport(options: {
     if (!response.execution) {
       throw new Error(`${response.actionName} response did not include execution output`);
     }
+    if (!response.session) {
+      throw new Error(`${response.actionName} response did not include session snapshot`);
+    }
 
-    if (response.execution.result.profile) {
-      profiles.set(response.execution.result.profile.id, response.execution.result.profile);
+    if (response.session.profile) {
+      profiles.set(response.session.profile.id, response.session.profile);
     }
 
     const entries = response.execution.events.map((event, index) => timelineEntry(event, timeline.length + index + 1, options.timelineIdPrefix));
     timeline.push(...entries);
 
     return {
-      activeAssetEdit: response.session?.activeAssetEdit,
+      activeAssetEdit: response.session.activeAssetEdit,
       sessionId,
-      activeProfileId: response.session?.activeProfileId ?? response.execution.result.profile?.id,
+      activeProfileId: response.session.activeProfileId,
       profiles: Array.from(profiles.values()),
       timeline: [...timeline]
     };

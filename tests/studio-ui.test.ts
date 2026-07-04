@@ -5,7 +5,8 @@ import { assembleMvpProfiles } from "@playcraft/packs";
 import {
   BuilderProfileExportSchema,
   BuilderServiceRequestSchema,
-  type BuilderServiceRequest
+  type BuilderServiceRequest,
+  type BuilderServiceResponse
 } from "@playcraft/contracts";
 import {
   createLocalPlaycraftService,
@@ -198,6 +199,22 @@ describe("studio UI", () => {
     });
 
     expect(() => client.assembleFromIntent({ idea: "Memory game with dinosaurs" })).toThrow(/unknown AG-UI event type/u);
+  });
+
+  it("requires service execution responses to include the session snapshot", () => {
+    const client = createStudioClientFromServiceTransport({
+      defaultSessionId: "studio.missing-session",
+      timelineIdPrefix: "timeline.missing-session",
+      transport: {
+        send(request) {
+          const response: Partial<BuilderServiceResponse> = { ...handleLocalServiceRequest(request) };
+          delete response.session;
+          return response as BuilderServiceResponse;
+        }
+      }
+    });
+
+    expect(() => client.assembleFromIntent({ idea: "Memory game with dinosaurs" })).toThrow(/session snapshot/u);
   });
 
   it("can assemble through a configured HTTP service endpoint", async () => {
