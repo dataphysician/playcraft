@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Service CLI Session Actions
+
+Milestone:
+- Service CLI `preview`, `get-session`, and `export-profile` no longer seed a hidden assemble from text/transcript input.
+- Non-input service CLI actions now reject text/source flags explicitly.
+- Non-import inspection commands now reject asset edit flags explicitly.
+
+Supportive changes:
+- Service CLI tests now cover rejected preview/get/export input shortcuts.
+- Source scans now block the removed hidden preview assemble seed and outdated `preview-with-assemble` wording.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps the local service CLI action model explicit and forward-only without hidden assembly fallbacks, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Structured Preview Tool Arguments
 
 Milestone:

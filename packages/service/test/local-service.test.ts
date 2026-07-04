@@ -793,6 +793,15 @@ describe("local Playcraft service", () => {
     expect(runLocalServiceCli(["assemble", "--text"], io)).toBe(1);
     expect(err.pop()).toMatch(/--text requires a value/u);
 
+    expect(runLocalServiceCli(["preview", "--text", "Memory game"], io)).toBe(1);
+    expect(err.pop()).toMatch(/preview does not accept input flags/u);
+
+    expect(runLocalServiceCli(["get-session", "--transcript", "Memory game"], io)).toBe(1);
+    expect(err.pop()).toMatch(/get-session does not accept input flags/u);
+
+    expect(runLocalServiceCli(["export-profile", "--asset-theme", "toys"], io)).toBe(1);
+    expect(err.pop()).toMatch(/export-profile does not accept asset edit flags/u);
+
     expect(runLocalServiceCli(["catalog", "--provider", "remote"], io)).toBe(1);
     expect(err.pop()).toMatch(/unknown option: --provider/u);
   });
@@ -936,12 +945,9 @@ describe("local Playcraft service", () => {
         stdout: (message) => exportOut.push(message),
         stderr: (message) => exportErr.push(message)
       })
-    ).toBe(0);
-    const cliExport = BuilderProfileExportSchema.parse(JSON.parse(exportOut.pop() ?? "{}"));
-    expect(cliExport.kind).toBe("builder-profile-export");
-    expect(cliExport.profile.id).toBe("profile.memory-match.mvp");
-    expect(cliExport.templateId).toBe("template.memory-match");
-    expect(exportErr).toEqual([]);
+    ).toBe(1);
+    expect(exportOut).toEqual([]);
+    expect(exportErr.join("\n")).toMatch(/export-profile does not accept input flags/u);
   });
 
   it("derives imported active template state from the profile instead of stale export metadata", () => {

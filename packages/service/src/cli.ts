@@ -58,9 +58,6 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
     }
 
     if (isCliCommand(commandName)) {
-      if ((commandName === "preview" || commandName === "get-session" || commandName === "export-profile") && (args.text || args.transcriptText)) {
-        service.handle(serviceRequest("assemble", args, "service.cli.preview.seed"));
-      }
       const response = service.handle(serviceRequest(commandName, args));
       writeResponse(response, Boolean(args.json), io);
       return 0;
@@ -168,8 +165,14 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
   const transcriptText = args.transcriptText?.trim();
   const text = transcriptText || args.text?.trim();
   const inputCommand = commandName === "assemble" || commandName === "update";
+  if (!inputCommand && (text || args.source)) {
+    throw new Error(`${commandName} does not accept input flags; call assemble or update first, then pass --session`);
+  }
+  if (!inputCommand && commandName !== "import-profile" && args.assetEdit) {
+    throw new Error(`${commandName} does not accept asset edit flags; call assemble, update, or import-profile`);
+  }
   if (inputCommand && !text) {
-    throw new Error("assemble, update, and preview-with-assemble require --text or --transcript");
+    throw new Error("assemble and update require --text or --transcript");
   }
   if (inputCommand && args.source === "speech-transcript" && !transcriptText) {
     throw new Error("speech-transcript source requires --transcript so the CLI can send a Moonshine transcript record");

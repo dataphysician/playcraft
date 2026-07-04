@@ -237,6 +237,15 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("JSON.parse(JSON.stringify");
   });
 
+  it("keeps service CLI preview/get/export free of hidden assemble seeding", () => {
+    const source = readSource("packages/service/src/cli.ts");
+
+    expect(source).not.toContain("service.cli.preview.seed");
+    expect(source).not.toContain("preview-with-assemble");
+    expect(source).not.toContain('service.handle(serviceRequest("assemble", args');
+    expect(source).toContain("does not accept input flags");
+  });
+
   it("keeps Studio request examples catalog-owned instead of alias-inferred", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");
