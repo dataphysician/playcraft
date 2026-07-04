@@ -162,6 +162,10 @@ describe("public contract schemas", () => {
         templates: gameTemplateDefinitions,
         tools: [builderToolFixture],
         acceptedInputSources: ["text", "moonshine-transcript"],
+        sessions: {
+          defaultAssembleSessionId: "service.session",
+          sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
+        },
         assetEdit: {
           supported: true,
           acceptedKeys: ["theme", "items"],

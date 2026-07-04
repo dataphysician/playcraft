@@ -661,12 +661,27 @@ export const BuilderAssetEditCatalogEntrySchema = z
   .strict();
 export type BuilderAssetEditCatalogEntry = z.infer<typeof BuilderAssetEditCatalogEntrySchema>;
 
+export const BuilderSessionBoundServiceActionNameSchema = z.enum([
+  "update",
+  "preview",
+  "get-session",
+  "export-profile",
+  "import-profile"
+]);
+export type BuilderSessionBoundServiceActionName = z.infer<typeof BuilderSessionBoundServiceActionNameSchema>;
+
 export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-catalog"),
   defaultTemplateId: BuilderTemplateIdSchema,
   templates: z.array(GameTemplateDefinitionSchema).min(1),
   tools: z.array(BuilderToolDefinitionSchema).min(1),
   acceptedInputSources: z.array(BuilderInputSourceSchema).min(1),
+  sessions: z
+    .object({
+      defaultAssembleSessionId: StableIdSchema,
+      sessionBoundActions: z.array(BuilderSessionBoundServiceActionNameSchema).min(1)
+    })
+    .strict(),
   assetEdit: z
     .object({
       supported: z.literal(true),

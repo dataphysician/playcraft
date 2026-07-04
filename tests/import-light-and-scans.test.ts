@@ -381,7 +381,10 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).toContain("getSession(sessionId: string)");
     expect(serviceSource).toContain("exportProfile(sessionId: string)");
     expect(serviceSource).toContain("sessionId: string }): BuilderExecutionResult");
-    expect(serviceSource).toContain('const sessionId = input.sessionId ?? "service.session";');
+    expect(serviceSource).toContain("LOCAL_SERVICE_SESSION_POLICY");
+    expect(serviceSource).toContain("defaultAssembleSessionId");
+    expect(serviceSource).toContain("this.catalog().sessions.defaultAssembleSessionId");
+    expect(serviceSource).not.toContain('request.sessionId ?? "service.session"');
     expect(serviceSource).not.toContain('preview(sessionId = "service.session")');
     expect(serviceSource).not.toContain('getSession(sessionId = "service.session")');
     expect(serviceSource).not.toContain('exportProfile(sessionId = "service.session")');

@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Session Policy
+
+Milestone:
+- The builder catalog now publishes the default assemble session ID and the service actions that require an explicit session.
+- Local assembly consumes the catalog session policy instead of embedding a private fallback session literal in the assemble path.
+- CLI and shell agents can inspect session behavior from the same catalog surface they use for tools, templates, input sources, and asset edits.
+
+Supportive changes:
+- Contract and service tests now validate `catalog.sessions`.
+- Source scans now pin explicit session-bound methods while requiring assemble fallback behavior to flow through catalog session policy.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps session behavior forward-only and catalog-discoverable without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+
 ## 2026-07-04 - Pack-Owned Default Template
 
 Milestone:

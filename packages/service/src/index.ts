@@ -44,6 +44,11 @@ import { DEFAULT_GAME_TEMPLATE_ID, gameTemplateDefinitions } from "@playcraft/pa
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
 export { localAssetEditCatalog } from "@playcraft/assets";
 
+export const LOCAL_SERVICE_SESSION_POLICY = {
+  defaultAssembleSessionId: "service.session",
+  sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
+} as const;
+
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
   sessionId?: string;
@@ -105,6 +110,7 @@ export class LocalPlaycraftService {
       templates: this.handler.listTemplates(),
       tools: this.handler.listTools(),
       acceptedInputSources: ["text", "moonshine-transcript"],
+      sessions: LOCAL_SERVICE_SESSION_POLICY,
       assetEdit: {
         supported: true,
         acceptedKeys: ["theme", "items"],
@@ -121,7 +127,7 @@ export class LocalPlaycraftService {
   }
 
   assemble(input: LocalBuilderInput): BuilderExecutionResult {
-    const sessionId = input.sessionId ?? "service.session";
+    const sessionId = input.sessionId ?? this.catalog().sessions.defaultAssembleSessionId;
     const resolved = this.resolveInput(sessionId, input);
     this.updateSessionState(sessionId, resolved);
     return this.execute("assemble-game", sessionId, resolved);
@@ -254,7 +260,7 @@ export class LocalPlaycraftService {
     }
 
     if (request.actionName === "assemble") {
-      const sessionId = request.sessionId ?? "service.session";
+      const sessionId = request.sessionId ?? this.catalog().sessions.defaultAssembleSessionId;
       const output = this.assemble({
         assetEdit: request.assetEdit,
         sessionId,

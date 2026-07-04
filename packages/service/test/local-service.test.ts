@@ -36,6 +36,10 @@ describe("local Playcraft service", () => {
       current: "bundled-local",
       planned: "server-catalog"
     });
+    expect(catalog.sessions).toEqual({
+      defaultAssembleSessionId: "service.session",
+      sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
+    });
     expect(catalog.assetEdit).toMatchObject({
       supported: true,
       acceptedKeys: ["theme", "items"],
@@ -135,6 +139,7 @@ describe("local Playcraft service", () => {
     });
 
     expect(assembled.result.profile?.id).toBe("profile.memory-match.mvp");
+    expect(assembled.result.sessionId).toBe(service.catalog().sessions.defaultAssembleSessionId);
     expect(assembled.events.some((event) => JSON.stringify(event.value).includes("moonshine-streaming"))).toBe(true);
     expect(updated.result.profile?.id).toBe("profile.sorting.mvp");
     expect(updated.result.profile?.assetRequests[0]?.prompt).toContain("fruits sorting game illustrations");
