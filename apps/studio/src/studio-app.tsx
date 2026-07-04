@@ -1,5 +1,5 @@
 import React from "react";
-import type { BuilderCatalog, BuilderInputSource, BuilderProfileExport, GameAssemblyProfile } from "@playcraft/contracts";
+import { BuilderProfileExportSchema, type BuilderCatalog, type BuilderInputSource, type BuilderProfileExport, type GameAssemblyProfile } from "@playcraft/contracts";
 import { LiveGame, type LiveGameInteraction } from "./live-game.js";
 import {
   TrustedPreview,
@@ -162,7 +162,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     setPending("import");
     setError(null);
     try {
-      const profileExport = JSON.parse(text) as BuilderProfileExport;
+      const profileExport = BuilderProfileExportSchema.parse(JSON.parse(text));
       const nextSession = await Promise.resolve(client.importProfile({ profileExport, sessionId: session?.sessionId }));
       setSession(nextSession);
       setSelectedTimelineId(nextSession.timeline.at(-1)?.id);

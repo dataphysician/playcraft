@@ -1,6 +1,8 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
 import {
+  BuilderProfileExportSchema,
+  GameAssemblyProfileSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
   type BuilderCatalog,
@@ -8,7 +10,8 @@ import {
   type BuilderProfileExport,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
-  type BuilderTemplateId
+  type BuilderTemplateId,
+  type GameAssemblyProfile
 } from "@playcraft/contracts";
 import { createLocalPlaycraftService, createMoonshineTranscriptRecord } from "./index.js";
 
@@ -155,7 +158,7 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
     throw new Error("speech-transcript source requires --transcript so the CLI can send a Moonshine transcript record");
   }
   const profileExport = parseProfileExportJson(args.profileExportJson);
-  const profile = args.profileJson ? JSON.parse(args.profileJson) : undefined;
+  const profile = parseProfileJson(args.profileJson);
   const request: BuilderServiceRequest = {
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
     id: `builder-service-request.cli.${idSuffix}`,
@@ -192,7 +195,11 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
 }
 
 function parseProfileExportJson(value: string | undefined): BuilderProfileExport | undefined {
-  return value ? JSON.parse(value) as BuilderProfileExport : undefined;
+  return value ? BuilderProfileExportSchema.parse(JSON.parse(value)) : undefined;
+}
+
+function parseProfileJson(value: string | undefined): GameAssemblyProfile | undefined {
+  return value ? GameAssemblyProfileSchema.parse(JSON.parse(value)) : undefined;
 }
 
 function parseServiceRequestJson(value: string | undefined): BuilderServiceRequest {

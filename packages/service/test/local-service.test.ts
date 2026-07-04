@@ -664,6 +664,28 @@ describe("local Playcraft service", () => {
     expect(exportErr).toEqual([]);
   });
 
+  it("rejects invalid profile export JSON before import requests reach the service", () => {
+    const out: string[] = [];
+    const err: string[] = [];
+
+    expect(
+      runLocalServiceCli([
+        "import-profile",
+        "--profile-export-json",
+        JSON.stringify({
+          kind: "builder-profile-export"
+        }),
+        "--json"
+      ], {
+        stdout: (message) => out.push(message),
+        stderr: (message) => err.push(message)
+      })
+    ).toBe(1);
+
+    expect(out).toEqual([]);
+    expect(err.join("\n")).toMatch(/schemaVersion|profile|Required/u);
+  });
+
   it("lets agents submit the exact service request envelope through the CLI", () => {
     const out: string[] = [];
     const err: string[] = [];

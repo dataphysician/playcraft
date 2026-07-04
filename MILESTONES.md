@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Profile Import Payload Validation
+
+Milestone:
+- Studio pasted profile exports now parse through `BuilderProfileExportSchema` before reaching the Studio client adapter.
+- CLI `--profile-export-json` and `--profile-json` inputs now parse through shared contract schemas before service envelopes are built.
+- Invalid profile import payloads fail at the local edge with schema errors instead of entering the service path as unchecked casts.
+
+Supportive changes:
+- Added CLI coverage for rejecting an invalid profile export payload before import service handling.
+- Added Studio UI coverage for surfacing invalid pasted profile export JSON in the shared request error alert.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/studio-ui.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps profile portability contract-first at CLI and Studio boundaries.
+- Does not add hosted services, generated runtime code, auth, database state, or compatibility aliases.
+
 ## 2026-07-04 - Service Request Action Contract Cleanup
 
 Milestone:

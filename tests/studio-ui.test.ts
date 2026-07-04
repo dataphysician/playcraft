@@ -389,6 +389,22 @@ describe("studio UI", () => {
     expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
   });
 
+  it("validates pasted profile exports before importing them in the Studio UI", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+    fireEvent.change(screen.getByLabelText("Import profile export JSON"), {
+      target: {
+        value: JSON.stringify({
+          kind: "builder-profile-export"
+        })
+      }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Import Profile" }));
+
+    expect((await screen.findByRole("alert")).textContent).toMatch(/schemaVersion|profile|Required/u);
+  });
+
   it("plays the sorting profile with bin validation", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
