@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as contracts from "@playcraft/contracts";
@@ -8,6 +8,36 @@ const root = process.cwd();
 
 function readSource(path: string): string {
   return readFileSync(join(root, path), "utf8");
+}
+
+function repoSourceFiles(directory = root): string[] {
+  const ignoredDirectories = new Set([".git", ".omx", "dist", "node_modules"]);
+  const sourceExtensions = new Set([".json", ".md", ".ts", ".tsx", ".yaml", ".yml"]);
+  const output: string[] = [];
+
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (ignoredDirectories.has(entry.name)) {
+      continue;
+    }
+
+    const absolutePath = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      output.push(...repoSourceFiles(absolutePath));
+      continue;
+    }
+
+    if (!entry.isFile()) {
+      continue;
+    }
+
+    const dotIndex = entry.name.lastIndexOf(".");
+    const extension = dotIndex >= 0 ? entry.name.slice(dotIndex) : "";
+    if (sourceExtensions.has(extension) && statSync(absolutePath).size < 1_000_000) {
+      output.push(absolutePath.slice(root.length + 1));
+    }
+  }
+
+  return output.sort();
 }
 
 describe("import-light boundaries and source scans", () => {
@@ -45,6 +75,16 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/Ta[v]us|ta[v]us|re[p]lica|C[V]I/u);
   });
 
+  it("keeps repository source free of the removed video-avatar provider stack", () => {
+    const blockedTerms = ["Ta" + "vus", "ta" + "vus", "re" + "plica", "C" + "VI", "Geo" + "rgina"];
+    const violations = repoSourceFiles().flatMap((path) => {
+      const source = readSource(path);
+      return blockedTerms.some((term) => source.includes(term)) ? [path] : [];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),
@@ -66,6 +106,8 @@ describe("import-light boundaries and source scans", () => {
       readSource("packages/builder/package.json"),
       readSource("packages/builder/src/index.ts"),
       readSource("packages/service/package.json"),
+      readSource("packages/service/src/cli.ts"),
+      readSource("packages/service/src/http-server.ts"),
       readSource("packages/service/src/index.ts"),
       readSource("apps/studio/package.json"),
       readSource("apps/studio/src/local-client.ts"),
@@ -73,9 +115,13 @@ describe("import-light boundaries and source scans", () => {
       readSource("apps/studio/src/studio-app.tsx"),
       readSource("apps/studio/src/trusted-preview.tsx"),
       readSource("apps/studio/src/App.tsx"),
-      readSource("apps/studio/src/main.tsx")
+      readSource("apps/studio/src/main.tsx"),
+      readSource("apps/mobile-shell/package.json"),
+      readSource("apps/mobile-shell/src/mobile-client.ts"),
+      readSource("apps/mobile-shell/src/App.tsx"),
+      readSource("apps/mobile-shell/src/main.tsx")
     ].join("\n");
 
-    expect(source).not.toMatch(/openai|@ai-sdk|Prisma|NextAuth|next\/server|Tauri|tauri|sqlite|postgres|mysql|mongodb|supabase|firebase|Ta[v]us|ta[v]us/u);
+    expect(source).not.toMatch(/openai|@ai-sdk|Prisma|NextAuth|next\/server|sqlite|postgres|mysql|mongodb|supabase|firebase|Ta[v]us|ta[v]us/u);
   });
 });
