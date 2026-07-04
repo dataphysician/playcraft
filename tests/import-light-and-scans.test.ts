@@ -613,6 +613,24 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).not.toContain('"component:sequence-pad"');
   });
 
+  it("keeps Live App token styling template-owned", () => {
+    const liveGameSource = readSource("apps/studio/src/live-game.tsx");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const packSource = readSource("packages/packs/src/index.ts");
+
+    expect(contractSource).toContain("GameTemplateTokenStyleSchema");
+    expect(contractSource).toContain("tokenStyles: z.array(GameTemplateTokenStyleSchema)");
+    expect(packSource).toContain("toddlerTokenStyles");
+    expect(packSource).toContain("tokenStyles: toddlerTokenStyles");
+    expect(liveGameSource).toContain("GameTemplateTokenStyle");
+    expect(liveGameSource).toContain("liveSurface.tokenStyles");
+    expect(liveGameSource).not.toContain("tokenColorCatalog");
+    expect(liveGameSource).not.toContain('aliases: ["red"]');
+    expect(liveGameSource).not.toContain('aliases: ["blue"]');
+    expect(liveGameSource).not.toContain('aliases: ["green"]');
+    expect(liveGameSource).not.toContain('aliases: ["yellow"]');
+  });
+
   it("keeps Studio library asset replacement sources template-owned", () => {
     const assetLibrarySource = readSource("apps/studio/src/asset-library.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");

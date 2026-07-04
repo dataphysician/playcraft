@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template-Owned Live Token Styles
+
+Milestone:
+- Game template live surfaces now require `tokenStyles` as part of the public contract.
+- Bundled sorting and sequence templates publish toddler-safe token color styles through the pack catalog.
+- The Live App consumes `liveSurface.tokenStyles` instead of owning a red/blue/green/yellow token alias table.
+
+Supportive changes:
+- Contract tests now reject live surfaces that omit `tokenStyles`.
+- Pack tests validate memory, sorting, and sequence token-style publication.
+- Source scans now block reintroducing a Live App-local token color catalog.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/packs/test/mvp-profiles.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps game visual levers template-owned and forward-only without UI-local color alias heuristics, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Studio Runtime Endpoint Policy
 
 Milestone:

@@ -4,6 +4,7 @@ import type {
   GameAssemblyProfile,
   GameTemplateDefinition,
   GameTemplateLiveSurface,
+  GameTemplateTokenStyle,
   GeneratedAssetRecord,
   JsonValue
 } from "@playcraft/contracts";
@@ -53,13 +54,6 @@ interface SequenceFeedback {
   item?: string;
   kind: SequenceFeedbackKind;
   message: string;
-}
-
-interface TokenColor {
-  aliases: string[];
-  background: string;
-  border: string;
-  foreground: string;
 }
 
 interface SortDragState {
@@ -166,6 +160,7 @@ function LiveGameForProfile({
         profile,
         component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         replacements,
+        tokenStyles: liveSurface.tokenStyles,
         onInteraction
       });
     case "sequence":
@@ -174,6 +169,7 @@ function LiveGameForProfile({
         sequenceComponent: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         choiceComponent: optionalComponentByCapability(profile, liveSurface.componentCapabilities.choice),
         replacements,
+        tokenStyles: liveSurface.tokenStyles,
         onInteraction
       });
   }
@@ -324,11 +320,13 @@ function SortingGame({
   profile,
   component,
   replacements,
+  tokenStyles,
   onInteraction
 }: {
   profile: GameAssemblyProfile;
   component: ComponentBinding;
   replacements: AssetReplacementLookup;
+  tokenStyles: GameTemplateTokenStyle[];
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
   const items = stringArrayProp(component.props, "items");
@@ -551,6 +549,7 @@ function SortingGame({
       asset: componentArt,
       label: textProp(component.props, "title", profile.profileName),
       replacements,
+      tokenStyles,
       tokens: items
     }),
     React.createElement(
@@ -589,7 +588,7 @@ function SortingGame({
                 dragging: dragState?.item === item && dragState.dragging
               })
             },
-            React.createElement(TokenSprite, { replacement: itemReplacement, token: item }),
+            React.createElement(TokenSprite, { replacement: itemReplacement, token: item, tokenStyles }),
             React.createElement("span", null, item)
           );
         })
@@ -654,7 +653,8 @@ function SortingGame({
           },
           React.createElement(TokenSprite, {
             replacement: replacementForToken(dragState.item, replacements, "item"),
-            token: dragState.item
+            token: dragState.item,
+            tokenStyles
           }),
           React.createElement("span", null, dragState.item)
         )
@@ -681,12 +681,14 @@ function SequenceGame({
   sequenceComponent,
   choiceComponent,
   replacements,
+  tokenStyles,
   onInteraction
 }: {
   profile: GameAssemblyProfile;
   sequenceComponent: ComponentBinding;
   choiceComponent?: ComponentBinding;
   replacements: AssetReplacementLookup;
+  tokenStyles: GameTemplateTokenStyle[];
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
   const sequence = stringArrayProp(sequenceComponent.props, "sequence");
@@ -813,6 +815,7 @@ function SequenceGame({
       asset: componentArt,
       label: textProp(sequenceComponent.props, "title", profile.profileName),
       replacements,
+      tokenStyles,
       tokens: activeRound
     }),
     React.createElement(
@@ -825,9 +828,9 @@ function SequenceGame({
             key: `${item}.${index}`,
             style:
               phase === "watch"
-                ? sequenceStepStyle(item, true)
+                ? sequenceStepStyle(item, true, tokenStyles)
                 : index < progress
-                  ? sequenceStepStyle(item, true)
+                  ? sequenceStepStyle(item, true, tokenStyles)
                   : liveStyles.sequenceStep
           },
           phase === "watch" || index < progress ? item : String(index + 1)
@@ -858,9 +861,9 @@ function SequenceGame({
             "aria-invalid": feedback?.kind === "failure" && feedback.item === item ? true : undefined,
             onClick: () => choose(item),
             disabled: complete || phase !== "play",
-            style: sequenceChoiceStyle(item, phase === "play", feedback)
+            style: sequenceChoiceStyle(item, phase === "play", feedback, tokenStyles)
           },
-          React.createElement(TokenSprite, { replacement: replacementForToken(item, replacements, "choice"), token: item }),
+          React.createElement(TokenSprite, { replacement: replacementForToken(item, replacements, "choice"), token: item, tokenStyles }),
           React.createElement("span", null, item)
         )
       )
@@ -899,10 +902,12 @@ function CardBackFace(): React.ReactElement {
 
 function TokenSprite({
   replacement,
-  token
+  token,
+  tokenStyles
 }: {
   replacement?: AssetReplacement;
   token: string;
+  tokenStyles: GameTemplateTokenStyle[];
 }): React.ReactElement {
   if (replacement && isRenderableUri(replacement.uri)) {
     return React.createElement(
@@ -912,7 +917,7 @@ function TokenSprite({
     );
   }
 
-  return React.createElement("span", { style: tokenDotStyle(token) }, displayInitial(token));
+  return React.createElement("span", { style: tokenDotStyle(token, tokenStyles) }, displayInitial(token));
 }
 
 function CardFace({
@@ -946,11 +951,13 @@ function HeroArt({
   asset,
   label,
   replacements,
+  tokenStyles,
   tokens
 }: {
   asset?: AssetReplacement;
   label: string;
   replacements?: AssetReplacementLookup;
+  tokenStyles: GameTemplateTokenStyle[];
   tokens: string[];
 }): React.ReactElement {
   const tokenAssets = uniqueStrings(tokens)
@@ -968,7 +975,7 @@ function HeroArt({
         ...tokenAssets.map(({ replacement, token }, index) =>
           React.createElement(
             "span",
-            { key: `${token}.${index}`, style: heroTokenStyle(token, index) },
+            { key: `${token}.${index}`, style: heroTokenStyle(token, index, tokenStyles) },
             React.createElement("img", { alt: replacement.altText ?? token, src: replacement.uri, style: liveStyles.heroTokenImage })
           )
         )
@@ -991,7 +998,7 @@ function HeroArt({
       ...visibleTokens.map((token, index) =>
         React.createElement(
           "span",
-          { key: `${token}.${index}`, style: heroTokenStyle(token, index) },
+          { key: `${token}.${index}`, style: heroTokenStyle(token, index, tokenStyles) },
           displayInitial(token)
         )
       )
@@ -1285,11 +1292,16 @@ function dragGhostStyle(state: SortDragState): React.CSSProperties {
   };
 }
 
-function sequenceChoiceStyle(item: string, enabled: boolean, feedback?: SequenceFeedback): React.CSSProperties {
+function sequenceChoiceStyle(
+  item: string,
+  enabled: boolean,
+  feedback: SequenceFeedback | undefined,
+  tokenStyles: GameTemplateTokenStyle[]
+): React.CSSProperties {
   const failed = feedback?.kind === "failure" && feedback.item === item;
   return {
     ...liveStyles.choiceButton,
-    ...tokenPanelStyle(item),
+    ...tokenPanelStyle(item, tokenStyles),
     ...(failed ? liveStyles.sequenceChoiceFailure : {}),
     opacity: enabled || failed ? 1 : 0.58,
     cursor: enabled ? "pointer" : "not-allowed"
@@ -1302,8 +1314,8 @@ function sequenceRailStyle(feedback?: SequenceFeedback): React.CSSProperties {
     : liveStyles.sequenceRail;
 }
 
-function sequenceStepStyle(item: string, revealed: boolean): React.CSSProperties {
-  return revealed ? { ...liveStyles.sequenceStepComplete, ...tokenPanelStyle(item) } : liveStyles.sequenceStep;
+function sequenceStepStyle(item: string, revealed: boolean, tokenStyles: GameTemplateTokenStyle[]): React.CSSProperties {
+  return revealed ? { ...liveStyles.sequenceStepComplete, ...tokenPanelStyle(item, tokenStyles) } : liveStyles.sequenceStep;
 }
 
 function gameSurfaceStyle(kind: GameTemplateLiveSurface["kind"]): React.CSSProperties {
@@ -1323,8 +1335,8 @@ function gameSurfaceStyle(kind: GameTemplateLiveSurface["kind"]): React.CSSPrope
   };
 }
 
-function tokenDotStyle(token: string): React.CSSProperties {
-  const color = colorForToken(token);
+function tokenDotStyle(token: string, tokenStyles: GameTemplateTokenStyle[]): React.CSSProperties {
+  const color = colorForToken(token, tokenStyles);
   return {
     ...liveStyles.tokenDot,
     background: color.background,
@@ -1333,8 +1345,8 @@ function tokenDotStyle(token: string): React.CSSProperties {
   };
 }
 
-function tokenPanelStyle(token: string): React.CSSProperties {
-  const color = colorForToken(token);
+function tokenPanelStyle(token: string, tokenStyles: GameTemplateTokenStyle[]): React.CSSProperties {
+  const color = colorForToken(token, tokenStyles);
   return {
     background: color.background,
     color: color.foreground,
@@ -1342,8 +1354,8 @@ function tokenPanelStyle(token: string): React.CSSProperties {
   };
 }
 
-function heroTokenStyle(token: string, index: number): React.CSSProperties {
-  const color = colorForToken(token);
+function heroTokenStyle(token: string, index: number, tokenStyles: GameTemplateTokenStyle[]): React.CSSProperties {
+  const color = colorForToken(token, tokenStyles);
   return {
     ...liveStyles.heroToken,
     background: color.background,
@@ -1353,16 +1365,19 @@ function heroTokenStyle(token: string, index: number): React.CSSProperties {
   };
 }
 
-function colorForToken(token: string): { background: string; border: string; foreground: string } {
+function colorForToken(
+  token: string,
+  tokenStyles: GameTemplateTokenStyle[]
+): { background: string; border: string; foreground: string } {
   const tokenParts = normalizedTokens(token);
-  const catalogColor = tokenColorCatalog.find((entry) =>
-    entry.aliases.some((alias) => tokenSequenceIncludes(tokenParts, normalizedTokens(alias)))
+  const tokenStyle = tokenStyles.find((entry) =>
+    entry.tokens.some((styleToken) => tokenSequenceIncludes(tokenParts, normalizedTokens(styleToken)))
   );
-  if (catalogColor) {
+  if (tokenStyle) {
     return {
-      background: catalogColor.background,
-      border: catalogColor.border,
-      foreground: catalogColor.foreground
+      background: tokenStyle.background,
+      border: tokenStyle.border,
+      foreground: tokenStyle.foreground
     };
   }
 
@@ -1374,13 +1389,6 @@ function colorForToken(token: string): { background: string; border: string; for
   ];
   return palette[hashString(token) % palette.length];
 }
-
-const tokenColorCatalog: TokenColor[] = [
-  { aliases: ["red"], background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d" },
-  { aliases: ["blue"], background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a" },
-  { aliases: ["green"], background: "#dcfce7", border: "#16a34a", foreground: "#14532d" },
-  { aliases: ["yellow"], background: "#fef3c7", border: "#eab308", foreground: "#713f12" }
-];
 
 function normalizedTokens(value: string): string[] {
   return value

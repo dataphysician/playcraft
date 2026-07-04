@@ -517,11 +517,22 @@ export const GameTemplateAssetReplacementSourceSchema = z
   .strict();
 export type GameTemplateAssetReplacementSource = z.infer<typeof GameTemplateAssetReplacementSourceSchema>;
 
+export const GameTemplateTokenStyleSchema = z
+  .object({
+    tokens: z.array(z.string().min(1).max(80)).min(1),
+    background: z.string().min(1).max(32),
+    border: z.string().min(1).max(32),
+    foreground: z.string().min(1).max(32)
+  })
+  .strict();
+export type GameTemplateTokenStyle = z.infer<typeof GameTemplateTokenStyleSchema>;
+
 export const GameTemplateLiveSurfaceSchema = z
   .object({
     kind: GameTemplateLiveSurfaceKindSchema,
     componentCapabilities: GameTemplateLiveSurfaceComponentCapabilitiesSchema,
-    assetReplacementSources: z.array(GameTemplateAssetReplacementSourceSchema).min(1)
+    assetReplacementSources: z.array(GameTemplateAssetReplacementSourceSchema).min(1),
+    tokenStyles: z.array(GameTemplateTokenStyleSchema)
   })
   .strict();
 export type GameTemplateLiveSurface = z.infer<typeof GameTemplateLiveSurfaceSchema>;

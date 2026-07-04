@@ -427,6 +427,29 @@ describe("public contract schemas", () => {
     ).toThrow(/builder template IDs must start with template/u);
   });
 
+  it("requires live game token styles to be template-owned", () => {
+    expect(GameTemplateDefinitionSchema.parse(gameTemplateDefinitions[1]).liveSurface.tokenStyles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          tokens: ["red"],
+          background: "#fee2e2",
+          border: "#ef4444",
+          foreground: "#7f1d1d"
+        })
+      ])
+    );
+
+    const missingTokenStyles = {
+      ...gameTemplateDefinitions[1],
+      liveSurface: {
+        ...gameTemplateDefinitions[1].liveSurface
+      }
+    };
+    delete (missingTokenStyles.liveSurface as Partial<typeof gameTemplateDefinitions[1]["liveSurface"]>).tokenStyles;
+
+    expect(GameTemplateDefinitionSchema.safeParse(missingTokenStyles).success).toBe(false);
+  });
+
   it("keeps render requests strict and identified", () => {
     const result = ComponentRenderRequestSchema.safeParse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

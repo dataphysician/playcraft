@@ -29,6 +29,7 @@ import {
   type GameTemplateAssetPromptKind,
   type GameTemplateDefinition,
   type GameTemplateLiveSurface,
+  type GameTemplateTokenStyle,
   type GeneratedAssetRecord,
   type JsonValue,
   type MechanicDefinition,
@@ -57,6 +58,12 @@ export const DEFAULT_SAFETY_POLICY_ID = "safety.child-friendly";
 export const DEFAULT_THEME_ID = "theme.bright-calm";
 export const DEFAULT_PLANNER_ID = "planner.deterministic.mvp";
 export const DEFAULT_GAME_TEMPLATE_ID: BuilderTemplateId = BuilderTemplateIdSchema.parse("template.memory-match");
+export const toddlerTokenStyles: GameTemplateTokenStyle[] = [
+  { tokens: ["red"], background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d" },
+  { tokens: ["blue"], background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a" },
+  { tokens: ["green"], background: "#dcfce7", border: "#16a34a", foreground: "#14532d" },
+  { tokens: ["yellow"], background: "#fef3c7", border: "#eab308", foreground: "#713f12" }
+];
 
 const memoryAssetEditOperations: GameTemplateAssetEditOperation[] = [
   { componentCapability: "component:reveal-card-grid", operation: "memory-pairs" },
@@ -237,7 +244,8 @@ const mvpTemplates: MvpProfileTemplate[] = [
         prop: "cards",
         namespace: "card",
         pairMapProp: "pairs"
-      }]
+      }],
+      tokenStyles: []
     },
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
@@ -279,7 +287,8 @@ const mvpTemplates: MvpProfileTemplate[] = [
         componentRole: "primary",
         prop: "items",
         namespace: "item"
-      }]
+      }],
+      tokenStyles: toddlerTokenStyles
     },
     profileId: "profile.sorting.mvp",
     profileName: "Sorting MVP",
@@ -331,7 +340,8 @@ const mvpTemplates: MvpProfileTemplate[] = [
           prop: "items",
           namespace: "choice"
         }
-      ]
+      ],
+      tokenStyles: toddlerTokenStyles
     },
     profileId: "profile.sequence-repeat.mvp",
     profileName: "Sequence Repeat MVP",
@@ -1362,7 +1372,8 @@ function memoryTemplate(input: {
         prop: "cards",
         namespace: "card",
         pairMapProp: "pairs"
-      }]
+      }],
+      tokenStyles: []
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
@@ -1417,7 +1428,8 @@ function sortingTemplate(input: {
         componentRole: "primary",
         prop: "items",
         namespace: "item"
-      }]
+      }],
+      tokenStyles: toddlerTokenStyles
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
@@ -1482,7 +1494,8 @@ function sequenceTemplate(input: {
           prop: "items",
           namespace: "choice"
         }
-      ]
+      ],
+      tokenStyles: toddlerTokenStyles
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
