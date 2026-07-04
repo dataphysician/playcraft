@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template ID Contract Tightening
+
+Milestone:
+- `GameTemplateDefinitionSchema` now requires template IDs to use the `template.*` builder namespace.
+- Service and builder template flows no longer use raw `as BuilderTemplateId` assertions for bundled template IDs.
+- The default service template ID is parsed through the shared contract schema.
+
+Supportive changes:
+- Added public contract coverage for rejecting malformed game-template IDs.
+- Added a source scan guard blocking `as BuilderTemplateId` in implementation seams.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- `rg -n "as BuilderTemplateId" packages apps tests playcraft-agentic-framework examples --glob '!**/dist/**'`
+
+Constraint notes:
+- Keeps template identity schema-derived for local agent CLI/API and future server catalog retrieval.
+- Does not add migration code, compatibility aliases, hosted services, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Service CLI Template Validation
 
 Milestone:

@@ -7,6 +7,7 @@ import {
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
   BuilderSessionSnapshotSchema,
+  BuilderTemplateIdSchema,
   MoonshineTranscriptRecordSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
@@ -35,7 +36,7 @@ import {
 import { gameTemplateDefinitions } from "@playcraft/packs";
 
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
-export const DEFAULT_TEMPLATE_ID = "template.memory-match" as BuilderTemplateId;
+export const DEFAULT_TEMPLATE_ID = BuilderTemplateIdSchema.parse("template.memory-match");
 export const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
   {
     theme: "dinosaurs",
@@ -599,7 +600,7 @@ function templateMatchForText(text: string): TemplateTextMatch {
       tokenSequenceIncludes(textTokens, normalizedTokens(alias))
     );
     return matchedRequestAliases.length > 0
-      ? [{ capabilityTags: template.capabilityTags, requestAliases: matchedRequestAliases, templateId: template.id as BuilderTemplateId }]
+      ? [{ capabilityTags: template.capabilityTags, requestAliases: matchedRequestAliases, templateId: template.id }]
       : [];
   });
 

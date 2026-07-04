@@ -4,6 +4,7 @@ import {
   BuilderInputRequestSchema,
   BuilderServiceRequestSchema,
   ComponentRenderRequestSchema,
+  GameTemplateDefinitionSchema,
   InputModalitySchema,
   PLAYCRAFT_SCHEMA_VERSION,
   PlaycraftAgUiEventEnvelopeSchema,
@@ -385,6 +386,15 @@ describe("public contract schemas", () => {
         expect(result.data.schemaVersion).toBe(PLAYCRAFT_SCHEMA_VERSION);
       }
     }
+  });
+
+  it("requires game template definitions to use the builder template namespace", () => {
+    expect(() =>
+      GameTemplateDefinitionSchema.parse({
+        ...gameTemplateDefinitions[0],
+        id: "memory-match"
+      })
+    ).toThrow(/builder template IDs must start with template/u);
   });
 
   it("keeps render requests strict and identified", () => {

@@ -155,9 +155,9 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const profile = GameAssemblyProfileSchema.parse(profileInput);
     const template = templateForProfile(profile);
     const replay = replayProfile(profile, this.registries);
-    const preview = previewForReplay(sessionId, template.id as BuilderTemplateId, profile, replay, session.preview);
+    const preview = previewForReplay(sessionId, template.id, profile, replay, session.preview);
 
-    session.templateId = template.id as BuilderTemplateId;
+    session.templateId = template.id;
     session.profile = profile;
     session.replay = replay;
     session.preview = preview;

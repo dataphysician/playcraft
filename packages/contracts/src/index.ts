@@ -449,8 +449,13 @@ export const PackManifestSchema = PublicContractBaseSchema.extend({
 }).strict();
 export type PackManifest = z.infer<typeof PackManifestSchema>;
 
+export const BuilderTemplateIdSchema = StableIdSchema.refine((value) => value.startsWith("template."), {
+  message: "builder template IDs must start with template."
+});
+export type BuilderTemplateId = z.infer<typeof BuilderTemplateIdSchema>;
 
 export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
+  id: BuilderTemplateIdSchema,
   kind: z.literal("game-template"),
   displayName: z.string().min(1),
   description: z.string().min(1),
@@ -555,11 +560,6 @@ export const BuilderActionNameSchema = z.enum([
   "import-profile"
 ]);
 export type BuilderActionName = z.infer<typeof BuilderActionNameSchema>;
-
-export const BuilderTemplateIdSchema = StableIdSchema.refine((value) => value.startsWith("template."), {
-  message: "builder template IDs must start with template."
-});
-export type BuilderTemplateId = z.infer<typeof BuilderTemplateIdSchema>;
 
 export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-tool"),
