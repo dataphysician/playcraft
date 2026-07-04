@@ -7,6 +7,10 @@ import {
   PLAYCRAFT_SCHEMA_VERSION
 } from "@playcraft/contracts";
 import {
+  createBuilderCommandHandler,
+  type BuilderCommandHandler
+} from "@playcraft/builder";
+import {
   PLAYCRAFT_SERVICE_PACKAGE,
   createHttpServiceTransport,
   createLocalServiceTransport,
@@ -137,6 +141,48 @@ describe("local Playcraft service", () => {
     expect(serializedEvents).toContain("moonshine-streaming");
     expect(serializedEvents).toContain("moonshine-transcript.test.service-request");
     expect(serializedEvents).toContain("speechTranscriptId");
+  });
+
+  it("rejects non-JSON builder events instead of coercing them through serialization", () => {
+    const baseHandler = createBuilderCommandHandler();
+    const handler: BuilderCommandHandler = {
+      assembleTemplates: (...args) => baseHandler.assembleTemplates(...args),
+      getSessionSnapshot: (...args) => baseHandler.getSessionSnapshot(...args),
+      importProfile: (...args) => baseHandler.importProfile(...args),
+      listTemplates: () => baseHandler.listTemplates(),
+      listTools: () => baseHandler.listTools(),
+      execute(command) {
+        const output = baseHandler.execute(command);
+        return {
+          ...output,
+          events: [
+            ...output.events,
+            {
+              type: "ToolResult",
+              eventId: "agui.service.bad-json.0001",
+              runId: "run.service.bad-json",
+              timestamp: "2026-07-04T00:00:00.000Z",
+              value: {
+                generatedAt: new Date("2026-07-04T00:00:00.000Z")
+              }
+            }
+          ]
+        };
+      }
+    };
+    const service = createLocalPlaycraftService(handler);
+
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.non-json-event",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        sessionId: "session.non-json-event",
+        text: "Memory game with dinosaurs"
+      })
+    ).toThrow(/non-plain object/u);
   });
 
   it("rejects transcript-sourced service requests without Moonshine transcript records", () => {

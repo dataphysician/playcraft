@@ -228,6 +228,15 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("?? replay.renderRequests[0]");
   });
 
+  it("keeps service event serialization schema-first and non-coercive", () => {
+    const source = readSource("packages/service/src/index.ts");
+
+    expect(source).toContain("function toJsonValue");
+    expect(source).toContain("JsonValueSchema.parse(normalizeJsonValue(value))");
+    expect(source).toContain("service event value contains a non-plain object");
+    expect(source).not.toContain("JSON.parse(JSON.stringify");
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

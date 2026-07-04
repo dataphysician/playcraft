@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Non-Coercive Service Event Serialization
+
+Milestone:
+- Local service execution events now pass through `JsonValueSchema` directly instead of a `JSON.stringify`/`JSON.parse` round trip.
+- Non-JSON builder event payloads are rejected at the service boundary instead of being silently converted.
+- Studio and CLI clients continue receiving schema-validated JSON event arrays from service responses.
+
+Supportive changes:
+- Service tests now inject a malformed builder event with a `Date` payload and assert the service rejects it.
+- Source scans now block reintroducing stringify/parse event coercion in `@playcraft/service`.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps CLI/API event exchange schema-first and forward-only without lossy JSON coercion, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Fail-Closed Trusted Preview Selection
 
 Milestone:

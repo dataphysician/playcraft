@@ -737,7 +737,46 @@ function cleanAssetTheme(value: string): string {
 }
 
 function toJsonValue(value: unknown): JsonValue {
-  return JsonValueSchema.parse(JSON.parse(JSON.stringify(value)));
+  return JsonValueSchema.parse(normalizeJsonValue(value));
+}
+
+function normalizeJsonValue(value: unknown): unknown {
+  if (value === null || typeof value === "string" || typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) {
+      throw new Error("service event value contains a non-finite number");
+    }
+
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => {
+      if (entry === undefined) {
+        throw new Error("service event value contains undefined inside an array");
+      }
+
+      return normalizeJsonValue(entry);
+    });
+  }
+
+  if (typeof value === "object") {
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new Error("service event value contains a non-plain object");
+    }
+
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, entry]) => entry !== undefined)
+        .map(([key, entry]) => [key, normalizeJsonValue(entry)])
+    );
+  }
+
+  throw new Error(`service event value contains unsupported JSON type ${typeof value}`);
 }
 
 function serializeExecution(output: BuilderExecutionResult): BuilderServiceExecution {
