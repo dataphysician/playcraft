@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Literal Freeform Asset Folder Names
+
+Milestone:
+- Service text intent parsing now preserves captured freeform asset folder names instead of stripping generic words out of them.
+- Fully generic asset phrases such as `card images` are rejected explicitly instead of being normalized into a misleading theme.
+- Catalog asset aliases still resolve through the local asset catalog, while explicit freeform asset-folder requests remain literal.
+
+Supportive changes:
+- Service tests now cover literal folder names that include asset-ish words and rejection of generic placeholder asset nouns.
+- Source scans now block the removed broad service asset-theme stripping regex from returning.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps asset edit intent parsing forward-only and folder-literal without broad text cleanup heuristics, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Catalog-Owned Game Tip Labels
 
 Milestone:

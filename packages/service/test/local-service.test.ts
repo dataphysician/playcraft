@@ -580,6 +580,35 @@ describe("local Playcraft service", () => {
     });
   });
 
+  it("keeps freeform asset folder names literal instead of stripping generic nouns", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Use assets with card art pals"
+    });
+
+    expect(resolved.templateId).toBe("template.memory-match");
+    expect(resolved.assetEdit).toEqual({ theme: "card art pals" });
+    expect(resolved.resolution.assetDecision).toMatchObject({
+      source: "freeform-asset-request",
+      matchedText: "card art pals"
+    });
+  });
+
+  it("rejects generic asset nouns as freeform asset themes", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Use assets with card images"
+    });
+
+    expect(resolved.templateId).toBe("template.memory-match");
+    expect(resolved.assetEdit).toBeUndefined();
+    expect(resolved.resolution.assetDecision.source).toBe("none");
+  });
+
   it("switches templates from catalog request aliases", () => {
     const resolved = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",

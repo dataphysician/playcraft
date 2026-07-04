@@ -280,6 +280,15 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/memory card illustrations\|sorting game illustrations/u);
   });
 
+  it("keeps service freeform asset folder names literal", () => {
+    const source = readSource("packages/service/src/index.ts");
+
+    expect(source).toContain("isGenericAssetTheme");
+    expect(source).toContain("GENERIC_ASSET_THEME_TOKENS");
+    expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:game\|profile\|challenge\|assets/u);
+    expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:assets\?\|cards/u);
+  });
+
   it("keeps builder asset prompt wording template-owned instead of component-inferred", () => {
     const builderSource = readSource("packages/builder/src/index.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");

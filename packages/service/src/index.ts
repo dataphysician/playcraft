@@ -41,6 +41,8 @@ export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
 export const DEFAULT_TEMPLATE_ID = BuilderTemplateIdSchema.parse("template.memory-match");
 export { localAssetEditCatalog } from "@playcraft/assets";
 
+const GENERIC_ASSET_THEME_TOKENS = new Set(["asset", "assets", "card", "cards", "card image", "card images", "image", "images", "art", "theme"]);
+
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
   sessionId?: string;
@@ -687,7 +689,7 @@ function matchCatalogAssetTheme(
   }
 
   const candidate = cleanAssetTheme(match[1]);
-  return candidate.length > 0 && isKnownAssetTheme(candidate)
+  return candidate.length > 0 && !isGenericAssetTheme(candidate) && isKnownAssetTheme(candidate)
     ? { source: "catalog-asset-alias", theme: candidate }
     : undefined;
 }
@@ -703,7 +705,7 @@ function matchAssetTheme(
   }
 
   const candidate = cleanAssetTheme(match[1]);
-  if (candidate.length === 0 || isTemplateOnlyTheme(candidate)) {
+  if (candidate.length === 0 || isGenericAssetTheme(candidate) || isTemplateOnlyTheme(candidate)) {
     return undefined;
   }
 
@@ -725,10 +727,14 @@ function isTemplateOnlyTheme(value: string): boolean {
   );
 }
 
+function isGenericAssetTheme(value: string): boolean {
+  const candidate = normalizedTokens(value).join(" ");
+  return GENERIC_ASSET_THEME_TOKENS.has(candidate);
+}
+
 function cleanAssetTheme(value: string): string {
   return value
     .split(/[.!?;]/u)[0]
-    .replace(/\b(?:game|profile|challenge|assets?|cards?|card images?|images?|art|theme)\b/gu, " ")
     .replace(/\b(?:a|an|the)\b/gu, " ")
     .replace(/[^a-z0-9 ,.-]+/gu, " ")
     .replace(/\s+/gu, " ")
