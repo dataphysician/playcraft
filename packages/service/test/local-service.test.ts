@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { PLAYCRAFT_SCHEMA_VERSION, type BuilderServiceResponse } from "@playcraft/contracts";
 import {
   PLAYCRAFT_SERVICE_PACKAGE,
+  createHttpServiceTransport,
   createLocalServiceTransport,
   createLocalPlaycraftService,
+  handleServiceHttpRequestBody,
   handleLocalServiceRequest,
   resolveBuilderInputCommand
 } from "../src/index.js";
@@ -127,6 +129,64 @@ describe("local Playcraft service", () => {
         }
       }
     });
+  });
+
+  it("handles service requests through a server-neutral HTTP JSON body adapter", () => {
+    const response = handleServiceHttpRequestBody(JSON.stringify({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.http-body",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.http-body",
+      text: "Memory game with dinosaurs"
+    }));
+    const parsed = JSON.parse(response.body) as BuilderServiceResponse;
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toBe("application/json");
+    expect(parsed.execution?.result.sessionId).toBe("session.http-body");
+    expect(parsed.execution?.result.profile?.assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
+
+    const invalid = handleServiceHttpRequestBody("{");
+    expect(invalid.status).toBe(400);
+    expect(JSON.parse(invalid.body)).toMatchObject({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      kind: "builder-service-error"
+    });
+  });
+
+  it("creates an HTTP client transport over the same service envelope", async () => {
+    const service = createLocalPlaycraftService();
+    const transport = createHttpServiceTransport({
+      endpoint: "http://127.0.0.1:8787/playcraft",
+      fetch: async (url, init) => {
+        const response = handleServiceHttpRequestBody(init.body, service);
+        expect(url).toBe("http://127.0.0.1:8787/playcraft");
+        expect(init.method).toBe("POST");
+        expect(init.headers["content-type"]).toBe("application/json");
+
+        return {
+          ok: response.status >= 200 && response.status < 300,
+          status: response.status,
+          text: async () => response.body
+        };
+      }
+    });
+    const response = await transport.send({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.http-client",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.http-client",
+      source: "speech-transcript",
+      text: "Repeat a pattern with gems"
+    });
+
+    expect(response.kind).toBe("builder-service-response");
+    expect(response.execution?.result.profile?.id).toBe("profile.sequence-repeat.mvp");
+    expect(JSON.stringify(response.execution?.events)).toContain("moonshine-streaming");
   });
 
   it("accepts explicit asset edit records for future local asset-library adapters", () => {

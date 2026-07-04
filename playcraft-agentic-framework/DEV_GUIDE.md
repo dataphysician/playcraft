@@ -35,7 +35,9 @@ Recommended package boundaries:
 
 Do not put framework core logic behind Next.js API routes, native commands, or app-specific stores. The service, studio, and mobile shell consume the packages; they do not define framework contracts.
 
-Studio clients should talk to a `BuilderServiceTransport`; the local implementation is in-process today, and a future server adapter should preserve the same request/response schemas rather than adding app-local command formats.
+Studio clients should talk to a `BuilderServiceTransport`; the local implementation can be in-process or HTTP JSON today, and future server adapters should preserve the same request/response schemas rather than adding app-local command formats.
+
+Use `createHttpServiceTransport` for clients that call a local/server endpoint, and `handleServiceHttpRequestBody` inside a server wrapper that receives raw JSON. These helpers intentionally avoid framework-specific server dependencies.
 
 Agents that need the exact API boundary can call `playcraft-service request --request-json '<BuilderServiceRequest JSON>' --json` and receive the full `BuilderServiceResponse` envelope. Friendly CLI commands may keep concise output for humans.
 

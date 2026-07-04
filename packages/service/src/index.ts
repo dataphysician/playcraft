@@ -47,6 +47,27 @@ export interface BuilderServiceTransport {
   send(request: BuilderServiceRequest): BuilderServiceResponse | Promise<BuilderServiceResponse>;
 }
 
+export interface BuilderServiceHttpResponse {
+  body: string;
+  headers: Record<string, string>;
+  status: number;
+}
+
+export interface BuilderServiceHttpFetchResponse {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+}
+
+export type BuilderServiceHttpFetch = (
+  url: string,
+  init: {
+    body: string;
+    headers: Record<string, string>;
+    method: "POST";
+  }
+) => Promise<BuilderServiceHttpFetchResponse>;
+
 export class LocalPlaycraftService {
   private readonly handler: BuilderCommandHandler;
   private inputCounter = 0;
@@ -203,6 +224,66 @@ export function createLocalServiceTransport(service = createLocalPlaycraftServic
       return service.handle(request);
     }
   };
+}
+
+export function createHttpServiceTransport(input: {
+  endpoint: string;
+  fetch?: BuilderServiceHttpFetch;
+  headers?: Record<string, string>;
+}): BuilderServiceTransport {
+  const fetcher = input.fetch ?? defaultFetch;
+
+  return {
+    async send(request) {
+      const parsedRequest = BuilderServiceRequestSchema.parse(request);
+      const response = await fetcher(input.endpoint, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json",
+          ...input.headers
+        },
+        body: JSON.stringify(parsedRequest)
+      });
+      const body = await response.text();
+
+      if (!response.ok) {
+        throw new Error(`builder service HTTP ${response.status}: ${body}`);
+      }
+
+      return BuilderServiceResponseSchema.parse(JSON.parse(body));
+    }
+  };
+}
+
+export function handleServiceHttpRequestBody(
+  body: string,
+  service = createLocalPlaycraftService()
+): BuilderServiceHttpResponse {
+  try {
+    const request = BuilderServiceRequestSchema.parse(JSON.parse(body));
+    const response = service.handle(request);
+
+    return {
+      status: 200,
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify(response)
+    };
+  } catch (error) {
+    return {
+      status: 400,
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        kind: "builder-service-error",
+        message: error instanceof Error ? error.message : String(error)
+      })
+    };
+  }
 }
 
 export function handleLocalServiceRequest(
@@ -490,4 +571,13 @@ function tokenSequenceIncludes(tokens: string[], sequence: string[]): boolean {
   return tokens.some((_, index) =>
     sequence.every((token, offset) => tokens[index + offset] === token)
   );
+}
+
+function defaultFetch(...args: Parameters<BuilderServiceHttpFetch>): ReturnType<BuilderServiceHttpFetch> {
+  const fetcher = (globalThis as { fetch?: BuilderServiceHttpFetch }).fetch;
+  if (!fetcher) {
+    throw new Error("HTTP service transport requires a fetch implementation");
+  }
+
+  return fetcher(...args);
 }

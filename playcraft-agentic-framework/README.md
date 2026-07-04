@@ -43,6 +43,7 @@ The v1 target is intentionally small and local-first:
 - Replay harness for saved `GameAssemblyProfile` records.
 - Three MVP profiles: memory match, sorting, and sequence repeat.
 - Local service facade with validated `BuilderServiceRequest` and `BuilderServiceResponse` envelopes for text requests and Moonshine Streaming CPU transcript records.
+- In-process and HTTP JSON service transports over the same request/response envelope.
 - `playcraft-service` CLI surface for catalog, assemble, update, preview, reset, raw `BuilderServiceRequest` envelopes, and asset-edit requests with callable argument schemas and catalog-driven template aliases.
 - Vite Studio and a Tauri Mobile-facing shell that assemble games through the shared service transport.
 
