@@ -564,6 +564,15 @@ export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
 }).strict();
 export type BuilderToolDefinition = z.infer<typeof BuilderToolDefinitionSchema>;
 
+export const BuilderAssetEditCatalogEntrySchema = z
+  .object({
+    theme: z.string().min(1).max(80),
+    aliases: z.array(z.string().min(1).max(80)).default([]),
+    suggestedItems: z.array(z.string().min(1).max(48)).default([])
+  })
+  .strict();
+export type BuilderAssetEditCatalogEntry = z.infer<typeof BuilderAssetEditCatalogEntrySchema>;
+
 export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-catalog"),
   defaultTemplateId: BuilderTemplateIdSchema,
@@ -575,7 +584,8 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
       supported: z.literal(true),
       acceptedKeys: z.array(z.enum(["theme", "items"])).min(1),
       maxItems: z.number().int().positive(),
-      localReplacementFolders: z.boolean()
+      localReplacementFolders: z.boolean(),
+      availableThemes: z.array(BuilderAssetEditCatalogEntrySchema).default([])
     })
     .strict(),
   retrieval: z

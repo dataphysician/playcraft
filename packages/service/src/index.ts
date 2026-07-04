@@ -8,6 +8,7 @@ import {
   MoonshineTranscriptRecordSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
+  type BuilderAssetEditCatalogEntry,
   type BuilderCatalog,
   type BuilderCommand,
   type BuilderInputRequest,
@@ -30,6 +31,28 @@ import { gameTemplateDefinitions } from "@playcraft/packs";
 
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
 export const DEFAULT_TEMPLATE_ID = "template.memory-match" as BuilderTemplateId;
+export const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
+  {
+    theme: "dinosaurs",
+    aliases: ["dinosaur", "dinosaurs"],
+    suggestedItems: ["dinosaur-1", "dinosaur-2", "dinosaur-3"]
+  },
+  {
+    theme: "toys",
+    aliases: ["toy", "toys"],
+    suggestedItems: ["toy-1", "toy-2", "toy-3"]
+  },
+  {
+    theme: "dolphins",
+    aliases: ["dolphin", "dolphins", "ocean animals", "sea animals"],
+    suggestedItems: ["dolphin-1", "dolphin-2", "dolphin-3"]
+  },
+  {
+    theme: "fruits",
+    aliases: ["fruit", "fruits"],
+    suggestedItems: ["fruit-1", "fruit-2", "fruit-3"]
+  }
+];
 
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
@@ -97,7 +120,8 @@ export class LocalPlaycraftService {
         supported: true,
         acceptedKeys: ["theme", "items"],
         maxItems: 12,
-        localReplacementFolders: true
+        localReplacementFolders: true,
+        availableThemes: localAssetEditCatalog
       },
       retrieval: {
         current: "bundled-local",

@@ -29,7 +29,17 @@ describe("local Playcraft service", () => {
       supported: true,
       acceptedKeys: ["theme", "items"],
       maxItems: 12,
-      localReplacementFolders: true
+      localReplacementFolders: true,
+      availableThemes: expect.arrayContaining([
+        expect.objectContaining({
+          theme: "dinosaurs",
+          suggestedItems: ["dinosaur-1", "dinosaur-2", "dinosaur-3"]
+        }),
+        expect.objectContaining({
+          theme: "dolphins",
+          aliases: expect.arrayContaining(["ocean animals"])
+        })
+      ])
     });
     expect(catalog.tools.map((tool) => tool.toolName)).toEqual([
       "tool:assemble-game",
@@ -352,6 +362,7 @@ describe("local Playcraft service", () => {
 
     expect(runLocalServiceCli(["catalog", "--json"], io)).toBe(0);
     const catalog = JSON.parse(out.pop() ?? "{}") as {
+      assetEdit: { availableThemes: Array<{ aliases: string[]; suggestedItems: string[]; theme: string }> };
       kind: string;
       templates: Array<{ id: string }>;
       tools: Array<{ actionName: string; argumentsSchema: { fields: Record<string, { required: boolean; type: string }> } }>;
@@ -363,6 +374,13 @@ describe("local Playcraft service", () => {
       "template.sorting",
       "template.sequence-repeat"
     ]);
+    expect(catalog.assetEdit.availableThemes.map((entry) => entry.theme)).toEqual([
+      "dinosaurs",
+      "toys",
+      "dolphins",
+      "fruits"
+    ]);
+    expect(catalog.assetEdit.availableThemes.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
 
     expect(
       runLocalServiceCli([

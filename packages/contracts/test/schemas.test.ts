@@ -160,7 +160,14 @@ describe("public contract schemas", () => {
           supported: true,
           acceptedKeys: ["theme", "items"],
           maxItems: 12,
-          localReplacementFolders: true
+          localReplacementFolders: true,
+          availableThemes: [
+            {
+              theme: "dinosaurs",
+              aliases: ["dinosaur", "dinosaurs"],
+              suggestedItems: ["dinosaur-1", "dinosaur-2"]
+            }
+          ]
         },
         retrieval: {
           current: "bundled-local",
