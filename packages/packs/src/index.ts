@@ -81,10 +81,7 @@ export const mechanicDefinitions: MechanicDefinition[] = [
   mechanic("mechanic.choose-one", "Choose One", ["mechanic:choose-one", "logic:choice"], ["touch", "pointer", "keyboard"], ["frontend:selected"], ["rule:choice-made"]),
   mechanic("mechanic.trace-path", "Trace Path", ["mechanic:trace-path", "input:trace"], ["touch", "pointer"], [], ["rule:path-traced"]),
   mechanic("mechanic.drag-or-tap-move", "Drag or Tap Move", ["mechanic:drag-or-tap-move", "input:move"], ["touch", "pointer"], ["frontend:selected"], ["rule:item-moved"]),
-  mechanic("mechanic.audio-prompt-response", "Audio Prompt Response", ["mechanic:audio-prompt-response", "audio:prompt"], ["audio", "voice", "touch"], ["audio:prompted"], ["rule:audio-response"]),
-  mechanic("mechanic.call-and-response", "Call and Response", ["mechanic:call-and-response", "audio:response"], ["audio", "voice"], ["audio:prompted"], ["rule:call-response"]),
   mechanic("mechanic.sound-matching", "Sound Matching", ["mechanic:sound-matching", "audio:matching"], ["audio", "touch"], ["audio:prompted"], ["rule:sound-matched"]),
-  mechanic("mechanic.pronunciation-attempt", "Pronunciation Attempt", ["mechanic:pronunciation-attempt", "voice:attempt"], ["voice"], ["audio:prompted"], ["rule:pronunciation-attempted"]),
   mechanic("mechanic.hint-prompt", "Hint Prompt", ["mechanic:hint-prompt", "support:hint"], ["touch", "pointer", "audio"], ["rule:hint-needed"], ["frontend:hint-shown"]),
   mechanic("mechanic.retry-loop", "Retry Loop", ["mechanic:retry-loop", "support:retry"], ["touch", "pointer"], ["rule:retry-needed"], ["rule:retry-ready"]),
   mechanic("mechanic.timed-celebration", "Timed Celebration", ["mechanic:timed-celebration", "feedback:celebration"], ["touch", "pointer", "audio"], ["rule:completed"], ["frontend:celebrated"])
@@ -99,7 +96,7 @@ export const ruleModuleDefinitions: RuleModuleDefinition[] = [
   rule("rule.completion", "completion", "Completion", ["rule:completion"], ["mechanic.match-pairs", "mechanic.sort-into-bins", "mechanic.sequence-repeat"], ["rule:pair-matched", "rule:category-validated", "rule:sequence-progressed"], ["rule:completed"]),
   rule("rule.attempt-feedback", "attempt-feedback", "Attempt Feedback", ["rule:attempt-feedback"], ["mechanic.sequence-repeat", "mechanic.choose-one"], ["frontend:selected"], ["rule:attempt-reviewed"]),
   rule("rule.session-bounds", "session-bounds", "Session Bounds", ["rule:session-bounds"], ["mechanic.retry-loop", "mechanic.hint-prompt"], ["rule:attempt-reviewed"], ["rule:session-checked"]),
-  rule("rule.safety-content-block", "safety", "Safety Content Blocking", ["rule:safety-content-block"], ["mechanic.choose-one", "mechanic.audio-prompt-response"], ["frontend:selected"], ["rule:safety-checked"])
+  rule("rule.safety-content-block", "safety", "Safety Content Blocking", ["rule:safety-content-block"], ["mechanic.choose-one"], ["frontend:selected"], ["rule:safety-checked"])
 ].map((entry) => RuleModuleDefinitionSchema.parse(entry));
 
 export const componentManifests: ComponentManifest[] = [
@@ -108,7 +105,6 @@ export const componentManifests: ComponentManifest[] = [
   component("component.pair-match-board", "PairMatchBoard", "component:pair-match-board", ["mechanic.match-pairs"], [selectItemTool], { title: textField, pairs: arrayField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.sort-bins", "SortBins", "component:sort-bins", ["mechanic.sort-into-bins"], [moveItemTool], { title: textField, items: arrayField, bins: arrayField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.sequence-pad", "SequencePad", "component:sequence-pad", ["mechanic.sequence-repeat", "mechanic.tap-to-select"], [repeatSequenceTool], { title: textField, sequence: arrayField, prompt: optionalTextField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
-  component("component.audio-prompt-panel", "AudioPromptPanel", "component:audio-prompt-panel", ["mechanic.audio-prompt-response", "mechanic.call-and-response"], [selectItemTool], { title: textField, prompt: textField }, []),
   component("component.trace-canvas", "TraceCanvas", "component:trace-canvas", ["mechanic.trace-path"], [moveItemTool], { title: textField, path: arrayField }, []),
   component("component.celebration-overlay", "CelebrationOverlay", "component:celebration-overlay", ["mechanic.timed-celebration"], [], { message: textField }, []),
   component("component.hint-bubble", "HintBubble", "component:hint-bubble", ["mechanic.hint-prompt"], [], { hint: textField }, [])
@@ -148,12 +144,10 @@ export const safetyPolicyPacks: SafetyPolicyPack[] = [
     rules: [
       { ruleId: "safety.no-generated-code", description: "Play surfaces must use trusted registered components.", severity: "error", capabilityTags: ["safety:trusted-components"] },
       { ruleId: "safety.no-private-child-data", description: "Saved profiles must not contain private child data.", severity: "error", capabilityTags: ["safety:privacy"] },
-      { ruleId: "safety.no-punitive-failure", description: "Failure states use retry and hints, not punishment.", severity: "error", capabilityTags: ["safety:nonpunitive"] },
-      { ruleId: "safety.voice-gated", description: "Voice capture requires explicit domain policy.", severity: "warning", capabilityTags: ["safety:voice"] }
+      { ruleId: "safety.no-punitive-failure", description: "Failure states use retry and hints, not punishment.", severity: "error", capabilityTags: ["safety:nonpunitive"] }
     ],
     privacy: {
       allowPrivateChildData: false,
-      allowVoiceCapture: false,
       allowExternalNetwork: false
     },
     contentRules: {
@@ -271,7 +265,7 @@ export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.ma
     assemblyRequestId: mvpAssemblyRequests[index].id,
     profileId: template.profileId,
     supportedAgeBands: ["2-3", "4-6", "7-9"],
-    supportedModalities: ["touch", "pointer", "voice"],
+    supportedModalities: ["touch", "pointer"],
     requiredMechanicIds: template.mechanicCapabilities.map((capability) => findMechanicByCapability(capability).id),
     requiredRuleIds: template.ruleCategories.map((category) => findRuleByCategory(category).id),
     requiredComponentIds: template.componentCapabilities.map((capability) => findComponentByCapability(capability).id),
@@ -758,7 +752,7 @@ function mechanic(
   id: string,
   displayName: string,
   capabilityTags: string[],
-  supportedModalities: Array<"touch" | "pointer" | "keyboard" | "audio" | "voice">,
+  supportedModalities: Array<"touch" | "pointer" | "keyboard" | "audio">,
   consumesEvents: string[],
   emitsEvents: string[]
 ): MechanicDefinition {

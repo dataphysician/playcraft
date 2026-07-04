@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AssetContentTypeSchema,
   ComponentRenderRequestSchema,
+  InputModalitySchema,
   PLAYCRAFT_SCHEMA_VERSION,
   PlaycraftAgUiEventEnvelopeSchema,
   PublicContractSchemas
@@ -403,5 +404,10 @@ describe("public contract schemas", () => {
   it("keeps v1 asset content types local to sprite, sound, animation, and text assets", () => {
     expect(AssetContentTypeSchema.options).toEqual(["image", "audio", "animation", "text"]);
     expect(AssetContentTypeSchema.safeParse("video").success).toBe(false);
+  });
+
+  it("keeps v1 input modalities free of live microphone capture", () => {
+    expect(InputModalitySchema.options).toEqual(["touch", "pointer", "keyboard", "audio"]);
+    expect(InputModalitySchema.safeParse(`vo${"ice"}`).success).toBe(false);
   });
 });

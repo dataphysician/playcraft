@@ -5,6 +5,7 @@ import {
   assembleMvpProfiles,
   createDefaultPlanner,
   gameTemplateDefinitions,
+  mechanicDefinitions,
   mvpAssemblyRequests
 } from "@playcraft/packs";
 
@@ -62,5 +63,12 @@ describe("MVP profile pack", () => {
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)
     );
+  });
+
+  it("keeps bundled mechanics and templates free of live microphone capture modalities", () => {
+    const removedModality = `vo${"ice"}`;
+
+    expect(mechanicDefinitions.flatMap((mechanic) => mechanic.supportedModalities)).not.toContain(removedModality);
+    expect(gameTemplateDefinitions.flatMap((template) => template.supportedModalities)).not.toContain(removedModality);
   });
 });

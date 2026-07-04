@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Live Speech Capture Surface Removal
+
+Milestone:
+- Public input modalities no longer include live microphone capture.
+- Bundled mechanics, templates, safety policy fixtures, and trusted component manifests no longer expose speech-capture gameplay primitives.
+- Text input and Moonshine Streaming CPU transcript records remain the only user-input paths.
+
+Supportive changes:
+- Removed unused speech-prompt, repeat-after-audio, and microphone-attempt mechanics from the bundled pack.
+- Removed the audio prompt panel manifest and speech-capture safety fixture fields.
+- Added contract and pack regression coverage for the removed modality.
+- Updated framework docs to keep audio as local asset/playback support and speech as transcript input only.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/packs/test/mvp-profiles.test.ts packages/core/test/registries.test.ts tests/import-light-and-scans.test.ts`
+
+Constraint notes:
+- Keeps Moonshine Streaming CPU transcripts as local text-bearing records.
+- Does not add microphone capture, hosted conversation services, generated runtime code, auth, database state, or migration compatibility.
+
 ## 2026-07-04 - Asset Source Contract Rename
 
 Milestone:

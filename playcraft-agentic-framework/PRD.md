@@ -122,10 +122,7 @@ V1 must run and test without:
 | `choose-one` | Pick one answer from a small safe set. |
 | `trace-path` | Follow a simple path with touch or pointer input. |
 | `drag-or-tap-move` | Move an object, with tap fallback. |
-| `audio-prompt-response` | Respond to a spoken or sound prompt. |
-| `call-and-response` | Repeat or answer after an audio cue. |
 | `sound-matching` | Match sound to visual or category. |
-| `pronunciation-attempt` | Capture a policy-gated pronunciation attempt. |
 | `hint-prompt` | Offer contextual help. |
 | `retry-loop` | Retry without punitive feedback. |
 | `timed-celebration` | Play short success feedback. |
