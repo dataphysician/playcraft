@@ -490,5 +490,17 @@ describe("public contract schemas", () => {
         text: "memory game"
       }).success
     ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.import-with-template",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "import-profile",
+        profile: assembleMvpProfiles()[0],
+        templateId: "template.memory-match"
+      }).success
+    ).toBe(false);
   });
 });

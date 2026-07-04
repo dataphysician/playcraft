@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Import Request Template Scope
+
+Milestone:
+- `BuilderServiceRequestSchema` now rejects request-level `templateId` on `import-profile`.
+- Import requests can still carry profile/profileExport payloads and asset edit metadata, but the imported profile contract owns template identity.
+- Stale `templateId` metadata inside a profile export remains non-authoritative and cannot be reinforced by a request override.
+
+Supportive changes:
+- Added contract coverage for rejecting import requests with `templateId`.
+- Extended service import coverage to prove stale export metadata is ignored while request-level template overrides are rejected.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps service envelopes action-scoped and profile-import behavior contract-first without compatibility shims, hosted providers, auth, database state, or generated runtime code.
+
 ## 2026-07-04 - Import Template State Authority
 
 Milestone:

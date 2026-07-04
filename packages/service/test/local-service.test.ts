@@ -734,12 +734,24 @@ describe("local Playcraft service", () => {
       profileExport: {
         ...exported.profileExport!,
         templateId: "template.memory-match"
-      },
-      templateId: "template.sorting"
+      }
     });
 
     expect(imported.execution?.result.preview.activeTemplateId).toBe("template.sequence-repeat");
     expect(imported.session?.activeTemplateId).toBe("template.sequence-repeat");
+
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.stale-import-template-override",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "import-profile",
+        sessionId: "session.stale-import-target",
+        profileExport: exported.profileExport,
+        templateId: "template.sorting"
+      })
+    ).toThrow(/template IDs are only accepted by assemble and update/u);
   });
 
   it("rejects invalid profile export JSON before import requests reach the service", () => {

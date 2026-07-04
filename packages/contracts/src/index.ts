@@ -779,9 +779,13 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
     message: "only assemble and update service requests may include input text or transcript records",
     path: ["text"]
   })
-  .refine((value) => ["assemble", "update", "import-profile"].includes(value.actionName) || (!value.templateId && !value.assetEdit), {
-    message: "template and asset edits are only accepted by assemble, update, or import-profile requests",
+  .refine((value) => ["assemble", "update"].includes(value.actionName) || !value.templateId, {
+    message: "template IDs are only accepted by assemble and update requests",
     path: ["templateId"]
+  })
+  .refine((value) => ["assemble", "update", "import-profile"].includes(value.actionName) || !value.assetEdit, {
+    message: "asset edits are only accepted by assemble, update, or import-profile requests",
+    path: ["assetEdit"]
   })
   .refine((value) => value.actionName === "import-profile" || (!value.profile && !value.profileExport), {
     message: "profile import payloads are only accepted by import-profile requests",
