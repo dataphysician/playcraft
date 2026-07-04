@@ -1,5 +1,12 @@
 import React from "react";
-import { BuilderProfileExportSchema, type BuilderCatalog, type BuilderInputSource, type BuilderProfileExport, type GameAssemblyProfile } from "@playcraft/contracts";
+import {
+  BuilderProfileExportSchema,
+  type BuilderCatalog,
+  type BuilderInputSource,
+  type BuilderInputSourceOption,
+  type BuilderProfileExport,
+  type GameAssemblyProfile
+} from "@playcraft/contracts";
 import { LiveGame, type LiveGameInteraction } from "./live-game.js";
 import {
   TrustedPreview,
@@ -33,7 +40,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const [pending, setPending] = React.useState<PendingCommand | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
-  const [catalog, setCatalog] = React.useState<BuilderCatalog | undefined>();
+  const [catalog, setCatalog] = React.useState<BuilderCatalog | undefined>(() => synchronousCatalog(client));
   const [profileExportText, setProfileExportText] = React.useState("");
   const [profileImportText, setProfileImportText] = React.useState("");
   const [profileTransferStatus, setProfileTransferStatus] = React.useState<string | null>(null);
@@ -67,17 +74,20 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     setCatalog(undefined);
 
     if (client.catalog) {
-      void Promise.resolve(client.catalog())
-        .then((nextCatalog) => {
+      const nextCatalog = client.catalog();
+      if (isPromiseLike(nextCatalog)) {
+        void nextCatalog.then((loadedCatalog) => {
           if (active) {
-            setCatalog(nextCatalog);
+            setCatalog(loadedCatalog);
           }
-        })
-        .catch(() => {
+        }).catch(() => {
           if (active) {
             setCatalog(undefined);
           }
         });
+      } else {
+        setCatalog(nextCatalog);
+      }
     }
 
     return () => {
@@ -628,6 +638,9 @@ function CommandBar({
   const buttonLabel = hasSession ? "Update Game" : "Generate Game";
   const [tipsOpen, setTipsOpen] = React.useState(false);
   const tips = React.useMemo(() => requestTipLines(catalog), [catalog]);
+  const inputOptions = catalog?.input.sourceOptions ?? [];
+  const selectedInputOption = inputOptions.find((option) => option.source === inputSource);
+  const placeholder = hasSession ? selectedInputOption?.updatePlaceholder : selectedInputOption?.generatePlaceholder;
 
   return React.createElement(
     "footer",
@@ -673,37 +686,18 @@ function CommandBar({
         id: "studio-command",
         value: commandText,
         onChange: (event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value),
-        placeholder:
-          inputSource === "moonshine-transcript"
-            ? "Moonshine transcript: memory game with dinosaurs"
-            : hasSession
-              ? "Change the game or replace assets..."
-              : "Memory game with dinosaurs",
+        placeholder,
         style: shellStyles.commandInput
       }),
       React.createElement(
         "span",
         { role: "group", "aria-label": "Input source", style: shellStyles.inputSourceGroup },
-        React.createElement(
-          "button",
-          {
-            type: "button",
-            "aria-pressed": inputSource === "text",
-            onClick: () => onInputSourceChange("text"),
-            style: inputSource === "text" ? shellStyles.inputSourceButtonActive : shellStyles.inputSourceButton
-          },
-          "Text"
-        ),
-        React.createElement(
-          "button",
-          {
-            type: "button",
-            "aria-pressed": inputSource === "moonshine-transcript",
-            onClick: () => onInputSourceChange("moonshine-transcript"),
-            style: inputSource === "moonshine-transcript" ? shellStyles.inputSourceButtonActive : shellStyles.inputSourceButton
-          },
-          "Transcript"
-        )
+        ...inputOptions.map((option) => React.createElement(InputSourceButton, {
+          key: option.source,
+          option,
+          selected: inputSource === option.source,
+          onSelect: onInputSourceChange
+        }))
       ),
       React.createElement(
         "button",
@@ -717,6 +711,27 @@ function CommandBar({
       )
     ),
     error ? React.createElement("div", { role: "alert", style: shellStyles.error }, error) : null
+  );
+}
+
+function InputSourceButton({
+  option,
+  selected,
+  onSelect
+}: {
+  option: BuilderInputSourceOption;
+  selected: boolean;
+  onSelect: (value: BuilderInputSource) => void;
+}): React.ReactElement {
+  return React.createElement(
+    "button",
+    {
+      type: "button",
+      "aria-pressed": selected,
+      onClick: () => onSelect(option.source),
+      style: selected ? shellStyles.inputSourceButtonActive : shellStyles.inputSourceButton
+    },
+    option.displayLabel
   );
 }
 
@@ -787,6 +802,23 @@ function TimelinePanel({
 
 function findActiveProfile(session: StudioSessionSnapshot): GameAssemblyProfile | undefined {
   return session.profiles.find((profile) => profile.id === session.activeProfileId) ?? session.profiles.at(-1);
+}
+
+function synchronousCatalog(client: StudioClient): BuilderCatalog | undefined {
+  if (!client.catalog) {
+    return undefined;
+  }
+
+  try {
+    const catalog = client.catalog();
+    return isPromiseLike(catalog) ? undefined : catalog;
+  } catch {
+    return undefined;
+  }
+}
+
+function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
+  return typeof value === "object" && value !== null && "then" in value && typeof value.then === "function";
 }
 
 function chatSummaryForSession(mode: PendingCommand, session: StudioSessionSnapshot): string {

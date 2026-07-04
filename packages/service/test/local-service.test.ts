@@ -42,7 +42,21 @@ describe("local Playcraft service", () => {
     });
     expect(catalog.input).toEqual({
       defaultSource: "text",
-      transcriptSource: "moonshine-transcript"
+      transcriptSource: "moonshine-transcript",
+      sourceOptions: [
+        {
+          source: "text",
+          displayLabel: "Text",
+          generatePlaceholder: "Memory game with dinosaurs",
+          updatePlaceholder: "Change the game or replace assets..."
+        },
+        {
+          source: "moonshine-transcript",
+          displayLabel: "Transcript",
+          generatePlaceholder: "Moonshine transcript: memory game with dinosaurs",
+          updatePlaceholder: "Moonshine transcript: change the game or replace assets"
+        }
+      ]
     });
     expect(catalog.sessions).toEqual({
       defaultAssembleSessionId: "service.session",

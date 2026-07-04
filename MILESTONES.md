@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Studio Input Source Controls
+
+Milestone:
+- Builder catalog input metadata now publishes source options with labels and generate/update placeholders.
+- The local service owns Text and Moonshine transcript input source presentation through `LOCAL_SERVICE_INPUT_POLICY`.
+- Studio command bar source buttons and request placeholders now render from `catalog.input.sourceOptions` instead of app-local hard-coded controls.
+
+Supportive changes:
+- Studio now initializes synchronous local catalogs on first render while preserving async catalog loading for HTTP transports.
+- Studio UI tests verify custom catalog source labels/placeholders replace default labels.
+- Source scans now block direct Studio input-source handlers and hard-coded source placeholders from returning.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps text/Moonshine input presentation catalog-owned and forward-only without app-local source heuristics, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Template-Owned Memory Pair Styles
 
 Milestone:

@@ -571,6 +571,16 @@ export type GameTemplateDefinition = z.infer<typeof GameTemplateDefinitionSchema
 export const BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"]);
 export type BuilderInputSource = z.infer<typeof BuilderInputSourceSchema>;
 
+export const BuilderInputSourceOptionSchema = z
+  .object({
+    source: BuilderInputSourceSchema,
+    displayLabel: z.string().min(1).max(40),
+    generatePlaceholder: z.string().min(1).max(120),
+    updatePlaceholder: z.string().min(1).max(120)
+  })
+  .strict();
+export type BuilderInputSourceOption = z.infer<typeof BuilderInputSourceOptionSchema>;
+
 export const MoonshineTranscriptionConfigSchema = z
   .object({
     engine: z.literal("moonshine-streaming"),
@@ -692,7 +702,8 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
   input: z
     .object({
       defaultSource: BuilderInputSourceSchema,
-      transcriptSource: z.literal("moonshine-transcript")
+      transcriptSource: z.literal("moonshine-transcript"),
+      sourceOptions: z.array(BuilderInputSourceOptionSchema).min(1)
     })
     .strict(),
   sessions: z

@@ -226,6 +226,26 @@ describe("import-light boundaries and source scans", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps Studio input source controls catalog-owned", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const serviceSource = readSource("packages/service/src/index.ts");
+    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+
+    expect(contractSource).toContain("BuilderInputSourceOptionSchema");
+    expect(contractSource).toContain("sourceOptions: z.array(BuilderInputSourceOptionSchema)");
+    expect(serviceSource).toContain("sourceOptions");
+    expect(serviceSource).toContain('displayLabel: "Text"');
+    expect(serviceSource).toContain('displayLabel: "Transcript"');
+    expect(studioSource).toContain("catalog?.input.sourceOptions");
+    expect(studioSource).toContain("option.displayLabel");
+    expect(studioSource).toContain("selectedInputOption?.generatePlaceholder");
+    expect(studioSource).toContain("selectedInputOption?.updatePlaceholder");
+    expect(studioSource).not.toContain('onInputSourceChange("text")');
+    expect(studioSource).not.toContain('onInputSourceChange("moonshine-transcript")');
+    expect(studioSource).not.toContain("Moonshine transcript: memory game with dinosaurs");
+    expect(studioSource).not.toContain("Change the game or replace assets...");
+  });
+
   it("keeps Studio service event ingestion schema-backed", () => {
     const source = readSource("apps/studio/src/local-client.ts");
 

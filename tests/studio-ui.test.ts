@@ -326,6 +326,50 @@ describe("studio UI", () => {
     expect(screen.getByText("Try: Memory game with dinosaurs; Sorting game with toys; Sequence repeat with ocean animals.")).toBeDefined();
   });
 
+  it("renders input source controls from the service catalog", async () => {
+    const catalog = createLocalPlaycraftService().catalog();
+    const client: StudioClient = {
+      catalog: () => ({
+        ...catalog,
+        input: {
+          ...catalog.input,
+          sourceOptions: [
+            {
+              source: "text",
+              displayLabel: "Typed",
+              generatePlaceholder: "Typed request from catalog",
+              updatePlaceholder: "Typed update from catalog"
+            },
+            {
+              source: "moonshine-transcript",
+              displayLabel: "Moon CPU",
+              generatePlaceholder: "Moonshine request from catalog",
+              updatePlaceholder: "Moonshine update from catalog"
+            }
+          ]
+        }
+      }),
+      assembleFromIntent() {
+        throw new Error("not used");
+      },
+      requestChange() {
+        throw new Error("not used");
+      }
+    };
+
+    render(React.createElement(StudioApp, { client }));
+
+    expect(await screen.findByRole("button", { name: "Typed" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Moon CPU" })).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Text" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Transcript" })).toBeNull();
+    expect((screen.getByLabelText("Request") as HTMLInputElement).placeholder).toBe("Typed request from catalog");
+
+    fireEvent.click(screen.getByRole("button", { name: "Moon CPU" }));
+
+    expect((screen.getByLabelText("Request") as HTMLInputElement).placeholder).toBe("Moonshine request from catalog");
+  });
+
   it("shows the service catalog as an agent tool surface in the Developer tab", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
