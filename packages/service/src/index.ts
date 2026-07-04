@@ -622,7 +622,7 @@ function templateDecisionFor(input: {
   }
 
   if (input.matchedTemplateIds.length === 1) {
-    return { source: "text-match", templateId: input.matchedTemplateIds[0] };
+    return { source: "catalog-template-alias", templateId: input.matchedTemplateIds[0] };
   }
 
   if (input.matchedTemplateIds.length > 1) {

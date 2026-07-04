@@ -188,7 +188,7 @@ describe("public contract schemas", () => {
         activeTemplateId: "template.memory-match",
         selectedTemplateId: "template.memory-match",
         templateDecision: {
-          source: "text-match",
+          source: "catalog-template-alias",
           matchedTemplateIds: ["template.memory-match"],
           matchedCapabilityTags: ["game:memory-match"]
         },

@@ -437,7 +437,7 @@ describe("local Playcraft service", () => {
 
     expect(resolved.templateId).toBe("template.memory-match");
     expect(resolved.assetEdit).toEqual({ theme: "toys" });
-    expect(resolved.resolution.templateDecision.source).toBe("text-match");
+    expect(resolved.resolution.templateDecision.source).toBe("catalog-template-alias");
     expect(resolved.resolution.assetDecision).toMatchObject({
       source: "catalog-asset-alias",
       matchedText: "toys"
@@ -468,7 +468,7 @@ describe("local Playcraft service", () => {
     expect(resolved.templateId).toBe("template.sequence-repeat");
     expect(resolved.assetEdit).toBeUndefined();
     expect(resolved.resolution.templateDecision).toMatchObject({
-      source: "text-match",
+      source: "catalog-template-alias",
       matchedRequestAliases: expect.arrayContaining(["repeat pattern"]),
       matchedTemplateIds: ["template.sequence-repeat"]
     });
@@ -501,7 +501,7 @@ describe("local Playcraft service", () => {
 
     expect(resolved.templateId).toBe("template.sorting");
     expect(resolved.resolution.templateDecision).toMatchObject({
-      source: "text-match",
+      source: "catalog-template-alias",
       matchedRequestAliases: ["group by color"],
       matchedTemplateIds: ["template.sorting"]
     });

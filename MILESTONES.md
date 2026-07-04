@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog Template Alias Resolution Source
+
+Milestone:
+- `BuilderIntentResolution.templateDecision.source` now reports catalog-driven template matches as `catalog-template-alias`.
+- The local service emits the new forward-only decision source when request text matches a bundled template `requestAliases` entry.
+- Contract and service tests no longer assert the generic template `text-match` source.
+
+Supportive changes:
+- Kept explicit, ambiguous, active-template, and default-template decision sources unchanged.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `rg -n "source: \"text-match\"|toBe\\(\"text-match\"\\)|text-match" packages tests apps README.md playcraft-agentic-framework --glob '!**/dist/**' --glob '!**/node_modules/**'`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps template switching inspectable and catalog-driven without legacy generic text-match labels, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Removed-Stack Scan Literal Hygiene
 
 Milestone:
