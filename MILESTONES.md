@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Studio Event Boundary Validation
+
+Milestone:
+- Studio service transport now validates AG-UI event type strings before adding service events to the Developer timeline.
+- Unknown service event types fail at the Studio adapter boundary instead of being retyped into known lifecycle/activity/tool events.
+- Studio timeline mapping now depends directly on the shared AG-UI event type contract rather than the builder package alias.
+
+Supportive changes:
+- Added Studio client coverage for rejecting malformed service event envelopes from a transport response.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps UI event ingestion schema-first and local without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Import CLI Template Rejection
 
 Milestone:

@@ -163,6 +163,39 @@ describe("studio UI", () => {
     expect(send).not.toHaveBeenCalled();
   });
 
+  it("rejects unknown AG-UI event types from service transport responses", () => {
+    const client = createStudioClientFromServiceTransport({
+      defaultSessionId: "studio.invalid-event",
+      timelineIdPrefix: "timeline.invalid-event",
+      transport: {
+        send(request) {
+          const response = handleLocalServiceRequest(request);
+          if (!response.execution) {
+            return response;
+          }
+
+          return {
+            ...response,
+            execution: {
+              ...response.execution,
+              events: [
+                {
+                  eventId: "builder-event.invalid-event.1",
+                  runId: "studio.invalid-event.run",
+                  timestamp: "2026-07-04T00:00:00.000Z",
+                  type: "NotAnAgUiEvent",
+                  value: {}
+                }
+              ]
+            }
+          };
+        }
+      }
+    });
+
+    expect(() => client.assembleFromIntent({ idea: "Memory game with dinosaurs" })).toThrow(/unknown AG-UI event type/u);
+  });
+
   it("can assemble through a configured HTTP service endpoint", async () => {
     const requestedUrls: string[] = [];
     vi.stubGlobal("fetch", async (url: unknown, init: { body?: unknown } = {}) => {

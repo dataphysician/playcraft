@@ -1,4 +1,4 @@
-import type { BuilderAgUiEvent } from "@playcraft/builder";
+import type { AgUiEvent, AgUiEventType } from "@playcraft/ag-ui";
 import {
   BuilderServiceRequestSchema,
   PLAYCRAFT_SCHEMA_VERSION,
@@ -221,7 +221,7 @@ function timelineEntry(eventInput: JsonValue, sequence: number, timelineIdPrefix
   };
 }
 
-function agUiEventFromJson(eventInput: JsonValue): BuilderAgUiEvent {
+function agUiEventFromJson(eventInput: JsonValue): StudioAgUiEvent {
   if (typeof eventInput !== "object" || eventInput === null || Array.isArray(eventInput)) {
     throw new Error("service event must be a JSON object");
   }
@@ -237,7 +237,7 @@ function agUiEventFromJson(eventInput: JsonValue): BuilderAgUiEvent {
   }
 
   return {
-    type: event.type as BuilderAgUiEvent["type"],
+    type: agUiEventTypeFromString(event.type),
     eventId: event.eventId,
     runId: event.runId,
     timestamp: event.timestamp,
@@ -245,7 +245,28 @@ function agUiEventFromJson(eventInput: JsonValue): BuilderAgUiEvent {
   };
 }
 
-function kindForEvent(event: BuilderAgUiEvent): StudioTimelineKind {
+type StudioAgUiEvent = AgUiEvent;
+
+function agUiEventTypeFromString(type: string): AgUiEventType {
+  switch (type) {
+    case "RunStarted":
+    case "RunFinished":
+    case "RunError":
+    case "StepStarted":
+    case "StepFinished":
+    case "StateSnapshot":
+    case "StateDelta":
+    case "Activity":
+    case "ToolCall":
+    case "ToolResult":
+    case "Custom":
+      return type;
+    default:
+      throw new Error(`unknown AG-UI event type: ${type}`);
+  }
+}
+
+function kindForEvent(event: StudioAgUiEvent): StudioTimelineKind {
   if (event.type === "StateSnapshot" || event.type === "StateDelta") {
     return "state";
   }
@@ -261,7 +282,7 @@ function kindForEvent(event: BuilderAgUiEvent): StudioTimelineKind {
   return "lifecycle";
 }
 
-function titleForEvent(event: BuilderAgUiEvent): string {
+function titleForEvent(event: StudioAgUiEvent): string {
   if (event.type === "Custom" && typeof event.value === "object" && event.value !== null && "payloadType" in event.value) {
     return `Custom: ${String(event.value.payloadType)}`;
   }
@@ -271,7 +292,7 @@ function titleForEvent(event: BuilderAgUiEvent): string {
   return event.type;
 }
 
-function profileIdForEvent(event: BuilderAgUiEvent): string | undefined {
+function profileIdForEvent(event: StudioAgUiEvent): string | undefined {
   if (event.type !== "Custom" || typeof event.value !== "object" || event.value === null || !("profileId" in event.value)) {
     return undefined;
   }
