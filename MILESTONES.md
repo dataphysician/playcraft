@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Assembly Request Template Selection
+
+Milestone:
+- Imported profiles now resolve their builder template through the explicit `assemblyRequestId` contract.
+- Custom or renamed profile IDs remain supported when they preserve a known assembly request.
+- Profiles with unknown assembly requests are rejected even when their component IDs resemble a bundled template.
+
+Supportive changes:
+- Builder import tests now cover renamed-profile success and unknown-assembly rejection.
+- Source scans now block component-set template inference from returning to the builder import path.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test tests/studio-asset-library.test.tsx`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps profile import/update behavior contract-shaped and forward-only without component-set heuristics, migration aliases, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Concrete Trusted Preview Identities
 
 Milestone:

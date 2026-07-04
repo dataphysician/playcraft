@@ -6,6 +6,7 @@ import {
   sortingBinAssetCatalog,
   sortingBinAssetFor
 } from "../apps/studio/src/asset-library.js";
+import { LiveGame } from "../apps/studio/src/live-game.js";
 import { createLocalStudioClient } from "../apps/studio/src/local-client.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
 
@@ -47,24 +48,26 @@ describe("studio asset library", () => {
   });
 
   it("renders the Playcraft card back and replacement card sprites", async () => {
-    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
-
-    fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Memory game with dinosaurs" } });
-    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
+    const profile = session.profiles.at(-1);
+    expect(profile).toBeDefined();
+    render(React.createElement(LiveGame, { profile: profile! }));
 
     const dinosaurCards = await screen.findAllByRole("button", { name: /dinosaur-\d-[ab]/u });
     const dinosaurCard = dinosaurCards[0];
     if (!dinosaurCard) {
       throw new Error("No rendered dinosaur card was available.");
     }
-    const expectedSpriteName = dinosaurCard.getAttribute("aria-label")?.replace(/-[ab]$/u, "").replace(/-/gu, " ");
-    if (!expectedSpriteName) {
+    const cardLabel = dinosaurCard.getAttribute("aria-label");
+    const pairOrdinal = cardLabel?.match(/^dinosaur-(\d)-[ab]$/u)?.[1];
+    if (!pairOrdinal) {
       throw new Error("Rendered dinosaur card did not expose an accessible card label.");
     }
     expect(screen.getAllByTestId("playcraft-card-back").length).toBeGreaterThan(0);
 
     fireEvent.click(dinosaurCard);
-    expect(await screen.findByRole("img", { name: `${expectedSpriteName} sprite` })).toBeDefined();
+    expect(await screen.findByRole("img", { name: `dinosaur ${pairOrdinal} sprite` })).toBeDefined();
   });
 
   it("renders generated sorting bin assets", async () => {

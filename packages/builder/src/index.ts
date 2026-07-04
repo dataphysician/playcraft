@@ -547,13 +547,10 @@ function templateForId(templateId: BuilderTemplateId): GameTemplateDefinition {
 }
 
 function templateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition {
-  const profileComponentIds = new Set(profile.components.map((component) => component.componentId));
-  const template =
-    gameTemplateDefinitions.find((entry) => entry.assemblyRequestId === profile.assemblyRequestId) ??
-    gameTemplateDefinitions.find((entry) => entry.requiredComponentIds.every((componentId) => profileComponentIds.has(componentId)));
+  const template = gameTemplateDefinitions.find((entry) => entry.assemblyRequestId === profile.assemblyRequestId);
 
   if (!template) {
-    throw new Error(`profile ${profile.id} is not backed by a known game template contract`);
+    throw new Error(`profile ${profile.id} assembly request ${profile.assemblyRequestId} is not backed by a known game template contract`);
   }
 
   return template;

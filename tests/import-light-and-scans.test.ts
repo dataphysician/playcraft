@@ -174,6 +174,14 @@ describe("import-light boundaries and source scans", () => {
     expect(studioAssetLibrarySource).not.toContain('dolphins: ["dolphin"');
   });
 
+  it("keeps imported profile template selection tied to assembly request contracts", () => {
+    const source = readSource("packages/builder/src/index.ts");
+
+    expect(source).toContain("entry.assemblyRequestId === profile.assemblyRequestId");
+    expect(source).not.toContain("profileComponentIds");
+    expect(source).not.toContain("requiredComponentIds.every");
+  });
+
   it("keeps retired sample memory-card IDs out of source and fixtures", () => {
     const blockedTerms = ["cat", "sun"].flatMap((item) => [`${item}-a`, `${item}-b`]);
     const checkedFiles = repoSourceFiles().filter((path) =>

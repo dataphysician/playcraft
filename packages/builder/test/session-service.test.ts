@@ -263,6 +263,21 @@ describe("builder session service", () => {
     expect(preview.result.preview.lastToolName).toBe("tool:reveal-card");
   });
 
+  it("rejects profile imports with unknown assembly contracts even when components match", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const unknownAssemblyProfile = {
+      ...exported!,
+      id: "profile.custom-memory",
+      assemblyRequestId: "request.custom-memory"
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+
+    expect(() => target.importProfile("session.unknown-assembly", unknownAssemblyProfile)).toThrow(/assembly request request\.custom-memory/u);
+  });
+
   it("previews the first interactive component when visual components render first", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
