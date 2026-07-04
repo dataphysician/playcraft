@@ -43,7 +43,7 @@ const defaultIo: LocalServiceCliIo = {
 export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request> [--text <request>] [--transcript <moonshine transcript>] [--source <text|speech-transcript>] [--session <id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
+    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request> [--text <request>] [--transcript <moonshine transcript>] [--source <text|speech-transcript>] [--session <id>] [--template <template-id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
     return 1;
   }
 
@@ -187,10 +187,12 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
   }
 
   if (commandName === "import-profile") {
+    if (args.templateId) {
+      throw new Error("import-profile derives template identity from the profile; --template is only accepted by assemble and update");
+    }
     request.assetEdit = args.assetEdit;
     request.profile = profile;
     request.profileExport = profileExport;
-    request.templateId = args.templateId;
   }
 
   return request;

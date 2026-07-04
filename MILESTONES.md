@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Import CLI Template Rejection
+
+Milestone:
+- `playcraft-service import-profile` now rejects `--template` with a clear CLI error instead of producing an invalid import envelope.
+- Friendly CLI import requests no longer attach request-level `templateId`; imported template identity remains profile-derived.
+- CLI usage text now documents `--template` as a flag while command handling scopes it to assemble/update behavior.
+
+Supportive changes:
+- Added service CLI coverage for rejecting `import-profile --template` while preserving normal profile-export import.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps agent-facing CLI producers aligned with service envelope contracts without compatibility shims, hosted providers, auth, database state, or generated runtime code.
+
 ## 2026-07-04 - Import Request Template Scope
 
 Milestone:

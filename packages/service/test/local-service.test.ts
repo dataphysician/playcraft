@@ -679,6 +679,26 @@ describe("local Playcraft service", () => {
     expect(JSON.stringify(cliImport.events)).toContain("tool:import-profile");
     expect(err).toEqual([]);
 
+    const invalidImportOut: string[] = [];
+    const invalidImportErr: string[] = [];
+    expect(
+      runLocalServiceCli([
+        "import-profile",
+        "--session",
+        "session.cli-import-invalid-template",
+        "--profile-export-json",
+        JSON.stringify(exported.profileExport),
+        "--template",
+        "template.memory-match",
+        "--json"
+      ], {
+        stdout: (message) => invalidImportOut.push(message),
+        stderr: (message) => invalidImportErr.push(message)
+      })
+    ).toBe(1);
+    expect(invalidImportOut).toEqual([]);
+    expect(invalidImportErr.join("\n")).toMatch(/import-profile derives template identity from the profile/u);
+
     const exportOut: string[] = [];
     const exportErr: string[] = [];
     expect(
