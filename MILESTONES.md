@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Profile Contract Portability Cleanup
+
+Milestone:
+- Imported profiles no longer need bundled profile IDs to recover their template context.
+- Builder import resolves profiles from `assemblyRequestId` or component contracts, so renamed/custom profile implementations can still replay and preview.
+- Asset-edit prompts now derive game purpose from component capabilities instead of profile ID substrings.
+
+Supportive changes:
+- Removed `profile.id.includes(...)` game branching from builder asset prompt generation.
+- Added builder coverage for importing and previewing a renamed memory profile.
+- Added a source-scan guard against reintroducing profile-ID substring dispatch.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+
+Constraint notes:
+- Keeps profile portability forward-only through current contracts rather than migration aliases.
+- Does not add hosted services, generated runtime code, auth, database state, or legacy game-type branching.
+
 ## 2026-07-04 - Moonshine Transcript Boundary Tightening
 
 Milestone:

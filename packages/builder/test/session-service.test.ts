@@ -134,6 +134,31 @@ describe("builder session service", () => {
     expect(preview.result.profile?.id).toBe("profile.sequence-repeat.mvp");
   });
 
+  it("imports renamed profiles by assembly contract instead of bundled profile id", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const renamed = {
+      ...exported!,
+      id: "profile.custom-memory",
+      profileName: "Custom Memory"
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    const imported = target.importProfile("session.renamed", renamed);
+    const preview = target.execute(command({
+      actionName: "preview-action",
+      id: "builder-command.test.preview-renamed",
+      interaction: { action: "primary" },
+      sessionId: "session.renamed",
+      templateId: undefined
+    }));
+
+    expect(imported.result.profile?.id).toBe("profile.custom-memory");
+    expect(imported.result.preview.activeTemplateId).toBe("template.memory-match");
+    expect(preview.result.preview.lastToolName).toBe("tool:reveal-card");
+  });
+
   it("previews the first interactive component when visual components render first", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;

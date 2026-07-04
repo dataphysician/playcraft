@@ -76,6 +76,7 @@ describe("import-light boundaries and source scans", () => {
     );
 
     expect(source).not.toMatch(legacyDispatchPattern);
+    expect(source).not.toMatch(/profile\.id\.includes/u);
     expect(source).not.toMatch(/\bGameType\b|\bMEMORY_MATCH\b|\bPATTERN_MATCH\b|\bSORTING\b/u);
     expect(source).not.toMatch(/Ta[v]us|ta[v]us|re[p]lica|C[V]I/u);
   });

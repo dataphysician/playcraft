@@ -525,9 +525,13 @@ function templateForId(templateId: BuilderTemplateId): GameTemplateDefinition {
 }
 
 function templateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition {
-  const template = gameTemplateDefinitions.find((entry) => entry.profileId === profile.id);
+  const profileComponentIds = new Set(profile.components.map((component) => component.componentId));
+  const template =
+    gameTemplateDefinitions.find((entry) => entry.assemblyRequestId === profile.assemblyRequestId) ??
+    gameTemplateDefinitions.find((entry) => entry.requiredComponentIds.every((componentId) => profileComponentIds.has(componentId)));
+
   if (!template) {
-    throw new Error(`profile ${profile.id} is not backed by a bundled game template`);
+    throw new Error(`profile ${profile.id} is not backed by a known game template contract`);
   }
 
   return template;
@@ -719,19 +723,23 @@ function editComponentProps(
 }
 
 function promptForAssetEdit(profile: GameAssemblyProfile, edit: NormalizedAssetEdit): string {
-  if (profile.id.includes("memory-match")) {
+  if (hasComponentCapability(profile, "component:reveal-card-grid")) {
     return `child-safe ${edit.theme} memory card illustrations for paired cards ${pairedCardIds(edit).join(", ")}`;
   }
 
-  if (profile.id.includes("sorting")) {
+  if (hasComponentCapability(profile, "component:sort-bins")) {
     return `child-safe ${edit.theme} sorting game illustrations for ${edit.items.join(", ")}`;
   }
 
-  if (profile.id.includes("sequence-repeat")) {
+  if (hasComponentCapability(profile, "component:sequence-pad")) {
     return `child-safe ${edit.theme} sequence game button illustrations for ${edit.items.join(", ")}`;
   }
 
   return `child-safe ${edit.theme} game illustrations for ${profile.profileName}`;
+}
+
+function hasComponentCapability(profile: GameAssemblyProfile, renderCapability: string): boolean {
+  return profile.components.some((component) => component.renderCapability === renderCapability);
 }
 
 function pairedCardIds(edit: NormalizedAssetEdit): string[] {
