@@ -127,6 +127,24 @@ describe("import-light boundaries and source scans", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps generic text resolution labels out of source and docs", () => {
+    const blockedLabel = "text-" + "match";
+    const checkedFiles = repoSourceFiles().filter((path) =>
+      path === "MILESTONES.md" ||
+      path === "README.md" ||
+      path.startsWith("apps/") ||
+      path.startsWith("packages/") ||
+      path.startsWith("playcraft-agentic-framework/") ||
+      path.startsWith("tests/")
+    );
+    const violations = checkedFiles.flatMap((path) => {
+      const source = readSource(path);
+      return source.includes(blockedLabel) ? [path] : [];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

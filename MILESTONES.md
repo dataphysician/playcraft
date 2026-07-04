@@ -1,19 +1,19 @@
 # Playcraft Milestones
 
-## 2026-07-04 - Catalog Template Alias Resolution Source
+## 2026-07-04 - Generic Text Resolution Label Scan
 
 Milestone:
-- `BuilderIntentResolution.templateDecision.source` now reports catalog-driven template matches as `catalog-template-alias`.
-- The local service emits the new forward-only decision source when request text matches a bundled template `requestAliases` entry.
-- Contract and service tests no longer assert the generic template `text-match` source.
+- Source scans now block the old generic template/asset text resolution label across milestones, apps, packages, tests, and public docs.
+- The scan guard builds the blocked label dynamically, so the guard itself does not preserve the stale label.
+- Historical milestone notes now describe the old resolution source generically instead of storing the stale literal.
 
 Supportive changes:
-- Kept explicit, ambiguous, active-template, and default-template decision sources unchanged.
+- Preserved the catalog-specific `catalog-template-alias`, `catalog-asset-alias`, and `freeform-asset-request` decision labels.
 
 Validation:
-- `pnpm test packages/contracts/test/schemas.test.ts`
-- `pnpm test packages/service/test/local-service.test.ts`
-- `rg -n "source: \"text-match\"|toBe\\(\"text-match\"\\)|text-match" packages tests apps README.md playcraft-agentic-framework --glob '!**/dist/**' --glob '!**/node_modules/**'`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Generic text resolution-label scan across milestones, apps, packages, tests, and public docs.
+- Removed vendor/conversation-stack literal scan.
 - `pnpm build`
 - `pnpm test`
 - `pnpm --filter @playcraft/studio build`
@@ -21,7 +21,30 @@ Validation:
 - `git diff --check`
 
 Constraint notes:
-- Keeps template switching inspectable and catalog-driven without legacy generic text-match labels, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+- Keeps intent resolution catalog-specific and forward-only without legacy generic text labels, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
+## 2026-07-04 - Catalog Template Alias Resolution Source
+
+Milestone:
+- `BuilderIntentResolution.templateDecision.source` now reports catalog-driven template matches as `catalog-template-alias`.
+- The local service emits the new forward-only decision source when request text matches a bundled template `requestAliases` entry.
+- Contract and service tests no longer assert the generic template text label.
+
+Supportive changes:
+- Kept explicit, ambiguous, active-template, and default-template decision sources unchanged.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- Generic template text-label scan across packages, apps, tests, and public docs.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps template switching inspectable and catalog-driven without legacy generic text labels, hosted providers, generated runtime code, auth, database state, or compatibility shims.
 
 ## 2026-07-04 - Removed-Stack Scan Literal Hygiene
 
@@ -740,7 +763,7 @@ Milestone:
 - Generic polish requests such as "make it more colorful" and template-only switches such as "Switch game to sorting" no longer become accidental asset edits.
 
 Supportive changes:
-- Replaced the generic asset `text-match` resolution source with `catalog-asset-alias` and `freeform-asset-request`.
+- Replaced the generic asset text resolution source with `catalog-asset-alias` and `freeform-asset-request`.
 - Split catalog-only update parsing from freeform asset/card/theme parsing in the local service resolver.
 - Added service regression coverage for catalog alias edits, template-only switches, and future dropped-folder style asset requests.
 
