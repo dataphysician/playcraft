@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Conversation-Free Active Docs
+
+Milestone:
+- Active docs now describe text and local Moonshine transcript input without live/vendor conversation, avatar, or conversation-state vocabulary.
+- The input boundary now points to local transcript records and excludes real-time call/session state without referencing the removed stack shape.
+
+Supportive changes:
+- Public doc scans now block avatar and conversation-runtime/state/stack phrases.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps active docs aligned with local text/Moonshine-only input without live conversation abstractions, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Third-Party Runtime Doc Boundary
 
 Milestone:

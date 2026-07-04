@@ -15,7 +15,7 @@ It supersedes the older PlayCraft AI app/product framing. That older framing des
 
 Playcraft is "GDevelop-inspired for coding agents": a lightweight game-assembly SDK/framework where agents assemble mini games from typed contracts, template definitions, event/rule semantics, registries, trusted components, theme packs, asset records, safety policies, and replayable profiles.
 
-The user-facing builder accepts local text input and local speech transcripts. Speech transcripts are modeled as Moonshine Streaming CPU-only input records; there is no vendor conversation runtime in the Playcraft runtime.
+The user-facing builder accepts local text input and local speech transcripts. Speech transcripts are modeled as Moonshine Streaming CPU-only input records; Playcraft input handling does not require a third-party runtime.
 
 Playcraft is not an AI game generator. AI or agents may help interpret intent, plan assemblies, or request assets, but the playable result must be a validated `GameAssemblyProfile` made from registered capabilities.
 
