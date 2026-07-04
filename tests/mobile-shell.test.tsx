@@ -7,7 +7,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createMoonshineTranscriptRecord, handleServiceHttpRequestBody } from "@playcraft/service";
 
 import { App } from "../apps/mobile-shell/src/App.js";
-import { createMobileShellStudioClient } from "../apps/mobile-shell/src/mobile-client.js";
+import { MOBILE_SHELL_CLIENT_POLICY, createMobileShellStudioClient } from "../apps/mobile-shell/src/mobile-client.js";
 
 const root = process.cwd();
 const packageJsonSchema = z
@@ -60,6 +60,19 @@ describe("Tauri mobile shell", () => {
     expect(tauriConfig.build.frontendDist).toBe("../web-dist");
     expect(tauriConfig.bundle.active).toBe(false);
     expect(tauriConfig.app.security.csp).toContain("http://127.0.0.1:8787");
+  });
+
+  it("publishes Mobile shell client defaults for local service sessions", () => {
+    expect(MOBILE_SHELL_CLIENT_POLICY).toEqual({
+      defaultSessionId: "mobile.session",
+      defaultTimelineIdPrefix: "mobile.timeline"
+    });
+
+    const client = createMobileShellStudioClient();
+    const session = client.assembleFromIntent({ idea: "Sort shapes by color" });
+
+    expect(session.sessionId).toBe(MOBILE_SHELL_CLIENT_POLICY.defaultSessionId);
+    expect(session.timeline[0]?.id).toContain(MOBILE_SHELL_CLIENT_POLICY.defaultTimelineIdPrefix);
   });
 
   it("assembles games through the local Playcraft service client", () => {

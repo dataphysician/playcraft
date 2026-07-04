@@ -454,6 +454,16 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain('options.timelineIdPrefix ?? "timeline"');
   });
 
+  it("keeps Mobile shell client defaults policy-owned", () => {
+    const source = readSource("apps/mobile-shell/src/mobile-client.ts");
+
+    expect(source).toContain("MOBILE_SHELL_CLIENT_POLICY");
+    expect(source).toContain("MOBILE_SHELL_CLIENT_POLICY.defaultSessionId");
+    expect(source).toContain("MOBILE_SHELL_CLIENT_POLICY.defaultTimelineIdPrefix");
+    expect(source).not.toContain('defaultSessionId: "mobile.session",\n    serviceEndpoint');
+    expect(source).not.toContain('timelineIdPrefix: "mobile.timeline"');
+  });
+
   it("keeps service CLI response output action-scoped instead of payload-precedence based", () => {
     const source = readSource("packages/service/src/cli.ts");
 

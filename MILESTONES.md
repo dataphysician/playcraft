@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Mobile Shell Client Policy
+
+Milestone:
+- The Mobile shell now exports `MOBILE_SHELL_CLIENT_POLICY` for default local session and timeline IDs.
+- Mobile shell Studio client construction consumes that policy instead of owning private `mobile.session` and `mobile.timeline` literals.
+- Tauri Mobile-facing client defaults stay inspectable for later native-shell or server retrieval work without adding those surfaces now.
+
+Supportive changes:
+- Mobile shell tests now validate the published policy and default generated session/timeline IDs.
+- Source scans now block private Mobile shell session and timeline literals from returning to client construction.
+
+Validation:
+- `pnpm test tests/mobile-shell.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps Mobile shell client defaults explicit and forward-only without hosted providers, generated runtime code, auth, database state, native shell work, or removed hosted conversation stack instances.
+
 ## 2026-07-04 - Studio Client Policy
 
 Milestone:
