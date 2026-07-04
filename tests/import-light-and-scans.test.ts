@@ -11,7 +11,7 @@ function readSource(path: string): string {
 }
 
 function repoSourceFiles(directory = root): string[] {
-  const ignoredDirectories = new Set([".git", ".omx", "dist", "node_modules"]);
+  const ignoredDirectories = new Set([".git", ".omx", "dist", "node_modules", "web-dist"]);
   const sourceExtensions = new Set([".json", ".md", ".ts", ".tsx", ".yaml", ".yml"]);
   const output: string[] = [];
 
@@ -140,6 +140,23 @@ describe("import-light boundaries and source scans", () => {
     const violations = checkedFiles.flatMap((path) => {
       const source = readSource(path);
       return source.includes(blockedLabel) ? [path] : [];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it("keeps retired sample memory-card IDs out of source and fixtures", () => {
+    const blockedTerms = ["cat", "sun"].flatMap((item) => [`${item}-a`, `${item}-b`]);
+    const checkedFiles = repoSourceFiles().filter((path) =>
+      path === "MILESTONES.md" ||
+      path.startsWith("apps/") ||
+      path.startsWith("examples/") ||
+      path.startsWith("packages/") ||
+      path.startsWith("tests/")
+    );
+    const violations = checkedFiles.flatMap((path) => {
+      const source = readSource(path);
+      return blockedTerms.some((term) => source.includes(term)) ? [path] : [];
     });
 
     expect(violations).toEqual([]);

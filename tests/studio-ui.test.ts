@@ -346,9 +346,9 @@ describe("studio UI", () => {
 
     await waitFor(() => expect(assembleFromIntent).toHaveBeenCalledWith({ idea: "Build a memory game for kids", sessionId: undefined, source: "text" }));
     expect(await screen.findByText(profileA.profileName)).toBeDefined();
-    expect(screen.getByRole("button", { name: "cat-a" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "memory-card-1-a" })).toBeDefined();
 
-    fireEvent.click(screen.getByRole("button", { name: "cat-a" }));
+    fireEvent.click(screen.getByRole("button", { name: "memory-card-1-a" }));
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
     expect((await screen.findAllByText((text) => text.startsWith("Preview interaction:"))).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Validation: valid")).toBeDefined();
@@ -394,8 +394,10 @@ describe("studio UI", () => {
 
     fireEvent.click(toy1A);
     fireEvent.click(toy1B);
+    await waitFor(() => expect(screen.getByText("1 of 2 pairs")).toBeDefined());
     fireEvent.click(toy2A);
     fireEvent.click(toy2B);
+    await waitFor(() => expect(screen.getByText("All pairs found")).toBeDefined());
     await waitFor(() => {
       expect(toy1A.style.background).toBe(toy1B.style.background);
       expect(toy2A.style.background).toBe(toy2B.style.background);

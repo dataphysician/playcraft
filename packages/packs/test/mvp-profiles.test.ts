@@ -51,10 +51,10 @@ describe("MVP profile pack", () => {
     expect(profileA.assemblyRequestId).toBe("request.memory-match.mvp");
     expect(profileB.assemblyRequestId).toBe("request.sorting.mvp");
     expect(profileA.components.find((component) => component.renderCapability === "component:reveal-card-grid")?.props.pairs).toEqual({
-      "cat-a": "cat",
-      "cat-b": "cat",
-      "sun-a": "sun",
-      "sun-b": "sun"
+      "memory-card-1-a": "pair-1",
+      "memory-card-1-b": "pair-1",
+      "memory-card-2-a": "pair-2",
+      "memory-card-2-b": "pair-2"
     });
     expect(profileB.components.find((component) => component.renderCapability === "component:sort-bins")?.props.targets).toEqual({
       "red circle": "red",

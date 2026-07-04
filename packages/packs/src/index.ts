@@ -208,19 +208,19 @@ const mvpTemplates: MvpProfileTemplate[] = [
     requestAliases: ["memory", "memory game", "memory match", "matching cards", "card pairs", "pair match"],
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
-    assetPrompt: "friendly animal cards for a child-safe memory match game",
+    assetPrompt: "friendly starter card illustrations for a child-safe memory match game",
     mechanicCapabilities: ["mechanic:tap-to-reveal", "mechanic:match-pairs", "feedback:celebration"],
     ruleCategories: ["pair-matching", "retry", "hint", "completion"],
     componentCapabilities: ["component:reveal-card-grid", "component:celebration-overlay"],
     propsByCapability: {
       "component:reveal-card-grid": {
-        title: "Animal pairs",
-        cards: ["cat-a", "cat-b", "sun-a", "sun-b"],
+        title: "Memory pairs",
+        cards: ["memory-card-1-a", "memory-card-1-b", "memory-card-2-a", "memory-card-2-b"],
         pairs: {
-          "cat-a": "cat",
-          "cat-b": "cat",
-          "sun-a": "sun",
-          "sun-b": "sun"
+          "memory-card-1-a": "pair-1",
+          "memory-card-1-b": "pair-1",
+          "memory-card-2-a": "pair-2",
+          "memory-card-2-b": "pair-2"
         },
         columns: 2
       },

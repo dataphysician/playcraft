@@ -1,5 +1,32 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Neutral Memory Profile Baseline
+
+Milestone:
+- The bundled Memory Match profile now starts from neutral `memory-card-*` IDs instead of baked-in sample animal/object card IDs.
+- The default memory template prompt now asks for starter card illustrations instead of an implicit animal theme.
+- The saved memory profile fixture was regenerated to the matching deterministic local asset digest.
+
+Supportive changes:
+- Trusted renderer and Studio tests now exercise the neutral baseline card IDs.
+- Source scans now ignore generated `web-dist` output and block the retired sample memory-card IDs in source and fixtures.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/renderer/test/trusted-renderer.test.tsx`
+- `pnpm test tests/studio-ui.test.ts`
+- Retired sample card ID/source wording scan.
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps asset theming edit-aware and profile-defined without hard-coded starter card themes, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Clean App Browser Bundle Output
 
 Milestone:

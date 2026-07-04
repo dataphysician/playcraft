@@ -101,23 +101,23 @@
         "profile.memory-match.mvp.mechanic.2"
       ],
       "props": {
-        "title": "Animal pairs",
+        "title": "Memory pairs",
         "cards": [
-          "cat-a",
-          "cat-b",
-          "sun-a",
-          "sun-b"
+          "memory-card-1-a",
+          "memory-card-1-b",
+          "memory-card-2-a",
+          "memory-card-2-b"
         ],
         "pairs": {
-          "cat-a": "cat",
-          "cat-b": "cat",
-          "sun-a": "sun",
-          "sun-b": "sun"
+          "memory-card-1-a": "pair-1",
+          "memory-card-1-b": "pair-1",
+          "memory-card-2-a": "pair-2",
+          "memory-card-2-b": "pair-2"
         },
         "columns": 2
       },
       "assetBindings": {
-        "illustration": "asset.6f02986c"
+        "illustration": "asset.28d72307"
       }
     },
     {
@@ -146,7 +146,7 @@
       "safetyPolicyId": "safety.child-friendly",
       "contentType": "image",
       "format": "svg",
-      "prompt": "friendly animal cards for a child-safe memory match game",
+      "prompt": "friendly starter card illustrations for a child-safe memory match game",
       "seedPolicy": {
         "mode": "required",
         "seed": "seed-memory-match"
@@ -159,18 +159,18 @@
   "assets": [
     {
       "schemaVersion": "playcraft.v1",
-      "id": "generated.6f02986c",
+      "id": "generated.28d72307",
       "version": "1.0.0",
       "kind": "generated-asset",
       "requestId": "asset-request.profile.memory-match.mvp",
-      "assetId": "asset.6f02986c",
+      "assetId": "asset.28d72307",
       "sourceId": "asset-source.local-deterministic",
       "contentType": "image",
       "format": "svg",
-      "uri": "local-asset://image/6f02986c.svg",
-      "altText": "Deterministic image asset for friendly animal cards for a child-safe memory match game",
+      "uri": "local-asset://image/28d72307.svg",
+      "altText": "Deterministic image asset for friendly starter card illustrations for a child-safe memory match game",
       "metadata": {
-        "promptDigest": "6f02986c",
+        "promptDigest": "28d72307",
         "source": "deterministic-local"
       },
       "provenance": {

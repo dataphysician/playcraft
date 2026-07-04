@@ -125,14 +125,14 @@ describe("trusted renderer", () => {
     }
 
     const view = render(first.element);
-    fireEvent.click(screen.getByRole("button", { name: "cat-a" }));
+    fireEvent.click(screen.getByRole("button", { name: "memory-card-1-a" }));
 
     const updatedRequest: ComponentRenderRequest = {
       ...request,
       id: `${request.id}.updated`,
       props: {
         ...request.props,
-        title: "Animal pairs updated"
+        title: "Memory pairs updated"
       }
     };
     const second = registry.render(updatedRequest, assets, (name, payload) => emitted.push({ name, payload }));
@@ -143,17 +143,17 @@ describe("trusted renderer", () => {
     }
 
     view.rerender(second.element);
-    expect(screen.getByLabelText("Animal pairs updated")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "cat-a" }));
+    expect(screen.getByLabelText("Memory pairs updated")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "memory-card-1-a" }));
 
     expect(emitted).toEqual([
       {
         name: "tool:reveal-card",
-        payload: { componentId: request.componentId, cardId: "cat-a" }
+        payload: { componentId: request.componentId, cardId: "memory-card-1-a" }
       },
       {
         name: "tool:reveal-card",
-        payload: { componentId: request.componentId, cardId: "cat-a" }
+        payload: { componentId: request.componentId, cardId: "memory-card-1-a" }
       }
     ]);
   });
