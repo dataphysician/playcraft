@@ -11,9 +11,9 @@
 
 ## 1. Implementation Posture
 
-Build the lightweight v1 as import-light TypeScript packages first. Do not start from the older app-route, database schema, auth model, dashboard, or hosted-provider route shape.
+Build the lightweight v1 as import-light TypeScript packages first. Do not start from the older app-route, database schema, auth model, dashboard, or third-party runtime route shape.
 
-The v1 core must be usable without network access, credentials, AI SDKs, GPU, model weights, database services, or native-shell APIs. Hosted SDK adapters, Vite studio UX, and Tauri shells are app layers around the core, not prerequisites.
+The v1 core must be usable without network access, credentials, AI SDKs, GPU, model weights, database services, or native-shell APIs. Third-party runtime adapters, Vite studio UX, and Tauri shells are app layers around the core, not prerequisites.
 
 ## 2. Package Boundaries
 
@@ -242,7 +242,7 @@ Default verification must include:
 - Replay tests reconstructing memory match, sorting, and sequence repeat from saved `GameAssemblyProfile` records.
 - Trusted renderer tests that reject unknown component IDs, unregistered capabilities, invalid props, and generated runtime code.
 - Import-light tests proving contracts/core/registries import without AI SDKs, network clients, GPU/model packages, credentials, database clients, app-route frameworks, or native shell APIs.
-- Source scans against hardcoded defaults, `GameType` core branching, source-name branching, arbitrary generated React/runtime code, app-route dependencies in core, database/auth/dashboard assumptions, and hosted SDK paths.
+- Source scans against hardcoded defaults, `GameType` core branching, source-name branching, arbitrary generated React/runtime code, app-route dependencies in core, database/auth/dashboard assumptions, and third-party runtime paths.
 
 Suggested scan targets:
 

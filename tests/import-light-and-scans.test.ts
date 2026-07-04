@@ -41,7 +41,7 @@ function repoSourceFiles(directory = root): string[] {
 }
 
 describe("import-light boundaries and source scans", () => {
-  it("imports contracts and core without app, hosted SDK, or native dependencies", () => {
+  it("imports contracts and core without app, third-party runtime, or native dependencies", () => {
     expect(contracts.PLAYCRAFT_SCHEMA_VERSION).toBe("playcraft.v1");
     expect(core.createEmptyRegistries().mechanics.all()).toEqual([]);
   });
@@ -116,6 +116,12 @@ describe("import-light boundaries and source scans", () => {
       "SDK " + "SDK",
       "hosted-stack-" + "specific",
       "video-" + "avatar",
+      "hosted " + "SDK",
+      "Hosted " + "SDK",
+      "hosted " + "provider",
+      "hosted-" + "provider",
+      "hosted " + "conversation",
+      "hosted " + "audio",
       "Open" + "AI",
       "Post" + "gres",
       "Prisma",
@@ -508,7 +514,7 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/eval\s*\(|new\s+Function|dangerouslySetInnerHTML/u);
   });
 
-  it("keeps builder and studio free of hosted SDK, auth, db, and native-shell dependencies", () => {
+  it("keeps builder and studio free of third-party runtime, auth, db, and native-shell dependencies", () => {
     const source = [
       readSource("packages/builder/package.json"),
       readSource("packages/builder/src/index.ts"),

@@ -65,7 +65,7 @@ After v1 gates pass, continue hardening middleweight runtime/studio features:
 - Repository interfaces for optional persistence.
 - Native packaging hardening after static client behavior, local cache policy, and offline profile import/export are proven.
 
-Middleweight work must not move core assembly semantics into app routes, Tauri commands, database models, or hosted SDK adapters.
+Middleweight work must not move core assembly semantics into app routes, Tauri commands, database models, or third-party runtime adapters.
 
 Current implementation notes, July 4, 2026:
 
@@ -74,7 +74,7 @@ Current implementation notes, July 4, 2026:
 
 ## 6. Server Catalog and Asset Source Path
 
-Hosted SDK adapters are not part of the framework path. The future server path retrieves trusted component manifests, templates, and curated asset-source metadata while preserving the same local service contracts.
+Third-party runtime adapters are not part of the framework path. The future server path retrieves trusted component manifests, templates, and curated asset-source metadata while preserving the same local service contracts.
 
 Server retrieval requirements:
 
@@ -82,7 +82,7 @@ Server retrieval requirements:
 - Declare network, credential, safety, format, dimension, and seed support.
 - Return `GeneratedAssetRecord` values with provenance.
 - Keep default tests local and deterministic.
-- Never require hosted SDK imports from contracts/core packages.
+- Never require third-party runtime imports from contracts/core packages.
 
 Asset-source selection must be capability-driven and must not branch on source names in core.
 

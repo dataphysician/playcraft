@@ -9,7 +9,7 @@
 
 This folder is the canonical source of truth for the Playcraft Agentic Game Framework.
 
-It supersedes the older PlayCraft AI app/product framing. That older framing described an app-specific child-game product with hosted provider, persistence, dashboard, auth, and route assumptions. That history can be useful context, but it is not the foundation for the framework spec.
+It supersedes the older PlayCraft AI app/product framing. That older framing described an app-specific child-game product with third-party runtime, persistence, dashboard, auth, and route assumptions. That history can be useful context, but it is not the foundation for the framework spec.
 
 ## Positioning
 
@@ -54,7 +54,7 @@ The core framework packages must be buildable and testable without network acces
 
 ## Middleweight Later Path
 
-Current middleweight app work includes the Vite studio, local service, visual game preview, developer timeline, and a Tauri Mobile-facing webview scaffold. Later docs may specify richer curated local packs, server catalog retrieval, and asset-library adapters. Hosted SDK adapters are not part of the framework path.
+Current middleweight app work includes the Vite studio, local service, visual game preview, developer timeline, and a Tauri Mobile-facing webview scaffold. Later docs may specify richer curated local packs, server catalog retrieval, and asset-library adapters. Third-party runtime adapters are not part of the framework path.
 
 ## Explicit Rejections
 

@@ -45,13 +45,13 @@ The core must not depend on a specific app framework, route system, database, au
 | Boundary | Playcraft owns | External layer owns |
 |----------|----------------|---------------------|
 | Agent/frontend stream | Custom payload schemas, validation, game semantics | AG-UI event transport and event categories |
-| Asset fulfillment | Local asset-source request/record contracts and capability selection | Hosted SDKs and direct network calls |
+| Asset fulfillment | Local asset-source request/record contracts and capability selection | Third-party runtimes and direct network calls |
 | Rendering | Component manifests, props schemas, trusted registry, replay events | React DOM implementation details |
 | Persistence | Profile shape, replay requirements, import/export semantics | Database, filesystem, or app-specific storage |
 | Native shell | Framework contracts and static client compatibility | Tauri permissions, native APIs, app lifecycle |
 | Product app | Game assembly framework semantics | Auth, billing, dashboards, deployment, analytics |
 
-Builder input is local-first: text requests and Moonshine Streaming CPU-only speech transcripts both become `BuilderInputRequest` records before they reach the builder service. Speech input is represented as a validated `MoonshineTranscriptRecord`; the framework stores transcript text, CPU/local-only engine metadata, optional timing segments, and provenance, but does not embed microphone capture, hosted audio conversation services, or avatar conversation state in the core.
+Builder input is local-first: text requests and Moonshine Streaming CPU-only speech transcripts both become `BuilderInputRequest` records before they reach the builder service. Speech input is represented as a validated `MoonshineTranscriptRecord`; the framework stores transcript text, CPU/local-only engine metadata, optional timing segments, and provenance, but does not embed microphone capture, live audio conversation services, or avatar conversation state in the core.
 
 The current user-facing app path is `apps/studio` for the web studio and `apps/mobile-shell` for a Tauri Mobile-facing shell. Both route assembly through the `@playcraft/service` transport, which can later be replaced by a server-backed adapter as long as it preserves `BuilderServiceRequest` and `BuilderServiceResponse`. The Studio client accepts either typed text or a `MoonshineTranscriptRecord` from a local speech adapter; explicit transcript records are forwarded through the same service request instead of being reduced to an app-local flag. The service package includes an in-process transport, HTTP JSON client/server-body helpers, and a local `playcraft-service-http` server over the same envelope. The Vite shells use the in-process service by default and can switch to the HTTP service with `VITE_PLAYCRAFT_SERVICE_URL`, so local loopback and future server transport stay behind the same app contract. Agents can also use the `playcraft-service` CLI bin for catalog, assemble, update, preview, get-session, export-profile, import-profile, reset, or raw `BuilderServiceRequest` commands over the same validated service boundary. Profile export/import carries validated `GameAssemblyProfile` records plus session preview metadata and keeps imported profiles replay-checked before they become active; the Studio Developer tab exposes the same export/import loop through the shared client contract. The catalog exposes bundled templates, callable tool argument schemas, and available local asset-edit themes such as dinosaurs, toys, dolphins/ocean animals, and fruits; Studio request tips and the Developer tool catalog render from that same catalog. Template switching is driven by catalog `requestAliases`, not app-specific game-name branches.
 
@@ -214,7 +214,7 @@ Every pack manifest must declare:
 - Import-light status.
 - Network/credential/native requirements, if any.
 
-V1 packs must be local and import-light. Middleweight packs may add richer studio components, curated asset folders, and server catalog retrieval, but hosted SDK adapters are outside the framework path.
+V1 packs must be local and import-light. Middleweight packs may add richer studio components, curated asset folders, and server catalog retrieval, but third-party runtime adapters are outside the framework path.
 
 ## 11. Safety and Privacy
 
@@ -236,7 +236,7 @@ Non-child domains may define different policies later, but they must not weaken 
 
 Core packages must import and test without:
 
-- AI hosted SDKs.
+- Third-party runtime libraries.
 - Network clients.
 - GPU/model packages.
 - Model weights.

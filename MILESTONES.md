@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Third-Party Runtime Doc Boundary
+
+Milestone:
+- Public docs now describe old hosted SDK/provider/conversation exclusions as third-party runtime exclusions and local/server catalog boundaries.
+- Root and framework docs no longer preserve hosted SDK, hosted provider, or hosted conversation phrasing in the active product direction.
+
+Supportive changes:
+- Public doc scans now block hosted SDK/provider/conversation phrases.
+- Import-light test labels now use third-party runtime language.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps active documentation aligned with local text/Moonshine-only assembly without hosted provider vocabulary, generated runtime code, auth, database state, or live conversation stack assumptions.
+
 ## 2026-07-04 - Provider-Neutral Framework Docs
 
 Milestone:
