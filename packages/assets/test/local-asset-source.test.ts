@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  DeterministicStubAssetProvider,
-  createStubAssetProviderManifest
+  DeterministicLocalAssetSource,
+  createLocalAssetSourceManifest
 } from "@playcraft/assets";
 import {
   PLAYCRAFT_SCHEMA_VERSION,
@@ -26,17 +26,17 @@ const request: AssetGenerationRequest = {
   metadata: {}
 };
 
-describe("deterministic stub asset provider", () => {
+describe("deterministic stub asset source", () => {
   it("returns stable generated asset records for the same request and seed", () => {
-    const provider = new DeterministicStubAssetProvider();
+    const source = new DeterministicLocalAssetSource();
 
-    expect(provider.generate(request)).toEqual(provider.generate(request));
-    expect(provider.generate(request).provenance.seedStatus).toBe("used");
+    expect(source.generate(request)).toEqual(source.generate(request));
+    expect(source.generate(request).provenance.seedStatus).toBe("used");
   });
 
   it("changes deterministic records when the seed changes", () => {
-    const provider = new DeterministicStubAssetProvider();
-    const changed = provider.generate({
+    const source = new DeterministicLocalAssetSource();
+    const changed = source.generate({
       ...request,
       seedPolicy: {
         mode: "required",
@@ -44,25 +44,25 @@ describe("deterministic stub asset provider", () => {
       }
     });
 
-    expect(changed.assetId).not.toBe(provider.generate(request).assetId);
+    expect(changed.assetId).not.toBe(source.generate(request).assetId);
   });
 
   it("records unsupported seed behavior without network or credentials", () => {
-    const provider = new DeterministicStubAssetProvider({
-      manifest: createStubAssetProviderManifest({ seedSupport: false })
+    const source = new DeterministicLocalAssetSource({
+      manifest: createLocalAssetSourceManifest({ seedSupport: false })
     });
-    const asset = provider.generate(request);
+    const asset = source.generate(request);
 
     expect(asset.provenance.seedStatus).toBe("unsupported");
     expect(asset.provenance.seedSupported).toBe(false);
-    expect(provider.manifest.offline).toBe(true);
-    expect(provider.manifest.requiresCredentials).toBe(false);
-    expect(provider.manifest.requiresNetwork).toBe(false);
+    expect(source.manifest.offline).toBe(true);
+    expect(source.manifest.requiresCredentials).toBe(false);
+    expect(source.manifest.requiresNetwork).toBe(false);
   });
 
   it("rejects unsupported formats", () => {
-    const provider = new DeterministicStubAssetProvider();
+    const source = new DeterministicLocalAssetSource();
 
-    expect(() => provider.generate({ ...request, format: "mp3" })).toThrow(/format mp3 is not supported/u);
+    expect(() => source.generate({ ...request, format: "mp3" })).toThrow(/format mp3 is not supported/u);
   });
 });

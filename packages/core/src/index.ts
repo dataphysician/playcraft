@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import {
   AssemblyValidationResultSchema,
-  AssetProviderCapabilityManifestSchema,
+  AssetSourceCapabilityManifestSchema,
   ComponentManifestSchema,
   ComponentRenderRequestSchema,
   DomainProfileSchema,
@@ -16,7 +16,7 @@ import {
   schemaIssue,
   type AssemblyValidationResult,
   type AssetGenerationRequest,
-  type AssetProviderCapabilityManifest,
+  type AssetSourceCapabilityManifest,
   type ComponentManifest,
   type ComponentRenderRequest,
   type DomainProfile,
@@ -241,8 +241,8 @@ export function createThemeRegistry(): CapabilityRegistry<ThemePack> {
   return new CapabilityRegistry("themes", ThemePackSchema as z.ZodType<ThemePack>);
 }
 
-export function createAssetProviderRegistry(): CapabilityRegistry<AssetProviderCapabilityManifest> {
-  return new CapabilityRegistry("asset-providers", AssetProviderCapabilityManifestSchema as z.ZodType<AssetProviderCapabilityManifest>);
+export function createAssetSourceRegistry(): CapabilityRegistry<AssetSourceCapabilityManifest> {
+  return new CapabilityRegistry("asset-sources", AssetSourceCapabilityManifestSchema as z.ZodType<AssetSourceCapabilityManifest>);
 }
 
 export function createDomainRegistry(): CapabilityRegistry<DomainProfile> {
@@ -258,7 +258,7 @@ export interface PlaycraftRegistries {
   rules: CapabilityRegistry<RuleModuleDefinition>;
   components: CapabilityRegistry<ComponentManifest>;
   themes: CapabilityRegistry<ThemePack>;
-  assetProviders: CapabilityRegistry<AssetProviderCapabilityManifest>;
+  assetSources: CapabilityRegistry<AssetSourceCapabilityManifest>;
   domains: CapabilityRegistry<DomainProfile>;
   safetyPolicies: CapabilityRegistry<SafetyPolicyPack>;
 }
@@ -269,14 +269,14 @@ export function createEmptyRegistries(): PlaycraftRegistries {
     rules: createRuleRegistry(),
     components: createComponentRegistry(),
     themes: createThemeRegistry(),
-    assetProviders: createAssetProviderRegistry(),
+    assetSources: createAssetSourceRegistry(),
     domains: createDomainRegistry(),
     safetyPolicies: createSafetyPolicyRegistry()
   };
 }
 
 export interface AssetRecordGenerator {
-  manifest: AssetProviderCapabilityManifest;
+  manifest: AssetSourceCapabilityManifest;
   generate(request: AssetGenerationRequest): GeneratedAssetRecord;
   generateBatch(requests: AssetGenerationRequest[]): GeneratedAssetRecord[];
 }
@@ -284,7 +284,7 @@ export interface AssetRecordGenerator {
 export interface AssemblyRecipeBuildContext {
   request: PlaycraftAssemblyRequest;
   registries: PlaycraftRegistries;
-  assetProvider: AssetRecordGenerator;
+  assetSource: AssetRecordGenerator;
 }
 
 export interface AssemblyRecipe {
@@ -299,7 +299,7 @@ export interface DeterministicAssemblyPlannerOptions {
   version: string;
   recipes: AssemblyRecipe[];
   registries: PlaycraftRegistries;
-  assetProvider: AssetRecordGenerator;
+  assetSource: AssetRecordGenerator;
 }
 
 export class DeterministicAssemblyPlanner {
@@ -307,14 +307,14 @@ export class DeterministicAssemblyPlanner {
   readonly version: string;
   private readonly recipes: AssemblyRecipe[];
   private readonly registries: PlaycraftRegistries;
-  private readonly assetProvider: AssetRecordGenerator;
+  private readonly assetSource: AssetRecordGenerator;
 
   constructor(options: DeterministicAssemblyPlannerOptions) {
     this.id = options.id;
     this.version = options.version;
     this.recipes = [...options.recipes];
     this.registries = options.registries;
-    this.assetProvider = options.assetProvider;
+    this.assetSource = options.assetSource;
   }
 
   assemble(requestInput: PlaycraftAssemblyRequest): GameAssemblyProfile {
@@ -323,7 +323,7 @@ export class DeterministicAssemblyPlanner {
     const profile = recipe.build({
       request,
       registries: this.registries,
-      assetProvider: this.assetProvider
+      assetSource: this.assetSource
     });
 
     return GameAssemblyProfileSchema.parse({

@@ -169,7 +169,7 @@
       "kind": "generated-asset",
       "requestId": "asset-request.profile.sequence-repeat.mvp",
       "assetId": "asset.40272302",
-      "providerId": "asset-provider.stub-deterministic",
+      "sourceId": "asset-source.stub-deterministic",
       "contentType": "image",
       "format": "svg",
       "uri": "stub://image/40272302.svg",
@@ -179,8 +179,8 @@
         "source": "deterministic-stub"
       },
       "provenance": {
-        "providerManifestId": "asset-provider.stub-deterministic",
-        "providerManifestVersion": "1.0.0",
+        "sourceManifestId": "asset-source.stub-deterministic",
+        "sourceManifestVersion": "1.0.0",
         "deterministic": true,
         "seed": "seed-sequence-repeat",
         "seedSupported": true,

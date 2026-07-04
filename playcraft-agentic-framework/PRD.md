@@ -22,7 +22,7 @@ Playcraft is not an AI game generator. Agents may plan, suggest, and assemble. T
 Coding agents are good at following explicit contracts and bad at safely inventing ad hoc runtimes under vague requirements. Playcraft gives agents a small target:
 
 - A game DSL expressed as TypeScript types and Zod schemas.
-- Registries for mechanics, rules, components, themes, and asset providers.
+- Registries for mechanics, rules, components, themes, and asset sources.
 - AG-UI event mapping for frontend/agent interaction.
 - A trusted React rendering surface.
 - Replayable `GameAssemblyProfile` records.
@@ -55,7 +55,7 @@ The first useful domain is child-friendly educational mini games, but the framew
 | `ComponentManifest` | Trusted frontend render capability for one or more mechanics. |
 | `ThemePack` | Visual/audio style bundle with accessibility and policy constraints. |
 | `AssetGenerationRequest` | Local asset-source request for image, audio, animation, or text assets. |
-| `AssetProviderCapabilityManifest` | Machine-readable local asset-source capability and constraint record. |
+| `AssetSourceCapabilityManifest` | Machine-readable local asset-source capability and constraint record. |
 | `GeneratedAssetRecord` | Provenance-rich output of an asset request. |
 | `PlaycraftAgUiEventEnvelope` | Validated Playcraft payload carried inside AG-UI `Custom` events. |
 | `PlaycraftEventRecord` | Normalized runtime/replay event emitted by mechanics, rules, components, and tools. |
@@ -93,9 +93,9 @@ V1 must be small enough for a coding agent to implement and verify locally.
 Required v1 capabilities:
 
 - TypeScript contracts and Zod schemas for public interfaces.
-- Mechanic, rule, component, theme, and asset provider registries.
+- Mechanic, rule, component, theme, and asset source registries.
 - Deterministic stub planner.
-- Deterministic stub asset provider.
+- Deterministic stub asset source.
 - AG-UI adapter with validated Playcraft `Custom` envelopes.
 - Trusted React renderer that can render registered components only.
 - Replay harness that reconstructs a game from saved `GameAssemblyProfile` records.
@@ -193,12 +193,12 @@ Each profile must be assembled through registries and deterministic stubs, then 
 The framework must reject these old abstractions:
 
 - No hardcoded `GameType` enum as the core model.
-- No provider-name branching.
+- No source-name branching.
 - No arbitrary generated React/runtime code.
 - No Next.js API routes as framework core.
 - No app-specific database, auth, dashboard, or deployment assumptions in core docs.
 - No behavior-changing defaults hidden as bare constants in core logic.
-- No hosted provider integration in the framework path.
+- No hosted SDK integration in the framework path.
 
 ## 13. Success Criteria
 
@@ -211,7 +211,7 @@ The first useful version succeeds when:
 - Deterministic stubs build and replay profiles offline.
 - A saved `GameAssemblyProfile` reconstructs the same playable game.
 - Safety policy and domain profile selection can change validation behavior without changing AG-UI handling.
-- Registry tests prove selection is capability-driven, not game-type or provider-name branching.
+- Registry tests prove selection is capability-driven, not game-type or source-name branching.
 
 ## 14. Non-Goals
 

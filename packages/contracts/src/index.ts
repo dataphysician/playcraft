@@ -205,7 +205,7 @@ export const DomainProfileSchema = PublicContractBaseSchema.extend({
   allowedRuleIds: z.array(StableIdSchema).min(1),
   allowedComponentIds: z.array(StableIdSchema).min(1),
   allowedThemeIds: z.array(StableIdSchema).min(1),
-  allowedAssetProviderIds: z.array(StableIdSchema).min(1),
+  allowedAssetSourceIds: z.array(StableIdSchema).min(1),
   ageBands: z.array(AgeBandSchema).min(1),
   modalities: z.array(InputModalitySchema).min(1),
   defaults: z.record(JsonValueSchema).default({})
@@ -233,8 +233,8 @@ export const AssetGenerationRequestSchema = PublicContractBaseSchema.extend({
 }).strict();
 export type AssetGenerationRequest = z.infer<typeof AssetGenerationRequestSchema>;
 
-export const AssetProviderCapabilityManifestSchema = PublicContractBaseSchema.extend({
-  kind: z.literal("asset-provider"),
+export const AssetSourceCapabilityManifestSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("asset-source"),
   displayName: z.string().min(1),
   capabilityTags: z.array(CapabilityTagSchema).min(1),
   contentTypes: z.array(AssetContentTypeSchema).min(1),
@@ -246,13 +246,13 @@ export const AssetProviderCapabilityManifestSchema = PublicContractBaseSchema.ex
   requiresCredentials: z.boolean(),
   maxBatchSize: z.number().int().positive()
 }).strict();
-export type AssetProviderCapabilityManifest = z.infer<typeof AssetProviderCapabilityManifestSchema>;
+export type AssetSourceCapabilityManifest = z.infer<typeof AssetSourceCapabilityManifestSchema>;
 
 export const GeneratedAssetRecordSchema = PublicContractBaseSchema.extend({
   kind: z.literal("generated-asset"),
   requestId: StableIdSchema,
   assetId: StableIdSchema,
-  providerId: StableIdSchema,
+  sourceId: StableIdSchema,
   contentType: AssetContentTypeSchema,
   format: AssetFormatSchema,
   uri: z.string().min(1),
@@ -260,8 +260,8 @@ export const GeneratedAssetRecordSchema = PublicContractBaseSchema.extend({
   metadata: z.record(JsonValueSchema).default({}),
   provenance: z
     .object({
-      providerManifestId: StableIdSchema,
-      providerManifestVersion: VersionSchema,
+      sourceManifestId: StableIdSchema,
+      sourceManifestVersion: VersionSchema,
       deterministic: z.boolean(),
       seed: z.string().optional(),
       seedSupported: z.boolean(),
@@ -296,7 +296,7 @@ export const PlaycraftEventRecordSchema = PublicContractBaseSchema.extend({
   eventName: CapabilityTagSchema,
   source: z
     .object({
-      role: z.enum(["planner", "asset_requester", "asset_provider", "safety_evaluator", "validator", "renderer", "frontend"]),
+      role: z.enum(["planner", "asset_requester", "asset_source", "safety_evaluator", "validator", "renderer", "frontend"]),
       sourceId: StableIdSchema
     })
     .strict(),
@@ -415,7 +415,7 @@ export const PlaycraftAgUiEventEnvelopeSchema = z
     payload: JsonValueSchema,
     provenance: z
       .object({
-        role: z.enum(["planner", "asset_requester", "asset_provider", "safety_evaluator", "validator", "renderer", "frontend"]),
+        role: z.enum(["planner", "asset_requester", "asset_source", "safety_evaluator", "validator", "renderer", "frontend"]),
         sourceId: StableIdSchema
       })
       .strict()
@@ -429,7 +429,7 @@ export const PackManifestSchema = PublicContractBaseSchema.extend({
     "rule-pack",
     "component-pack",
     "theme-pack",
-    "asset-provider-pack",
+    "asset-source-pack",
     "domain-profile-pack",
     "safety-policy-pack"
   ]),
@@ -834,7 +834,7 @@ export const PublicContractSchemas = {
   ThemePackSchema,
   FrontendToolDefinitionSchema,
   AssetGenerationRequestSchema,
-  AssetProviderCapabilityManifestSchema,
+  AssetSourceCapabilityManifestSchema,
   GeneratedAssetRecordSchema,
   AssemblyValidationResultSchema,
   PlaycraftAgUiEventEnvelopeSchema,

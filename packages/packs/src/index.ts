@@ -1,8 +1,8 @@
 import React from "react";
 import {
-  createStubAssetProviderManifest,
-  DeterministicStubAssetProvider,
-  STUB_ASSET_PROVIDER_ID
+  createLocalAssetSourceManifest,
+  DeterministicLocalAssetSource,
+  LOCAL_ASSET_SOURCE_ID
 } from "@playcraft/assets";
 import {
   AssemblyValidationResultSchema,
@@ -177,7 +177,7 @@ export const domainProfiles: DomainProfile[] = [
     allowedRuleIds: ruleModuleDefinitions.map((entry) => entry.id),
     allowedComponentIds: componentManifests.map((entry) => entry.id),
     allowedThemeIds: themePacks.map((entry) => entry.id),
-    allowedAssetProviderIds: [STUB_ASSET_PROVIDER_ID],
+    allowedAssetSourceIds: [LOCAL_ASSET_SOURCE_ID],
     ageBands: ["2-3", "4-6", "7-9"],
     modalities: ["touch", "pointer", "audio"],
     defaults: {
@@ -187,14 +187,14 @@ export const domainProfiles: DomainProfile[] = [
   })
 ];
 
-export const assetProviderManifests = [createStubAssetProviderManifest()];
+export const assetSourceManifests = [createLocalAssetSourceManifest()];
 
 export const packManifests = [
   packManifest("pack.mechanics.mvp", "mechanic-pack", mechanicDefinitions.flatMap((entry) => entry.capabilityTags), ["MechanicDefinitionSchema"]),
   packManifest("pack.rules.mvp", "rule-pack", ruleModuleDefinitions.flatMap((entry) => entry.capabilityTags), ["RuleModuleDefinitionSchema"]),
   packManifest("pack.components.mvp", "component-pack", componentManifests.map((entry) => entry.renderCapability), ["ComponentManifestSchema"]),
   packManifest("pack.themes.mvp", "theme-pack", themePacks.flatMap((entry) => entry.capabilityTags), ["ThemePackSchema"]),
-  packManifest("pack.asset-providers.mvp", "asset-provider-pack", assetProviderManifests.flatMap((entry) => entry.capabilityTags), ["AssetProviderCapabilityManifestSchema"]),
+  packManifest("pack.asset-sources.mvp", "asset-source-pack", assetSourceManifests.flatMap((entry) => entry.capabilityTags), ["AssetSourceCapabilityManifestSchema"]),
   packManifest("pack.domains.mvp", "domain-profile-pack", domainProfiles.flatMap((entry) => entry.capabilityTags), ["DomainProfileSchema"]),
   packManifest("pack.safety.mvp", "safety-policy-pack", safetyPolicyPacks.flatMap((entry) => entry.rules.flatMap((ruleEntry) => ruleEntry.capabilityTags)), ["SafetyPolicyPackSchema"])
 ].map((entry) => PackManifestSchema.parse(entry));
@@ -297,21 +297,21 @@ export function createDefaultRegistries(): PlaycraftRegistries {
   registries.rules.registerMany(ruleModuleDefinitions);
   registries.components.registerMany(componentManifests);
   registries.themes.registerMany(themePacks);
-  registries.assetProviders.registerMany(assetProviderManifests);
+  registries.assetSources.registerMany(assetSourceManifests);
   registries.domains.registerMany(domainProfiles);
   registries.safetyPolicies.registerMany(safetyPolicyPacks);
   return registries;
 }
 
-export function createDefaultPlanner(options: { registries?: PlaycraftRegistries; assetProvider?: DeterministicStubAssetProvider } = {}): DeterministicAssemblyPlanner {
+export function createDefaultPlanner(options: { registries?: PlaycraftRegistries; assetSource?: DeterministicLocalAssetSource } = {}): DeterministicAssemblyPlanner {
   const registries = options.registries ?? createDefaultRegistries();
-  const assetProvider = options.assetProvider ?? new DeterministicStubAssetProvider();
+  const assetSource = options.assetSource ?? new DeterministicLocalAssetSource();
   return new DeterministicAssemblyPlanner({
     id: DEFAULT_PLANNER_ID,
     version: "1.0.0",
     recipes: mvpAssemblyRecipes,
     registries,
-    assetProvider
+    assetSource
   });
 }
 
@@ -403,7 +403,7 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
       }
     })
   ];
-  const assets = context.assetProvider.generateBatch(assetRequests);
+  const assets = context.assetSource.generateBatch(assetRequests);
   const illustration = assets[0].assetId;
 
   const components = template.componentCapabilities.map((capability, index) => {
@@ -894,7 +894,7 @@ function placeholderValidation(profileId: string) {
   });
 }
 
-function packManifest(id: string, kind: "mechanic-pack" | "rule-pack" | "component-pack" | "theme-pack" | "asset-provider-pack" | "domain-profile-pack" | "safety-policy-pack", providedCapabilities: string[], publicContractSchemas: string[]) {
+function packManifest(id: string, kind: "mechanic-pack" | "rule-pack" | "component-pack" | "theme-pack" | "asset-source-pack" | "domain-profile-pack" | "safety-policy-pack", providedCapabilities: string[], publicContractSchemas: string[]) {
   return {
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
     id,

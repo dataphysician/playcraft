@@ -13,7 +13,7 @@
 
 Build the lightweight v1 as import-light TypeScript packages first. Do not start from the older Next.js app, database schema, auth model, dashboard, or OpenAI route shape.
 
-The v1 core must be usable without network access, credentials, AI SDKs, GPU, model weights, database services, or native-shell APIs. Real providers, Vite studio UX, and Tauri shells are app layers around the core, not prerequisites.
+The v1 core must be usable without network access, credentials, AI SDKs, GPU, model weights, database services, or native-shell APIs. Hosted SDK adapters, Vite studio UX, and Tauri shells are app layers around the core, not prerequisites.
 
 ## 2. Package Boundaries
 
@@ -25,7 +25,7 @@ Recommended package boundaries:
 | `packages/core` | Registries, assembly validation, deterministic planning interfaces, rule evaluation, safety policy evaluation, replay model. |
 | `packages/ag-ui` | AG-UI event mapping, Playcraft custom envelopes, typed frontend tools, stream helpers. |
 | `packages/renderer` | Trusted React renderer, component registry, component manifest validation. |
-| `packages/assets` | Asset request schemas, deterministic stub provider, provider manifest helpers. |
+| `packages/assets` | Asset request schemas, deterministic stub asset source, asset source manifest helpers. |
 | `packages/packs` | Initial mechanic, rule, component, theme, domain, and safety policy packs. |
 | `packages/builder` | Local builder tool handler for catalog, assemble, update, and preview actions with published argument schemas. |
 | `packages/service` | Local app/API and `playcraft-service` CLI facade for validated `BuilderServiceRequest`, `BuilderServiceResponse`, `BuilderCatalog`, `BuilderIntentResolution`, text input, `MoonshineTranscriptRecord` inputs from Moonshine Streaming CPU, template resolution, and asset edit levers. |
@@ -70,7 +70,7 @@ Implement contracts in this order:
 6. `DomainProfile`
 7. `FrontendToolDefinition`
 8. `AssetGenerationRequest`
-9. `AssetProviderCapabilityManifest`
+9. `AssetSourceCapabilityManifest`
 10. `GeneratedAssetRecord`
 11. `GameAssemblyProfile`
 12. `AssemblyValidationResult`
@@ -98,7 +98,7 @@ Required registries:
 | `ruleRegistry` | Category, consumed events, emitted events, supported mechanics, safety policy, default source. |
 | `componentRegistry` | Render capability, supported mechanics, props schema, emitted tools, accessibility, safety policy. |
 | `themeRegistry` | Domain, age band, accessibility, visual style, audio style, allowed content. |
-| `assetProviderRegistry` | Content type, format, seed support, safety support, offline/network mode, credential requirement. |
+| `assetSourceRegistry` | Content type, format, seed support, safety support, offline/network mode, credential requirement. |
 | `domainRegistry` | Domain profile ID, allowed packs, defaults, safety policy, UX assumptions. |
 
 Registry lookup must return structured match results:
@@ -109,14 +109,14 @@ Registry lookup must return structured match results:
 - Version conflicts.
 - Warnings.
 
-Tests must prove that registry selection does not rely on `GameType`, provider names, or hardcoded app route logic.
+Tests must prove that registry selection does not rely on `GameType`, source names, or hardcoded app route logic.
 
 ## 6. Deterministic Stubs
 
 V1 needs deterministic local stubs:
 
 - Stub planner: converts known fixture requests into memory match, sorting, and sequence repeat profiles through registries.
-- Stub asset provider: returns stable fake asset records for the same request and seed policy.
+- Stub asset source: returns stable fake asset records for the same request and seed policy.
 - Stub safety evaluator: applies explicit local policy fixtures.
 - Stub persistence: reads/writes JSON fixtures only if needed by tests or examples.
 
@@ -162,7 +162,7 @@ type PlaycraftAgUiEventEnvelope<TPayload> = {
     role:
       | "planner"
       | "asset_requester"
-      | "asset_provider"
+      | "asset_source"
       | "safety_evaluator"
       | "validator"
       | "renderer"
@@ -212,8 +212,8 @@ Implement pure steps first:
 4. Select rules by mechanic events and policy.
 5. Select components by mechanic render needs and props schemas.
 6. Select theme pack.
-7. Generate provider-neutral asset requests.
-8. Resolve assets through deterministic stub provider.
+7. Generate local asset-source asset requests.
+8. Resolve assets through deterministic stub asset source.
 9. Build `GameAssemblyProfile`.
 10. Validate profile schemas, registry references, event graph, component bindings, assets, policy, and replay readiness.
 11. Emit AG-UI lifecycle/state/custom events through the adapter.
@@ -237,18 +237,18 @@ These are profile fixtures assembled through registries, not enum branches.
 Default verification must include:
 
 - Schema tests for every public contract.
-- Registry tests for mechanics, rules, components, themes, asset providers, domains, and safety policies.
+- Registry tests for mechanics, rules, components, themes, asset sources, domains, and safety policies.
 - AG-UI envelope tests for lifecycle/state/activity/tool/custom mapping and Playcraft `Custom` payload validation.
 - Replay tests reconstructing memory match, sorting, and sequence repeat from saved `GameAssemblyProfile` records.
 - Trusted renderer tests that reject unknown component IDs, unregistered capabilities, invalid props, and generated runtime code.
 - Import-light tests proving contracts/core/registries import without AI SDKs, network clients, GPU/model packages, credentials, database clients, Next.js, or Tauri.
-- Source scans against hardcoded defaults, `GameType` core branching, provider-name branching, arbitrary generated React/runtime code, Next.js route dependencies in core, database/auth/dashboard assumptions, and hosted-provider paths.
+- Source scans against hardcoded defaults, `GameType` core branching, source-name branching, arbitrary generated React/runtime code, Next.js route dependencies in core, database/auth/dashboard assumptions, and hosted SDK paths.
 
 Suggested scan targets:
 
 ```bash
 rg "GameType|MEMORY_MATCH|PATTERN_MATCH|SORTING" packages/core packages/contracts
-rg "providerName|if \\(provider|switch \\(provider" packages/core packages/assets packages/builder packages/service apps/studio
+rg "sourceName|if \\(source|switch \\(source" packages/core packages/assets packages/builder packages/service apps/studio
 rg "next/server|NextRequest|PrismaClient|NextAuth|OPENAI_API_KEY|process\\.env" packages/core packages/contracts packages/service
 rg "eval\\(|new Function|dangerouslySetInnerHTML" packages/renderer packages/builder packages/service apps/studio
 ```
@@ -266,12 +266,12 @@ The exact paths can change, but the gates cannot.
 ### Milestone 2: Registries and Packs
 
 - Implement registry APIs.
-- Add initial mechanic, rule, component, theme, domain, safety, and provider manifests.
+- Add initial mechanic, rule, component, theme, domain, safety, and asset source manifests.
 - Add structured registry match results.
 
 ### Milestone 3: Deterministic Assembly
 
-- Add stub planner and stub asset provider.
+- Add stub planner and stub asset source.
 - Generate saved profile fixtures for memory match, sorting, and sequence repeat.
 - Validate replay readiness.
 

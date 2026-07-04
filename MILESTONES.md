@@ -1,11 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Asset Source Contract Rename
+
+Milestone:
+- Public asset contracts now use asset-source terminology throughout.
+- Generated asset records now store `sourceId`, `sourceManifestId`, and `sourceManifestVersion`.
+- Core registries, pack manifests, deterministic local asset generation, fixtures, and tests now use asset-source APIs.
+
+Supportive changes:
+- Renamed the deterministic asset test to `local-asset-source.test.ts`.
+- Updated docs and source-scan tests so stale hosted-stack terminology is not preserved as a public framework concept.
+- Updated saved MVP profile fixtures to the new generated asset provenance shape.
+
+Validation:
+- `pnpm build`
+- `pnpm test packages/contracts/test/schemas.test.ts packages/assets/test/local-asset-source.test.ts packages/packs/test/mvp-profiles.test.ts packages/core/test/registries.test.ts packages/ag-ui/test/events.test.ts tests/import-light-and-scans.test.ts`
+
+Constraint notes:
+- Keeps asset expansion framed as local sources and server catalog retrieval.
+- Does not add hosted SDKs, migration aliases, generated runtime code, auth, database state, or legacy-stack compatibility.
+
 ## 2026-07-04 - Local Asset Contract Cleanup
 
 Milestone:
 - V1 asset content contracts now accept only image, audio, animation, and text.
 - Canonical framework docs now describe local asset sources, curated packs, and server catalog retrieval instead of hosted SDK adapters.
-- Root docs no longer advertise any hosted provider dependency in the framework path.
+- Root docs no longer advertise any hosted SDK dependency in the framework path.
 
 Supportive changes:
 - Added schema coverage that rejects `video` as an `AssetContentTypeSchema` value.
@@ -13,11 +33,11 @@ Supportive changes:
 - Reworded roadmap, PRD, architecture, and developer guide language around asset-source retrieval.
 
 Validation:
-- `pnpm test packages/contracts/test/schemas.test.ts packages/assets/test/stub-provider.test.ts packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test packages/contracts/test/schemas.test.ts packages/assets/test/local-asset-source.test.ts packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
 
 Constraint notes:
 - Keeps text and Moonshine Streaming CPU transcript input as the only user-input path.
-- Keeps future expansion focused on local/server catalog retrieval rather than provider SDK stacks.
+- Keeps future expansion focused on local/server catalog retrieval rather than hosted SDK stacks.
 
 ## 2026-07-04 - Interactive Preview Contract Hardening
 
@@ -36,7 +56,7 @@ Validation:
 
 Constraint notes:
 - Keeps preview behavior driven by component manifests and replay contracts.
-- Does not add app-local preview heuristics, generated runtime code, provider calls, auth, or database state.
+- Does not add app-local preview heuristics, generated runtime code, hosted calls, auth, or database state.
 
 ## 2026-07-04 - Service Preview Tool Loop
 
@@ -60,4 +80,4 @@ Validation:
 Constraint notes:
 - Keeps runtime rendering on trusted registered components.
 - Does not generate runtime code.
-- Does not introduce auth, databases, provider calls, or core migration.
+- Does not introduce auth, databases, hosted calls, or core migration.

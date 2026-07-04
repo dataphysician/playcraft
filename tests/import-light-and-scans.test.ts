@@ -41,7 +41,7 @@ function repoSourceFiles(directory = root): string[] {
 }
 
 describe("import-light boundaries and source scans", () => {
-  it("imports contracts and core without app/provider/native dependencies", () => {
+  it("imports contracts and core without app, hosted SDK, or native dependencies", () => {
     expect(contracts.PLAYCRAFT_SCHEMA_VERSION).toBe("playcraft.v1");
     expect(core.createEmptyRegistries().mechanics.all()).toEqual([]);
   });
@@ -56,7 +56,7 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/GameType|MEMORY_MATCH|PATTERN_MATCH|SORTING/u);
   });
 
-  it("blocks provider-name dispatch shortcuts and legacy game-type branching in core, assets, builder, and studio", () => {
+  it("blocks source-name dispatch shortcuts and legacy game-type branching in core, assets, builder, and studio", () => {
     const source = [
       readSource("packages/core/src/index.ts"),
       readSource("packages/assets/src/index.ts"),
@@ -70,12 +70,17 @@ describe("import-light boundaries and source scans", () => {
       readSource("apps/studio/src/main.tsx")
     ].join("\n");
 
-    expect(source).not.toMatch(/providerName|if\s*\(\s*provider|switch\s*\(\s*provider/u);
+    const legacyDispatchPattern = new RegExp(
+      [`provi${"derName"}`, `if\\s*\\(\\s*provi${"der"}`, `switch\\s*\\(\\s*provi${"der"}`].join("|"),
+      "u"
+    );
+
+    expect(source).not.toMatch(legacyDispatchPattern);
     expect(source).not.toMatch(/\bGameType\b|\bMEMORY_MATCH\b|\bPATTERN_MATCH\b|\bSORTING\b/u);
     expect(source).not.toMatch(/Ta[v]us|ta[v]us|re[p]lica|C[V]I/u);
   });
 
-  it("keeps repository source free of the removed video-avatar provider stack", () => {
+  it("keeps repository source free of the removed video-avatar hosted stack", () => {
     const blockedTerms = ["Ta" + "vus", "ta" + "vus", "re" + "plica", "C" + "VI", "Geo" + "rgina"];
     const violations = repoSourceFiles().flatMap((path) => {
       const source = readSource(path);
@@ -101,7 +106,7 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/eval\s*\(|new\s+Function|dangerouslySetInnerHTML/u);
   });
 
-  it("keeps builder and studio free of provider sdk, auth, db, and native-shell dependencies", () => {
+  it("keeps builder and studio free of hosted SDK, auth, db, and native-shell dependencies", () => {
     const source = [
       readSource("packages/builder/package.json"),
       readSource("packages/builder/src/index.ts"),

@@ -17,9 +17,9 @@ Playcraft should start as a small local framework that a coding agent can implem
 V1 includes:
 
 - TypeScript contracts and Zod schemas.
-- Mechanic/rule/component/theme/asset provider/domain/safety registries.
+- Mechanic/rule/component/theme/asset source/domain/safety registries.
 - Deterministic stub planner.
-- Deterministic stub asset provider.
+- Deterministic stub asset source.
 - AG-UI adapter with validated Playcraft `Custom` envelopes.
 - Trusted React renderer for registered components only.
 - Replay harness for saved `GameAssemblyProfile` records.
@@ -33,13 +33,13 @@ V1 core excludes network, credentials, AI SDKs, GPU, model weights, database ser
 | Milestone | Exit criteria |
 |-----------|---------------|
 | Contract kernel | Public schemas, fixtures, and schema tests exist. |
-| Registry kernel | Mechanics, rules, components, themes, providers, domains, and safety policies register and select by capability. |
-| Deterministic assembly | Stub planner and stub asset provider produce stable MVP profiles. |
+| Registry kernel | Mechanics, rules, components, themes, asset sources, domains, and safety policies register and select by capability. |
+| Deterministic assembly | Stub planner and stub asset source produce stable MVP profiles. |
 | AG-UI adapter | Lifecycle/state/activity/tool/custom event mapping is tested, and Playcraft envelopes validate. |
 | Trusted renderer | Registered MVP components render from manifests and reject unknown/invalid requests. |
 | Replay harness | Saved MVP profiles replay without planning or asset generation. |
 | Import-light verification | Core imports without SDKs, network, GPU, model weights, database, Next.js, or Tauri. |
-| Source scans | Scans block hardcoded `GameType`, provider-name branching, generated code execution, and app-specific core assumptions. |
+| Source scans | Scans block hardcoded `GameType`, source-name branching, generated code execution, and app-specific core assumptions. |
 
 ## 4. MVP Profiles
 
@@ -65,26 +65,26 @@ After v1 gates pass, continue hardening middleweight runtime/studio features:
 - Repository interfaces for optional persistence.
 - Native packaging hardening after static client behavior, local cache policy, and offline profile import/export are proven.
 
-Middleweight work must not move core assembly semantics into app routes, Tauri commands, database models, or provider SDK adapters.
+Middleweight work must not move core assembly semantics into app routes, Tauri commands, database models, or hosted SDK adapters.
 
 Current implementation notes, July 4, 2026:
 
 - Milestones reached: local service envelope, HTTP service transport, CLI service surface, Studio and Mobile shell service wiring, local Moonshine transcript input, bundled asset-edit catalog, catalog-driven Studio request tips, per-session service state, and profile export/import.
-- Supportive changes: stale provider/avatar references are covered by source scans, app entrypoints are documented, request examples come from service catalog data instead of hardcoded Studio text, and imported profiles are replay-checked before becoming active.
+- Supportive changes: stale hosted-avatar references are covered by source scans, app entrypoints are documented, request examples come from service catalog data instead of hardcoded Studio text, and imported profiles are replay-checked before becoming active.
 
 ## 6. Server Catalog and Asset Source Path
 
-Hosted provider SDK adapters are not part of the framework path. The future server path retrieves trusted component manifests, templates, and curated asset-source metadata while preserving the same local service contracts.
+Hosted SDK adapters are not part of the framework path. The future server path retrieves trusted component manifests, templates, and curated asset-source metadata while preserving the same local service contracts.
 
 Server retrieval requirements:
 
-- Register local asset-source capability through `AssetProviderCapabilityManifest`.
+- Register local asset-source capability through `AssetSourceCapabilityManifest`.
 - Declare network, credential, safety, format, dimension, and seed support.
 - Return `GeneratedAssetRecord` values with provenance.
 - Keep default tests local and deterministic.
-- Never require hosted provider SDK imports from contracts/core packages.
+- Never require hosted SDK SDK imports from contracts/core packages.
 
-Asset-source selection must be capability-driven and must not branch on provider names in core.
+Asset-source selection must be capability-driven and must not branch on source names in core.
 
 ## 7. Studio Path
 
@@ -141,5 +141,5 @@ Move from lightweight v1 to middleweight work only when:
 - AG-UI custom payloads are schema-validated.
 - The renderer fails closed for unknown components and invalid props.
 - Core packages pass import-light tests.
-- Source scans catch old abstractions and provider-specific shortcuts.
+- Source scans catch old abstractions and hosted-stack-specific shortcuts.
 - The docs still identify this folder as the canonical source of truth.

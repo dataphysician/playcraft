@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DeterministicStubAssetProvider } from "@playcraft/assets";
+import { DeterministicLocalAssetSource } from "@playcraft/assets";
 import {
   activity,
   createPlaycraftEnvelope,
@@ -95,8 +95,8 @@ export interface BuilderCommandHandler {
 
 export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
   private readonly registries = createDefaultRegistries();
-  private readonly assetProvider = new DeterministicStubAssetProvider();
-  private readonly planner = createDefaultPlanner({ registries: this.registries, assetProvider: this.assetProvider });
+  private readonly assetSource = new DeterministicLocalAssetSource();
+  private readonly planner = createDefaultPlanner({ registries: this.registries, assetSource: this.assetSource });
   private readonly sessions = new Map<string, BuilderSessionRecord>();
 
   execute(commandInput: BuilderCommand): BuilderExecutionResult {
@@ -214,7 +214,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     const template = templateForId(templateId);
     const request = requestForTemplate(templateId);
     const runId = `${command.sessionId}.${templateId}`;
-    const profile = applyAssetEdit(this.planner.assemble(request), command.assetEdit, this.assetProvider, this.registries);
+    const profile = applyAssetEdit(this.planner.assemble(request), command.assetEdit, this.assetSource, this.registries);
     const replay = replayProfile(profile, this.registries);
     const preview = previewForReplay(session.sessionId, templateId, profile, replay, session.preview);
 
@@ -611,7 +611,7 @@ interface NormalizedAssetEdit {
 function applyAssetEdit(
   profile: GameAssemblyProfile,
   assetEdit: BuilderAssetEdit | undefined,
-  assetProvider: DeterministicStubAssetProvider,
+  assetSource: DeterministicLocalAssetSource,
   registries: PlaycraftRegistries
 ): GameAssemblyProfile {
   const edit = normalizeAssetEdit(assetEdit);
@@ -630,7 +630,7 @@ function applyAssetEdit(
       }
     })
   );
-  const assets = assetProvider.generateBatch(assetRequests);
+  const assets = assetSource.generateBatch(assetRequests);
   const components = profile.components.map((component) => ({
     ...component,
     props: editComponentProps(component.renderCapability, component.props, edit),

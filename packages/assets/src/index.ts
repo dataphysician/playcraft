@@ -1,12 +1,12 @@
 import {
   AssetGenerationRequestSchema,
-  AssetProviderCapabilityManifestSchema,
+  AssetSourceCapabilityManifestSchema,
   GeneratedAssetRecordSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type AssetContentTypeSchema,
   type AssetFormatSchema,
   type AssetGenerationRequest,
-  type AssetProviderCapabilityManifest,
+  type AssetSourceCapabilityManifest,
   type GeneratedAssetRecord
 } from "@playcraft/contracts";
 import type { z } from "zod";
@@ -14,20 +14,20 @@ import type { z } from "zod";
 export type AssetContentType = z.infer<typeof AssetContentTypeSchema>;
 export type AssetFormat = z.infer<typeof AssetFormatSchema>;
 
-export interface StubAssetProviderOptions {
-  manifest?: AssetProviderCapabilityManifest;
+export interface LocalAssetSourceOptions {
+  manifest?: AssetSourceCapabilityManifest;
 }
 
-export const STUB_ASSET_PROVIDER_ID = "asset-provider.stub-deterministic";
-export const STUB_ASSET_PROVIDER_VERSION = "1.0.0";
+export const LOCAL_ASSET_SOURCE_ID = "asset-source.stub-deterministic";
+export const LOCAL_ASSET_SOURCE_VERSION = "1.0.0";
 
-export function createStubAssetProviderManifest(overrides: Partial<AssetProviderCapabilityManifest> = {}): AssetProviderCapabilityManifest {
-  const manifest: AssetProviderCapabilityManifest = {
+export function createLocalAssetSourceManifest(overrides: Partial<AssetSourceCapabilityManifest> = {}): AssetSourceCapabilityManifest {
+  const manifest: AssetSourceCapabilityManifest = {
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    id: STUB_ASSET_PROVIDER_ID,
-    version: STUB_ASSET_PROVIDER_VERSION,
-    kind: "asset-provider",
-    displayName: "Deterministic Stub Asset Provider",
+    id: LOCAL_ASSET_SOURCE_ID,
+    version: LOCAL_ASSET_SOURCE_VERSION,
+    kind: "asset-source",
+    displayName: "Deterministic Stub Asset Source",
     capabilityTags: ["asset:stub", "asset:offline", "asset:deterministic"],
     contentTypes: ["image", "audio", "text"],
     formats: ["svg", "png", "wav", "plain-text", "json"],
@@ -40,11 +40,11 @@ export function createStubAssetProviderManifest(overrides: Partial<AssetProvider
     ...overrides
   };
 
-  return AssetProviderCapabilityManifestSchema.parse(manifest);
+  return AssetSourceCapabilityManifestSchema.parse(manifest);
 }
 
-export function providerManifestSupportsRequest(
-  manifest: AssetProviderCapabilityManifest,
+export function assetSourceManifestSupportsRequest(
+  manifest: AssetSourceCapabilityManifest,
   request: AssetGenerationRequest
 ): { supported: true } | { supported: false; reason: string } {
   if (!manifest.contentTypes.includes(request.contentType)) {
@@ -56,22 +56,22 @@ export function providerManifestSupportsRequest(
   }
 
   if (!manifest.offline || manifest.requiresNetwork || manifest.requiresCredentials) {
-    return { supported: false, reason: "v1 stub provider must be offline and credential-free" };
+    return { supported: false, reason: "v1 local asset source must be offline and credential-free" };
   }
 
   return { supported: true };
 }
 
-export class DeterministicStubAssetProvider {
-  readonly manifest: AssetProviderCapabilityManifest;
+export class DeterministicLocalAssetSource {
+  readonly manifest: AssetSourceCapabilityManifest;
 
-  constructor(options: StubAssetProviderOptions = {}) {
-    this.manifest = AssetProviderCapabilityManifestSchema.parse(options.manifest ?? createStubAssetProviderManifest());
+  constructor(options: LocalAssetSourceOptions = {}) {
+    this.manifest = AssetSourceCapabilityManifestSchema.parse(options.manifest ?? createLocalAssetSourceManifest());
   }
 
   generate(requestInput: AssetGenerationRequest): GeneratedAssetRecord {
     const request = AssetGenerationRequestSchema.parse(requestInput);
-    const supported = providerManifestSupportsRequest(this.manifest, request);
+    const supported = assetSourceManifestSupportsRequest(this.manifest, request);
     if (!supported.supported) {
       throw new Error(supported.reason);
     }
@@ -97,7 +97,7 @@ export class DeterministicStubAssetProvider {
       kind: "generated-asset",
       requestId: request.requestId,
       assetId,
-      providerId: this.manifest.id,
+      sourceId: this.manifest.id,
       contentType: request.contentType,
       format: request.format,
       uri: `stub://${request.contentType}/${digest}.${request.format}`,
@@ -107,8 +107,8 @@ export class DeterministicStubAssetProvider {
         source: "deterministic-stub"
       },
       provenance: {
-        providerManifestId: this.manifest.id,
-        providerManifestVersion: this.manifest.version,
+        sourceManifestId: this.manifest.id,
+        sourceManifestVersion: this.manifest.version,
         deterministic: true,
         seed: request.seedPolicy.seed,
         seedSupported: this.manifest.seedSupport,
@@ -125,7 +125,7 @@ export class DeterministicStubAssetProvider {
 
   generateBatch(requests: AssetGenerationRequest[]): GeneratedAssetRecord[] {
     if (requests.length > this.manifest.maxBatchSize) {
-      throw new Error(`batch size ${requests.length} exceeds provider max ${this.manifest.maxBatchSize}`);
+      throw new Error(`batch size ${requests.length} exceeds asset source max ${this.manifest.maxBatchSize}`);
     }
 
     return requests.map((request) => this.generate(request));

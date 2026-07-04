@@ -9,7 +9,7 @@ import {
 import { replayProfile } from "@playcraft/core";
 import {
   assembleMvpProfiles,
-  assetProviderManifests,
+  assetSourceManifests,
   gameTemplateDefinitions,
   componentManifests,
   createDefaultRegistries,
@@ -118,7 +118,7 @@ describe("public contract schemas", () => {
       ThemePackSchema: themePacks[0],
       FrontendToolDefinitionSchema: componentManifests[0].emittedTools[0],
       AssetGenerationRequestSchema: profile.assetRequests[0],
-      AssetProviderCapabilityManifestSchema: assetProviderManifests[0],
+      AssetSourceCapabilityManifestSchema: assetSourceManifests[0],
       GeneratedAssetRecordSchema: profile.assets[0],
       AssemblyValidationResultSchema: profile.validation,
       PlaycraftAgUiEventEnvelopeSchema: envelope,

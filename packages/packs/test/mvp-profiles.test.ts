@@ -24,7 +24,7 @@ describe("MVP profile pack", () => {
       "profile.sequence-repeat.mvp"
     ]);
     expect(profiles.every((profile) => profile.validation.valid)).toBe(true);
-    expect(profiles.every((profile) => profile.assets.every((asset) => asset.providerId === "asset-provider.stub-deterministic"))).toBe(true);
+    expect(profiles.every((profile) => profile.assets.every((asset) => asset.sourceId === "asset-source.stub-deterministic"))).toBe(true);
   });
 
   it("keeps saved profile fixtures in sync with deterministic assembly", () => {

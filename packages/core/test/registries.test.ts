@@ -41,11 +41,11 @@ describe("capability registries", () => {
     expect(result.selected?.propsSchema.fields.sequence.type).toBe("array");
   });
 
-  it("selects themes, asset providers, domains, and safety policies by metadata", () => {
+  it("selects themes, asset sources, domains, and safety policies by metadata", () => {
     const registries = createDefaultRegistries();
 
     expect(registries.themes.select({ capabilityTags: ["theme:high-readability"], domainProfileId: "domain.child-edu" }).selected?.id).toBe("theme.bright-calm");
-    expect(registries.assetProviders.select({ contentType: "image", format: "svg", offlineOnly: true, credentialsForbidden: true, seedSupportRequired: true }).selected?.id).toBe("asset-provider.stub-deterministic");
+    expect(registries.assetSources.select({ contentType: "image", format: "svg", offlineOnly: true, credentialsForbidden: true, seedSupportRequired: true }).selected?.id).toBe("asset-source.stub-deterministic");
     expect(registries.domains.select({ ids: ["domain.child-edu"], ageBand: "4-6" }).selected?.id).toBe("domain.child-edu");
     expect(registries.safetyPolicies.select({ ids: ["safety.child-friendly"], domainProfileId: "domain.child-edu", ageBand: "4-6" }).selected?.id).toBe("safety.child-friendly");
   });
