@@ -115,6 +115,20 @@ describe("builder session service", () => {
     expect(edited.result.validation?.valid).toBe(true);
   });
 
+  it("keeps sequence rounds in sync when asset edits rename tokens", () => {
+    const service = new PlaycraftBuilderSessionService();
+    const edited = service.execute(command({ templateId: "template.sequence-repeat", assetEdit: { theme: "gems" } }));
+    const sequencePad = edited.result.profile?.components.find((component) => component.renderCapability === "component:sequence-pad");
+
+    expect(sequencePad?.props.sequence).toEqual(["gem-1", "gem-2", "gem-1"]);
+    expect(sequencePad?.props.rounds).toEqual([
+      ["gem-1", "gem-2", "gem-1"],
+      ["gem-1", "gem-2", "gem-1", "gem-3"],
+      ["gem-2", "gem-1", "gem-3", "gem-1", "gem-2"]
+    ]);
+    expect(edited.result.validation?.valid).toBe(true);
+  });
+
   it("supports real trusted preview interactions before and after an update", () => {
     const service = new PlaycraftBuilderSessionService();
     service.execute(command({ templateId: "template.memory-match" }));

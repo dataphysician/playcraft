@@ -705,11 +705,13 @@ function editComponentProps(
       };
     }
     case "component:sequence-pad":
+      const sequence = [edit.items[0], edit.items[1] ?? edit.items[0], edit.items[0]];
       return {
         ...props,
         title: `Repeat the ${edit.singularTheme} pattern`,
         prompt: `Tap the ${edit.singularTheme} buttons in the same order.`,
-        sequence: [edit.items[0], edit.items[1] ?? edit.items[0], edit.items[0]]
+        sequence,
+        rounds: sequenceRoundsForItems(sequence, edit.items)
       };
     case "component:celebration-overlay":
       return {
@@ -769,6 +771,18 @@ function pairMapForCards(cards: string[]): Record<string, string> {
   }
 
   return pairs;
+}
+
+function sequenceRoundsForItems(sequence: string[], items: string[]): string[][] {
+  const fallback = sequence[0] ?? items[0] ?? "item";
+  const extra = items.find((item) => !sequence.includes(item)) ?? sequence.at(-1) ?? fallback;
+  const second = sequence[1] ?? extra;
+
+  return [
+    sequence.length > 0 ? sequence : [fallback],
+    [...sequence, extra].filter(Boolean),
+    [second, sequence[0] ?? fallback, extra, sequence[2] ?? second, second]
+  ].filter((round) => round.length > 0);
 }
 
 function defaultItemsForTheme(singularTheme: string): string[] {

@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Sequence Round Contract
+
+Milestone:
+- Sequence profiles now carry explicit `rounds` on the SequencePad component props.
+- The Live App sequence interaction uses profile-defined rounds instead of generating later rounds from the first sequence and choice labels.
+- Asset-edited sequence profiles keep renamed token sequences and rounds in sync.
+
+Supportive changes:
+- Extended the SequencePad component manifest props to require `rounds`.
+- Updated deterministic sequence fixtures and pack coverage for authored round progressions.
+- Added builder and Studio UI coverage proving custom round order comes from the profile contract.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/packs/test/mvp-profiles.test.ts packages/renderer/test/trusted-renderer.test.tsx tests/studio-ui.test.ts`
+
+Constraint notes:
+- Keeps sequence progression profile-defined and reusable for arbitrary toddler-friendly token labels and replacement assets.
+- Does not add hosted services, generated runtime code, auth, database state, or compatibility fallbacks.
+
 ## 2026-07-04 - Memory Pair Contract
 
 Milestone:

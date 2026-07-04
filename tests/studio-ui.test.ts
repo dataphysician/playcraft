@@ -20,7 +20,7 @@ import { StudioApp } from "../apps/studio/src/studio-app.js";
 import { TrustedPreview } from "../apps/studio/src/trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "../apps/studio/src/types.js";
 
-const [profileA, profileB] = assembleMvpProfiles();
+const [profileA, profileB, profileC] = assembleMvpProfiles();
 
 afterEach(() => {
   cleanup();
@@ -536,6 +536,48 @@ describe("studio UI", () => {
     expect(await screen.findByText("red circle belongs in red.")).toBeDefined();
     expect(redBin.getAttribute("style")).toContain("rgb(22, 163, 74)");
     expect(screen.queryByTestId("sort-drag-ghost")).toBeNull();
+  });
+
+  it("uses explicit sequence rounds instead of generated progression heuristics", async () => {
+    const profile = {
+      ...profileC,
+      components: profileC.components.map((component) => {
+        if (component.renderCapability === "component:sequence-pad") {
+          return {
+            ...component,
+            props: {
+              ...component.props,
+              sequence: ["moon"],
+              rounds: [["moon"], ["star", "moon"]]
+            }
+          };
+        }
+
+        if (component.renderCapability === "component:choice-grid") {
+          return {
+            ...component,
+            props: {
+              ...component.props,
+              items: ["moon", "star"]
+            }
+          };
+        }
+
+        return component;
+      })
+    };
+
+    render(React.createElement(LiveGame, { profile }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Start Round" }));
+    fireEvent.click(screen.getByRole("button", { name: "moon" }));
+    expect(await screen.findByText("Round 2 unlocked. Watch the next pattern.")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.click(screen.getByRole("button", { name: "star" }));
+    fireEvent.click(screen.getByRole("button", { name: "moon" }));
+
+    expect(await screen.findByText("Sequence complete.")).toBeDefined();
   });
 
   it("plays the sequence profile through completion", async () => {

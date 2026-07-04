@@ -98,6 +98,26 @@
           "green",
           "yellow",
           "green"
+        ],
+        "rounds": [
+          [
+            "green",
+            "yellow",
+            "green"
+          ],
+          [
+            "green",
+            "yellow",
+            "green",
+            "blue"
+          ],
+          [
+            "yellow",
+            "green",
+            "blue",
+            "green",
+            "yellow"
+          ]
         ]
       },
       "assetBindings": {

@@ -105,7 +105,7 @@ export const componentManifests: ComponentManifest[] = [
   component("component.reveal-card-grid", "RevealCardGrid", "component:reveal-card-grid", ["mechanic.tap-to-reveal", "mechanic.match-pairs"], [revealCardTool], { title: textField, cards: arrayField, pairs: recordField, columns: numberField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.pair-match-board", "PairMatchBoard", "component:pair-match-board", ["mechanic.match-pairs"], [selectItemTool], { title: textField, pairs: arrayField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.sort-bins", "SortBins", "component:sort-bins", ["mechanic.sort-into-bins"], [moveItemTool], { title: textField, items: arrayField, bins: arrayField, targets: recordField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
-  component("component.sequence-pad", "SequencePad", "component:sequence-pad", ["mechanic.sequence-repeat", "mechanic.tap-to-select"], [repeatSequenceTool], { title: textField, sequence: arrayField, prompt: optionalTextField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
+  component("component.sequence-pad", "SequencePad", "component:sequence-pad", ["mechanic.sequence-repeat", "mechanic.tap-to-select"], [repeatSequenceTool], { title: textField, sequence: arrayField, rounds: arrayField, prompt: optionalTextField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.trace-canvas", "TraceCanvas", "component:trace-canvas", ["mechanic.trace-path"], [moveItemTool], { title: textField, path: arrayField }, []),
   component("component.celebration-overlay", "CelebrationOverlay", "component:celebration-overlay", ["mechanic.timed-celebration"], [], { message: textField }, []),
   component("component.hint-bubble", "HintBubble", "component:hint-bubble", ["mechanic.hint-prompt"], [], { hint: textField }, [])
@@ -265,7 +265,16 @@ const mvpTemplates: MvpProfileTemplate[] = [
     ruleCategories: ["progression", "attempt-feedback", "hint"],
     componentCapabilities: ["component:sequence-pad", "component:choice-grid", "component:celebration-overlay"],
     propsByCapability: {
-      "component:sequence-pad": { title: "Repeat the lights", prompt: "Tap the buttons in the same order.", sequence: ["green", "yellow", "green"] },
+      "component:sequence-pad": {
+        title: "Repeat the lights",
+        prompt: "Tap the buttons in the same order.",
+        sequence: ["green", "yellow", "green"],
+        rounds: [
+          ["green", "yellow", "green"],
+          ["green", "yellow", "green", "blue"],
+          ["yellow", "green", "blue", "green", "yellow"]
+        ]
+      },
       "component:choice-grid": { title: "Light buttons", prompt: "Choose the next light.", items: ["green", "yellow", "blue"] },
       "component:celebration-overlay": { message: "Sequence complete." }
     }

@@ -670,8 +670,9 @@ function SequenceGame({
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
   const sequence = stringArrayProp(sequenceComponent.props, "sequence");
-  const choices = uniqueStrings([...stringArrayProp(choiceComponent?.props ?? {}, "items"), ...sequence]);
-  const rounds = React.useMemo(() => sequenceRounds(sequence, choices), [sequence.join("|"), choices.join("|")]);
+  const configuredRounds = stringMatrixProp(sequenceComponent.props, "rounds");
+  const choices = uniqueStrings([...stringArrayProp(choiceComponent?.props ?? {}, "items"), ...sequence, ...configuredRounds.flat()]);
+  const rounds = React.useMemo(() => configuredRounds, [JSON.stringify(configuredRounds)]);
   const [roundIndex, setRoundIndex] = React.useState(0);
   const [progress, setProgress] = React.useState(0);
   const [attempts, setAttempts] = React.useState(0);
@@ -689,7 +690,7 @@ function SequenceGame({
     setFeedback(undefined);
     setPhase("watch");
     setScore(0);
-  }, [profile.id, sequence.join("|"), choices.join("|")]);
+  }, [profile.id, sequence.join("|"), choices.join("|"), JSON.stringify(configuredRounds)]);
 
   function startRound(): void {
     if (complete || activeRound.length === 0) {
@@ -1055,6 +1056,18 @@ function stringArrayProp(props: Record<string, JsonValue>, key: string): string[
   return value.map((entry) => (typeof entry === "string" ? entry : JSON.stringify(entry)));
 }
 
+function stringMatrixProp(props: Record<string, JsonValue>, key: string): string[][] {
+  const value = props[key];
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((entry): entry is JsonValue[] => Array.isArray(entry))
+    .map((entry) => entry.filter((item): item is string => typeof item === "string"))
+    .filter((entry) => entry.length > 0);
+}
+
 function stringRecordProp(props: Record<string, JsonValue>, key: string): Record<string, string> {
   const value = props[key];
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -1235,19 +1248,6 @@ function dragGhostStyle(state: SortDragState): React.CSSProperties {
     width: state.width,
     minHeight: state.height
   };
-}
-
-function sequenceRounds(sequence: string[], choices: string[]): string[][] {
-  const base = sequence.length > 0 ? sequence : choices.slice(0, 3);
-  const fallback = base[0] ?? "green";
-  const third = choices.find((choice) => !base.includes(choice)) ?? base.at(-1) ?? fallback;
-  const second = base[1] ?? third;
-
-  return [
-    base,
-    [...base, third],
-    [second, base[0] ?? fallback, third, base[2] ?? second, second]
-  ].filter((round) => round.length > 0);
 }
 
 function sequenceChoiceStyle(item: string, enabled: boolean, feedback?: SequenceFeedback): React.CSSProperties {

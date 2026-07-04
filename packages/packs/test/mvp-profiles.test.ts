@@ -42,7 +42,7 @@ describe("MVP profile pack", () => {
 
   it("assembles multiple MVP profiles through the same deterministic builder entrypoint", () => {
     const planner = createDefaultPlanner();
-    const [profileA, profileB] = mvpAssemblyRequests.slice(0, 2).map((request) => planner.assemble(request));
+    const [profileA, profileB, profileC] = mvpAssemblyRequests.map((request) => planner.assemble(request));
 
     expect(profileA.id).toBe("profile.memory-match.mvp");
     expect(profileB.id).toBe("profile.sorting.mvp");
@@ -61,6 +61,11 @@ describe("MVP profile pack", () => {
       "blue square": "blue",
       "red triangle": "red"
     });
+    expect(profileC.components.find((component) => component.renderCapability === "component:sequence-pad")?.props.rounds).toEqual([
+      ["green", "yellow", "green"],
+      ["green", "yellow", "green", "blue"],
+      ["yellow", "green", "blue", "green", "yellow"]
+    ]);
   });
 
   it("publishes bundled game templates for the builder catalog", () => {
