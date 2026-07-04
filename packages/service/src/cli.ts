@@ -9,6 +9,7 @@ import {
   type BuilderAssetEdit,
   type BuilderCatalog,
   type BuilderInputSource,
+  type BuilderInputSourceOption,
   type BuilderProfileExport,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
@@ -295,8 +296,37 @@ function writeServiceEnvelopeResponse(response: BuilderServiceResponse, json: bo
 }
 
 function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): void {
-  io.stdout(`templates: ${catalog.templates.map((template) => template.id).join(", ")}`);
-  io.stdout(`tools: ${catalog.tools.map((tool) => tool.toolName).join(", ")}`);
+  io.stdout("templates:");
+  for (const template of catalog.templates) {
+    io.stdout(`- ${template.displayLabel} [${template.id}] try: ${template.exampleRequest}; aliases: ${template.requestAliases.slice(0, 3).join(", ")}`);
+  }
+
+  io.stdout("tools:");
+  for (const tool of catalog.tools) {
+    io.stdout(`- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${toolInputSourceSummary(catalog, tool.acceptedInputSources)}`);
+  }
+
+  io.stdout(`asset edits: ${catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel).join(", ")}`);
+}
+
+function toolInputSourceSummary(
+  catalog: BuilderCatalog,
+  sources: BuilderCatalog["tools"][number]["acceptedInputSources"]
+): string {
+  if (sources.length === 0) {
+    return `input: ${catalog.input.noInputLabel}`;
+  }
+
+  return `input: ${sources.map((source) => requiredInputSourceOption(catalog, source).displayLabel).join(", ")}`;
+}
+
+function requiredInputSourceOption(catalog: BuilderCatalog, source: BuilderInputSource): BuilderInputSourceOption {
+  const option = catalog.input.sourceOptions.find((candidate) => candidate.source === source);
+  if (!option) {
+    throw new Error(`catalog input source ${source} is missing display metadata`);
+  }
+
+  return option;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

@@ -252,6 +252,20 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).not.toContain("Change the game or replace assets...");
   });
 
+  it("keeps local service CLI catalog summaries catalog-owned", () => {
+    const cliSource = readSource("packages/service/src/cli.ts");
+
+    expect(cliSource).toContain("template.displayLabel");
+    expect(cliSource).toContain("template.exampleRequest");
+    expect(cliSource).toContain("tool.displayName");
+    expect(cliSource).toContain("catalog.input.noInputLabel");
+    expect(cliSource).toContain("requiredInputSourceOption");
+    expect(cliSource).toContain("catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel)");
+    expect(cliSource).not.toContain("catalog.templates.map((template) => template.id)");
+    expect(cliSource).not.toContain("catalog.tools.map((tool) => tool.toolName)");
+    expect(cliSource).not.toContain('sources.join(", ")');
+  });
+
   it("keeps Studio service event ingestion schema-backed", () => {
     const source = readSource("apps/studio/src/local-client.ts");
 

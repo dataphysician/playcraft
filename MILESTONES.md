@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Contract-Shaped CLI Catalog Summary
+
+Milestone:
+- `playcraft-service catalog` now prints a richer agent-facing summary for humans and CLI agents without requiring JSON parsing.
+- Template rows show catalog-owned display labels, stable IDs, example requests, and leading request aliases.
+- Tool rows show explicit display names, callable tool/action identifiers, and catalog-owned input source labels.
+- Asset-edit rows show catalog-owned display labels for replacement themes.
+
+Supportive changes:
+- Local service CLI tests verify non-JSON catalog output includes labels, examples, tool inputs, and asset edit labels.
+- Source scans now block the old ID-only template/tool summary from returning.
+- The CLI catalog summary fails closed when a tool advertises an input source without catalog display metadata.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps the local CLI agent surface contract-shaped and forward-only without ID-only presentation shortcuts, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Catalog-Owned Tool Input Summaries
 
 Milestone:

@@ -787,6 +787,17 @@ describe("local Playcraft service", () => {
     ]);
     expect(catalog.assetEdit.availableThemes.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
 
+    expect(runLocalServiceCli(["catalog"], io)).toBe(0);
+    expect(out).toEqual(expect.arrayContaining([
+      "templates:",
+      "- Memory Match [template.memory-match] try: Memory game; aliases: memory, memory game, memory match",
+      "tools:",
+      "- Assemble Game [tool:assemble-game -> assemble-game] input: Text, Transcript",
+      "- Preview Action [tool:preview-action -> preview-action] input: none",
+      "asset edits: dinosaurs, toys, ocean animals, fruit"
+    ]));
+    out.length = 0;
+
     expect(
       runLocalServiceCli([
         "assemble",
