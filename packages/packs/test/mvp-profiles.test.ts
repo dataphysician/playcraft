@@ -137,7 +137,12 @@ describe("MVP profile pack", () => {
       prop: "cards",
       pairMapProp: "pairs"
     });
-    expect(gameTemplateDefinitions.find((template) => template.id === "template.memory-match")?.liveSurface.tokenStyles).toEqual([]);
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.memory-match")?.liveSurface.tokenStyles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ tokens: ["pair-1"], background: "#fee2e2", accent: "#fecaca" }),
+        expect.objectContaining({ tokens: ["pair-2"], background: "#dbeafe", accent: "#bfdbfe" })
+      ])
+    );
     expect(gameTemplateDefinitions.find((template) => template.id === "template.sorting")?.liveSurface.tokenStyles).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ tokens: ["red"], background: "#fee2e2" }),

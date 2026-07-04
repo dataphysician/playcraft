@@ -522,7 +522,8 @@ export const GameTemplateTokenStyleSchema = z
     tokens: z.array(z.string().min(1).max(80)).min(1),
     background: z.string().min(1).max(32),
     border: z.string().min(1).max(32),
-    foreground: z.string().min(1).max(32)
+    foreground: z.string().min(1).max(32),
+    accent: z.string().min(1).max(32)
   })
   .strict();
 export type GameTemplateTokenStyle = z.infer<typeof GameTemplateTokenStyleSchema>;

@@ -434,7 +434,8 @@ describe("public contract schemas", () => {
           tokens: ["red"],
           background: "#fee2e2",
           border: "#ef4444",
-          foreground: "#7f1d1d"
+          foreground: "#7f1d1d",
+          accent: "#fecaca"
         })
       ])
     );
@@ -448,6 +449,24 @@ describe("public contract schemas", () => {
     delete (missingTokenStyles.liveSurface as Partial<typeof gameTemplateDefinitions[1]["liveSurface"]>).tokenStyles;
 
     expect(GameTemplateDefinitionSchema.safeParse(missingTokenStyles).success).toBe(false);
+
+    const missingAccent = {
+      ...gameTemplateDefinitions[1],
+      liveSurface: {
+        ...gameTemplateDefinitions[1].liveSurface,
+        tokenStyles: gameTemplateDefinitions[1].liveSurface.tokenStyles.map((entry, index) => {
+          if (index !== 0) {
+            return entry;
+          }
+
+          const next: Partial<typeof entry> = { ...entry };
+          delete next.accent;
+          return next;
+        })
+      }
+    };
+
+    expect(GameTemplateDefinitionSchema.safeParse(missingAccent).success).toBe(false);
   });
 
   it("keeps render requests strict and identified", () => {

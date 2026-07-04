@@ -58,11 +58,17 @@ export const DEFAULT_SAFETY_POLICY_ID = "safety.child-friendly";
 export const DEFAULT_THEME_ID = "theme.bright-calm";
 export const DEFAULT_PLANNER_ID = "planner.deterministic.mvp";
 export const DEFAULT_GAME_TEMPLATE_ID: BuilderTemplateId = BuilderTemplateIdSchema.parse("template.memory-match");
+export const memoryPairTokenStyles: GameTemplateTokenStyle[] = [
+  { tokens: ["pair-1"], background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d", accent: "#fecaca" },
+  { tokens: ["pair-2"], background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a", accent: "#bfdbfe" },
+  { tokens: ["pair-3"], background: "#dcfce7", border: "#16a34a", foreground: "#14532d", accent: "#bbf7d0" },
+  { tokens: ["pair-4"], background: "#fef3c7", border: "#d97706", foreground: "#713f12", accent: "#fde68a" }
+];
 export const toddlerTokenStyles: GameTemplateTokenStyle[] = [
-  { tokens: ["red"], background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d" },
-  { tokens: ["blue"], background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a" },
-  { tokens: ["green"], background: "#dcfce7", border: "#16a34a", foreground: "#14532d" },
-  { tokens: ["yellow"], background: "#fef3c7", border: "#eab308", foreground: "#713f12" }
+  { tokens: ["red"], background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d", accent: "#fecaca" },
+  { tokens: ["blue"], background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a", accent: "#bfdbfe" },
+  { tokens: ["green"], background: "#dcfce7", border: "#16a34a", foreground: "#14532d", accent: "#bbf7d0" },
+  { tokens: ["yellow"], background: "#fef3c7", border: "#eab308", foreground: "#713f12", accent: "#fde68a" }
 ];
 
 const memoryAssetEditOperations: GameTemplateAssetEditOperation[] = [
@@ -245,7 +251,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
         namespace: "card",
         pairMapProp: "pairs"
       }],
-      tokenStyles: []
+      tokenStyles: memoryPairTokenStyles
     },
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
@@ -1373,7 +1379,7 @@ function memoryTemplate(input: {
         namespace: "card",
         pairMapProp: "pairs"
       }],
-      tokenStyles: []
+      tokenStyles: memoryPairTokenStyles
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,

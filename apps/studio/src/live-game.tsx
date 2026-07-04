@@ -153,6 +153,7 @@ function LiveGameForProfile({
         profile,
         component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         replacements,
+        tokenStyles: liveSurface.tokenStyles,
         onInteraction
       });
     case "sorting":
@@ -185,17 +186,19 @@ function MemoryGame({
   profile,
   component,
   replacements,
+  tokenStyles,
   onInteraction
 }: {
   profile: GameAssemblyProfile;
   component: ComponentBinding;
   replacements: AssetReplacementLookup;
+  tokenStyles: GameTemplateTokenStyle[];
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
   const sourceCards = stringArrayProp(component.props, "cards");
   const cardPairs = stringRecordProp(component.props, "pairs");
   const deck = React.useMemo(() => shuffleMemoryCards(sourceCards, cardPairs, profile.id), [sourceCards.join("|"), JSON.stringify(cardPairs), profile.id]);
-  const pairVisuals = React.useMemo(() => createMemoryPairVisuals(cardPairs), [JSON.stringify(cardPairs)]);
+  const pairVisuals = React.useMemo(() => createMemoryPairVisuals(cardPairs, tokenStyles), [JSON.stringify(cardPairs), JSON.stringify(tokenStyles)]);
   const [revealed, setRevealed] = React.useState<string[]>([]);
   const [matched, setMatched] = React.useState<Set<string>>(() => new Set());
   const [moves, setMoves] = React.useState(0);
@@ -276,7 +279,7 @@ function MemoryGame({
       { style: liveStyles.memoryBoard },
       ...deck.map((card, index) => {
         const cardReplacement = replacements.get(`card:${card.id}`) ?? replacements.get(card.id);
-        const pairVisual = pairVisuals.get(card.pairKey) ?? memoryPairPalette[0];
+        const pairVisual = pairVisuals.get(card.pairKey) ?? colorForToken(card.pairKey, tokenStyles);
         const shown = revealed.includes(card.id) || matched.has(card.pairKey);
         return React.createElement(
           "button",
@@ -1135,11 +1138,11 @@ function shuffleMemoryCards(cards: string[], cardPairs: Record<string, string>, 
     .map(({ id, pairKey }) => ({ id, pairKey }));
 }
 
-function createMemoryPairVisuals(cardPairs: Record<string, string>): Map<string, MemoryPairVisual> {
+function createMemoryPairVisuals(cardPairs: Record<string, string>, tokenStyles: GameTemplateTokenStyle[]): Map<string, MemoryPairVisual> {
   return new Map(
     uniqueStrings(Object.values(cardPairs)).map((pairKey, index) => [
       pairKey,
-      memoryPairPalette[index % memoryPairPalette.length]
+      colorForToken(pairKey, tokenStyles, index)
     ])
   );
 }
@@ -1177,17 +1180,6 @@ function normalizeReplacement(value: string | AssetReplacement, fallbackAlt: str
 function isRenderableUri(uri: string): boolean {
   return /^(?:https?:|data:|blob:|\/|\.\/|\.\.\/)/u.test(uri);
 }
-
-const memoryPairPalette: MemoryPairVisual[] = [
-  { background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d", accent: "#fecaca" },
-  { background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a", accent: "#bfdbfe" },
-  { background: "#dcfce7", border: "#16a34a", foreground: "#14532d", accent: "#bbf7d0" },
-  { background: "#fef3c7", border: "#d97706", foreground: "#713f12", accent: "#fde68a" },
-  { background: "#ede9fe", border: "#7c3aed", foreground: "#4c1d95", accent: "#ddd6fe" },
-  { background: "#fce7f3", border: "#db2777", foreground: "#831843", accent: "#fbcfe8" },
-  { background: "#ccfbf1", border: "#0d9488", foreground: "#134e4a", accent: "#99f6e4" },
-  { background: "#ffedd5", border: "#f97316", foreground: "#7c2d12", accent: "#fed7aa" }
-];
 
 function memoryCardFaceStyle(visual: MemoryPairVisual): React.CSSProperties {
   return {
@@ -1367,8 +1359,9 @@ function heroTokenStyle(token: string, index: number, tokenStyles: GameTemplateT
 
 function colorForToken(
   token: string,
-  tokenStyles: GameTemplateTokenStyle[]
-): { background: string; border: string; foreground: string } {
+  tokenStyles: GameTemplateTokenStyle[],
+  fallbackIndex?: number
+): MemoryPairVisual {
   const tokenParts = normalizedTokens(token);
   const tokenStyle = tokenStyles.find((entry) =>
     entry.tokens.some((styleToken) => tokenSequenceIncludes(tokenParts, normalizedTokens(styleToken)))
@@ -1377,17 +1370,18 @@ function colorForToken(
     return {
       background: tokenStyle.background,
       border: tokenStyle.border,
-      foreground: tokenStyle.foreground
+      foreground: tokenStyle.foreground,
+      accent: tokenStyle.accent
     };
   }
 
   const palette = [
-    { background: "#fce7f3", border: "#db2777", foreground: "#831843" },
-    { background: "#ede9fe", border: "#7c3aed", foreground: "#4c1d95" },
-    { background: "#ffedd5", border: "#f97316", foreground: "#7c2d12" },
-    { background: "#ccfbf1", border: "#0d9488", foreground: "#134e4a" }
+    { background: "#fce7f3", border: "#db2777", foreground: "#831843", accent: "#fbcfe8" },
+    { background: "#ede9fe", border: "#7c3aed", foreground: "#4c1d95", accent: "#ddd6fe" },
+    { background: "#ffedd5", border: "#f97316", foreground: "#7c2d12", accent: "#fed7aa" },
+    { background: "#ccfbf1", border: "#0d9488", foreground: "#134e4a", accent: "#99f6e4" }
   ];
-  return palette[hashString(token) % palette.length];
+  return palette[(fallbackIndex ?? hashString(token)) % palette.length];
 }
 
 function normalizedTokens(value: string): string[] {
