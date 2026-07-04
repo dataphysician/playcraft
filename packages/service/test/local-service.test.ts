@@ -366,6 +366,52 @@ describe("local Playcraft service", () => {
     });
   });
 
+  it("classifies active-game asset updates from catalog aliases", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Change the memory game to toys"
+    });
+
+    expect(resolved.templateId).toBe("template.memory-match");
+    expect(resolved.assetEdit).toEqual({ theme: "toys" });
+    expect(resolved.resolution.templateDecision.source).toBe("text-match");
+    expect(resolved.resolution.assetDecision).toMatchObject({
+      source: "catalog-asset-alias",
+      matchedText: "toys"
+    });
+  });
+
+  it("does not treat template-only requests as asset edits", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Switch game to sorting"
+    });
+
+    expect(resolved.templateId).toBe("template.sorting");
+    expect(resolved.assetEdit).toBeUndefined();
+    expect(resolved.resolution.assetDecision.source).toBe("none");
+  });
+
+  it("classifies explicit asset-folder requests as freeform asset edits", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Use assets with space robots"
+    });
+
+    expect(resolved.templateId).toBe("template.memory-match");
+    expect(resolved.assetEdit).toEqual({ theme: "space robots" });
+    expect(resolved.resolution.assetDecision).toMatchObject({
+      source: "freeform-asset-request",
+      matchedText: "space robots"
+    });
+  });
+
   it("switches templates from catalog request aliases", () => {
     const resolved = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",
@@ -384,6 +430,10 @@ describe("local Playcraft service", () => {
       templateDecision: {
         matchedRequestAliases: ["group by color"]
       }
+    });
+    expect(resolved.resolution.assetDecision).toMatchObject({
+      source: "catalog-asset-alias",
+      matchedText: "fruit"
     });
   });
 

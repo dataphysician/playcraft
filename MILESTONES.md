@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Asset Intent Resolution Hardening
+
+Milestone:
+- Asset decisions now distinguish catalog asset aliases from explicit freeform asset-folder requests.
+- Text requests such as "Change the memory game to toys" keep the selected game profile while switching assets through the catalog alias path.
+- Generic polish requests such as "make it more colorful" and template-only switches such as "Switch game to sorting" no longer become accidental asset edits.
+
+Supportive changes:
+- Replaced the generic asset `text-match` resolution source with `catalog-asset-alias` and `freeform-asset-request`.
+- Split catalog-only update parsing from freeform asset/card/theme parsing in the local service resolver.
+- Added service regression coverage for catalog alias edits, template-only switches, and future dropped-folder style asset requests.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts`
+
+Constraint notes:
+- Keeps template switching catalog-driven through request aliases.
+- Keeps asset expansion local and edit-aware without adding hosted asset services, generated runtime code, auth, database state, or migration compatibility.
+
 ## 2026-07-04 - Live Speech Capture Surface Removal
 
 Milestone:

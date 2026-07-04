@@ -631,7 +631,7 @@ export const BuilderIntentResolutionSchema = PublicContractBaseSchema.extend({
   assetEdit: BuilderAssetEditSchema.optional(),
   assetDecision: z
     .object({
-      source: z.enum(["explicit-asset-edit", "text-match", "active-asset-edit", "none"]),
+      source: z.enum(["explicit-asset-edit", "catalog-asset-alias", "freeform-asset-request", "active-asset-edit", "none"]),
       matchedText: z.string().min(1).max(80).optional()
     })
     .strict()

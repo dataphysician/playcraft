@@ -583,6 +583,7 @@ interface TemplateDecision {
 interface TextAssetEdit {
   assetEdit: BuilderAssetEdit;
   matchedText: string;
+  source: Extract<BuilderIntentResolution["assetDecision"]["source"], "catalog-asset-alias" | "freeform-asset-request">;
 }
 
 interface AssetDecision {
@@ -647,7 +648,7 @@ function assetDecisionFor(input: {
     return {
       assetEdit: input.textAssetEdit.assetEdit,
       matchedText: input.textAssetEdit.matchedText,
-      source: "text-match"
+      source: input.textAssetEdit.source
     };
   }
 
@@ -664,46 +665,62 @@ function assetDecisionFor(input: {
 
 function assetEditForText(text: string): TextAssetEdit | undefined {
   const normalized = text.toLowerCase();
-  const theme =
-    matchTheme(normalized, /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchTheme(normalized, /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchKnownAssetTheme(normalized, /\b(?:make|change|switch|update)\s+(?:it|this|them)\s+(?:(?:to|with|as|for)\s+)?([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchTheme(normalized, /\b(?:memory|match|matching|sort|sorting|sequence|repeat)?\s*(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
-    matchTheme(normalized, /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u);
+  const match =
+    matchAssetTheme(normalized, /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request") ??
+    matchAssetTheme(normalized, /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request") ??
+    matchCatalogAssetTheme(normalized, /\b(?:make|change|switch|update)\s+(?:it|this|them)\s+(?:(?:to|with|as|for)\s+)?([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
+    matchAssetTheme(normalized, /\b(?:memory|match|matching|sort|sorting|sequence|repeat)?\s*(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request") ??
+    matchAssetTheme(normalized, /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u, "freeform-asset-request");
 
-  if (!theme) {
+  if (!match) {
     return undefined;
   }
 
-  const items = theme
+  const items = match.theme
     .split(/\s*(?:,| and )\s*/u)
     .map((entry) => cleanAssetTheme(entry))
     .filter((entry) => entry.length > 0)
     .slice(0, 12);
 
   return {
-    assetEdit: items.length > 1 ? { theme, items } : { theme },
-    matchedText: theme
+    assetEdit: items.length > 1 ? { theme: match.theme, items } : { theme: match.theme },
+    matchedText: match.theme,
+    source: match.source
   };
 }
 
-function matchTheme(text: string, pattern: RegExp): string | undefined {
+function matchCatalogAssetTheme(
+  text: string,
+  pattern: RegExp
+): { source: "catalog-asset-alias"; theme: string } | undefined {
   const match = pattern.exec(text);
   if (!match) {
     return undefined;
   }
 
   const candidate = cleanAssetTheme(match[1]);
-  return candidate.length > 0 && !isTemplateOnlyTheme(candidate) ? candidate : undefined;
+  return candidate.length > 0 && isKnownAssetTheme(candidate)
+    ? { source: "catalog-asset-alias", theme: candidate }
+    : undefined;
 }
 
-function matchKnownAssetTheme(text: string, pattern: RegExp): string | undefined {
-  const candidate = matchTheme(text, pattern);
-  if (!candidate) {
+function matchAssetTheme(
+  text: string,
+  pattern: RegExp,
+  source: TextAssetEdit["source"]
+): { source: TextAssetEdit["source"]; theme: string } | undefined {
+  const match = pattern.exec(text);
+  if (!match) {
     return undefined;
   }
 
-  return isKnownAssetTheme(candidate) ? candidate : undefined;
+  const candidate = cleanAssetTheme(match[1]);
+  if (candidate.length === 0 || isTemplateOnlyTheme(candidate)) {
+    return undefined;
+  }
+
+  const matchedSource = isKnownAssetTheme(candidate) ? "catalog-asset-alias" : source;
+  return { source: matchedSource, theme: candidate };
 }
 
 function isKnownAssetTheme(value: string): boolean {

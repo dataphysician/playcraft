@@ -193,7 +193,7 @@ describe("public contract schemas", () => {
           theme: "dinosaurs"
         },
         assetDecision: {
-          source: "text-match",
+          source: "catalog-asset-alias",
           matchedText: "dinosaurs"
         }
       },
