@@ -22,6 +22,18 @@ export interface LocalAssetSourceOptions {
 
 export const LOCAL_ASSET_SOURCE_ID = "asset-source.local-deterministic";
 export const LOCAL_ASSET_SOURCE_VERSION = "1.0.0";
+export const localAssetEditGenericThemeTokens = [
+  "asset",
+  "assets",
+  "card",
+  "cards",
+  "card image",
+  "card images",
+  "image",
+  "images",
+  "art",
+  "theme"
+];
 export const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
   BuilderAssetEditCatalogEntrySchema.parse({
     theme: "dinosaurs",

@@ -710,6 +710,7 @@ describe("local Playcraft service", () => {
     expect(runLocalServiceCli(["catalog", "--json"], io)).toBe(0);
     const catalog = BuilderCatalogSchema.parse(JSON.parse(out.pop() ?? "{}"));
     expect(catalog.kind).toBe("builder-catalog");
+    expect(catalog.assetEdit.genericThemeTokens).toEqual(expect.arrayContaining(["asset", "assets", "card images", "theme"]));
     expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId.required).toBe(true);
     expect(catalog.tools.find((tool) => tool.actionName === "export-profile")?.argumentsSchema.fields.sessionId.required).toBe(true);
     expect(catalog.templates).toHaveLength(24);

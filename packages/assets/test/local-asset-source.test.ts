@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DeterministicLocalAssetSource,
   createLocalAssetSourceManifest,
+  localAssetEditGenericThemeTokens,
   localAssetEditCatalog
 } from "@playcraft/assets";
 import {
@@ -33,6 +34,7 @@ describe("deterministic local asset source", () => {
     expect(localAssetEditCatalog.map((entry) => entry.displayLabel)).toEqual(["dinosaurs", "toys", "ocean animals", "fruit"]);
     expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
     expect(localAssetEditCatalog.every((entry) => entry.suggestedItems.length > 0)).toBe(true);
+    expect(localAssetEditGenericThemeTokens).toEqual(expect.arrayContaining(["asset", "assets", "card images", "theme"]));
   });
 
   it("returns stable generated asset records for the same request and seed", () => {

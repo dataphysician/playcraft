@@ -167,6 +167,7 @@ describe("public contract schemas", () => {
           acceptedKeys: ["theme", "items"],
           maxItems: 12,
           localReplacementFolders: true,
+          genericThemeTokens: ["asset", "assets", "card images", "theme"],
           availableThemes: [
             {
               theme: "dinosaurs",

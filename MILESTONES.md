@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Asset Theme Guards
+
+Milestone:
+- Generic asset-theme suppression tokens are now exposed through the builder catalog asset-edit contract.
+- The local asset package owns the generic token list used to reject vague asset edit requests such as bare "assets" or "card images".
+- The service now consumes asset-edit guard data from `@playcraft/assets` instead of owning a service-local denylist.
+
+Supportive changes:
+- Contract, asset, service, and source-scan tests now verify catalog-owned generic theme tokens.
+- The service catalog JSON now returns `assetEdit.genericThemeTokens` alongside available replacement themes.
+
+Validation:
+- `pnpm test packages/assets/test/local-asset-source.test.ts packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps asset edit levers catalog-owned and forward-extensible without service-local guard constants, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Moonshine-Explicit Transcript Source
 
 Milestone:

@@ -29,7 +29,7 @@ import {
   type MoonshineTranscriptRecord,
   type MoonshineTranscriptSegment
 } from "@playcraft/contracts";
-import { localAssetEditCatalog } from "@playcraft/assets";
+import { localAssetEditCatalog, localAssetEditGenericThemeTokens } from "@playcraft/assets";
 import {
   createBuilderCommandHandler,
   type BuilderCommandHandler,
@@ -40,8 +40,6 @@ import { gameTemplateDefinitions } from "@playcraft/packs";
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
 export const DEFAULT_TEMPLATE_ID = BuilderTemplateIdSchema.parse("template.memory-match");
 export { localAssetEditCatalog } from "@playcraft/assets";
-
-const GENERIC_ASSET_THEME_TOKENS = new Set(["asset", "assets", "card", "cards", "card image", "card images", "image", "images", "art", "theme"]);
 
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
@@ -109,6 +107,7 @@ export class LocalPlaycraftService {
         acceptedKeys: ["theme", "items"],
         maxItems: 12,
         localReplacementFolders: true,
+        genericThemeTokens: localAssetEditGenericThemeTokens,
         availableThemes: localAssetEditCatalog
       },
       retrieval: {
@@ -739,7 +738,7 @@ function isTemplateOnlyTheme(value: string): boolean {
 
 function isGenericAssetTheme(value: string): boolean {
   const candidate = normalizedTokens(value).join(" ");
-  return GENERIC_ASSET_THEME_TOKENS.has(candidate);
+  return localAssetEditGenericThemeTokens.some((token) => normalizedTokens(token).join(" ") === candidate);
 }
 
 function cleanAssetTheme(value: string): string {

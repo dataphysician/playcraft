@@ -452,9 +452,15 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps service freeform asset folder names literal", () => {
     const source = readSource("packages/service/src/index.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const assetCatalogSource = readSource("packages/assets/src/index.ts");
 
     expect(source).toContain("isGenericAssetTheme");
-    expect(source).toContain("GENERIC_ASSET_THEME_TOKENS");
+    expect(contractSource).toContain("genericThemeTokens");
+    expect(assetCatalogSource).toContain("localAssetEditGenericThemeTokens");
+    expect(source).toContain("localAssetEditGenericThemeTokens");
+    expect(source).not.toContain("GENERIC_ASSET_THEME_TOKENS");
+    expect(source).not.toContain('new Set(["asset", "assets"');
     expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:game\|profile\|challenge\|assets/u);
     expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:assets\?\|cards/u);
   });
