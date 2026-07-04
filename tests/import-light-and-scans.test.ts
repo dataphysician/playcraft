@@ -256,10 +256,16 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps builder preview actions free of interaction defaulting", () => {
-    const source = readSource("packages/builder/src/index.ts");
+    const builderSource = readSource("packages/builder/src/index.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
 
-    expect(source).toContain("preview-action requires an interaction action");
-    expect(source).not.toContain('command.interaction?.action ?? "primary"');
+    expect(builderSource).toContain("preview-action requires an interaction action");
+    expect(builderSource).not.toContain('command.interaction?.action ?? "primary"');
+    expect(builderSource).toContain("const previewInteraction");
+    expect(builderSource).toContain("interaction: previewInteraction");
+    expect(builderSource).toContain('allowedValues: ["primary"]');
+    expect(contractSource).toContain('action: z.enum(["primary"])');
+    expect(contractSource).not.toContain('action: z.enum(["primary"]).default("primary")');
   });
 
   it("keeps service event serialization schema-first and non-coercive", () => {
@@ -378,6 +384,7 @@ describe("import-light boundaries and source scans", () => {
 
     expect(contractSource).toContain("fields?: Record<string, JsonField>");
     expect(builderSource).toContain("const previewInteraction");
+    expect(builderSource).toContain("required: true");
     expect(builderSource).toContain('allowedValues: ["primary"]');
     expect(builderSource).toContain("interaction: previewInteraction");
     expect(builderSource).not.toContain('"preview-action": {\n      interaction: optionalObject');

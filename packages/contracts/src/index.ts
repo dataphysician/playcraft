@@ -743,7 +743,7 @@ export const BuilderCommandSchema = PublicContractBaseSchema.extend({
   profile: GameAssemblyProfileSchema.optional(),
   interaction: z
     .object({
-      action: z.enum(["primary"]).default("primary")
+      action: z.enum(["primary"])
     })
     .strict()
     .optional()

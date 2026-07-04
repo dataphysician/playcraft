@@ -78,12 +78,12 @@ describe("local Playcraft service", () => {
       fields: {
         action: {
           allowedValues: ["primary"],
-          required: false,
+          required: true,
           type: "string"
         }
       },
       type: "object",
-      required: false
+      required: true
     });
     expect(catalog.tools.find((tool) => tool.actionName === "import-profile")?.argumentsSchema.fields.profile).toEqual({
       type: "object",

@@ -67,12 +67,12 @@ describe("builder session service", () => {
       fields: {
         action: {
           allowedValues: ["primary"],
-          required: false,
+          required: true,
           type: "string"
         }
       },
       type: "object",
-      required: false
+      required: true
     });
     expect(tools.find((tool) => tool.actionName === "import-profile")?.argumentsSchema.fields.profile).toEqual({
       type: "object",

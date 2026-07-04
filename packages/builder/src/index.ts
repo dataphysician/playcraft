@@ -592,11 +592,11 @@ function builderToolArgumentsSchema(actionName: BuilderToolDefinition["actionNam
   const optionalObject = { type: "object", required: false } as const;
   const previewInteraction: JsonObjectSchemaDescriptor["fields"][string] = {
     type: "object",
-    required: false,
+    required: true,
     fields: {
       action: {
         type: "string",
-        required: false,
+        required: true,
         allowedValues: ["primary"]
       }
     },

@@ -497,6 +497,13 @@ describe("public contract schemas", () => {
     expect(
       PublicContractSchemas.BuilderCommandSchema.safeParse({
         ...baseCommand,
+        actionName: "preview-action",
+        interaction: {}
+      }).success
+    ).toBe(false);
+    expect(
+      PublicContractSchemas.BuilderCommandSchema.safeParse({
+        ...baseCommand,
         actionName: "list-builder-tools",
         assetEdit: { theme: "toys" }
       }).success

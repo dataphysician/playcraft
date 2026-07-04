@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Required Preview Tool Action
+
+Milestone:
+- Builder command preview interactions no longer default `action` to `primary` at the schema layer.
+- Published preview tool arguments now require the `interaction` object and its `action` field.
+
+Supportive changes:
+- Contract tests now reject preview commands with empty interaction objects.
+- Builder and service catalog tests now assert required preview interaction/action tool arguments.
+- Source scans now block preview action defaults from returning to command and tool contracts.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps agent-facing preview calls explicit and forward-only without hidden default actions, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Explicit Preview Interaction Actions
 
 Milestone:
