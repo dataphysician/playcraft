@@ -134,6 +134,33 @@ describe("builder session service", () => {
     expect(preview.result.profile?.id).toBe("profile.sequence-repeat.mvp");
   });
 
+  it("previews the first interactive component when visual components render first", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const visualFirstProfile = {
+      ...exported!,
+      components: [...exported!.components].reverse()
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    const imported = target.importProfile("session.visual-first", visualFirstProfile);
+    const preview = target.execute(command({
+      actionName: "preview-action",
+      id: "builder-command.test.preview-visual-first",
+      interaction: { action: "primary" },
+      sessionId: "session.visual-first",
+      templateId: undefined
+    }));
+
+    expect(imported.result.preview.activeComponentId).toBe("component.reveal-card-grid");
+    expect(preview.result.preview.lastToolName).toBe("tool:reveal-card");
+    expect(preview.result.preview.lastToolPayload).toEqual(expect.objectContaining({
+      componentId: "component.reveal-card-grid"
+    }));
+    expect(preview.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("tool:preview-interaction"))).toBe(false);
+  });
+
   it("keeps CLI batch output in parity with the shared command handler", () => {
     const stdout: string[] = [];
     const stderr: string[] = [];

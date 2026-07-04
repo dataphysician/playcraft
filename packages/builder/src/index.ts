@@ -338,14 +338,19 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       throw new Error("preview-action requires an existing built session");
     }
 
-    const renderRequest = session.replay.renderRequests[0];
+    const renderRequest = interactiveRenderRequestForReplay(session.replay);
     if (!renderRequest) {
-      throw new Error("session has no render requests to preview");
+      throw new Error("session has no interactive render requests to preview");
     }
 
     const componentId = renderRequest.componentId ?? renderRequest.componentCapability ?? "component.unknown";
+    const toolName = renderRequest.expectedEmittedEvents[0];
+    if (!toolName) {
+      throw new Error(`interactive render request ${renderRequest.id} does not declare an emitted tool`);
+    }
+
     const interaction = {
-      toolName: renderRequest.expectedEmittedEvents[0] ?? "tool:preview-interaction",
+      toolName,
       payload: {
         componentId,
         action: command.interaction?.action ?? "primary"
@@ -478,17 +483,23 @@ function previewForReplay(
   replay: ReplayResult,
   previousPreview: BuilderPreviewState
 ): BuilderPreviewState {
+  const interactiveRequest = interactiveRenderRequestForReplay(replay);
+
   return BuilderPreviewStateSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
     sessionId,
     activeProfileId: profile.id,
     activeTemplateId: templateId,
-    activeComponentId: replay.renderRequests[0]?.componentId,
+    activeComponentId: interactiveRequest?.componentId ?? replay.renderRequests[0]?.componentId,
     renderedComponentIds: replay.renderRequests.map((entry) => entry.componentId ?? entry.componentCapability ?? "unknown"),
     interactionCount: previousPreview.interactionCount,
     lastToolName: previousPreview.lastToolName,
     lastToolPayload: previousPreview.lastToolPayload
   });
+}
+
+function interactiveRenderRequestForReplay(replay: ReplayResult): ReplayResult["renderRequests"][number] | undefined {
+  return replay.renderRequests.find((request) => request.expectedEmittedEvents.length > 0);
 }
 
 export function createBuilderCommandHandler(): BuilderCommandHandler {

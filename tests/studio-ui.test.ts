@@ -332,9 +332,11 @@ describe("studio UI", () => {
     fireEvent.click(toy1B);
     fireEvent.click(toy2A);
     fireEvent.click(toy2B);
-    await waitFor(() => expect(toy1A.style.background).toBe(toy1B.style.background));
+    await waitFor(() => {
+      expect(toy1A.style.background).toBe(toy1B.style.background);
+      expect(toy2A.style.background).toBe(toy2B.style.background);
+    });
     expect(toy1A.style.borderColor).toBe(toy1B.style.borderColor);
-    expect(toy2A.style.background).toBe(toy2B.style.background);
     expect(toy2A.style.borderColor).toBe(toy2B.style.borderColor);
     expect(toy1A.style.background).not.toBe(toy2A.style.background);
     expect(toy1A.textContent).toContain("T1");
