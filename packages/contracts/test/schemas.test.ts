@@ -181,6 +181,10 @@ describe("public contract schemas", () => {
             }
           ]
         },
+        toolPresentation: {
+          argumentsPrefix: "args",
+          noArgumentsLabel: "none"
+        },
         sessions: {
           defaultAssembleSessionId: "service.session",
           sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]

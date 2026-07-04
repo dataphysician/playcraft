@@ -707,6 +707,12 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
       sourceOptions: z.array(BuilderInputSourceOptionSchema).min(1)
     })
     .strict(),
+  toolPresentation: z
+    .object({
+      argumentsPrefix: z.string().min(1).max(40),
+      noArgumentsLabel: z.string().min(1).max(80)
+    })
+    .strict(),
   sessions: z
     .object({
       defaultAssembleSessionId: StableIdSchema,

@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Tool Argument Presentation
+
+Milestone:
+- Builder catalogs now publish tool argument presentation policy with an argument prefix and no-argument label.
+- Studio Developer tool argument summaries render from `catalog.toolPresentation` instead of app-local fallback text.
+- Custom catalog clients can override both argument summary prefix and empty-argument wording.
+
+Supportive changes:
+- Contract and service tests validate the new catalog presentation policy.
+- Studio UI tests verify custom tool argument presentation in the Developer tab.
+- Source scans now block app-local `"no arguments"` summaries from returning.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps agent-facing tool presentation catalog-owned and forward-only without Studio-local summary fallbacks, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Replay-Owned Component Interaction Summaries
 
 Milestone:

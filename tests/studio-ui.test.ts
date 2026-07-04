@@ -331,6 +331,17 @@ describe("studio UI", () => {
     const client: StudioClient = {
       catalog: () => ({
         ...catalog,
+        tools: catalog.tools.map((tool) =>
+          tool.actionName === "preview-action"
+            ? {
+                ...tool,
+                argumentsSchema: {
+                  ...tool.argumentsSchema,
+                  fields: {}
+                }
+              }
+            : tool
+        ),
         input: {
           ...catalog.input,
           noInputLabel: "unavailable",
@@ -348,6 +359,10 @@ describe("studio UI", () => {
               updatePlaceholder: "Moonshine update from catalog"
             }
           ]
+        },
+        toolPresentation: {
+          argumentsPrefix: "params",
+          noArgumentsLabel: "empty"
         }
       }),
       assembleFromIntent() {
@@ -374,6 +389,8 @@ describe("studio UI", () => {
 
     expect((await screen.findAllByText("input: Typed, Moon CPU")).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("input: unavailable").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/params: .*templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("params: empty").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows the service catalog as an agent tool surface in the Developer tab", async () => {
@@ -387,7 +404,7 @@ describe("studio UI", () => {
     expect(screen.getByText("assemble-game")).toBeDefined();
     expect(screen.getAllByText("input: Text, Transcript").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("input: none").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/args: .*templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Memory Match MVP")).toBeDefined();
     expect(screen.getByText("memory, memory game, memory match")).toBeDefined();
     expect(screen.getAllByText("dinosaurs").length).toBeGreaterThanOrEqual(2);

@@ -464,7 +464,7 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               React.createElement("strong", null, tool.toolName),
               React.createElement("span", { style: shellStyles.catalogMeta }, tool.actionName),
               React.createElement("span", { style: shellStyles.catalogMeta }, toolInputSourceSummary(tool.acceptedInputSources, catalog.input)),
-              React.createElement("span", { style: shellStyles.catalogMeta }, toolArgumentsSummary(tool.argumentsSchema.fields))
+              React.createElement("span", { style: shellStyles.catalogMeta }, toolArgumentsSummary(tool.argumentsSchema.fields, catalog.toolPresentation))
             )
           )
         )
@@ -510,9 +510,12 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
   );
 }
 
-function toolArgumentsSummary(fields: BuilderCatalog["tools"][number]["argumentsSchema"]["fields"]): string {
+function toolArgumentsSummary(
+  fields: BuilderCatalog["tools"][number]["argumentsSchema"]["fields"],
+  presentation: BuilderCatalog["toolPresentation"]
+): string {
   const summary = Object.entries(fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
-  return summary.length > 0 ? summary.join(", ") : "no arguments";
+  return `${presentation.argumentsPrefix}: ${summary.length > 0 ? summary.join(", ") : presentation.noArgumentsLabel}`;
 }
 
 function toolInputSourceSummary(

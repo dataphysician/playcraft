@@ -70,6 +70,11 @@ export const LOCAL_SERVICE_INPUT_POLICY = {
   ]
 } as const;
 
+export const LOCAL_SERVICE_TOOL_PRESENTATION_POLICY = {
+  argumentsPrefix: "args",
+  noArgumentsLabel: "none"
+} as const;
+
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
   sessionId?: string;
@@ -132,6 +137,7 @@ export class LocalPlaycraftService {
       tools: this.handler.listTools(),
       acceptedInputSources: ["text", "moonshine-transcript"],
       input: LOCAL_SERVICE_INPUT_POLICY,
+      toolPresentation: LOCAL_SERVICE_TOOL_PRESENTATION_POLICY,
       sessions: LOCAL_SERVICE_SESSION_POLICY,
       assetEdit: {
         supported: true,
