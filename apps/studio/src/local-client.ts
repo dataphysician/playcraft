@@ -21,12 +21,17 @@ export interface ConfiguredStudioClientOptions {
   timelineIdPrefix?: string;
 }
 
+export const STUDIO_CLIENT_POLICY = {
+  defaultSessionId: "studio.session",
+  defaultTimelineIdPrefix: "timeline"
+} as const;
+
 export function createConfiguredStudioClient(options: ConfiguredStudioClientOptions = {}): StudioClient {
   const serviceEndpoint = options.serviceEndpoint?.trim();
 
   return createStudioClientFromServiceTransport({
-    defaultSessionId: options.defaultSessionId ?? "studio.session",
-    timelineIdPrefix: options.timelineIdPrefix ?? "timeline",
+    defaultSessionId: options.defaultSessionId,
+    timelineIdPrefix: options.timelineIdPrefix,
     transport: serviceEndpoint ? createHttpServiceTransport({ endpoint: serviceEndpoint }) : createLocalServiceTransport()
   });
 }
@@ -36,10 +41,12 @@ export function createLocalStudioClient(): StudioClient {
 }
 
 export function createStudioClientFromServiceTransport(options: {
-  defaultSessionId: string;
-  timelineIdPrefix: string;
+  defaultSessionId?: string;
+  timelineIdPrefix?: string;
   transport: BuilderServiceTransport;
 }): StudioClient {
+  const defaultSessionId = options.defaultSessionId ?? STUDIO_CLIENT_POLICY.defaultSessionId;
+  const timelineIdPrefix = options.timelineIdPrefix ?? STUDIO_CLIENT_POLICY.defaultTimelineIdPrefix;
   const profiles = new Map<string, GameAssemblyProfile>();
   const timeline: StudioTimelineEntry[] = [];
   let requestCounter = 0;
@@ -56,7 +63,7 @@ export function createStudioClientFromServiceTransport(options: {
       profiles.set(response.session.profile.id, response.session.profile);
     }
 
-    const entries = response.execution.events.map((event, index) => timelineEntry(event, timeline.length + index + 1, options.timelineIdPrefix));
+    const entries = response.execution.events.map((event, index) => timelineEntry(event, timeline.length + index + 1, timelineIdPrefix));
     timeline.push(...entries);
 
     return {
@@ -75,7 +82,7 @@ export function createStudioClientFromServiceTransport(options: {
     requestCounter += 1;
     return BuilderServiceRequestSchema.parse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-      id: `builder-service-request.${options.defaultSessionId}.${requestCounter}`,
+      id: `builder-service-request.${defaultSessionId}.${requestCounter}`,
       version: "1.0.0",
       kind: "builder-service-request",
       actionName,
@@ -91,9 +98,9 @@ export function createStudioClientFromServiceTransport(options: {
       );
     },
     assembleFromIntent(input) {
-      const sessionId = input.sessionId ?? options.defaultSessionId;
+      const sessionId = input.sessionId ?? defaultSessionId;
       const moonshineTranscript = moonshineTranscriptForClientInput({
-        requestId: `moonshine-transcript.${options.defaultSessionId}.${requestCounter + 1}`,
+        requestId: `moonshine-transcript.${defaultSessionId}.${requestCounter + 1}`,
         source: input.source,
         moonshineTranscript: input.moonshineTranscript,
         text: input.idea
@@ -135,7 +142,7 @@ export function createStudioClientFromServiceTransport(options: {
     },
     requestChange(input) {
       const moonshineTranscript = moonshineTranscriptForClientInput({
-        requestId: `moonshine-transcript.${options.defaultSessionId}.${requestCounter + 1}`,
+        requestId: `moonshine-transcript.${defaultSessionId}.${requestCounter + 1}`,
         source: input.source,
         moonshineTranscript: input.moonshineTranscript,
         text: input.changeRequest

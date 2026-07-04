@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Studio Client Policy
+
+Milestone:
+- The Studio client now exports `STUDIO_CLIENT_POLICY` for default local session and timeline IDs.
+- Configured and transport-backed Studio clients consume that policy instead of owning private `studio.session` and `timeline` fallback literals.
+- Tests can instantiate transport-backed Studio clients without re-declaring default IDs.
+
+Supportive changes:
+- Studio tests now validate the published policy and default transport-backed request/session/timeline IDs.
+- Source scans now block private Studio default session and timeline fallback expressions from returning.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps Studio client defaults explicit and forward-only without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+
 ## 2026-07-04 - Service HTTP Policy
 
 Milestone:

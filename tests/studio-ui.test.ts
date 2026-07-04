@@ -16,6 +16,7 @@ import {
   resolveBuilderInputCommand
 } from "@playcraft/service";
 import {
+  STUDIO_CLIENT_POLICY,
   createConfiguredStudioClient,
   createLocalStudioClient,
   createStudioClientFromServiceTransport
@@ -59,6 +60,13 @@ function setElementRect(
 }
 
 describe("studio UI", () => {
+  it("publishes Studio client defaults for local session and timeline IDs", () => {
+    expect(STUDIO_CLIENT_POLICY).toEqual({
+      defaultSessionId: "studio.session",
+      defaultTimelineIdPrefix: "timeline"
+    });
+  });
+
   it("normalizes local text and Moonshine transcript inputs into template commands", () => {
     const transcript = createMoonshineTranscriptRecord({
       id: "moonshine-transcript.test.resolve",
@@ -147,6 +155,24 @@ describe("studio UI", () => {
     expect(requests[0]?.source).toBeUndefined();
     expect(session.activeProfileId).toBe("profile.sequence-repeat.mvp");
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.studio-client"))).toBe(true);
+  });
+
+  it("uses Studio client policy defaults for transport-backed clients", async () => {
+    const requests: BuilderServiceRequest[] = [];
+    const client = createStudioClientFromServiceTransport({
+      transport: {
+        send(request) {
+          requests.push(request);
+          return handleLocalServiceRequest(request);
+        }
+      }
+    });
+    const session = await Promise.resolve(client.assembleFromIntent({ idea: "Memory game with dinosaurs" }));
+
+    expect(requests[0]?.id).toBe("builder-service-request.studio.session.1");
+    expect(requests[0]?.sessionId).toBe(STUDIO_CLIENT_POLICY.defaultSessionId);
+    expect(session.sessionId).toBe(STUDIO_CLIENT_POLICY.defaultSessionId);
+    expect(session.timeline[0]?.id).toBe("timeline.0001");
   });
 
   it("validates Studio service requests before sending them to transport", async () => {

@@ -444,6 +444,16 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain('schemaVersion: "playcraft.v1"');
   });
 
+  it("keeps Studio client defaults policy-owned", () => {
+    const source = readSource("apps/studio/src/local-client.ts");
+
+    expect(source).toContain("STUDIO_CLIENT_POLICY");
+    expect(source).toContain("STUDIO_CLIENT_POLICY.defaultSessionId");
+    expect(source).toContain("STUDIO_CLIENT_POLICY.defaultTimelineIdPrefix");
+    expect(source).not.toContain('options.defaultSessionId ?? "studio.session"');
+    expect(source).not.toContain('options.timelineIdPrefix ?? "timeline"');
+  });
+
   it("keeps service CLI response output action-scoped instead of payload-precedence based", () => {
     const source = readSource("packages/service/src/cli.ts");
 
