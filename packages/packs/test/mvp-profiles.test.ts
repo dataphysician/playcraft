@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   assembleMvpProfiles,
   createDefaultPlanner,
+  DEFAULT_GAME_TEMPLATE_ID,
   gameTemplateDefinitions,
   mechanicDefinitions,
   mvpAssemblyRequests
@@ -75,6 +76,8 @@ describe("MVP profile pack", () => {
 
   it("publishes bundled game templates for the builder catalog", () => {
     expect(gameTemplateDefinitions).toHaveLength(24);
+    expect(DEFAULT_GAME_TEMPLATE_ID).toBe("template.memory-match");
+    expect(gameTemplateDefinitions[0]?.id).toBe(DEFAULT_GAME_TEMPLATE_ID);
     expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.id)).toEqual([
       "template.memory-match",
       "template.sorting",

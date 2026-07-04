@@ -469,6 +469,16 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:assets\?\|cards/u);
   });
 
+  it("keeps the default builder template pack-owned", () => {
+    const packSource = readSource("packages/packs/src/index.ts");
+    const serviceSource = readSource("packages/service/src/index.ts");
+
+    expect(packSource).toContain("DEFAULT_GAME_TEMPLATE_ID");
+    expect(serviceSource).toContain("DEFAULT_GAME_TEMPLATE_ID");
+    expect(serviceSource).not.toContain("DEFAULT_TEMPLATE_ID");
+    expect(serviceSource).not.toContain('BuilderTemplateIdSchema.parse("template.memory-match")');
+  });
+
   it("keeps builder asset prompt wording template-owned instead of component-inferred", () => {
     const builderSource = readSource("packages/builder/src/index.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");

@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Pack-Owned Default Template
+
+Milestone:
+- The bundled pack now exports `DEFAULT_GAME_TEMPLATE_ID` as the catalog-owned default template.
+- The local service consumes the pack default instead of defining its own service-local `template.memory-match` default.
+- Default template resolution and catalog output now share the same pack-owned default identity.
+
+Supportive changes:
+- Pack and service tests now verify the default template comes from the bundled template catalog.
+- Source scans now block a service-local `DEFAULT_TEMPLATE_ID` and direct service parsing of the memory template ID.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps template selection defaults catalog-owned and forward-only without service-local defaults, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Asset-Owned Intent Patterns
 
 Milestone:

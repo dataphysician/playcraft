@@ -7,6 +7,7 @@ import {
 import {
   AssemblyValidationResultSchema,
   AssetGenerationRequestSchema,
+  BuilderTemplateIdSchema,
   ComponentManifestSchema,
   DomainProfileSchema,
   FrontendToolDefinitionSchema,
@@ -19,6 +20,7 @@ import {
   SafetyPolicyPackSchema,
   ThemePackSchema,
   type AssetGenerationRequest,
+  type BuilderTemplateId,
   type ComponentManifest,
   type DomainProfile,
   type FrontendToolDefinition,
@@ -54,6 +56,7 @@ export const DEFAULT_DOMAIN_ID = "domain.child-edu";
 export const DEFAULT_SAFETY_POLICY_ID = "safety.child-friendly";
 export const DEFAULT_THEME_ID = "theme.bright-calm";
 export const DEFAULT_PLANNER_ID = "planner.deterministic.mvp";
+export const DEFAULT_GAME_TEMPLATE_ID: BuilderTemplateId = BuilderTemplateIdSchema.parse("template.memory-match");
 
 const memoryAssetEditOperations: GameTemplateAssetEditOperation[] = [
   { componentCapability: "component:reveal-card-grid", operation: "memory-pairs" },

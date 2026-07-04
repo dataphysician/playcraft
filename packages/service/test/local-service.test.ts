@@ -10,6 +10,7 @@ import {
   createBuilderCommandHandler,
   type BuilderCommandHandler
 } from "@playcraft/builder";
+import { DEFAULT_GAME_TEMPLATE_ID } from "@playcraft/packs";
 import {
   PLAYCRAFT_SERVICE_PACKAGE,
   createHttpServiceTransport,
@@ -30,7 +31,7 @@ describe("local Playcraft service", () => {
 
     expect(PLAYCRAFT_SERVICE_PACKAGE).toBe("@playcraft/service");
     expect(catalog.kind).toBe("builder-catalog");
-    expect(catalog.defaultTemplateId).toBe("template.memory-match");
+    expect(catalog.defaultTemplateId).toBe(DEFAULT_GAME_TEMPLATE_ID);
     expect(catalog.retrieval).toEqual({
       current: "bundled-local",
       planned: "server-catalog"

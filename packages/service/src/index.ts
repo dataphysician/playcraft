@@ -7,7 +7,6 @@ import {
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
   BuilderSessionSnapshotSchema,
-  BuilderTemplateIdSchema,
   JsonValueSchema,
   MoonshineTranscriptRecordSchema,
   PLAYCRAFT_SCHEMA_VERSION,
@@ -40,10 +39,9 @@ import {
   type BuilderCommandHandler,
   type BuilderExecutionResult
 } from "@playcraft/builder";
-import { gameTemplateDefinitions } from "@playcraft/packs";
+import { DEFAULT_GAME_TEMPLATE_ID, gameTemplateDefinitions } from "@playcraft/packs";
 
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
-export const DEFAULT_TEMPLATE_ID = BuilderTemplateIdSchema.parse("template.memory-match");
 export { localAssetEditCatalog } from "@playcraft/assets";
 
 export interface LocalBuilderInput {
@@ -103,7 +101,7 @@ export class LocalPlaycraftService {
       id: "builder-catalog.local",
       version: "1.0.0",
       kind: "builder-catalog",
-      defaultTemplateId: DEFAULT_TEMPLATE_ID,
+      defaultTemplateId: DEFAULT_GAME_TEMPLATE_ID,
       templates: this.handler.listTemplates(),
       tools: this.handler.listTools(),
       acceptedInputSources: ["text", "moonshine-transcript"],
@@ -291,7 +289,7 @@ export class LocalPlaycraftService {
     const state = this.sessionState.get(sessionId);
     return resolveBuilderInputCommand({
       activeAssetEdit: state?.activeAssetEdit,
-      activeTemplateId: state?.activeTemplateId ?? DEFAULT_TEMPLATE_ID,
+      activeTemplateId: state?.activeTemplateId ?? DEFAULT_GAME_TEMPLATE_ID,
       assetEdit: input.assetEdit,
       sequence: this.inputCounter,
       source: input.source ?? "text",
@@ -624,7 +622,7 @@ function templateDecisionFor(input: {
   if (input.matchedTemplateIds.length > 1) {
     return {
       source: "ambiguous-template-match",
-      templateId: input.activeTemplateId ?? DEFAULT_TEMPLATE_ID
+      templateId: input.activeTemplateId ?? DEFAULT_GAME_TEMPLATE_ID
     };
   }
 
@@ -632,7 +630,7 @@ function templateDecisionFor(input: {
     return { source: "active-template", templateId: input.activeTemplateId };
   }
 
-  return { source: "default-template", templateId: DEFAULT_TEMPLATE_ID };
+  return { source: "default-template", templateId: DEFAULT_GAME_TEMPLATE_ID };
 }
 
 function assetDecisionFor(input: {
