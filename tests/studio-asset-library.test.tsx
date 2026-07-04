@@ -25,6 +25,18 @@ describe("studio asset library", () => {
     expect(createProfileLibraryAssetReplacements(fruitProfile!)["card:fruit-1-a"]?.altText).toBe("fruit 1 sprite");
   });
 
+  it("exposes validated local sprite URLs through profile replacements", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.profiles.at(-1);
+
+    expect(profile).toBeDefined();
+    const replacements = createProfileLibraryAssetReplacements(profile!);
+    expect(replacements["card:toy-1-a"]?.altText).toBe("toy 1 sprite");
+    expect(typeof replacements["card:toy-1-a"]?.uri).toBe("string");
+    expect(replacements["card:toy-1-a"]?.uri.length).toBeGreaterThan(0);
+  });
+
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toybox" });

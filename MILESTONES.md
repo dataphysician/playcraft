@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Studio Replacement Sprite Module Validation
+
+Milestone:
+- Studio replacement sprite modules now pass through runtime URL validation before becoming local asset-library records.
+- Edit-aware card, item, and choice replacements no longer depend on an unchecked Vite glob `Record<string, string>` assertion.
+- Public asset replacement coverage confirms generated game profiles receive non-empty local sprite URLs.
+
+Supportive changes:
+- Added asset-library coverage for toy memory cards through the public `createProfileLibraryAssetReplacements` path.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps local edit-aware asset replacement schema-first and folder-driven without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Studio Contract Test Parsing
 
 Milestone:

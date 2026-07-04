@@ -63,9 +63,9 @@ export const sortingBinAssetCatalog: SortingBinAsset[] = [
 const replacementImageModules = import.meta.glob("./assets/library/replacements/**/*.png", {
   eager: true,
   import: "default"
-}) as Record<string, string>;
+});
 
-const replacementSprites = Object.entries(replacementImageModules)
+const replacementSprites = replacementImageEntries(replacementImageModules)
   .flatMap(([path, uri]) => {
     const parts = path.split("/");
     const fileName = parts.at(-1) ?? "";
@@ -85,6 +85,16 @@ const replacementSprites = Object.entries(replacementImageModules)
     ];
   })
   .sort((left, right) => `${left.theme}/${left.id}`.localeCompare(`${right.theme}/${right.id}`));
+
+function replacementImageEntries(modules: Record<string, unknown>): Array<[string, string]> {
+  return Object.entries(modules).map(([path, uri]) => {
+    if (typeof uri !== "string" || uri.length === 0) {
+      throw new Error(`Replacement sprite ${path} did not resolve to a local asset URL.`);
+    }
+
+    return [path, uri];
+  });
+}
 
 export function createProfileLibraryAssetReplacements(
   profile: GameAssemblyProfile
