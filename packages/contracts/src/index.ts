@@ -761,6 +761,8 @@ export const BuilderServiceExecutionSchema = z
   .strict();
 export type BuilderServiceExecution = z.infer<typeof BuilderServiceExecutionSchema>;
 
+const BuilderServiceResponsePayloadKeys = ["catalog", "execution", "session", "profileExport", "reset"] as const;
+
 export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-service-request"),
   actionName: BuilderServiceActionNameSchema,
@@ -837,27 +839,60 @@ export const BuilderServiceResponseSchema = PublicContractBaseSchema.extend({
     message: "catalog responses require a catalog",
     path: ["catalog"]
   })
-  .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || Boolean(value.execution), {
-    message: "assemble, update, and preview responses require execution output",
+  .refine((value) => value.actionName !== "catalog" || hasOnlyServiceResponsePayloads(value, ["catalog"]), {
+    message: "catalog responses only include catalog output",
+    path: ["catalog"]
+  })
+  .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || Boolean(value.execution && value.session), {
+    message: "assemble, update, and preview responses require execution output and a session snapshot",
+    path: ["execution"]
+  })
+  .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || hasOnlyServiceResponsePayloads(value, ["execution", "session"]), {
+    message: "assemble, update, and preview responses only include execution output and a session snapshot",
     path: ["execution"]
   })
   .refine((value) => value.actionName !== "get-session" || Boolean(value.session), {
     message: "get-session responses require a session snapshot",
     path: ["session"]
   })
+  .refine((value) => value.actionName !== "get-session" || hasOnlyServiceResponsePayloads(value, ["session"]), {
+    message: "get-session responses only include a session snapshot",
+    path: ["session"]
+  })
   .refine((value) => value.actionName !== "export-profile" || Boolean(value.profileExport), {
     message: "export-profile responses require a profile export",
+    path: ["profileExport"]
+  })
+  .refine((value) => value.actionName !== "export-profile" || hasOnlyServiceResponsePayloads(value, ["profileExport"]), {
+    message: "export-profile responses only include a profile export",
     path: ["profileExport"]
   })
   .refine((value) => value.actionName !== "import-profile" || Boolean(value.execution && value.session), {
     message: "import-profile responses require execution output and a session snapshot",
     path: ["execution"]
   })
+  .refine((value) => value.actionName !== "import-profile" || hasOnlyServiceResponsePayloads(value, ["execution", "session"]), {
+    message: "import-profile responses only include execution output and a session snapshot",
+    path: ["execution"]
+  })
   .refine((value) => value.actionName !== "reset" || value.reset === true, {
     message: "reset responses require reset acknowledgement",
     path: ["reset"]
+  })
+  .refine((value) => value.actionName !== "reset" || hasOnlyServiceResponsePayloads(value, ["reset"]), {
+    message: "reset responses only include reset acknowledgement",
+    path: ["reset"]
   });
 export type BuilderServiceResponse = z.infer<typeof BuilderServiceResponseSchema>;
+
+function hasOnlyServiceResponsePayloads(
+  value: Record<string, unknown>,
+  allowedPayloads: Array<(typeof BuilderServiceResponsePayloadKeys)[number]>
+): boolean {
+  return BuilderServiceResponsePayloadKeys.every((key) =>
+    allowedPayloads.includes(key) ? value[key] !== undefined : value[key] === undefined
+  );
+}
 
 export const PublicContractSchemas = {
   PlaycraftAssemblyRequestSchema,

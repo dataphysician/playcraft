@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Action-Exact Service Responses
+
+Milestone:
+- `BuilderServiceResponse` envelopes now allow only the payload fields owned by their `actionName`.
+- Assemble, update, preview, and import responses now require both execution output and a session snapshot.
+- Catalog, get-session, export-profile, and reset responses now reject unrelated extra payloads.
+
+Supportive changes:
+- Public contract fixtures now model assemble responses with the required session snapshot.
+- Contract tests cover extra-payload response rejection for catalog, export-profile, reset, and build responses without sessions.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps service responses unambiguous for agent clients without payload precedence rules, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Exact Profile Import Payloads
 
 Milestone:

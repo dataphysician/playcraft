@@ -3,6 +3,7 @@ import {
   AssetContentTypeSchema,
   BuilderInputRequestSchema,
   BuilderServiceRequestSchema,
+  BuilderServiceResponseSchema,
   ComponentRenderRequestSchema,
   GameTemplateDefinitionSchema,
   InputModalitySchema,
@@ -375,6 +376,25 @@ describe("public contract schemas", () => {
               }
             }
           ]
+        },
+        session: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          kind: "builder-session-snapshot",
+          sessionId: "session.fixture",
+          activeTemplateId: "template.memory-match",
+          activeProfileId: profile.id,
+          profile,
+          preview: {
+            schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+            sessionId: "session.fixture",
+            activeProfileId: profile.id,
+            activeTemplateId: "template.memory-match",
+            activeComponentId: renderRequest.componentId,
+            renderedComponentIds: [renderRequest.componentId],
+            interactionCount: 0
+          },
+          validation: profile.validation,
+          updatedAt: "2026-07-04T00:00:00.000Z"
         }
       }
     };
@@ -524,6 +544,151 @@ describe("public contract schemas", () => {
             planned: "server-catalog"
           }
         }
+      }).success
+    ).toBe(false);
+  });
+
+  it("keeps service response payload fields scoped to the selected action", () => {
+    const profile = assembleMvpProfiles()[0];
+    const renderRequest = replayProfile(profile, createDefaultRegistries()).renderRequests[0];
+    const builderTool = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-tool.response-scope",
+      version: "1.0.0",
+      kind: "builder-tool",
+      toolName: "tool:assemble-game",
+      displayName: "Assemble game",
+      description: "Assemble a game from a registered template.",
+      actionName: "assemble-game",
+      argumentsSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        type: "object",
+        fields: {
+          templateId: { type: "string", required: true }
+        },
+        allowUnknown: false
+      },
+      acceptedInputSources: ["text"],
+      localOnly: true,
+      emittedEvents: ["builder:profile-ready"],
+      requiredContracts: ["BuilderCommandSchema"]
+    };
+    const preview = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      sessionId: "session.response-scope",
+      activeProfileId: profile.id,
+      activeTemplateId: "template.memory-match",
+      activeComponentId: renderRequest.componentId,
+      renderedComponentIds: [renderRequest.componentId],
+      interactionCount: 0
+    };
+    const session = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      kind: "builder-session-snapshot",
+      sessionId: "session.response-scope",
+      activeTemplateId: "template.memory-match",
+      activeProfileId: profile.id,
+      profile,
+      preview,
+      validation: profile.validation,
+      updatedAt: "2026-07-04T00:00:00.000Z"
+    };
+    const execution = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      result: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-result.response-scope",
+        version: "1.0.0",
+        kind: "builder-command-result",
+        commandId: "builder-command.response-scope",
+        sessionId: "session.response-scope",
+        profile,
+        preview,
+        validation: profile.validation
+      },
+      events: []
+    };
+
+    expect(
+      BuilderServiceResponseSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-response.test.assemble-without-session",
+        version: "1.0.0",
+        kind: "builder-service-response",
+        requestId: "builder-service-request.test.assemble-without-session",
+        actionName: "assemble",
+        execution
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceResponseSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-response.test.catalog-with-session",
+        version: "1.0.0",
+        kind: "builder-service-response",
+        requestId: "builder-service-request.test.catalog-with-session",
+        actionName: "catalog",
+        catalog: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-catalog.response-scope",
+          version: "1.0.0",
+          kind: "builder-catalog",
+          defaultTemplateId: "template.memory-match",
+          templates: gameTemplateDefinitions,
+          tools: [builderTool],
+          acceptedInputSources: ["text"],
+          assetEdit: {
+            supported: true,
+            acceptedKeys: ["theme"],
+            maxItems: 12,
+            localReplacementFolders: true,
+            availableThemes: []
+          },
+          retrieval: {
+            current: "bundled-local",
+            planned: "server-catalog"
+          }
+        },
+        session
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceResponseSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-response.test.export-with-session",
+        version: "1.0.0",
+        kind: "builder-service-response",
+        requestId: "builder-service-request.test.export-with-session",
+        actionName: "export-profile",
+        profileExport: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-profile-export.response-scope",
+          version: "1.0.0",
+          kind: "builder-profile-export",
+          sessionId: "session.response-scope",
+          profile,
+          exportedAt: "2026-07-04T00:00:00.000Z",
+          retrieval: {
+            current: "bundled-local",
+            planned: "server-catalog"
+          }
+        },
+        session
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceResponseSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-response.test.reset-with-session",
+        version: "1.0.0",
+        kind: "builder-service-response",
+        requestId: "builder-service-request.test.reset-with-session",
+        actionName: "reset",
+        reset: true,
+        session
       }).success
     ).toBe(false);
   });
