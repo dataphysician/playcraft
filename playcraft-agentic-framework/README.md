@@ -42,9 +42,9 @@ The v1 target is intentionally small and local-first:
 - Trusted React renderer for registered components only.
 - Replay harness for saved `GameAssemblyProfile` records.
 - Three MVP profiles: memory match, sorting, and sequence repeat.
-- Local service facade for text requests and Moonshine Streaming CPU transcript records.
+- Local service facade with validated `BuilderServiceRequest` and `BuilderServiceResponse` envelopes for text requests and Moonshine Streaming CPU transcript records.
 - `playcraft-service` CLI surface for catalog, assemble, update, preview, and asset-edit requests with callable argument schemas and catalog-driven template aliases.
-- Vite Studio and a Tauri Mobile-facing shell that assemble games through the local service.
+- Vite Studio and a Tauri Mobile-facing shell that assemble games through the shared service transport.
 
 The core framework packages must be buildable and testable without network access, credentials, AI SDKs, GPU, model weights, a database, or a native shell. The mobile shell is an app layer around the same local service, not a core dependency.
 

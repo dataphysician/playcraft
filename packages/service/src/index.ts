@@ -2,6 +2,9 @@ import {
   BuilderCatalogSchema,
   BuilderInputRequestSchema,
   BuilderIntentResolutionSchema,
+  BuilderServiceExecutionSchema,
+  BuilderServiceRequestSchema,
+  BuilderServiceResponseSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
   type BuilderCatalog,
@@ -9,6 +12,9 @@ import {
   type BuilderInputRequest,
   type BuilderInputSource,
   type BuilderIntentResolution,
+  type BuilderServiceExecution,
+  type BuilderServiceRequest,
+  type BuilderServiceResponse,
   type BuilderTemplateId,
   type JsonValue
 } from "@playcraft/contracts";
@@ -35,6 +41,10 @@ export interface ResolvedBuilderInputCommand {
   input: BuilderInputRequest;
   resolution: BuilderIntentResolution;
   templateId: BuilderTemplateId;
+}
+
+export interface BuilderServiceTransport {
+  send(request: BuilderServiceRequest): BuilderServiceResponse | Promise<BuilderServiceResponse>;
 }
 
 export class LocalPlaycraftService {
@@ -105,6 +115,51 @@ export class LocalPlaycraftService {
     this.activeTemplateId = DEFAULT_TEMPLATE_ID;
   }
 
+  handle(requestInput: BuilderServiceRequest): BuilderServiceResponse {
+    const request = BuilderServiceRequestSchema.parse(requestInput);
+
+    if (request.actionName === "catalog") {
+      return serviceResponse(request, { catalog: this.catalog() });
+    }
+
+    if (request.actionName === "reset") {
+      this.reset();
+      return serviceResponse(request, { reset: true });
+    }
+
+    if (request.actionName === "preview") {
+      return serviceResponse(request, {
+        execution: serializeExecution(this.preview(request.sessionId ?? "service.session"))
+      });
+    }
+
+    if (request.actionName === "assemble") {
+      return serviceResponse(request, {
+        execution: serializeExecution(
+          this.assemble({
+            assetEdit: request.assetEdit,
+            sessionId: request.sessionId,
+            source: request.source ?? "text",
+            templateId: request.templateId,
+            text: request.text ?? ""
+          })
+        )
+      });
+    }
+
+    return serviceResponse(request, {
+      execution: serializeExecution(
+        this.update({
+          assetEdit: request.assetEdit,
+          sessionId: request.sessionId ?? "service.session",
+          source: request.source ?? "text",
+          templateId: request.templateId,
+          text: request.text ?? ""
+        })
+      )
+    });
+  }
+
   private resolveInput(input: LocalBuilderInput): ResolvedBuilderInputCommand {
     this.inputCounter += 1;
     return resolveBuilderInputCommand({
@@ -140,6 +195,21 @@ export class LocalPlaycraftService {
 
 export function createLocalPlaycraftService(handler?: BuilderCommandHandler): LocalPlaycraftService {
   return new LocalPlaycraftService(handler);
+}
+
+export function createLocalServiceTransport(service = createLocalPlaycraftService()): BuilderServiceTransport {
+  return {
+    send(request) {
+      return service.handle(request);
+    }
+  };
+}
+
+export function handleLocalServiceRequest(
+  request: BuilderServiceRequest,
+  service = createLocalPlaycraftService()
+): BuilderServiceResponse {
+  return service.handle(request);
 }
 
 export function resolveBuilderInputCommand(input: {
@@ -378,6 +448,29 @@ function cleanAssetTheme(value: string): string {
 
 function toJsonValue(value: unknown): JsonValue {
   return JSON.parse(JSON.stringify(value)) as JsonValue;
+}
+
+function serializeExecution(output: BuilderExecutionResult): BuilderServiceExecution {
+  return BuilderServiceExecutionSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    result: output.result,
+    events: output.events.map((event) => toJsonValue(event))
+  });
+}
+
+function serviceResponse(
+  request: BuilderServiceRequest,
+  payload: { catalog?: BuilderCatalog; execution?: BuilderServiceExecution; reset?: true }
+): BuilderServiceResponse {
+  return BuilderServiceResponseSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: `builder-service-response.${request.id}`,
+    version: "1.0.0",
+    kind: "builder-service-response",
+    requestId: request.id,
+    actionName: request.actionName,
+    ...payload
+  });
 }
 
 function normalizedTokens(value: string): string[] {

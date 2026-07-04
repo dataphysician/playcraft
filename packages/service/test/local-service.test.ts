@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { PLAYCRAFT_SCHEMA_VERSION } from "@playcraft/contracts";
 import {
   PLAYCRAFT_SERVICE_PACKAGE,
+  createLocalServiceTransport,
   createLocalPlaycraftService,
+  handleLocalServiceRequest,
   resolveBuilderInputCommand
 } from "../src/index.js";
 import { runLocalServiceCli } from "../src/cli.js";
@@ -62,6 +65,68 @@ describe("local Playcraft service", () => {
     expect(assembled.events.some((event) => JSON.stringify(event.value).includes("moonshine-streaming"))).toBe(true);
     expect(updated.result.profile?.id).toBe("profile.sorting.mvp");
     expect(updated.result.profile?.assetRequests[0]?.prompt).toContain("fruits sorting game illustrations");
+  });
+
+  it("handles validated service API requests for local and future server transports", () => {
+    const service = createLocalPlaycraftService();
+    const catalog = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.catalog",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "catalog"
+    });
+    const assembled = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.assemble",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.service-api",
+      source: "speech-transcript",
+      text: "Memory game with toys"
+    });
+    const updated = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.update",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "update",
+      sessionId: "session.service-api",
+      text: "Please group by color with fruit"
+    });
+
+    expect(catalog.catalog?.templates.map((template) => template.id)).toContain("template.sequence-repeat");
+    expect(assembled.execution?.result.profile?.id).toBe("profile.memory-match.mvp");
+    expect(assembled.execution?.events.some((event) => JSON.stringify(event).includes("moonshine-streaming"))).toBe(true);
+    expect(updated.execution?.result.profile?.id).toBe("profile.sorting.mvp");
+    expect(updated.execution?.result.profile?.assetRequests[0]?.prompt).toContain("fruit sorting game illustrations");
+  });
+
+  it("routes in-process transport requests through the same service envelope", () => {
+    const transport = createLocalServiceTransport();
+    const response = transport.send({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.transport",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.transport",
+      text: "Repeat a pattern with gems"
+    });
+
+    expect(response).toMatchObject({
+      kind: "builder-service-response",
+      actionName: "assemble",
+      execution: {
+        result: {
+          sessionId: "session.transport",
+          profile: {
+            id: "profile.sequence-repeat.mvp"
+          }
+        }
+      }
+    });
   });
 
   it("accepts explicit asset edit records for future local asset-library adapters", () => {
@@ -185,5 +250,20 @@ describe("local Playcraft service", () => {
     expect(assembled.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
     expect(assembled.result.profile?.components[0]?.props.cards).toEqual(["dolphin-a", "dolphin-b", "turtle-a", "turtle-b"]);
     expect(err).toEqual([]);
+  });
+
+  it("exposes a direct service request handler for adapters without a CLI process", () => {
+    const response = handleLocalServiceRequest({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.direct",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.direct",
+      text: "Memory game with ocean animals"
+    });
+
+    expect(response.execution?.result.sessionId).toBe("session.direct");
+    expect(response.execution?.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
   });
 });

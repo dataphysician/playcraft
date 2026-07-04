@@ -28,12 +28,14 @@ Recommended package boundaries:
 | `packages/assets` | Asset request schemas, deterministic stub provider, provider manifest helpers. |
 | `packages/packs` | Initial mechanic, rule, component, theme, domain, and safety policy packs. |
 | `packages/builder` | Local builder tool handler for catalog, assemble, update, and preview actions with published argument schemas. |
-| `packages/service` | Local app/API and `playcraft-service` CLI facade for validated `BuilderCatalog`, `BuilderIntentResolution`, text input, Moonshine Streaming CPU transcript records, template resolution, and asset edit levers. |
-| `apps/studio` | Vite React studio that renders the live toddler game, developer timeline, and trusted preview from the service contract. |
-| `apps/mobile-shell` | Tauri Mobile-facing webview shell that reuses the Studio UI and local service contract. |
+| `packages/service` | Local app/API and `playcraft-service` CLI facade for validated `BuilderServiceRequest`, `BuilderServiceResponse`, `BuilderCatalog`, `BuilderIntentResolution`, text input, Moonshine Streaming CPU transcript records, template resolution, and asset edit levers. |
+| `apps/studio` | Vite React studio that renders the live toddler game, developer timeline, and trusted preview from the service transport. |
+| `apps/mobile-shell` | Tauri Mobile-facing webview shell that reuses the Studio UI and local service transport. |
 | `examples/profiles` | Saved profile fixtures for memory match, sorting, and sequence repeat. |
 
 Do not put framework core logic behind Next.js API routes, native commands, or app-specific stores. The service, studio, and mobile shell consume the packages; they do not define framework contracts.
+
+Studio clients should talk to a `BuilderServiceTransport`; the local implementation is in-process today, and a future server adapter should preserve the same request/response schemas rather than adding app-local command formats.
 
 Template request phrases belong in `GameTemplateDefinition.requestAliases`. Do not add service-side `if game == ...` branches when adding a template; the local service resolves template switches from catalog aliases and records the matched alias in `BuilderIntentResolution`.
 

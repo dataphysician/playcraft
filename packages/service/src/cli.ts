@@ -1,8 +1,15 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
-import type { BuilderAssetEdit, BuilderCatalog, BuilderInputSource, BuilderTemplateId } from "@playcraft/contracts";
-import { createLocalPlaycraftService, type LocalBuilderInput } from "./index.js";
-import type { BuilderExecutionResult } from "@playcraft/builder";
+import {
+  PLAYCRAFT_SCHEMA_VERSION,
+  type BuilderAssetEdit,
+  type BuilderCatalog,
+  type BuilderInputSource,
+  type BuilderServiceRequest,
+  type BuilderServiceResponse,
+  type BuilderTemplateId
+} from "@playcraft/contracts";
+import { createLocalPlaycraftService } from "./index.js";
 
 export interface LocalServiceCliIo {
   stdout(message: string): void;
@@ -26,7 +33,7 @@ const defaultIo: LocalServiceCliIo = {
 export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-service <catalog|assemble|update|preview> [--text <request>] [--source <text|speech-transcript>] [--session <id>] [--asset-theme <theme>] [--asset-item <item>] [--json]");
+    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|reset> [--text <request>] [--source <text|speech-transcript>] [--session <id>] [--asset-theme <theme>] [--asset-item <item>] [--json]");
     return 1;
   }
 
@@ -34,32 +41,12 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
   const service = createLocalPlaycraftService();
 
   try {
-    if (commandName === "catalog") {
-      writeResult(service.catalog(), Boolean(args.json), io);
-      return 0;
-    }
-
-    if (commandName === "assemble") {
-      const result = service.assemble(toLocalInput(args));
-      writeResult(result, Boolean(args.json), io);
-      return 0;
-    }
-
-    if (commandName === "update") {
-      const result = service.update({
-        ...toLocalInput(args),
-        sessionId: args.sessionId ?? "service.cli"
-      });
-      writeResult(result, Boolean(args.json), io);
-      return 0;
-    }
-
-    if (commandName === "preview") {
-      if (args.text) {
-        service.assemble(toLocalInput(args));
+    if (isCliCommand(commandName)) {
+      if (commandName === "preview" && args.text) {
+        service.handle(serviceRequest("assemble", args, "service.cli.preview.seed"));
       }
-      const result = service.preview(args.sessionId ?? "service.cli");
-      writeResult(result, Boolean(args.json), io);
+      const response = service.handle(serviceRequest(commandName, args));
+      writeResponse(response, Boolean(args.json), io);
       return 0;
     }
 
@@ -70,6 +57,8 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
     return 1;
   }
 }
+
+type CliCommand = BuilderServiceRequest["actionName"];
 
 function parseArgs(argv: string[]): ParsedArgs {
   const items: string[] = [];
@@ -121,34 +110,54 @@ function parseSource(value: string | undefined): BuilderInputSource {
   return "text";
 }
 
-function toLocalInput(args: ParsedArgs): LocalBuilderInput {
+function isCliCommand(commandName: string): commandName is CliCommand {
+  return commandName === "catalog" || commandName === "assemble" || commandName === "update" || commandName === "preview" || commandName === "reset";
+}
+
+function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: string = commandName): BuilderServiceRequest {
   const text = args.text?.trim();
-  if (!text) {
+  if ((commandName === "assemble" || commandName === "update") && !text) {
     throw new Error("assemble, update, and preview-with-assemble require --text");
   }
 
   return {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: `builder-service-request.cli.${idSuffix}`,
+    version: "1.0.0",
+    kind: "builder-service-request",
+    actionName: commandName,
     assetEdit: args.assetEdit,
     sessionId: args.sessionId,
     source: args.source ?? "text",
     templateId: args.templateId,
-    text
+    text: text || undefined
   };
 }
 
-function writeResult(result: BuilderCatalog | BuilderExecutionResult, json: boolean, io: LocalServiceCliIo): void {
+function writeResponse(response: BuilderServiceResponse, json: boolean, io: LocalServiceCliIo): void {
+  const payload = response.catalog ?? response.execution ?? { reset: response.reset === true };
+
   if (json) {
-    io.stdout(JSON.stringify(result, null, 2));
+    io.stdout(JSON.stringify(payload, null, 2));
     return;
   }
 
-  if ("templates" in result) {
-    io.stdout(`templates: ${result.templates.map((template) => template.id).join(", ")}`);
-    io.stdout(`tools: ${result.tools.map((tool) => tool.toolName).join(", ")}`);
+  if (response.catalog) {
+    writeCatalogSummary(response.catalog, io);
     return;
   }
 
-  io.stdout(`${result.result.sessionId}: ${result.result.profile?.profileName ?? "preview"}`);
+  if (response.execution) {
+    io.stdout(`${response.execution.result.sessionId}: ${response.execution.result.profile?.profileName ?? "preview"}`);
+    return;
+  }
+
+  io.stdout("reset: ok");
+}
+
+function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): void {
+  io.stdout(`templates: ${catalog.templates.map((template) => template.id).join(", ")}`);
+  io.stdout(`tools: ${catalog.tools.map((tool) => tool.toolName).join(", ")}`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

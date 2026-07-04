@@ -638,6 +638,59 @@ export const BuilderCommandResultSchema = PublicContractBaseSchema.extend({
 }).strict();
 export type BuilderCommandResult = z.infer<typeof BuilderCommandResultSchema>;
 
+export const BuilderServiceActionNameSchema = z.enum(["catalog", "assemble", "update", "preview", "reset"]);
+export type BuilderServiceActionName = z.infer<typeof BuilderServiceActionNameSchema>;
+
+export const BuilderServiceExecutionSchema = z
+  .object({
+    schemaVersion: z.literal(PLAYCRAFT_SCHEMA_VERSION),
+    result: BuilderCommandResultSchema,
+    events: z.array(JsonValueSchema)
+  })
+  .strict();
+export type BuilderServiceExecution = z.infer<typeof BuilderServiceExecutionSchema>;
+
+export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("builder-service-request"),
+  actionName: BuilderServiceActionNameSchema,
+  sessionId: StableIdSchema.optional(),
+  text: z.string().min(1).max(500).optional(),
+  source: BuilderInputSourceSchema.optional(),
+  templateId: BuilderTemplateIdSchema.optional(),
+  assetEdit: BuilderAssetEditSchema.optional()
+}).strict()
+  .refine((value) => value.actionName !== "assemble" || Boolean(value.text), {
+    message: "assemble requests require text",
+    path: ["text"]
+  })
+  .refine((value) => value.actionName !== "update" || Boolean(value.text), {
+    message: "update requests require text",
+    path: ["text"]
+  });
+export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
+
+export const BuilderServiceResponseSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("builder-service-response"),
+  requestId: StableIdSchema,
+  actionName: BuilderServiceActionNameSchema,
+  catalog: BuilderCatalogSchema.optional(),
+  execution: BuilderServiceExecutionSchema.optional(),
+  reset: z.literal(true).optional()
+}).strict()
+  .refine((value) => value.actionName !== "catalog" || Boolean(value.catalog), {
+    message: "catalog responses require a catalog",
+    path: ["catalog"]
+  })
+  .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || Boolean(value.execution), {
+    message: "assemble, update, and preview responses require execution output",
+    path: ["execution"]
+  })
+  .refine((value) => value.actionName !== "reset" || value.reset === true, {
+    message: "reset responses require reset acknowledgement",
+    path: ["reset"]
+  });
+export type BuilderServiceResponse = z.infer<typeof BuilderServiceResponseSchema>;
+
 export const PublicContractSchemas = {
   PlaycraftAssemblyRequestSchema,
   DomainProfileSchema,
@@ -663,7 +716,10 @@ export const PublicContractSchemas = {
   BuilderIntentResolutionSchema,
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
-  BuilderCommandResultSchema
+  BuilderCommandResultSchema,
+  BuilderServiceExecutionSchema,
+  BuilderServiceRequestSchema,
+  BuilderServiceResponseSchema
 } as const;
 
 export type PublicContractName = keyof typeof PublicContractSchemas;

@@ -1,69 +1,146 @@
-import type { BuilderAgUiEvent, BuilderExecutionResult } from "@playcraft/builder";
-import type { GameAssemblyProfile } from "@playcraft/contracts";
+import type { BuilderAgUiEvent } from "@playcraft/builder";
+import {
+  PLAYCRAFT_SCHEMA_VERSION,
+  type BuilderServiceRequest,
+  type BuilderServiceResponse,
+  type GameAssemblyProfile,
+  type JsonValue
+} from "@playcraft/contracts";
 
-import { createLocalPlaycraftService } from "@playcraft/service";
+import { createLocalServiceTransport, type BuilderServiceTransport } from "@playcraft/service";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry, StudioTimelineKind } from "./types.js";
 
 export function createLocalStudioClient(): StudioClient {
-  const service = createLocalPlaycraftService();
+  return createStudioClientFromServiceTransport({
+    defaultSessionId: "studio.session",
+    timelineIdPrefix: "timeline",
+    transport: createLocalServiceTransport()
+  });
+}
+
+export function createStudioClientFromServiceTransport(options: {
+  defaultSessionId: string;
+  timelineIdPrefix: string;
+  transport: BuilderServiceTransport;
+}): StudioClient {
   const profiles = new Map<string, GameAssemblyProfile>();
   const timeline: StudioTimelineEntry[] = [];
+  let requestCounter = 0;
 
-  function snapshotFromOutput(sessionId: string, output: BuilderExecutionResult): StudioSessionSnapshot {
-    if (output.result.profile) {
-      profiles.set(output.result.profile.id, output.result.profile);
+  function snapshotFromResponse(sessionId: string, response: BuilderServiceResponse): StudioSessionSnapshot {
+    if (!response.execution) {
+      throw new Error(`${response.actionName} response did not include execution output`);
     }
 
-    const entries = output.events.map((event, index) => timelineEntry(event, timeline.length + index + 1));
+    if (response.execution.result.profile) {
+      profiles.set(response.execution.result.profile.id, response.execution.result.profile);
+    }
+
+    const entries = response.execution.events.map((event, index) => timelineEntry(event, timeline.length + index + 1, options.timelineIdPrefix));
     timeline.push(...entries);
 
     return {
       sessionId,
-      activeProfileId: output.result.profile?.id,
+      activeProfileId: response.execution.result.profile?.id,
       profiles: Array.from(profiles.values()),
       timeline: [...timeline]
     };
   }
 
+  function nextRequest(
+    actionName: BuilderServiceRequest["actionName"],
+    input: Partial<BuilderServiceRequest>
+  ): BuilderServiceRequest {
+    requestCounter += 1;
+    return {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: `builder-service-request.${options.defaultSessionId}.${requestCounter}`,
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName,
+      ...input
+    };
+  }
+
   return {
     assembleFromIntent(input) {
-      const sessionId = input.sessionId ?? "studio.session";
-      return snapshotFromOutput(
-        sessionId,
-        service.assemble({
-          sessionId,
-          source: input.source ?? "text",
-          text: input.idea
-        })
+      const sessionId = input.sessionId ?? options.defaultSessionId;
+      return mapTransportResponse(
+        options.transport.send(
+          nextRequest("assemble", {
+            sessionId,
+            source: input.source ?? "text",
+            text: input.idea
+          })
+        ),
+        (response) => snapshotFromResponse(sessionId, response)
       );
     },
     requestChange(input) {
-      return snapshotFromOutput(
-        input.sessionId,
-        service.update({
-          sessionId: input.sessionId,
-          source: input.source ?? "text",
-          text: input.changeRequest
-        })
+      return mapTransportResponse(
+        options.transport.send(
+          nextRequest("update", {
+            sessionId: input.sessionId,
+            source: input.source ?? "text",
+            text: input.changeRequest
+          })
+        ),
+        (response) => snapshotFromResponse(input.sessionId, response)
       );
     },
     reset() {
-      service.reset();
+      void options.transport.send(nextRequest("reset", {}));
       profiles.clear();
       timeline.length = 0;
     }
   };
 }
 
-function timelineEntry(event: BuilderAgUiEvent, sequence: number): StudioTimelineEntry {
+function mapTransportResponse<T>(
+  response: BuilderServiceResponse | Promise<BuilderServiceResponse>,
+  mapper: (response: BuilderServiceResponse) => T
+): T | Promise<T> {
+  return isPromiseLike(response) ? response.then(mapper) : mapper(response);
+}
+
+function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
+  return typeof (value as Promise<T>).then === "function";
+}
+
+function timelineEntry(eventInput: JsonValue, sequence: number, timelineIdPrefix: string): StudioTimelineEntry {
+  const event = agUiEventFromJson(eventInput);
   return {
-    id: `timeline.${String(sequence).padStart(4, "0")}`,
+    id: `${timelineIdPrefix}.${String(sequence).padStart(4, "0")}`,
     kind: kindForEvent(event),
     title: titleForEvent(event),
     detail: JSON.stringify(event.value, null, 2),
     timestamp: event.timestamp,
     profileId: profileIdForEvent(event),
     rawEvent: event
+  };
+}
+
+function agUiEventFromJson(eventInput: JsonValue): BuilderAgUiEvent {
+  if (typeof eventInput !== "object" || eventInput === null || Array.isArray(eventInput)) {
+    throw new Error("service event must be a JSON object");
+  }
+
+  const event = eventInput as Record<string, JsonValue>;
+  if (
+    typeof event.type !== "string" ||
+    typeof event.eventId !== "string" ||
+    typeof event.runId !== "string" ||
+    typeof event.timestamp !== "string"
+  ) {
+    throw new Error("service event is missing AG-UI envelope fields");
+  }
+
+  return {
+    type: event.type as BuilderAgUiEvent["type"],
+    eventId: event.eventId,
+    runId: event.runId,
+    timestamp: event.timestamp,
+    value: event.value
   };
 }
 

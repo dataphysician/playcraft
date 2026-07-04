@@ -202,6 +202,94 @@ describe("public contract schemas", () => {
           interactionCount: 0
         },
         validation: profile.validation
+      },
+      BuilderServiceExecutionSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        result: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-result.fixture",
+          version: "1.0.0",
+          kind: "builder-command-result",
+          commandId: "builder-command.fixture",
+          sessionId: "session.fixture",
+          profile,
+          preview: {
+            schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+            sessionId: "session.fixture",
+            activeProfileId: profile.id,
+            activeTemplateId: "template.memory-match",
+            activeComponentId: renderRequest.componentId,
+            renderedComponentIds: [renderRequest.componentId],
+            interactionCount: 0
+          },
+          validation: profile.validation
+        },
+        events: [
+          {
+            type: "RunStarted",
+            eventId: "agui.fixture.0000.runstarted",
+            runId: "run.fixture",
+            timestamp: "2026-06-27T00:00:00.000Z",
+            value: {
+              runId: "run.fixture"
+            }
+          }
+        ]
+      },
+      BuilderServiceRequestSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.fixture",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        sessionId: "session.fixture",
+        source: "text",
+        text: "memory game with dinosaurs",
+        templateId: "template.memory-match",
+        assetEdit: {
+          theme: "dinosaurs"
+        }
+      },
+      BuilderServiceResponseSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-response.fixture",
+        version: "1.0.0",
+        kind: "builder-service-response",
+        requestId: "builder-service-request.fixture",
+        actionName: "assemble",
+        execution: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          result: {
+            schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+            id: "builder-result.fixture",
+            version: "1.0.0",
+            kind: "builder-command-result",
+            commandId: "builder-command.fixture",
+            sessionId: "session.fixture",
+            profile,
+            preview: {
+              schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+              sessionId: "session.fixture",
+              activeProfileId: profile.id,
+              activeTemplateId: "template.memory-match",
+              activeComponentId: renderRequest.componentId,
+              renderedComponentIds: [renderRequest.componentId],
+              interactionCount: 0
+            },
+            validation: profile.validation
+          },
+          events: [
+            {
+              type: "RunStarted",
+              eventId: "agui.fixture.0000.runstarted",
+              runId: "run.fixture",
+              timestamp: "2026-06-27T00:00:00.000Z",
+              value: {
+                runId: "run.fixture"
+              }
+            }
+          ]
+        }
       }
     };
 
