@@ -676,6 +676,12 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
   templates: z.array(GameTemplateDefinitionSchema).min(1),
   tools: z.array(BuilderToolDefinitionSchema).min(1),
   acceptedInputSources: z.array(BuilderInputSourceSchema).min(1),
+  input: z
+    .object({
+      defaultSource: BuilderInputSourceSchema,
+      transcriptSource: z.literal("moonshine-transcript")
+    })
+    .strict(),
   sessions: z
     .object({
       defaultAssembleSessionId: StableIdSchema,

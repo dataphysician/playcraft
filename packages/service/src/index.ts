@@ -49,6 +49,11 @@ export const LOCAL_SERVICE_SESSION_POLICY = {
   sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
 } as const;
 
+export const LOCAL_SERVICE_INPUT_POLICY = {
+  defaultSource: "text",
+  transcriptSource: "moonshine-transcript"
+} as const;
+
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
   sessionId?: string;
@@ -110,6 +115,7 @@ export class LocalPlaycraftService {
       templates: this.handler.listTemplates(),
       tools: this.handler.listTools(),
       acceptedInputSources: ["text", "moonshine-transcript"],
+      input: LOCAL_SERVICE_INPUT_POLICY,
       sessions: LOCAL_SERVICE_SESSION_POLICY,
       assetEdit: {
         supported: true,
@@ -264,7 +270,7 @@ export class LocalPlaycraftService {
       const output = this.assemble({
         assetEdit: request.assetEdit,
         sessionId,
-        source: sourceForServiceRequest(request),
+        source: sourceForServiceRequest(request, this.catalog().input),
         moonshineTranscript: request.moonshineTranscript,
         templateId: request.templateId,
         text: textForServiceRequest(request)
@@ -279,7 +285,7 @@ export class LocalPlaycraftService {
     const output = this.update({
       assetEdit: request.assetEdit,
       sessionId,
-      source: sourceForServiceRequest(request),
+      source: sourceForServiceRequest(request, this.catalog().input),
       moonshineTranscript: request.moonshineTranscript,
       templateId: request.templateId,
       text: textForServiceRequest(request)
@@ -293,12 +299,13 @@ export class LocalPlaycraftService {
   private resolveInput(sessionId: string, input: LocalBuilderInput): ResolvedBuilderInputCommand {
     this.inputCounter += 1;
     const state = this.sessionState.get(sessionId);
+    const catalog = this.catalog();
     return resolveBuilderInputCommand({
       activeAssetEdit: state?.activeAssetEdit,
-      activeTemplateId: state?.activeTemplateId ?? DEFAULT_GAME_TEMPLATE_ID,
+      activeTemplateId: state?.activeTemplateId ?? catalog.defaultTemplateId,
       assetEdit: input.assetEdit,
       sequence: this.inputCounter,
-      source: input.source ?? "text",
+      source: input.source ?? catalog.input.defaultSource,
       moonshineTranscript: input.moonshineTranscript,
       templateId: input.templateId,
       text: input.text
@@ -558,12 +565,15 @@ export function createMoonshineTranscriptRecord(input: {
   });
 }
 
-function sourceForServiceRequest(request: BuilderServiceRequest): BuilderInputSource {
+function sourceForServiceRequest(
+  request: BuilderServiceRequest,
+  inputPolicy: BuilderCatalog["input"]
+): BuilderInputSource {
   if (request.moonshineTranscript) {
-    return "moonshine-transcript";
+    return inputPolicy.transcriptSource;
   }
 
-  return request.source ?? "text";
+  return request.source ?? inputPolicy.defaultSource;
 }
 
 function textForServiceRequest(request: BuilderServiceRequest): string {

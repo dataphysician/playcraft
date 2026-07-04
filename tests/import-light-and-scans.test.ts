@@ -216,6 +216,11 @@ describe("import-light boundaries and source scans", () => {
 
     expect(readSource("packages/contracts/src/index.ts")).toContain('BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"])');
     expect(readSource("packages/contracts/src/index.ts")).toContain("moonshineTranscript: MoonshineTranscriptRecordSchema.optional()");
+    expect(readSource("packages/contracts/src/index.ts")).toContain("defaultSource: BuilderInputSourceSchema");
+    expect(readSource("packages/service/src/index.ts")).toContain("LOCAL_SERVICE_INPUT_POLICY");
+    expect(readSource("packages/service/src/index.ts")).not.toContain('input.source ?? "text"');
+    expect(readSource("packages/service/src/index.ts")).not.toContain('request.source ?? "text"');
+    expect(readSource("packages/service/src/cli.ts")).not.toContain('args.source ?? "text"');
     expect(violations).toEqual([]);
   });
 

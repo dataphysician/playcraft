@@ -36,6 +36,10 @@ describe("local Playcraft service", () => {
       current: "bundled-local",
       planned: "server-catalog"
     });
+    expect(catalog.input).toEqual({
+      defaultSource: "text",
+      transcriptSource: "moonshine-transcript"
+    });
     expect(catalog.sessions).toEqual({
       defaultAssembleSessionId: "service.session",
       sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]

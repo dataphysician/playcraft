@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Input Source Policy
+
+Milestone:
+- The builder catalog now publishes the default text input source and the Moonshine transcript input source.
+- Local service assembly and raw service requests consume the catalog input policy instead of embedding private text-source fallbacks.
+- The service CLI uses the same catalog input policy when mapping typed text versus local Moonshine transcript arguments.
+
+Supportive changes:
+- Contract and service tests now validate `catalog.input`.
+- Source scans now block service and service-CLI text-source fallback literals from returning.
+- Framework docs now tell agents to inspect catalog input policy before assembly.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps text/Moonshine-only input behavior forward-only and catalog-discoverable without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+
 ## 2026-07-04 - Catalog-Owned Session Policy
 
 Milestone:

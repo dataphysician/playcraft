@@ -50,6 +50,7 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
   try {
     const args = parseArgs(rest);
     const service = createLocalPlaycraftService();
+    const catalog = service.catalog();
 
     if (commandName === "request") {
       const response = service.handle(parseServiceRequestJson(args.requestJson));
@@ -58,7 +59,7 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
     }
 
     if (isCliCommand(commandName)) {
-      const response = service.handle(serviceRequest(commandName, args));
+      const response = service.handle(serviceRequest(commandName, args, catalog));
       writeResponse(response, Boolean(args.json), io);
       return 0;
     }
@@ -161,7 +162,12 @@ function isCliCommand(commandName: string): commandName is CliCommand {
     commandName === "reset";
 }
 
-function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: string = commandName): BuilderServiceRequest {
+function serviceRequest(
+  commandName: CliCommand,
+  args: ParsedArgs,
+  catalog: BuilderCatalog,
+  idSuffix: string = commandName
+): BuilderServiceRequest {
   const transcriptText = args.transcriptText?.trim();
   const text = transcriptText || args.text?.trim();
   const inputCommand = commandName === "assemble" || commandName === "update";
@@ -190,7 +196,7 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
 
   if (inputCommand) {
     request.assetEdit = args.assetEdit;
-    request.source = transcriptText ? "moonshine-transcript" : args.source ?? "text";
+    request.source = transcriptText ? catalog.input.transcriptSource : args.source ?? catalog.input.defaultSource;
     request.moonshineTranscript = transcriptText
       ? createMoonshineTranscriptRecord({
           id: `moonshine-transcript.cli.${idSuffix}`,
