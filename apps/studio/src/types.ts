@@ -46,6 +46,7 @@ export interface StudioClient {
   assembleFromIntent(input: StudioAssembleInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   exportProfile?(sessionId: string): BuilderProfileExport | Promise<BuilderProfileExport>;
   importProfile?(input: { profileExport: BuilderProfileExport; sessionId?: string }): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
+  previewAction?(sessionId: string): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   requestChange(input: StudioChangeInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   reset?(): void;
 }

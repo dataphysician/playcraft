@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { assembleMvpProfiles } from "@playcraft/packs";
 import type { BuilderServiceRequest } from "@playcraft/contracts";
 import {
+  createLocalPlaycraftService,
   createMoonshineTranscriptRecord,
   handleLocalServiceRequest,
   handleServiceHttpRequestBody,
@@ -164,6 +165,33 @@ describe("studio UI", () => {
     expect(session.timeline.some((entry) => entry.detail.includes("template.sorting"))).toBe(true);
   });
 
+  it("can run service preview actions through a configured HTTP service endpoint", async () => {
+    const requestedActions: string[] = [];
+    const service = createLocalPlaycraftService();
+    vi.stubGlobal("fetch", async (_url: unknown, init: { body?: unknown } = {}) => {
+      const body = typeof init.body === "string" ? init.body : "";
+      requestedActions.push((JSON.parse(body) as { actionName: string }).actionName);
+      const response = handleServiceHttpRequestBody(body, service);
+      return {
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        text: async () => response.body
+      };
+    });
+
+    const client = createConfiguredStudioClient({ serviceEndpoint: "http://127.0.0.1:8787/playcraft" });
+    const assembled = await client.assembleFromIntent({
+      idea: "Memory game with dinosaurs",
+      source: "text"
+    });
+    const previewed = await Promise.resolve(client.previewAction?.(assembled.sessionId));
+
+    expect(requestedActions).toEqual(["assemble", "preview"]);
+    expect(previewed?.activeProfileId).toBe("profile.memory-match.mvp");
+    expect(previewed?.timeline.some((entry) => entry.title === "ToolCall" && entry.detail.includes("tool:reveal-card"))).toBe(true);
+    expect(previewed?.timeline.some((entry) => entry.title === "Custom: replay.event")).toBe(true);
+  });
+
   it("shows catalog-driven available games and asset edits in the request tips tooltip", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
@@ -208,6 +236,21 @@ describe("studio UI", () => {
     const appRoot = view.container.querySelector("main");
     expect(appRoot?.getAttribute("style")).toContain("height: 100vh");
     expect(appRoot?.getAttribute("style")).toContain("overflow: hidden");
+  });
+
+  it("runs the backend preview tool from the Developer tab", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Memory game with dinosaurs" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+
+    expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Run Preview Tool" }));
+
+    expect(await screen.findByText("Ran service preview action.")).toBeDefined();
+    expect(screen.getAllByText("ToolCall").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/tool:reveal-card/u)).toBeDefined();
   });
 
   it("assembles a profile, shows trusted preview metadata, updates it, and records preview interactions", async () => {

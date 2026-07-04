@@ -117,6 +117,12 @@ export function createStudioClientFromServiceTransport(options: {
         (response) => snapshotFromResponse(sessionId, response)
       );
     },
+    previewAction(sessionId) {
+      return mapTransportResponse(
+        options.transport.send(nextRequest("preview", { sessionId })),
+        (response) => snapshotFromResponse(sessionId, response)
+      );
+    },
     requestChange(input) {
       const speechTranscript = input.speechTranscript;
       return mapTransportResponse(

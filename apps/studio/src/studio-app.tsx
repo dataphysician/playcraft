@@ -15,7 +15,7 @@ export interface StudioAppProps {
 }
 
 type StudioTab = "live" | "developer";
-type PendingCommand = "export" | "generate" | "import" | "update";
+type PendingCommand = "export" | "generate" | "import" | "preview" | "update";
 
 interface ChatMessage {
   id: string;
@@ -183,6 +183,27 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     }
   }
 
+  async function handleServicePreview(): Promise<void> {
+    if (!session?.sessionId || !client.previewAction) {
+      setProfileTransferStatus("No active service preview tool is available.");
+      return;
+    }
+
+    setPending("preview");
+    setError(null);
+    try {
+      const nextSession = await Promise.resolve(client.previewAction(session.sessionId));
+      setSession(nextSession);
+      setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
+      setActiveTab("developer");
+      setProfileTransferStatus("Ran service preview action.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Service preview failed.");
+    } finally {
+      setPending(null);
+    }
+  }
+
   async function handleCommandSubmit(event?: React.FormEvent<HTMLFormElement>): Promise<void> {
     event?.preventDefault();
     await runStudioCommand(commandText.trim());
@@ -271,6 +292,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
             activeProfile,
             canExportProfile: Boolean(client.exportProfile),
             canImportProfile: Boolean(client.importProfile),
+            canRunServicePreview: Boolean(client.previewAction),
             catalog,
             componentSummaries,
             messages,
@@ -284,6 +306,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
             onExportProfile: handleExportProfile,
             onImportProfile: handleImportProfile,
             onProfileImportTextChange: setProfileImportText,
+            onServicePreview: handleServicePreview,
             onSelectComponent: setSelectedComponentKey,
             onSelectTimeline: setSelectedTimelineId,
             onInteraction: handleInteraction
@@ -308,6 +331,7 @@ function DeveloperPanel({
   activeProfile,
   canExportProfile,
   canImportProfile,
+  canRunServicePreview,
   catalog,
   componentSummaries,
   messages,
@@ -321,6 +345,7 @@ function DeveloperPanel({
   onExportProfile,
   onImportProfile,
   onProfileImportTextChange,
+  onServicePreview,
   onSelectComponent,
   onSelectTimeline,
   onInteraction
@@ -328,6 +353,7 @@ function DeveloperPanel({
   activeProfile: GameAssemblyProfile | undefined;
   canExportProfile: boolean;
   canImportProfile: boolean;
+  canRunServicePreview: boolean;
   catalog: BuilderCatalog | undefined;
   componentSummaries: TrustedPreviewComponentSummary[];
   messages: ChatMessage[];
@@ -341,6 +367,7 @@ function DeveloperPanel({
   onExportProfile: () => void;
   onImportProfile: () => void;
   onProfileImportTextChange: (value: string) => void;
+  onServicePreview: () => void;
   onSelectComponent: (componentKey: string) => void;
   onSelectTimeline: (timelineId: string) => void;
   onInteraction: (interaction: TrustedPreviewInteraction) => void;
@@ -357,6 +384,7 @@ function DeveloperPanel({
       React.createElement(ProfilePortabilityPanel, {
         canExportProfile,
         canImportProfile,
+        canRunServicePreview,
         hasActiveProfile: Boolean(activeProfile && session?.sessionId),
         pending,
         profileExportText,
@@ -364,7 +392,8 @@ function DeveloperPanel({
         profileTransferStatus,
         onExportProfile,
         onImportProfile,
-        onProfileImportTextChange
+        onProfileImportTextChange,
+        onServicePreview
       }),
       activeProfile && componentSummaries.length > 0
         ? React.createElement(ComponentInventoryPanel, {
@@ -473,6 +502,7 @@ function toolArgumentsSummary(fields: BuilderCatalog["tools"][number]["arguments
 function ProfilePortabilityPanel({
   canExportProfile,
   canImportProfile,
+  canRunServicePreview,
   hasActiveProfile,
   pending,
   profileExportText,
@@ -480,10 +510,12 @@ function ProfilePortabilityPanel({
   profileTransferStatus,
   onExportProfile,
   onImportProfile,
-  onProfileImportTextChange
+  onProfileImportTextChange,
+  onServicePreview
 }: {
   canExportProfile: boolean;
   canImportProfile: boolean;
+  canRunServicePreview: boolean;
   hasActiveProfile: boolean;
   pending: PendingCommand | null;
   profileExportText: string;
@@ -492,6 +524,7 @@ function ProfilePortabilityPanel({
   onExportProfile: () => void;
   onImportProfile: () => void;
   onProfileImportTextChange: (value: string) => void;
+  onServicePreview: () => void;
 }): React.ReactElement {
   return React.createElement(
     "section",
@@ -500,6 +533,16 @@ function ProfilePortabilityPanel({
     React.createElement(
       "div",
       { style: shellStyles.portabilityActions },
+      React.createElement(
+        "button",
+        {
+          type: "button",
+          disabled: !canRunServicePreview || !hasActiveProfile || pending !== null,
+          onClick: onServicePreview,
+          style: shellStyles.secondaryButton
+        },
+        pending === "preview" ? "Previewing..." : "Run Preview Tool"
+      ),
       React.createElement(
         "button",
         {

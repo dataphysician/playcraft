@@ -369,8 +369,10 @@ export function replayProfile(profileInput: unknown, registries: PlaycraftRegist
   return {
     profile,
     validation,
-    renderRequests: profile.components.map((component) =>
-      ComponentRenderRequestSchema.parse({
+    renderRequests: profile.components.map((component) => {
+      const manifest = registries.components.get(component.componentId, component.version);
+
+      return ComponentRenderRequestSchema.parse({
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: `render.${profile.id}.${component.bindingId}`,
         version: "1.0.0",
@@ -381,10 +383,10 @@ export function replayProfile(profileInput: unknown, registries: PlaycraftRegist
         mechanicBindingId: component.mechanicBindingIds[0],
         props: component.props,
         assetBindings: component.assetBindings,
-        expectedEmittedEvents: [],
+        expectedEmittedEvents: manifest?.emittedTools.map((toolDefinition) => toolDefinition.toolName) ?? [],
         fallbackPolicy: "fail-closed"
-      })
-    ),
+      });
+    }),
     eventLog: profile.replay.eventLog
   };
 }
