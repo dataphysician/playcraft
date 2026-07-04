@@ -529,6 +529,13 @@ describe("studio UI", () => {
     fireEvent.change(screen.getByLabelText("Import profile export JSON"), { target: { value: exportJson } });
     fireEvent.click(screen.getByRole("button", { name: "Import Profile" }));
 
+    expect(await screen.findByText("Import requires an active target session.")).toBeDefined();
+
+    fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Sort shapes by color" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+    expect(await screen.findByText("Sorting MVP")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Import Profile" }));
+
     expect(await screen.findByText("Imported Memory Match MVP.")).toBeDefined();
     expect(screen.getAllByText("Memory Match MVP").length).toBeGreaterThanOrEqual(1);
     fireEvent.click(screen.getByRole("tab", { name: "Live App" }));
@@ -538,6 +545,9 @@ describe("studio UI", () => {
   it("validates pasted profile exports before importing them in the Studio UI", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
+    fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Memory game with toys" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+    expect(await screen.findByText("Memory Match MVP")).toBeDefined();
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
     fireEvent.change(screen.getByLabelText("Import profile export JSON"), {
       target: {

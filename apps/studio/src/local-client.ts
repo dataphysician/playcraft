@@ -117,15 +117,14 @@ export function createStudioClientFromServiceTransport(options: {
       );
     },
     importProfile(input) {
-      const sessionId = input.sessionId ?? input.profileExport.sessionId ?? options.defaultSessionId;
       return mapTransportResponse(
         options.transport.send(
           nextRequest("import-profile", {
             profileExport: input.profileExport,
-            sessionId
+            sessionId: input.sessionId
           })
         ),
-        (response) => snapshotFromResponse(sessionId, response)
+        (response) => snapshotFromResponse(input.sessionId, response)
       );
     },
     previewAction(sessionId) {

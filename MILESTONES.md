@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Studio Import Targets
+
+Milestone:
+- Studio profile imports now require an active target session instead of falling back to the exported source session or default Studio session.
+- The Studio client import contract now requires `sessionId` for profile imports.
+
+Supportive changes:
+- Studio UI coverage now proves importing after Start Over is blocked until a new active session exists.
+- Source scans now block Studio-side `profileExport.sessionId` import fallback from returning.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps Studio profile transfer explicit and forward-only without hidden session targeting, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Explicit Service Method Sessions
 
 Milestone:

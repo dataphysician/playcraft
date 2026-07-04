@@ -158,12 +158,16 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
       setProfileTransferStatus("Paste a profile export first.");
       return;
     }
+    if (!session?.sessionId) {
+      setProfileTransferStatus("Import requires an active target session.");
+      return;
+    }
 
     setPending("import");
     setError(null);
     try {
       const profileExport = BuilderProfileExportSchema.parse(JSON.parse(text));
-      const nextSession = await Promise.resolve(client.importProfile({ profileExport, sessionId: session?.sessionId }));
+      const nextSession = await Promise.resolve(client.importProfile({ profileExport, sessionId: session.sessionId }));
       setSession(nextSession);
       setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
       setActiveTab("developer");

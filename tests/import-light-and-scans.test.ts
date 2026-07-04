@@ -173,6 +173,18 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("response.execution.result.profile?.id");
   });
 
+  it("keeps Studio profile imports targeted to explicit active sessions", () => {
+    const clientSource = readSource("apps/studio/src/local-client.ts");
+    const appSource = readSource("apps/studio/src/studio-app.tsx");
+    const typeSource = readSource("apps/studio/src/types.ts");
+
+    expect(typeSource).toContain("profileExport: BuilderProfileExport; sessionId: string");
+    expect(appSource).toContain("Import requires an active target session.");
+    expect(clientSource).not.toContain("input.profileExport.sessionId");
+    expect(clientSource).not.toContain("input.sessionId ?? input.profileExport");
+    expect(appSource).not.toContain("sessionId: session?.sessionId");
+  });
+
   it("keeps local asset edit theme metadata shared through the assets package", () => {
     const serviceSource = readSource("packages/service/src/index.ts");
     const studioAssetLibrarySource = readSource("apps/studio/src/asset-library.ts");
