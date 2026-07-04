@@ -192,7 +192,7 @@ export class LocalPlaycraftService {
     });
   }
 
-  importProfile(input: { assetEdit?: BuilderAssetEdit; profile: GameAssemblyProfile; sessionId?: string; templateId?: BuilderTemplateId }): BuilderExecutionResult {
+  importProfile(input: { assetEdit?: BuilderAssetEdit; profile: GameAssemblyProfile; sessionId?: string }): BuilderExecutionResult {
     const sessionId = input.sessionId ?? "service.session";
     this.commandCounter += 1;
     const output = this.handler.importProfile(
@@ -202,7 +202,7 @@ export class LocalPlaycraftService {
     );
     this.sessionState.set(sessionId, {
       activeAssetEdit: input.assetEdit,
-      activeTemplateId: input.templateId ?? output.result.preview.activeTemplateId
+      activeTemplateId: output.result.preview.activeTemplateId
     });
     return output;
   }
@@ -242,8 +242,7 @@ export class LocalPlaycraftService {
       const output = this.importProfile({
         assetEdit: request.assetEdit ?? profileExport?.assetEdit,
         profile,
-        sessionId: request.sessionId ?? profileExport?.sessionId,
-        templateId: request.templateId ?? profileExport?.templateId
+        sessionId: request.sessionId ?? profileExport?.sessionId
       });
       return serviceResponse(request, {
         execution: serializeExecution(output),

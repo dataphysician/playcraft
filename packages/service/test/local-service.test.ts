@@ -703,6 +703,45 @@ describe("local Playcraft service", () => {
     expect(exportErr).toEqual([]);
   });
 
+  it("derives imported active template state from the profile instead of stale export metadata", () => {
+    const service = createLocalPlaycraftService();
+    service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.stale-import-source",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.stale-import-source",
+      text: "Repeat a pattern with ocean animals"
+    });
+    const exported = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.stale-import-export",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "export-profile",
+      sessionId: "session.stale-import-source"
+    });
+
+    expect(exported.profileExport).toBeDefined();
+    const imported = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.stale-import",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "import-profile",
+      sessionId: "session.stale-import-target",
+      profileExport: {
+        ...exported.profileExport!,
+        templateId: "template.memory-match"
+      },
+      templateId: "template.sorting"
+    });
+
+    expect(imported.execution?.result.preview.activeTemplateId).toBe("template.sequence-repeat");
+    expect(imported.session?.activeTemplateId).toBe("template.sequence-repeat");
+  });
+
   it("rejects invalid profile export JSON before import requests reach the service", () => {
     const out: string[] = [];
     const err: string[] = [];

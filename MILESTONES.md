@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Import Template State Authority
+
+Milestone:
+- Imported profile active-template state now comes from the builder's replay/import result, not from request or profile-export template metadata.
+- Stale or mismatched `templateId` values on import requests can no longer override the imported profile contract.
+- Profile export/import remains portable while keeping active session state derived from the validated profile.
+
+Supportive changes:
+- Added service coverage for importing a sequence profile with deliberately stale export and request template IDs.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps profile import contract-first for agent-built games without migration code, compatibility shims, hosted providers, auth, database state, or generated runtime code.
+
 ## 2026-07-04 - Active Profile Update Semantics
 
 Milestone:
