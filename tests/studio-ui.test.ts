@@ -180,6 +180,22 @@ describe("studio UI", () => {
     expect(screen.getByText("Try: Memory game with dinosaurs; Sorting game with toys; Sequence repeat with ocean animals.")).toBeDefined();
   });
 
+  it("shows the service catalog as an agent tool surface in the Developer tab", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+
+    expect(await screen.findByLabelText("Agent tool catalog")).toBeDefined();
+    expect(screen.getByText("tool:assemble-game")).toBeDefined();
+    expect(screen.getByText("tool:export-profile")).toBeDefined();
+    expect(screen.getByText("assemble-game")).toBeDefined();
+    expect(screen.getAllByText(/templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Memory Match MVP")).toBeDefined();
+    expect(screen.getByText("memory, memory game, memory match")).toBeDefined();
+    expect(screen.getByText("dinosaurs")).toBeDefined();
+    expect(screen.getByText("dinosaur-1, dinosaur-2, dinosaur-3")).toBeDefined();
+  });
+
   it("keeps the command bar in the viewport after game generation", async () => {
     const view = render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
@@ -316,7 +332,7 @@ describe("studio UI", () => {
     fireEvent.click(screen.getByRole("button", { name: "Import Profile" }));
 
     expect(await screen.findByText("Imported Memory Match MVP.")).toBeDefined();
-    expect(screen.getByText("Memory Match MVP")).toBeDefined();
+    expect(screen.getAllByText("Memory Match MVP").length).toBeGreaterThanOrEqual(1);
     fireEvent.click(screen.getByRole("tab", { name: "Live App" }));
     expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
   });

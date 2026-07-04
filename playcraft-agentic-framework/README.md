@@ -48,6 +48,7 @@ The v1 target is intentionally small and local-first:
 - `playcraft-service` CLI surface for catalog, assemble, update, preview, get-session, export-profile, import-profile, reset, raw `BuilderServiceRequest` envelopes, `--transcript` Moonshine transcript input, and asset-edit requests with callable argument schemas, catalog-driven template aliases, and discoverable local replacement themes.
 - Vite Studio and a Tauri Mobile-facing shell that assemble games through the shared service transport.
 - Studio Developer profile tools that export/import validated profile bundles through the same service transport.
+- Studio Developer catalog tools that render callable action schemas, template aliases, and local asset levers from `BuilderCatalog`.
 
 The core framework packages must be buildable and testable without network access, credentials, AI SDKs, GPU, model weights, a database, or a native shell. The mobile shell is an app layer around the same local service, not a core dependency.
 

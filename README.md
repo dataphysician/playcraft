@@ -4,7 +4,7 @@ Playcraft is a local-first, GDevelop-inspired mini-game builder for coding agent
 
 The current app surface is:
 
-- `apps/studio`: Vite React Studio with a Live App tab, Developer tab, and service-backed game assembly.
+- `apps/studio`: Vite React Studio with a Live App tab, Developer tab, service-backed game assembly, profile tools, and an agent tool catalog.
 - `apps/mobile-shell`: Tauri Mobile-facing webview shell that reuses the Studio UI and client contract.
 - `packages/service`: local app/API facade and CLI over `BuilderServiceRequest` and `BuilderServiceResponse`.
 

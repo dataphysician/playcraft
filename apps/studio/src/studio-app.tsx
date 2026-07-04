@@ -271,6 +271,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
             activeProfile,
             canExportProfile: Boolean(client.exportProfile),
             canImportProfile: Boolean(client.importProfile),
+            catalog,
             componentSummaries,
             messages,
             pending,
@@ -307,6 +308,7 @@ function DeveloperPanel({
   activeProfile,
   canExportProfile,
   canImportProfile,
+  catalog,
   componentSummaries,
   messages,
   pending,
@@ -326,6 +328,7 @@ function DeveloperPanel({
   activeProfile: GameAssemblyProfile | undefined;
   canExportProfile: boolean;
   canImportProfile: boolean;
+  catalog: BuilderCatalog | undefined;
   componentSummaries: TrustedPreviewComponentSummary[];
   messages: ChatMessage[];
   pending: PendingCommand | null;
@@ -350,6 +353,7 @@ function DeveloperPanel({
       { style: shellStyles.centerPanel },
       React.createElement("h2", null, activeProfile ? activeProfile.profileName : "Developer"),
       messages.length > 0 ? React.createElement(ChatHistoryPanel, { messages }) : null,
+      React.createElement(AgentToolCatalogPanel, { catalog }),
       React.createElement(ProfilePortabilityPanel, {
         canExportProfile,
         canImportProfile,
@@ -384,6 +388,86 @@ function DeveloperPanel({
       onSelectTimeline
     })
   );
+}
+
+function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefined }): React.ReactElement {
+  if (!catalog) {
+    return React.createElement(
+      "section",
+      { "aria-label": "Agent tool catalog", style: shellStyles.catalogPanel },
+      React.createElement("h3", null, "Agent tools"),
+      React.createElement("p", { role: "status", style: shellStyles.catalogEmpty }, "Loading catalog.")
+    );
+  }
+
+  return React.createElement(
+    "section",
+    { "aria-label": "Agent tool catalog", style: shellStyles.catalogPanel },
+    React.createElement("h3", null, "Agent tools"),
+    React.createElement(
+      "div",
+      { style: shellStyles.catalogGrid },
+      React.createElement(
+        "section",
+        { style: shellStyles.catalogColumn },
+        React.createElement("h4", { style: shellStyles.catalogHeading }, "Callable actions"),
+        React.createElement(
+          "ol",
+          { style: shellStyles.catalogList },
+          ...catalog.tools.map((tool) =>
+            React.createElement(
+              "li",
+              { key: tool.id, style: shellStyles.catalogItem },
+              React.createElement("strong", null, tool.toolName),
+              React.createElement("span", { style: shellStyles.catalogMeta }, tool.actionName),
+              React.createElement("span", { style: shellStyles.catalogMeta }, toolArgumentsSummary(tool.argumentsSchema.fields))
+            )
+          )
+        )
+      ),
+      React.createElement(
+        "section",
+        { style: shellStyles.catalogColumn },
+        React.createElement("h4", { style: shellStyles.catalogHeading }, "Templates"),
+        React.createElement(
+          "ol",
+          { style: shellStyles.catalogList },
+          ...catalog.templates.map((template) =>
+            React.createElement(
+              "li",
+              { key: template.id, style: shellStyles.catalogItem },
+              React.createElement("strong", null, template.displayName),
+              React.createElement("span", { style: shellStyles.catalogMeta }, template.id),
+              React.createElement("span", { style: shellStyles.catalogMeta }, template.requestAliases.slice(0, 3).join(", "))
+            )
+          )
+        )
+      ),
+      React.createElement(
+        "section",
+        { style: shellStyles.catalogColumn },
+        React.createElement("h4", { style: shellStyles.catalogHeading }, "Asset levers"),
+        React.createElement(
+          "ol",
+          { style: shellStyles.catalogList },
+          ...catalog.assetEdit.availableThemes.map((entry) =>
+            React.createElement(
+              "li",
+              { key: entry.theme, style: shellStyles.catalogItem },
+              React.createElement("strong", null, entry.theme),
+              React.createElement("span", { style: shellStyles.catalogMeta }, entry.aliases.join(", ")),
+              React.createElement("span", { style: shellStyles.catalogMeta }, entry.suggestedItems.join(", "))
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+function toolArgumentsSummary(fields: BuilderCatalog["tools"][number]["argumentsSchema"]["fields"]): string {
+  const summary = Object.entries(fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
+  return summary.length > 0 ? summary.join(", ") : "no arguments";
 }
 
 function ProfilePortabilityPanel({
@@ -910,6 +994,55 @@ const shellStyles = {
     margin: 0,
     color: "#0f766e",
     fontWeight: 700
+  },
+  catalogPanel: {
+    border: "1px solid #d4d4d8",
+    borderRadius: "8px",
+    padding: "1rem",
+    background: "#ffffff",
+    display: "grid",
+    gap: "0.75rem"
+  },
+  catalogGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 13rem), 1fr))",
+    gap: "0.75rem"
+  },
+  catalogColumn: {
+    display: "grid",
+    gap: "0.45rem",
+    alignContent: "start"
+  },
+  catalogHeading: {
+    margin: 0,
+    fontSize: "0.92rem",
+    color: "#3f3f46"
+  },
+  catalogList: {
+    display: "grid",
+    gap: "0.4rem",
+    listStyle: "none",
+    margin: 0,
+    padding: 0
+  },
+  catalogItem: {
+    display: "grid",
+    gap: "0.2rem",
+    minHeight: "4.3rem",
+    border: "1px solid #e4e4e7",
+    borderRadius: "8px",
+    padding: "0.55rem",
+    background: "#fafafa",
+    color: "#18181b"
+  },
+  catalogMeta: {
+    fontSize: "0.78rem",
+    color: "#52525b",
+    overflowWrap: "anywhere" as const
+  },
+  catalogEmpty: {
+    margin: 0,
+    color: "#52525b"
   },
   commandForm: {
     display: "flex",
