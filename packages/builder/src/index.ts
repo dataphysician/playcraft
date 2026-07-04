@@ -677,10 +677,12 @@ function editComponentProps(
 ): Record<string, JsonValue> {
   switch (renderCapability) {
     case "component:reveal-card-grid":
+      const cards = pairedCardIds(edit);
       return {
         ...props,
         title: `${titleCase(edit.theme)} pairs`,
-        cards: pairedCardIds(edit),
+        cards,
+        pairs: pairMapForCards(cards),
         columns: props.columns ?? 2
       };
     case "component:choice-grid":
@@ -693,11 +695,13 @@ function editComponentProps(
     case "component:sort-bins": {
       const bins = stringArrayProp(props, "bins");
       const activeBins = bins.length > 0 ? bins : ["red", "blue"];
+      const items = activeBins.map((bin) => `${bin} ${edit.singularTheme}`);
       return {
         ...props,
         title: `${titleCase(edit.theme)} bins`,
-        items: activeBins.map((bin) => `${bin} ${edit.singularTheme}`),
-        bins: activeBins
+        items,
+        bins: activeBins,
+        targets: Object.fromEntries(items.map((item, index) => [item, activeBins[index]]))
       };
     }
     case "component:sequence-pad":
@@ -748,6 +752,23 @@ function pairedCardIds(edit: NormalizedAssetEdit): string[] {
     const cardBase = slugLabel(item);
     return [`${cardBase}-a`, `${cardBase}-b`];
   });
+}
+
+function pairMapForCards(cards: string[]): Record<string, string> {
+  const pairs: Record<string, string> = {};
+  for (let index = 0; index < cards.length; index += 2) {
+    const first = cards[index];
+    const second = cards[index + 1];
+    const pairKey = `pair-${Math.floor(index / 2) + 1}`;
+    if (first) {
+      pairs[first] = pairKey;
+    }
+    if (second) {
+      pairs[second] = pairKey;
+    }
+  }
+
+  return pairs;
 }
 
 function defaultItemsForTheme(singularTheme: string): string[] {

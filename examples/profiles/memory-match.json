@@ -108,6 +108,12 @@
           "sun-a",
           "sun-b"
         ],
+        "pairs": {
+          "cat-a": "cat",
+          "cat-b": "cat",
+          "sun-a": "sun",
+          "sun-b": "sun"
+        },
         "columns": 2
       },
       "assetBindings": {

@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Memory Pair Contract
+
+Milestone:
+- Memory profiles now carry an explicit `pairs` record on the RevealCardGrid component props.
+- The Live App memory interaction validates matches against profile-defined card pairs instead of deriving pairs from `-a`/`-b` card ID suffixes.
+- Local card sprite replacement grouping now uses the same profile pair map as gameplay.
+
+Supportive changes:
+- Extended the RevealCardGrid component manifest props to require `pairs`.
+- Updated deterministic memory fixtures and asset-edit output to keep cards and pair maps in sync.
+- Added builder, pack, Studio UI, and asset-library coverage for profile-defined memory pairs.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/packs/test/mvp-profiles.test.ts packages/renderer/test/trusted-renderer.test.tsx tests/studio-ui.test.ts tests/studio-asset-library.test.tsx`
+
+Constraint notes:
+- Keeps matching rules profile-defined and reusable for arbitrary toddler-friendly card labels and replacement assets.
+- Does not add hosted services, generated runtime code, auth, database state, or compatibility fallbacks.
+
 ## 2026-07-04 - Sorting Target Contract
 
 Milestone:

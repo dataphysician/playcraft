@@ -375,6 +375,36 @@ describe("studio UI", () => {
     expect(screen.getByText("Updated Memory Match MVP with toys assets.")).toBeDefined();
   });
 
+  it("uses explicit memory pairs instead of card id suffix heuristics", async () => {
+    const profile = {
+      ...profileA,
+      components: profileA.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["moon", "sock", "drum", "bell"],
+                pairs: {
+                  moon: "pair-one",
+                  drum: "pair-one",
+                  sock: "pair-two",
+                  bell: "pair-two"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile }));
+
+    fireEvent.click(await screen.findByRole("button", { name: "moon" }));
+    fireEvent.click(screen.getByRole("button", { name: "drum" }));
+
+    expect(await screen.findByText("1 of 2 pairs")).toBeDefined();
+  });
+
   it("exports and imports profiles from the Developer tab through the Studio client", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 

@@ -89,11 +89,30 @@ describe("builder session service", () => {
     expect(toys.result.profile?.id).toBe("profile.memory-match.mvp");
     expect(cardsFor(dinosaurs.result.profile)).toEqual(["dinosaur-1-a", "dinosaur-1-b", "dinosaur-2-a", "dinosaur-2-b"]);
     expect(cardsFor(toys.result.profile)).toEqual(["toy-1-a", "toy-1-b", "toy-2-a", "toy-2-b"]);
+    expect(pairsFor(toys.result.profile)).toEqual({
+      "toy-1-a": "pair-1",
+      "toy-1-b": "pair-1",
+      "toy-2-a": "pair-2",
+      "toy-2-b": "pair-2"
+    });
     expect(dinosaurs.result.profile?.assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
     expect(toys.result.profile?.assetRequests[0]?.prompt).toContain("toys memory card illustrations");
     expect(dinosaurs.result.profile?.assets[0]?.assetId).not.toBe(toys.result.profile?.assets[0]?.assetId);
     expect(toys.result.profile?.components[0]?.assetBindings.illustration).toBe(toys.result.profile?.assets[0]?.assetId);
     expect(toys.result.validation?.valid).toBe(true);
+  });
+
+  it("keeps sorting targets in sync when asset edits rename items", () => {
+    const service = new PlaycraftBuilderSessionService();
+    const edited = service.execute(command({ templateId: "template.sorting", assetEdit: { theme: "toys" } }));
+    const sortBins = edited.result.profile?.components.find((component) => component.renderCapability === "component:sort-bins");
+
+    expect(sortBins?.props.items).toEqual(["red toy", "blue toy"]);
+    expect(sortBins?.props.targets).toEqual({
+      "red toy": "red",
+      "blue toy": "blue"
+    });
+    expect(edited.result.validation?.valid).toBe(true);
   });
 
   it("supports real trusted preview interactions before and after an update", () => {
@@ -225,4 +244,9 @@ describe("builder session service", () => {
 function cardsFor(profile: ReturnType<PlaycraftBuilderSessionService["execute"]>["result"]["profile"]): unknown {
   const revealGrid = profile?.components.find((component) => component.componentId === "component.reveal-card-grid");
   return revealGrid?.props.cards;
+}
+
+function pairsFor(profile: ReturnType<PlaycraftBuilderSessionService["execute"]>["result"]["profile"]): unknown {
+  const revealGrid = profile?.components.find((component) => component.componentId === "component.reveal-card-grid");
+  return revealGrid?.props.pairs;
 }

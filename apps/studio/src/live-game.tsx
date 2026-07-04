@@ -177,12 +177,13 @@ function MemoryGame({
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
   const sourceCards = stringArrayProp(component.props, "cards");
-  const deck = React.useMemo(() => shuffleMemoryCards(sourceCards, profile.id), [sourceCards.join("|"), profile.id]);
-  const pairVisuals = React.useMemo(() => createMemoryPairVisuals(sourceCards), [sourceCards.join("|")]);
+  const cardPairs = stringRecordProp(component.props, "pairs");
+  const deck = React.useMemo(() => shuffleMemoryCards(sourceCards, cardPairs, profile.id), [sourceCards.join("|"), JSON.stringify(cardPairs), profile.id]);
+  const pairVisuals = React.useMemo(() => createMemoryPairVisuals(cardPairs), [JSON.stringify(cardPairs)]);
   const [revealed, setRevealed] = React.useState<string[]>([]);
   const [matched, setMatched] = React.useState<Set<string>>(() => new Set());
   const [moves, setMoves] = React.useState(0);
-  const roundKey = `${profile.id}:${sourceCards.join("|")}`;
+  const roundKey = `${profile.id}:${sourceCards.join("|")}:${JSON.stringify(cardPairs)}`;
 
   React.useEffect(() => {
     setRevealed([]);
@@ -1071,20 +1072,17 @@ function textProp(props: Record<string, JsonValue>, key: string, fallback: strin
   return typeof value === "string" ? value : fallback;
 }
 
-function shuffleMemoryCards(cards: string[], seed: string): MemoryCard[] {
+function shuffleMemoryCards(cards: string[], cardPairs: Record<string, string>, seed: string): MemoryCard[] {
   return cards
-    .map((id) => ({ id, pairKey: pairKeyFor(id), order: hashString(`${seed}.${id}`) }))
+    .map((id) => ({ id, pairKey: cardPairs[id], order: hashString(`${seed}.${id}`) }))
+    .filter((card): card is MemoryCard & { order: number } => typeof card.pairKey === "string" && card.pairKey.length > 0)
     .sort((left, right) => left.order - right.order)
     .map(({ id, pairKey }) => ({ id, pairKey }));
 }
 
-function pairKeyFor(cardId: string): string {
-  return cardId.replace(/-[ab]$/u, "");
-}
-
-function createMemoryPairVisuals(cards: string[]): Map<string, MemoryPairVisual> {
+function createMemoryPairVisuals(cardPairs: Record<string, string>): Map<string, MemoryPairVisual> {
   return new Map(
-    uniqueStrings(cards.map((card) => pairKeyFor(card))).map((pairKey, index) => [
+    uniqueStrings(Object.values(cardPairs)).map((pairKey, index) => [
       pairKey,
       memoryPairPalette[index % memoryPairPalette.length]
     ])
@@ -1172,7 +1170,7 @@ function hashString(value: string): number {
 }
 
 function displayCardLabel(cardId: string): string {
-  return pairKeyFor(cardId).replace(/-/gu, " ");
+  return cardId.replace(/-/gu, " ");
 }
 
 function displayInitial(cardId: string): string {

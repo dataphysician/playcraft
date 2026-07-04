@@ -69,7 +69,8 @@ export function createProfileLibraryAssetReplacements(
   for (const component of profile.components) {
     if (component.renderCapability === "component:reveal-card-grid") {
       const cards = stringArrayProp(component.props, "cards");
-      const pairKeys = uniqueStrings(cards.map((card) => pairKeyFor(card)));
+      const pairs = stringRecordProp(component.props, "pairs");
+      const pairKeys = uniqueStrings(cards.map((card) => pairs[card]).filter(Boolean));
       for (const [index, pairKey] of pairKeys.entries()) {
         const sprite = spriteForIdentifier(pairKey, themeFolders, index);
         if (!sprite) {
@@ -78,7 +79,7 @@ export function createProfileLibraryAssetReplacements(
 
         setReplacement(replacements, pairKey, sprite);
         setReplacement(replacements, `card:${pairKey}`, sprite);
-        for (const card of cards.filter((entry) => pairKeyFor(entry) === pairKey)) {
+        for (const card of cards.filter((entry) => pairs[entry] === pairKey)) {
           setReplacement(replacements, card, sprite);
           setReplacement(replacements, `card:${card}`, sprite);
         }
@@ -201,7 +202,7 @@ function themeTerms(theme: string): string[] {
 }
 
 function spriteForIdentifier(identifier: string, themeFolders: string[], index: number): ReplacementSprite | undefined {
-  const normalized = slugLabel(pairKeyFor(identifier));
+  const normalized = slugLabel(identifier);
   const themeSprites = replacementSprites.filter((sprite) => themeFolders.includes(sprite.theme));
   const candidates = themeSprites.length > 0 ? themeSprites : replacementSprites;
   const exact = candidates.find((sprite) => normalized === sprite.id || normalized.endsWith(`-${sprite.id}`));
@@ -232,8 +233,16 @@ function stringArrayProp(props: Record<string, JsonValue>, key: string): string[
   return value.map((entry) => (typeof entry === "string" ? entry : JSON.stringify(entry)));
 }
 
-function pairKeyFor(cardId: string): string {
-  return cardId.replace(/-[ab]$/u, "");
+function stringRecordProp(props: Record<string, JsonValue>, key: string): Record<string, string> {
+  const value = props[key];
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter((entry): entry is [string, string] => typeof entry[1] === "string")
+  );
 }
 
 function normalizeText(value: string): string {

@@ -102,7 +102,7 @@ export const ruleModuleDefinitions: RuleModuleDefinition[] = [
 
 export const componentManifests: ComponentManifest[] = [
   component("component.choice-grid", "ChoiceGrid", "component:choice-grid", ["mechanic.tap-to-select", "mechanic.choose-one"], [selectItemTool], { title: textField, items: arrayField, prompt: optionalTextField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
-  component("component.reveal-card-grid", "RevealCardGrid", "component:reveal-card-grid", ["mechanic.tap-to-reveal", "mechanic.match-pairs"], [revealCardTool], { title: textField, cards: arrayField, columns: numberField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
+  component("component.reveal-card-grid", "RevealCardGrid", "component:reveal-card-grid", ["mechanic.tap-to-reveal", "mechanic.match-pairs"], [revealCardTool], { title: textField, cards: arrayField, pairs: recordField, columns: numberField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.pair-match-board", "PairMatchBoard", "component:pair-match-board", ["mechanic.match-pairs"], [selectItemTool], { title: textField, pairs: arrayField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.sort-bins", "SortBins", "component:sort-bins", ["mechanic.sort-into-bins"], [moveItemTool], { title: textField, items: arrayField, bins: arrayField, targets: recordField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.sequence-pad", "SequencePad", "component:sequence-pad", ["mechanic.sequence-repeat", "mechanic.tap-to-select"], [repeatSequenceTool], { title: textField, sequence: arrayField, prompt: optionalTextField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
@@ -213,7 +213,17 @@ const mvpTemplates: MvpProfileTemplate[] = [
     ruleCategories: ["pair-matching", "retry", "hint", "completion"],
     componentCapabilities: ["component:reveal-card-grid", "component:celebration-overlay"],
     propsByCapability: {
-      "component:reveal-card-grid": { title: "Animal pairs", cards: ["cat-a", "cat-b", "sun-a", "sun-b"], columns: 2 },
+      "component:reveal-card-grid": {
+        title: "Animal pairs",
+        cards: ["cat-a", "cat-b", "sun-a", "sun-b"],
+        pairs: {
+          "cat-a": "cat",
+          "cat-b": "cat",
+          "sun-a": "sun",
+          "sun-b": "sun"
+        },
+        columns: 2
+      },
       "component:celebration-overlay": { message: "You found every pair." }
     }
   },
