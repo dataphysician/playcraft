@@ -112,7 +112,7 @@ Use Tauri for:
 
 - Desktop/mobile packaging.
 - Safe filesystem cache.
-- Optional native audio/haptic hooks.
+- Optional local playback and haptic hooks.
 - OS permissions and lifecycle.
 - Offline profile and asset cache.
 

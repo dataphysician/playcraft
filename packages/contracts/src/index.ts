@@ -19,7 +19,7 @@ export const CapabilityTagSchema = z
   .regex(/^[a-z0-9][a-z0-9:-]*$/u);
 
 export const AgeBandSchema = z.enum(["2-3", "4-6", "7-9", "10-12", "adult"]);
-export const InputModalitySchema = z.enum(["touch", "pointer", "keyboard", "audio"]);
+export const InputModalitySchema = z.enum(["touch", "pointer", "keyboard"]);
 export const AssetContentTypeSchema = z.enum(["image", "audio", "animation", "text"]);
 export const AssetFormatSchema = z.enum(["svg", "png", "webp", "mp3", "wav", "json", "plain-text"]);
 export const SafetyStatusSchema = z.enum(["safe", "blocked", "needs-review"]);

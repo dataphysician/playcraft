@@ -95,7 +95,7 @@ describe("capability registries", () => {
       compatibleSafetyPolicies: ["safety.alias"],
       safetyPolicyIds: ["safety.alias"],
       ageBands: ["adult"],
-      modalities: ["audio"]
+      modalities: ["touch"]
     }).success).toBe(false);
   });
 
@@ -135,7 +135,7 @@ describe("capability registries", () => {
       domainProfileId: "domain.other",
       safetyPolicyId: "safety.other",
       ageBand: "adult",
-      modality: "audio"
+      modality: "keyboard"
     });
 
     expect(result.selected?.id).toBe("loose.entry");

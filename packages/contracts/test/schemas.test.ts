@@ -523,8 +523,9 @@ describe("public contract schemas", () => {
     expect(AssetContentTypeSchema.safeParse("video").success).toBe(false);
   });
 
-  it("keeps v1 input modalities free of live microphone capture", () => {
-    expect(InputModalitySchema.options).toEqual(["touch", "pointer", "keyboard", "audio"]);
+  it("keeps v1 input modalities free of runtime audio capture", () => {
+    expect(InputModalitySchema.options).toEqual(["touch", "pointer", "keyboard"]);
+    expect(InputModalitySchema.safeParse("audio").success).toBe(false);
     expect(InputModalitySchema.safeParse(`vo${"ice"}`).success).toBe(false);
   });
 

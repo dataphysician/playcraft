@@ -98,14 +98,13 @@ export const mechanicDefinitions: MechanicDefinition[] = [
   mechanic("mechanic.tap-to-reveal", "Tap to Reveal", ["mechanic:tap-to-reveal", "state:reveal"], ["touch", "pointer"], [], ["frontend:revealed"]),
   mechanic("mechanic.match-pairs", "Match Pairs", ["mechanic:match-pairs", "logic:pairing"], ["touch", "pointer"], ["frontend:revealed"], ["rule:pair-matched"]),
   mechanic("mechanic.sort-into-bins", "Sort Into Bins", ["mechanic:sort-into-bins", "logic:category"], ["touch", "pointer"], ["frontend:selected"], ["rule:item-sorted"]),
-  mechanic("mechanic.sequence-repeat", "Sequence Repeat", ["mechanic:sequence-repeat", "logic:sequence"], ["touch", "pointer", "audio"], ["frontend:selected"], ["rule:sequence-progressed"]),
+  mechanic("mechanic.sequence-repeat", "Sequence Repeat", ["mechanic:sequence-repeat", "logic:sequence"], ["touch", "pointer"], ["frontend:selected"], ["rule:sequence-progressed"]),
   mechanic("mechanic.choose-one", "Choose One", ["mechanic:choose-one", "logic:choice"], ["touch", "pointer", "keyboard"], ["frontend:selected"], ["rule:choice-made"]),
   mechanic("mechanic.trace-path", "Trace Path", ["mechanic:trace-path", "input:trace"], ["touch", "pointer"], [], ["rule:path-traced"]),
   mechanic("mechanic.drag-or-tap-move", "Drag or Tap Move", ["mechanic:drag-or-tap-move", "input:move"], ["touch", "pointer"], ["frontend:selected"], ["rule:item-moved"]),
-  mechanic("mechanic.sound-matching", "Sound Matching", ["mechanic:sound-matching", "audio:matching"], ["audio", "touch"], ["audio:prompted"], ["rule:sound-matched"]),
-  mechanic("mechanic.hint-prompt", "Hint Prompt", ["mechanic:hint-prompt", "support:hint"], ["touch", "pointer", "audio"], ["rule:hint-needed"], ["frontend:hint-shown"]),
+  mechanic("mechanic.hint-prompt", "Hint Prompt", ["mechanic:hint-prompt", "support:hint"], ["touch", "pointer"], ["rule:hint-needed"], ["frontend:hint-shown"]),
   mechanic("mechanic.retry-loop", "Retry Loop", ["mechanic:retry-loop", "support:retry"], ["touch", "pointer"], ["rule:retry-needed"], ["rule:retry-ready"]),
-  mechanic("mechanic.timed-celebration", "Timed Celebration", ["mechanic:timed-celebration", "feedback:celebration"], ["touch", "pointer", "audio"], ["rule:completed"], ["frontend:celebrated"])
+  mechanic("mechanic.timed-celebration", "Timed Celebration", ["mechanic:timed-celebration", "feedback:celebration"], ["touch", "pointer"], ["rule:completed"], ["frontend:celebrated"])
 ].map((entry) => MechanicDefinitionSchema.parse(entry));
 
 export const ruleModuleDefinitions: RuleModuleDefinition[] = [
@@ -194,7 +193,7 @@ export const domainProfiles: DomainProfile[] = [
     allowedThemeIds: themePacks.map((entry) => entry.id),
     allowedAssetSourceIds: [LOCAL_ASSET_SOURCE_ID],
     ageBands: ["2-3", "4-6", "7-9"],
-    modalities: ["touch", "pointer", "audio"],
+    modalities: ["touch", "pointer"],
     defaults: {
       feedbackTone: "gentle",
       progressMode: "noncompetitive"
@@ -1148,7 +1147,7 @@ function mechanic(
   id: string,
   displayName: string,
   capabilityTags: string[],
-  supportedModalities: Array<"touch" | "pointer" | "keyboard" | "audio">,
+  supportedModalities: Array<"touch" | "pointer" | "keyboard">,
   consumesEvents: string[],
   emitsEvents: string[]
 ): MechanicDefinition {

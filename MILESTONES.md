@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Touch-Only Play Input Modalities
+
+Milestone:
+- Runtime play/input modality contracts now exclude generic audio input; text and Moonshine transcript input stay modeled through builder input sources.
+- Bundled mechanics and domain profiles now use touch/pointer/keyboard play modalities only, while audio remains an asset content type for local sound assets.
+- Removed the unused sound-matching mechanic that implied audio prompt/input semantics.
+
+Supportive changes:
+- Contract tests now reject audio and voice as input modalities while preserving audio asset content types.
+- Pack and source-scan tests now block audio play modalities and sound-matching mechanics from returning.
+- Framework docs now describe visual sequence/play interactions without audio-response mechanics.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/core/test/registries.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps runtime interaction contracts aligned with text and local Moonshine transcript input without live audio capture, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Conversation-Free Active Docs
 
 Milestone:

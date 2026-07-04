@@ -50,7 +50,7 @@ The first useful domain is child-friendly educational mini games, but the framew
 | `SafetyPolicyPack` | Safety, privacy, rating, content, and modality rules. |
 | `GameAssemblyProfile` | Saved recipe for one playable mini game. |
 | `GameTemplateDefinition` | Reusable local template that bounds game rules, required mechanics, trusted components, and the default assembly request. |
-| `MechanicDefinition` | Reusable interaction primitive such as reveal, match, sort, sequence, choose, trace, or audio response. |
+| `MechanicDefinition` | Reusable interaction primitive such as reveal, match, sort, sequence, choose, trace, or guided response. |
 | `RuleModuleDefinition` | Event/rule logic for progression, hints, retry, scoring, completion, safety, and celebration. |
 | `ComponentManifest` | Trusted frontend render capability for one or more mechanics. |
 | `ThemePack` | Visual/audio style bundle with accessibility and policy constraints. |
@@ -118,11 +118,10 @@ V1 must run and test without:
 | `tap-to-reveal` | Reveal hidden object content. |
 | `match-pairs` | Match related objects. |
 | `sort-into-bins` | Assign objects to categories. |
-| `sequence-repeat` | Repeat a visual or audio sequence. |
+| `sequence-repeat` | Repeat a visual sequence. |
 | `choose-one` | Pick one answer from a small safe set. |
 | `trace-path` | Follow a simple path with touch or pointer input. |
 | `drag-or-tap-move` | Move an object, with tap fallback. |
-| `sound-matching` | Match sound to visual or category. |
 | `hint-prompt` | Offer contextual help. |
 | `retry-loop` | Retry without punitive feedback. |
 | `timed-celebration` | Play short success feedback. |

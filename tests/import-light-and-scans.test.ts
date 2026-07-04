@@ -175,6 +175,20 @@ describe("import-light boundaries and source scans", () => {
     expect(registryTestSource).not.toContain('supportedModalities: ["audio"]');
   });
 
+  it("keeps play input modalities separate from audio asset content", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const packSource = readSource("packages/packs/src/index.ts");
+
+    expect(contractSource).toContain('InputModalitySchema = z.enum(["touch", "pointer", "keyboard"])');
+    expect(contractSource).toContain('AssetContentTypeSchema = z.enum(["image", "audio", "animation", "text"])');
+    expect(contractSource).not.toContain('InputModalitySchema = z.enum(["touch", "pointer", "keyboard", "audio"])');
+    expect(packSource).not.toContain("mechanic.sound-matching");
+    expect(packSource).not.toContain('supportedModalities: Array<"touch" | "pointer" | "keyboard" | "audio">');
+    expect(packSource).not.toContain('["touch", "pointer", "audio"]');
+    expect(packSource).not.toContain('["audio", "touch"]');
+    expect(packSource).not.toContain("audio:prompted");
+  });
+
   it("keeps Studio service event ingestion schema-backed", () => {
     const source = readSource("apps/studio/src/local-client.ts");
 

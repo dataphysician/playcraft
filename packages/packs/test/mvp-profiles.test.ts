@@ -139,10 +139,13 @@ describe("MVP profile pack", () => {
     );
   });
 
-  it("keeps bundled mechanics and templates free of live microphone capture modalities", () => {
+  it("keeps bundled mechanics and templates free of runtime audio capture modalities", () => {
     const removedModality = `vo${"ice"}`;
 
+    expect(mechanicDefinitions.map((mechanic) => mechanic.id)).not.toContain("mechanic.sound-matching");
+    expect(mechanicDefinitions.flatMap((mechanic) => mechanic.supportedModalities)).not.toContain("audio");
     expect(mechanicDefinitions.flatMap((mechanic) => mechanic.supportedModalities)).not.toContain(removedModality);
+    expect(gameTemplateDefinitions.flatMap((template) => template.supportedModalities)).not.toContain("audio");
     expect(gameTemplateDefinitions.flatMap((template) => template.supportedModalities)).not.toContain(removedModality);
   });
 });
