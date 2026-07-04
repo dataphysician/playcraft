@@ -43,6 +43,7 @@ describe("local Playcraft service", () => {
       "template.sorting",
       "template.sequence-repeat"
     ]);
+    expect(catalog.templates.find((template) => template.id === "template.memory-match")?.requestAliases).toContain("matching cards");
   });
 
   it("assembles and updates games through text or local speech transcripts", () => {
@@ -94,6 +95,27 @@ describe("local Playcraft service", () => {
     expect(resolved.input.metadata.intentResolution).toMatchObject({
       kind: "builder-intent-resolution",
       selectedTemplateId: "template.memory-match"
+    });
+  });
+
+  it("switches templates from catalog request aliases", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Please group by color with fruit"
+    });
+
+    expect(resolved.templateId).toBe("template.sorting");
+    expect(resolved.resolution.templateDecision).toMatchObject({
+      source: "text-match",
+      matchedRequestAliases: ["group by color"],
+      matchedTemplateIds: ["template.sorting"]
+    });
+    expect(resolved.input.metadata.intentResolution).toMatchObject({
+      templateDecision: {
+        matchedRequestAliases: ["group by color"]
+      }
     });
   });
 

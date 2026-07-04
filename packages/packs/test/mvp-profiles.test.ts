@@ -58,6 +58,7 @@ describe("MVP profile pack", () => {
       "template.sequence-repeat"
     ]);
     expect(gameTemplateDefinitions.every((template) => template.localFirst)).toBe(true);
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.sorting")?.requestAliases).toContain("group by color");
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)
     );

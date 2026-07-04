@@ -54,9 +54,11 @@ describe("studio UI", () => {
     });
 
     expect(text.templateId).toBe("template.sorting");
+    expect(text.resolution.templateDecision.matchedRequestAliases).toContain("sort");
     expect(text.input.source).toBe("text");
     expect(text.input.transcription).toBeUndefined();
     expect(speech.templateId).toBe("template.sequence-repeat");
+    expect(speech.resolution.templateDecision.matchedRequestAliases).toContain("pattern");
     expect(speech.assetEdit?.theme).toBe("gems");
     expect(speech.input.transcription).toEqual({
       engine: "moonshine-streaming",

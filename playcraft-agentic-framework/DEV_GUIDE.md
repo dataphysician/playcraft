@@ -35,6 +35,8 @@ Recommended package boundaries:
 
 Do not put framework core logic behind Next.js API routes, native commands, or app-specific stores. The service, studio, and mobile shell consume the packages; they do not define framework contracts.
 
+Template request phrases belong in `GameTemplateDefinition.requestAliases`. Do not add service-side `if game == ...` branches when adding a template; the local service resolves template switches from catalog aliases and records the matched alias in `BuilderIntentResolution`.
+
 ## 3. Stack Defaults
 
 | Area | Default |

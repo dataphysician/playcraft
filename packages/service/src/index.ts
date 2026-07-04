@@ -181,7 +181,8 @@ export function resolveBuilderInputCommand(input: {
     templateDecision: {
       source: templateDecision.source,
       matchedTemplateIds: templateMatch.matchedTemplateIds,
-      matchedCapabilityTags: templateMatch.matchedCapabilityTags
+      matchedCapabilityTags: templateMatch.matchedCapabilityTags,
+      matchedRequestAliases: templateMatch.matchedRequestAliases
     },
     assetEdit: assetDecision.assetEdit,
     assetDecision: {
@@ -235,6 +236,7 @@ export function createBuilderInputRequest(input: {
 
 interface TemplateTextMatch {
   matchedCapabilityTags: string[];
+  matchedRequestAliases: string[];
   matchedTemplateIds: BuilderTemplateId[];
 }
 
@@ -255,18 +257,19 @@ interface AssetDecision {
 }
 
 function templateMatchForText(text: string): TemplateTextMatch {
-  const normalized = text.toLowerCase();
+  const textTokens = normalizedTokens(text);
   const matches = gameTemplateDefinitions.flatMap((template) => {
-    const matchedCapabilityTags = template.capabilityTags.filter((capability) =>
-      templateAliasPattern(capability).test(normalized)
+    const matchedRequestAliases = template.requestAliases.filter((alias) =>
+      tokenSequenceIncludes(textTokens, normalizedTokens(alias))
     );
-    return matchedCapabilityTags.length > 0
-      ? [{ capabilityTags: matchedCapabilityTags, templateId: template.id as BuilderTemplateId }]
+    return matchedRequestAliases.length > 0
+      ? [{ capabilityTags: template.capabilityTags, requestAliases: matchedRequestAliases, templateId: template.id as BuilderTemplateId }]
       : [];
   });
 
   return {
     matchedCapabilityTags: [...new Set(matches.flatMap((match) => match.capabilityTags))],
+    matchedRequestAliases: [...new Set(matches.flatMap((match) => match.requestAliases))],
     matchedTemplateIds: [...new Set(matches.map((match) => match.templateId))]
   };
 }
@@ -290,19 +293,6 @@ function templateDecisionFor(input: {
   }
 
   return { source: "default-template", templateId: DEFAULT_TEMPLATE_ID };
-}
-
-function templateAliasPattern(capability: string): RegExp {
-  if (capability === "game:memory-match") {
-    return /\b(?:memory|matching cards?|card pairs?|pair match)\b/u;
-  }
-  if (capability === "game:sorting") {
-    return /\b(?:sort|sorting|category|categories|color bins?|group by color)\b/u;
-  }
-  if (capability === "game:sequence-repeat") {
-    return /\b(?:sequence|pattern|repeat|copy the pattern)\b/u;
-  }
-  return /\b\B/u;
 }
 
 function assetDecisionFor(input: {
@@ -388,4 +378,23 @@ function cleanAssetTheme(value: string): string {
 
 function toJsonValue(value: unknown): JsonValue {
   return JSON.parse(JSON.stringify(value)) as JsonValue;
+}
+
+function normalizedTokens(value: string): string[] {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, " ")
+    .trim()
+    .split(/\s+/u)
+    .filter(Boolean);
+}
+
+function tokenSequenceIncludes(tokens: string[], sequence: string[]): boolean {
+  if (sequence.length === 0 || sequence.length > tokens.length) {
+    return false;
+  }
+
+  return tokens.some((_, index) =>
+    sequence.every((token, offset) => tokens[index + offset] === token)
+  );
 }

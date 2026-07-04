@@ -456,6 +456,7 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   displayName: z.string().min(1),
   description: z.string().min(1),
   capabilityTags: z.array(CapabilityTagSchema).min(1),
+  requestAliases: z.array(z.string().min(2).max(80)).min(1),
   assemblyRequestId: StableIdSchema,
   profileId: StableIdSchema,
   supportedAgeBands: z.array(AgeBandSchema).min(1),
@@ -570,7 +571,8 @@ export const BuilderIntentResolutionSchema = PublicContractBaseSchema.extend({
     .object({
       source: z.enum(["explicit-template-id", "text-match", "active-template", "default-template"]),
       matchedTemplateIds: z.array(BuilderTemplateIdSchema).default([]),
-      matchedCapabilityTags: z.array(CapabilityTagSchema).default([])
+      matchedCapabilityTags: z.array(CapabilityTagSchema).default([]),
+      matchedRequestAliases: z.array(z.string().min(2).max(80)).default([])
     })
     .strict(),
   assetEdit: BuilderAssetEditSchema.optional(),

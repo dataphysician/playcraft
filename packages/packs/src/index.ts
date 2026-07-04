@@ -210,6 +210,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     id: "template.memory-match",
     description: "A toddler-safe card reveal game that asks the player to find visual pairs.",
     capabilityTags: ["game:memory-match", "mechanic:match-pairs"],
+    requestAliases: ["memory", "memory game", "memory match", "matching cards", "card pairs", "pair match"],
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
     assetPrompt: "friendly animal cards for a child-safe memory match game",
@@ -225,6 +226,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     id: "template.sorting",
     description: "A toddler-safe categorization game that asks the player to move items into matching bins.",
     capabilityTags: ["game:sorting", "mechanic:sort-into-bins"],
+    requestAliases: ["sort", "sorting", "sorting game", "category", "categories", "color bins", "group by color"],
     profileId: "profile.sorting.mvp",
     profileName: "Sorting MVP",
     assetPrompt: "simple colorful shapes for a child-safe sorting game",
@@ -241,6 +243,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     id: "template.sequence-repeat",
     description: "A toddler-safe pattern game that asks the player to repeat a short sequence.",
     capabilityTags: ["game:sequence-repeat", "mechanic:sequence-repeat"],
+    requestAliases: ["sequence", "sequence repeat", "pattern", "repeat", "repeat pattern", "copy the pattern"],
     profileId: "profile.sequence-repeat.mvp",
     profileName: "Sequence Repeat MVP",
     assetPrompt: "soft glowing buttons for a child-safe sequence repeat game",
@@ -264,6 +267,7 @@ export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.ma
     displayName: template.profileName,
     description: template.description,
     capabilityTags: template.capabilityTags,
+    requestAliases: template.requestAliases,
     assemblyRequestId: mvpAssemblyRequests[index].id,
     profileId: template.profileId,
     supportedAgeBands: ["2-3", "4-6", "7-9"],
@@ -915,6 +919,7 @@ interface MvpProfileTemplate {
   id: string;
   description: string;
   capabilityTags: string[];
+  requestAliases: string[];
   profileId: string;
   profileName: string;
   assetPrompt: string;
