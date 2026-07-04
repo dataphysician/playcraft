@@ -115,7 +115,14 @@ describe("import-light boundaries and source scans", () => {
       "hosted " + "hosted",
       "SDK " + "SDK",
       "hosted-stack-" + "specific",
-      "video-" + "avatar"
+      "video-" + "avatar",
+      "Open" + "AI",
+      "Post" + "gres",
+      "Prisma",
+      "Next" + "Auth",
+      "Next" + ".js",
+      "Next" + "Request",
+      "next" + "/server"
     ];
     const docs = repoSourceFiles()
       .filter((path) => path === "README.md" || path.startsWith("playcraft-agentic-framework/"));

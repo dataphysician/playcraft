@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Provider-Neutral Framework Docs
+
+Milestone:
+- Public framework docs now describe rejected old app/provider architecture generically instead of preserving named hosted-provider, app-route, auth, and database stack examples.
+- Import-light guidance now uses provider-neutral scan examples for route, provider, database, auth, and environment boundaries.
+
+Supportive changes:
+- Public framework doc scans now block stale provider/app stack names from returning.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps canonical docs aligned with the local text/Moonshine-only builder direction without hosted providers, generated runtime code, auth, database state, or legacy stack vocabulary.
+
 ## 2026-07-04 - Explicit Builder CLI Sessions
 
 Milestone:

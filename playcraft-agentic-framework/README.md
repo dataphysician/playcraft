@@ -9,7 +9,7 @@
 
 This folder is the canonical source of truth for the Playcraft Agentic Game Framework.
 
-It supersedes the older PlayCraft AI app/product framing. The older framing described a Next.js/OpenAI/Postgres child-game application with app-specific auth, database, dashboard, and route assumptions. That history can be useful context, but it is not the foundation for the framework spec.
+It supersedes the older PlayCraft AI app/product framing. That older framing described an app-specific child-game product with hosted provider, persistence, dashboard, auth, and route assumptions. That history can be useful context, but it is not the foundation for the framework spec.
 
 ## Positioning
 
@@ -63,7 +63,7 @@ The framework docs reject the old app-centered abstractions:
 - No hardcoded `GameType` enum as the core model.
 - No source-name branching.
 - No arbitrary generated React/runtime code.
-- No Next.js API routes as framework core.
+- No app-route handlers as framework core.
 - No app-specific database, auth, dashboard, or deployment assumptions in core docs.
 
 ## Acceptance Checklist

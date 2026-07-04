@@ -11,7 +11,7 @@
 
 ## 1. Implementation Posture
 
-Build the lightweight v1 as import-light TypeScript packages first. Do not start from the older Next.js app, database schema, auth model, dashboard, or OpenAI route shape.
+Build the lightweight v1 as import-light TypeScript packages first. Do not start from the older app-route, database schema, auth model, dashboard, or hosted-provider route shape.
 
 The v1 core must be usable without network access, credentials, AI SDKs, GPU, model weights, database services, or native-shell APIs. Hosted SDK adapters, Vite studio UX, and Tauri shells are app layers around the core, not prerequisites.
 
@@ -33,7 +33,7 @@ Recommended package boundaries:
 | `apps/mobile-shell` | Tauri Mobile-facing webview shell that reuses the Studio UI and local service transport. |
 | `examples/profiles` | Saved profile fixtures for memory match, sorting, and sequence repeat. |
 
-Do not put framework core logic behind Next.js API routes, native commands, or app-specific stores. The service, studio, and mobile shell consume the packages; they do not define framework contracts.
+Do not put framework core logic behind app-route handlers, native commands, or app-specific stores. The service, studio, and mobile shell consume the packages; they do not define framework contracts.
 
 Studio clients should talk to a `BuilderServiceTransport`; the local implementation can be in-process or HTTP JSON today, and future server adapters should preserve the same request/response schemas rather than adding app-local command formats.
 
@@ -241,15 +241,15 @@ Default verification must include:
 - AG-UI envelope tests for lifecycle/state/activity/tool/custom mapping and Playcraft `Custom` payload validation.
 - Replay tests reconstructing memory match, sorting, and sequence repeat from saved `GameAssemblyProfile` records.
 - Trusted renderer tests that reject unknown component IDs, unregistered capabilities, invalid props, and generated runtime code.
-- Import-light tests proving contracts/core/registries import without AI SDKs, network clients, GPU/model packages, credentials, database clients, Next.js, or Tauri.
-- Source scans against hardcoded defaults, `GameType` core branching, source-name branching, arbitrary generated React/runtime code, Next.js route dependencies in core, database/auth/dashboard assumptions, and hosted SDK paths.
+- Import-light tests proving contracts/core/registries import without AI SDKs, network clients, GPU/model packages, credentials, database clients, app-route frameworks, or native shell APIs.
+- Source scans against hardcoded defaults, `GameType` core branching, source-name branching, arbitrary generated React/runtime code, app-route dependencies in core, database/auth/dashboard assumptions, and hosted SDK paths.
 
 Suggested scan targets:
 
 ```bash
 rg "GameType|MEMORY_MATCH|PATTERN_MATCH|SORTING" packages/core packages/contracts
 rg "sourceName|if \\(source|switch \\(source" packages/core packages/assets packages/builder packages/service apps/studio
-rg "next/server|NextRequest|PrismaClient|NextAuth|OPENAI_API_KEY|process\\.env" packages/core packages/contracts packages/service
+rg "route-handler|provider-client|database-client|auth-client|API_KEY|process\\.env" packages/core packages/contracts packages/service
 rg "eval\\(|new Function|dangerouslySetInnerHTML" packages/renderer packages/builder packages/service apps/studio
 ```
 

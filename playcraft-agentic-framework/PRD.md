@@ -192,7 +192,7 @@ The framework must reject these old abstractions:
 - No hardcoded `GameType` enum as the core model.
 - No source-name branching.
 - No arbitrary generated React/runtime code.
-- No Next.js API routes as framework core.
+- No app-route handlers as framework core.
 - No app-specific database, auth, dashboard, or deployment assumptions in core docs.
 - No behavior-changing defaults hidden as bare constants in core logic.
 - No hosted SDK integration in the framework path.

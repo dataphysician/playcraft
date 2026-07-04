@@ -242,7 +242,7 @@ Core packages must import and test without:
 - Model weights.
 - Credentials or environment variables.
 - Database clients.
-- Next.js APIs.
+- App framework route APIs.
 - Tauri APIs.
 
 App routes, persistence repositories, hosted retrieval services, and native shells live outside the import-light boundary.
@@ -253,8 +253,8 @@ Do not carry these old app abstractions into the framework core:
 
 - `GameType` enum as the primary selection model.
 - Provider-name conditionals.
-- Next.js route handlers as framework boundaries.
-- Prisma/Auth/dashboard assumptions.
-- OpenAI-specific core paths.
+- App route handlers as framework boundaries.
+- Provider/auth/persistence/dashboard assumptions.
+- Provider-specific core paths.
 - Generated React/runtime code as a play-surface strategy.
 - Hardcoded scoring, age difficulty, asset pools, or seed lists in core logic.

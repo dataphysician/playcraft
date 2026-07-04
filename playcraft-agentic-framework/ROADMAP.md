@@ -38,7 +38,7 @@ V1 core excludes network, credentials, AI SDKs, GPU, model weights, database ser
 | AG-UI adapter | Lifecycle/state/activity/tool/custom event mapping is tested, and Playcraft envelopes validate. |
 | Trusted renderer | Registered MVP components render from manifests and reject unknown/invalid requests. |
 | Replay harness | Saved MVP profiles replay without planning or asset generation. |
-| Import-light verification | Core imports without SDKs, network, GPU, model weights, database, Next.js, or Tauri. |
+| Import-light verification | Core imports without SDKs, network, GPU, model weights, database clients, app-route frameworks, or native shell APIs. |
 | Source scans | Scans block hardcoded `GameType`, source-name branching, generated code execution, and app-specific core assumptions. |
 
 ## 4. MVP Profiles
@@ -129,7 +129,7 @@ Playcraft should not become:
 - A marketplace platform in v1.
 - A model-hosting stack.
 - A database/auth/dashboard application framework.
-- A Next.js API route architecture.
+- An app-route-handler architecture.
 - A production asset-generation service as a core requirement.
 
 ## 10. Graduation Criteria
