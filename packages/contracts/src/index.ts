@@ -559,6 +559,36 @@ export const BuilderAssetEditSchema = z
   });
 export type BuilderAssetEdit = z.infer<typeof BuilderAssetEditSchema>;
 
+export const BuilderIntentResolutionSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("builder-intent-resolution"),
+  inputId: StableIdSchema,
+  activeTemplateId: BuilderTemplateIdSchema.optional(),
+  selectedTemplateId: BuilderTemplateIdSchema,
+  templateDecision: z
+    .object({
+      source: z.enum(["explicit-template-id", "text-match", "active-template", "default-template"]),
+      matchedTemplateIds: z.array(BuilderTemplateIdSchema).default([]),
+      matchedCapabilityTags: z.array(CapabilityTagSchema).default([])
+    })
+    .strict(),
+  assetEdit: BuilderAssetEditSchema.optional(),
+  assetDecision: z
+    .object({
+      source: z.enum(["explicit-asset-edit", "text-match", "active-asset-edit", "none"]),
+      matchedText: z.string().min(1).max(80).optional()
+    })
+    .strict()
+}).strict()
+  .refine((value) => value.assetDecision.source !== "none" || !value.assetEdit, {
+    message: "none asset decision must not include an asset edit",
+    path: ["assetEdit"]
+  })
+  .refine((value) => value.assetDecision.source === "none" || Boolean(value.assetEdit), {
+    message: "asset decision requires an asset edit unless source is none",
+    path: ["assetEdit"]
+  });
+export type BuilderIntentResolution = z.infer<typeof BuilderIntentResolutionSchema>;
+
 export const BuilderCommandSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-command"),
   sessionId: StableIdSchema,
@@ -626,6 +656,7 @@ export const PublicContractSchemas = {
   BuilderInputRequestSchema,
   BuilderToolDefinitionSchema,
   BuilderCatalogSchema,
+  BuilderIntentResolutionSchema,
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
   BuilderCommandResultSchema

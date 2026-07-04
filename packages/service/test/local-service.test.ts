@@ -80,6 +80,32 @@ describe("local Playcraft service", () => {
 
     expect(resolved.templateId).toBe("template.memory-match");
     expect(resolved.assetEdit).toBeUndefined();
+    expect(resolved.resolution.kind).toBe("builder-intent-resolution");
+    expect(resolved.resolution.templateDecision.source).toBe("active-template");
+    expect(resolved.resolution.assetDecision.source).toBe("none");
+    expect(resolved.input.metadata.intentResolution).toMatchObject({
+      kind: "builder-intent-resolution",
+      selectedTemplateId: "template.memory-match"
+    });
+  });
+
+  it("records explicit template and asset-edit decisions without text guessing", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      assetEdit: {
+        theme: "ocean animals",
+        items: ["dolphin", "turtle"]
+      },
+      sequence: 1,
+      source: "text",
+      templateId: "template.sequence-repeat",
+      text: "make it playful"
+    });
+
+    expect(resolved.templateId).toBe("template.sequence-repeat");
+    expect(resolved.resolution.templateDecision.source).toBe("explicit-template-id");
+    expect(resolved.resolution.assetDecision.source).toBe("explicit-asset-edit");
+    expect(resolved.resolution.assetEdit?.items).toEqual(["dolphin", "turtle"]);
   });
 
   it("exposes a CLI surface for catalog, transcript, and asset-edit requests", () => {

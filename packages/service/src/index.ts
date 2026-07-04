@@ -1,13 +1,16 @@
 import {
   BuilderCatalogSchema,
   BuilderInputRequestSchema,
+  BuilderIntentResolutionSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
   type BuilderCatalog,
   type BuilderCommand,
   type BuilderInputRequest,
   type BuilderInputSource,
-  type BuilderTemplateId
+  type BuilderIntentResolution,
+  type BuilderTemplateId,
+  type JsonValue
 } from "@playcraft/contracts";
 import {
   createBuilderCommandHandler,
@@ -30,6 +33,7 @@ export interface LocalBuilderInput {
 export interface ResolvedBuilderInputCommand {
   assetEdit?: BuilderAssetEdit;
   input: BuilderInputRequest;
+  resolution: BuilderIntentResolution;
   templateId: BuilderTemplateId;
 }
 
@@ -69,18 +73,16 @@ export class LocalPlaycraftService {
 
   assemble(input: LocalBuilderInput): BuilderExecutionResult {
     const resolved = this.resolveInput(input);
-    const assetEdit = input.assetEdit ?? resolved.assetEdit;
     this.activeTemplateId = resolved.templateId;
-    this.activeAssetEdit = assetEdit ?? this.activeAssetEdit;
-    return this.execute("assemble-game", input.sessionId ?? "service.session", { ...resolved, assetEdit });
+    this.activeAssetEdit = resolved.assetEdit;
+    return this.execute("assemble-game", input.sessionId ?? "service.session", resolved);
   }
 
   update(input: LocalBuilderInput & { sessionId: string }): BuilderExecutionResult {
     const resolved = this.resolveInput(input);
-    const assetEdit = input.assetEdit ?? resolved.assetEdit;
     this.activeTemplateId = resolved.templateId;
-    this.activeAssetEdit = assetEdit ?? this.activeAssetEdit;
-    return this.execute("update-game", input.sessionId, { ...resolved, assetEdit });
+    this.activeAssetEdit = resolved.assetEdit;
+    return this.execute("update-game", input.sessionId, resolved);
   }
 
   preview(sessionId = "service.session"): BuilderExecutionResult {
@@ -106,9 +108,12 @@ export class LocalPlaycraftService {
   private resolveInput(input: LocalBuilderInput): ResolvedBuilderInputCommand {
     this.inputCounter += 1;
     return resolveBuilderInputCommand({
-      activeTemplateId: input.templateId ?? this.activeTemplateId,
+      activeAssetEdit: this.activeAssetEdit,
+      activeTemplateId: this.activeTemplateId,
+      assetEdit: input.assetEdit,
       sequence: this.inputCounter,
       source: input.source ?? "text",
+      templateId: input.templateId,
       text: input.text
     });
   }
@@ -128,7 +133,7 @@ export class LocalPlaycraftService {
       actionName,
       templateId: resolved.templateId,
       input: resolved.input,
-      assetEdit: resolved.assetEdit ?? this.activeAssetEdit
+      assetEdit: resolved.assetEdit
     });
   }
 }
@@ -138,24 +143,65 @@ export function createLocalPlaycraftService(handler?: BuilderCommandHandler): Lo
 }
 
 export function resolveBuilderInputCommand(input: {
+  activeAssetEdit?: BuilderAssetEdit;
   activeTemplateId?: BuilderTemplateId;
+  assetEdit?: BuilderAssetEdit;
   sequence: number;
   source: BuilderInputSource;
+  templateId?: BuilderTemplateId;
   text: string;
 }): ResolvedBuilderInputCommand {
   const commandText = input.text.trim();
-  const explicitTemplateId = templateIdForText(commandText);
-  const templateId = explicitTemplateId ?? input.activeTemplateId ?? DEFAULT_TEMPLATE_ID;
-  const assetEdit = assetEditForText(commandText);
+  const request = createBuilderInputRequest({
+    sequence: input.sequence,
+    source: input.source,
+    text: commandText
+  });
+  const templateMatch = templateMatchForText(commandText);
+  const templateDecision = templateDecisionFor({
+    activeTemplateId: input.activeTemplateId,
+    matchedCapabilityTags: templateMatch.matchedCapabilityTags,
+    matchedTemplateIds: templateMatch.matchedTemplateIds,
+    templateId: input.templateId
+  });
+  const textAssetEdit = assetEditForText(commandText);
+  const assetDecision = assetDecisionFor({
+    activeAssetEdit: input.activeAssetEdit,
+    explicitAssetEdit: input.assetEdit,
+    textAssetEdit
+  });
+  const resolution = BuilderIntentResolutionSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: `builder-intent.local.${input.sequence}`,
+    version: "1.0.0",
+    kind: "builder-intent-resolution",
+    inputId: request.inputId,
+    activeTemplateId: input.activeTemplateId,
+    selectedTemplateId: templateDecision.templateId,
+    templateDecision: {
+      source: templateDecision.source,
+      matchedTemplateIds: templateMatch.matchedTemplateIds,
+      matchedCapabilityTags: templateMatch.matchedCapabilityTags
+    },
+    assetEdit: assetDecision.assetEdit,
+    assetDecision: {
+      source: assetDecision.source,
+      matchedText: assetDecision.matchedText
+    }
+  });
+  const requestWithResolution = BuilderInputRequestSchema.parse({
+    ...request,
+    metadata: {
+      ...request.metadata,
+      intentResolution: toJsonValue(resolution)
+    }
+  });
 
   return {
-    assetEdit,
-    input: createBuilderInputRequest({
-      sequence: input.sequence,
-      source: input.source,
-      text: commandText
-    }),
-    templateId
+    assetEdit: resolution.assetEdit,
+    input: requestWithResolution,
+    resolution,
+    templateId: resolution.selectedTemplateId
   };
 }
 
@@ -187,12 +233,63 @@ export function createBuilderInputRequest(input: {
   });
 }
 
-function templateIdForText(text: string): BuilderTemplateId | undefined {
+interface TemplateTextMatch {
+  matchedCapabilityTags: string[];
+  matchedTemplateIds: BuilderTemplateId[];
+}
+
+interface TemplateDecision {
+  source: BuilderIntentResolution["templateDecision"]["source"];
+  templateId: BuilderTemplateId;
+}
+
+interface TextAssetEdit {
+  assetEdit: BuilderAssetEdit;
+  matchedText: string;
+}
+
+interface AssetDecision {
+  assetEdit?: BuilderAssetEdit;
+  matchedText?: string;
+  source: BuilderIntentResolution["assetDecision"]["source"];
+}
+
+function templateMatchForText(text: string): TemplateTextMatch {
   const normalized = text.toLowerCase();
-  const matches = gameTemplateDefinitions.filter((template) =>
-    template.capabilityTags.some((capability) => templateAliasPattern(capability).test(normalized))
-  );
-  return matches.length === 1 ? matches[0].id as BuilderTemplateId : undefined;
+  const matches = gameTemplateDefinitions.flatMap((template) => {
+    const matchedCapabilityTags = template.capabilityTags.filter((capability) =>
+      templateAliasPattern(capability).test(normalized)
+    );
+    return matchedCapabilityTags.length > 0
+      ? [{ capabilityTags: matchedCapabilityTags, templateId: template.id as BuilderTemplateId }]
+      : [];
+  });
+
+  return {
+    matchedCapabilityTags: [...new Set(matches.flatMap((match) => match.capabilityTags))],
+    matchedTemplateIds: [...new Set(matches.map((match) => match.templateId))]
+  };
+}
+
+function templateDecisionFor(input: {
+  activeTemplateId?: BuilderTemplateId;
+  matchedCapabilityTags: string[];
+  matchedTemplateIds: BuilderTemplateId[];
+  templateId?: BuilderTemplateId;
+}): TemplateDecision {
+  if (input.templateId) {
+    return { source: "explicit-template-id", templateId: input.templateId };
+  }
+
+  if (input.matchedTemplateIds.length === 1) {
+    return { source: "text-match", templateId: input.matchedTemplateIds[0] };
+  }
+
+  if (input.activeTemplateId) {
+    return { source: "active-template", templateId: input.activeTemplateId };
+  }
+
+  return { source: "default-template", templateId: DEFAULT_TEMPLATE_ID };
 }
 
 function templateAliasPattern(capability: string): RegExp {
@@ -208,7 +305,39 @@ function templateAliasPattern(capability: string): RegExp {
   return /\b\B/u;
 }
 
-function assetEditForText(text: string): BuilderAssetEdit | undefined {
+function assetDecisionFor(input: {
+  activeAssetEdit?: BuilderAssetEdit;
+  explicitAssetEdit?: BuilderAssetEdit;
+  textAssetEdit?: TextAssetEdit;
+}): AssetDecision {
+  if (input.explicitAssetEdit) {
+    return {
+      assetEdit: input.explicitAssetEdit,
+      matchedText: input.explicitAssetEdit.theme ?? input.explicitAssetEdit.items?.join(", "),
+      source: "explicit-asset-edit"
+    };
+  }
+
+  if (input.textAssetEdit) {
+    return {
+      assetEdit: input.textAssetEdit.assetEdit,
+      matchedText: input.textAssetEdit.matchedText,
+      source: "text-match"
+    };
+  }
+
+  if (input.activeAssetEdit) {
+    return {
+      assetEdit: input.activeAssetEdit,
+      matchedText: input.activeAssetEdit.theme ?? input.activeAssetEdit.items?.join(", "),
+      source: "active-asset-edit"
+    };
+  }
+
+  return { source: "none" };
+}
+
+function assetEditForText(text: string): TextAssetEdit | undefined {
   const normalized = text.toLowerCase();
   const theme =
     matchTheme(normalized, /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u) ??
@@ -226,7 +355,10 @@ function assetEditForText(text: string): BuilderAssetEdit | undefined {
     .filter((entry) => entry.length > 0)
     .slice(0, 12);
 
-  return items.length > 1 ? { theme, items } : { theme };
+  return {
+    assetEdit: items.length > 1 ? { theme, items } : { theme },
+    matchedText: theme
+  };
 }
 
 function matchTheme(text: string, pattern: RegExp): string | undefined {
@@ -252,4 +384,8 @@ function cleanAssetTheme(value: string): string {
     .replace(/\s+/gu, " ")
     .trim()
     .slice(0, 80);
+}
+
+function toJsonValue(value: unknown): JsonValue {
+  return JSON.parse(JSON.stringify(value)) as JsonValue;
 }

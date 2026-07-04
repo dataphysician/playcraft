@@ -131,6 +131,27 @@ describe("public contract schemas", () => {
           planned: "server-catalog"
         }
       },
+      BuilderIntentResolutionSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-intent.fixture",
+        version: "1.0.0",
+        kind: "builder-intent-resolution",
+        inputId: "builder-input.fixture",
+        activeTemplateId: "template.memory-match",
+        selectedTemplateId: "template.memory-match",
+        templateDecision: {
+          source: "text-match",
+          matchedTemplateIds: ["template.memory-match"],
+          matchedCapabilityTags: ["game:memory-match"]
+        },
+        assetEdit: {
+          theme: "dinosaurs"
+        },
+        assetDecision: {
+          source: "text-match",
+          matchedText: "dinosaurs"
+        }
+      },
       BuilderCommandSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-command.fixture",
