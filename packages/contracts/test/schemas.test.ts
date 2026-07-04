@@ -434,6 +434,24 @@ describe("public contract schemas", () => {
     expect(result.success).toBe(false);
   });
 
+  it("keeps render request fallback policy fail-closed only", () => {
+    const request = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "render.fail-closed.fixture",
+      version: "1.0.0",
+      kind: "component-render-request",
+      profileId: "profile.fail-closed.fixture",
+      componentId: "component.fail-closed.fixture",
+      componentCapability: "component:fixture",
+      mechanicBindingId: "mechanic.binding.fixture",
+      props: {},
+      fallbackPolicy: "fail-closed"
+    };
+
+    expect(ComponentRenderRequestSchema.safeParse(request).success).toBe(true);
+    expect(ComponentRenderRequestSchema.safeParse({ ...request, fallbackPolicy: "skip-component" }).success).toBe(false);
+  });
+
   it("keeps v1 asset content types local to sprite, sound, animation, and text assets", () => {
     expect(AssetContentTypeSchema.options).toEqual(["image", "audio", "animation", "text"]);
     expect(AssetContentTypeSchema.safeParse("video").success).toBe(false);

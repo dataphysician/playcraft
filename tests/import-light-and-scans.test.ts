@@ -228,6 +228,15 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("?? replay.renderRequests[0]");
   });
 
+  it("keeps component render fallback policy fail-closed only", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const coreSource = readSource("packages/core/src/index.ts");
+
+    expect(contractSource).toContain('fallbackPolicy: z.literal("fail-closed")');
+    expect(contractSource).not.toContain('"skip-component"');
+    expect(coreSource).toContain('fallbackPolicy: "fail-closed"');
+  });
+
   it("keeps service event serialization schema-first and non-coercive", () => {
     const source = readSource("packages/service/src/index.ts");
 

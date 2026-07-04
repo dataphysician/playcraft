@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Render Requests Only
+
+Milestone:
+- Component render requests now publish a single allowed fallback policy: `fail-closed`.
+- The public render contract no longer accepts component skipping as a fallback mode.
+
+Supportive changes:
+- Contract schema tests now prove `fail-closed` render requests parse and component-skipping fallback policies are rejected.
+- Source scans now pin the render request schema to a fail-closed literal and confirm replay emits fail-closed render requests.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps trusted component rendering fail-closed and forward-only without skipped component fallbacks, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Explicit Service CLI Session Actions
 
 Milestone:

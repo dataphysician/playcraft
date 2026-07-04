@@ -327,7 +327,7 @@ export const ComponentRenderRequestSchema = PublicContractBaseSchema.extend({
   props: z.record(JsonValueSchema),
   assetBindings: z.record(StableIdSchema).default({}),
   expectedEmittedEvents: z.array(CapabilityTagSchema).default([]),
-  fallbackPolicy: z.enum(["fail-closed", "skip-component"])
+  fallbackPolicy: z.literal("fail-closed")
 }).strict();
 export type ComponentRenderRequest = z.infer<typeof ComponentRenderRequestSchema>;
 
