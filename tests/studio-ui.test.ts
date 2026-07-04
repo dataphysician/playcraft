@@ -15,6 +15,7 @@ import {
   createLocalStudioClient,
   createStudioClientFromServiceTransport
 } from "../apps/studio/src/local-client.js";
+import { LiveGame } from "../apps/studio/src/live-game.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
 import { TrustedPreview } from "../apps/studio/src/trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "../apps/studio/src/types.js";
@@ -451,6 +452,36 @@ describe("studio UI", () => {
     expect(await screen.findByText("Sort complete")).toBeDefined();
     expect(screen.getByText("3 items sorted with 1 miss.")).toBeDefined();
     expect(screen.getByRole("button", { name: "Play Again" })).toBeDefined();
+  });
+
+  it("uses explicit sorting targets instead of item label heuristics", async () => {
+    const profile = {
+      ...profileB,
+      components: profileB.components.map((component) =>
+        component.renderCapability === "component:sort-bins"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                items: ["moon", "star"],
+                bins: ["red", "blue"],
+                targets: {
+                  moon: "red",
+                  star: "blue"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile }));
+
+    fireEvent.click(await screen.findByRole("button", { name: "moon" }));
+    fireEvent.click(screen.getByRole("button", { name: "red bin" }));
+
+    expect(await screen.findByText("moon belongs in red.")).toBeDefined();
+    expect(screen.getByText("1 / 2")).toBeDefined();
   });
 
   it("supports drag/drop sorting with ghost and target feedback", async () => {

@@ -50,6 +50,11 @@ describe("MVP profile pack", () => {
     expect(profileB.replay.plannerId).toBe(planner.id);
     expect(profileA.assemblyRequestId).toBe("request.memory-match.mvp");
     expect(profileB.assemblyRequestId).toBe("request.sorting.mvp");
+    expect(profileB.components.find((component) => component.renderCapability === "component:sort-bins")?.props.targets).toEqual({
+      "red circle": "red",
+      "blue square": "blue",
+      "red triangle": "red"
+    });
   });
 
   it("publishes bundled game templates for the builder catalog", () => {

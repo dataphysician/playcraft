@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Sorting Target Contract
+
+Milestone:
+- Sorting profiles now carry an explicit `targets` record on the SortBins component props.
+- The Live App sorting interaction validates drops against profile-defined item targets instead of inferring correctness from item labels.
+- Saved sorting fixtures now include the target map emitted by deterministic assembly.
+
+Supportive changes:
+- Extended the SortBins component manifest props to require `targets`.
+- Added pack coverage for deterministic sorting target output.
+- Added Studio Live App coverage proving an item label without the bin name still sorts correctly through the explicit target map.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts packages/renderer/test/trusted-renderer.test.tsx tests/studio-ui.test.ts`
+
+Constraint notes:
+- Keeps game rules profile-defined and reusable for agent-built toddler games with arbitrary assets and labels.
+- Does not add hosted services, generated runtime code, auth, database state, or compatibility fallbacks.
+
 ## 2026-07-04 - Builder CLI Catalog Parity
 
 Milestone:

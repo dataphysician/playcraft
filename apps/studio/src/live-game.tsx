@@ -312,6 +312,7 @@ function SortingGame({
 }): React.ReactElement {
   const items = stringArrayProp(component.props, "items");
   const bins = stringArrayProp(component.props, "bins");
+  const targets = stringRecordProp(component.props, "targets");
   const [selectedItem, setSelectedItem] = React.useState<string | undefined>();
   const [placements, setPlacements] = React.useState<Record<string, string>>({});
   const [feedback, setFeedback] = React.useState<string | undefined>();
@@ -339,7 +340,7 @@ function SortingGame({
     dragStateRef.current = undefined;
     setDragTarget(undefined);
     setBinFeedback({});
-  }, [profile.id, items.join("|"), bins.join("|")]);
+  }, [profile.id, items.join("|"), bins.join("|"), JSON.stringify(targets)]);
 
   React.useEffect(
     () => () => {
@@ -360,7 +361,7 @@ function SortingGame({
   }
 
   function placeItem(item: string, targetId: string, clearOnFailure: boolean): void {
-    const correct = matchesBin(item, targetId);
+    const correct = targets[item] === targetId;
     flashBin(targetId, correct ? "success" : "failure");
     if (correct) {
       setPlacements((current) => ({ ...current, [item]: targetId }));
@@ -1053,6 +1054,18 @@ function stringArrayProp(props: Record<string, JsonValue>, key: string): string[
   return value.map((entry) => (typeof entry === "string" ? entry : JSON.stringify(entry)));
 }
 
+function stringRecordProp(props: Record<string, JsonValue>, key: string): Record<string, string> {
+  const value = props[key];
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter((entry): entry is [string, string] => typeof entry[1] === "string")
+  );
+}
+
 function textProp(props: Record<string, JsonValue>, key: string, fallback: string): string {
   const value = props[key];
   return typeof value === "string" ? value : fallback;
@@ -1175,10 +1188,6 @@ function displayCardGlyph(cardId: string): string {
 
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
-}
-
-function matchesBin(item: string, bin: string): boolean {
-  return item.toLowerCase().includes(bin.toLowerCase());
 }
 
 function pointInRect(x: number, y: number, rect: DOMRect): boolean {

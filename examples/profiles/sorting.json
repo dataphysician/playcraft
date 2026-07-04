@@ -132,7 +132,12 @@
         "bins": [
           "red",
           "blue"
-        ]
+        ],
+        "targets": {
+          "red circle": "red",
+          "blue square": "blue",
+          "red triangle": "red"
+        }
       },
       "assetBindings": {
         "illustration": "asset.c8a5dc09"

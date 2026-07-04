@@ -57,6 +57,7 @@ const textField = { type: "string", required: true } as const;
 const optionalTextField = { type: "string", required: false } as const;
 const numberField = { type: "number", required: true } as const;
 const arrayField = { type: "array", required: true, minItems: 1 } as const;
+const recordField = { type: "record", required: true } as const;
 
 const selectItemTool = tool("tool.select-item", "tool:select-item", {
   itemId: textField
@@ -103,7 +104,7 @@ export const componentManifests: ComponentManifest[] = [
   component("component.choice-grid", "ChoiceGrid", "component:choice-grid", ["mechanic.tap-to-select", "mechanic.choose-one"], [selectItemTool], { title: textField, items: arrayField, prompt: optionalTextField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.reveal-card-grid", "RevealCardGrid", "component:reveal-card-grid", ["mechanic.tap-to-reveal", "mechanic.match-pairs"], [revealCardTool], { title: textField, cards: arrayField, columns: numberField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.pair-match-board", "PairMatchBoard", "component:pair-match-board", ["mechanic.match-pairs"], [selectItemTool], { title: textField, pairs: arrayField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
-  component("component.sort-bins", "SortBins", "component:sort-bins", ["mechanic.sort-into-bins"], [moveItemTool], { title: textField, items: arrayField, bins: arrayField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
+  component("component.sort-bins", "SortBins", "component:sort-bins", ["mechanic.sort-into-bins"], [moveItemTool], { title: textField, items: arrayField, bins: arrayField, targets: recordField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.sequence-pad", "SequencePad", "component:sequence-pad", ["mechanic.sequence-repeat", "mechanic.tap-to-select"], [repeatSequenceTool], { title: textField, sequence: arrayField, prompt: optionalTextField }, [{ binding: "illustration", contentTypes: ["image"], required: true }]),
   component("component.trace-canvas", "TraceCanvas", "component:trace-canvas", ["mechanic.trace-path"], [moveItemTool], { title: textField, path: arrayField }, []),
   component("component.celebration-overlay", "CelebrationOverlay", "component:celebration-overlay", ["mechanic.timed-celebration"], [], { message: textField }, []),
@@ -229,7 +230,16 @@ const mvpTemplates: MvpProfileTemplate[] = [
     componentCapabilities: ["component:choice-grid", "component:sort-bins", "component:hint-bubble"],
     propsByCapability: {
       "component:choice-grid": { title: "Choose a shape", prompt: "Pick one shape to sort.", items: ["red circle", "blue square", "red triangle"] },
-      "component:sort-bins": { title: "Color bins", items: ["red circle", "blue square", "red triangle"], bins: ["red", "blue"] },
+      "component:sort-bins": {
+        title: "Color bins",
+        items: ["red circle", "blue square", "red triangle"],
+        bins: ["red", "blue"],
+        targets: {
+          "red circle": "red",
+          "blue square": "blue",
+          "red triangle": "red"
+        }
+      },
       "component:hint-bubble": { hint: "Look at the color first." }
     }
   },
