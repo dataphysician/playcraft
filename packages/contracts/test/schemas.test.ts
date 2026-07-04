@@ -455,6 +455,62 @@ describe("public contract schemas", () => {
     expect(ComponentRenderRequestSchema.safeParse({ ...request, fallbackPolicy: "skip-component" }).success).toBe(false);
   });
 
+  it("keeps builder command payload fields scoped to their actions", () => {
+    const baseCommand = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-command.action-scope.fixture",
+      version: "1.0.0",
+      kind: "builder-command",
+      sessionId: "session.action-scope"
+    };
+    const profile = assembleMvpProfiles()[0];
+
+    expect(
+      PublicContractSchemas.BuilderCommandSchema.safeParse({
+        ...baseCommand,
+        actionName: "assemble-game",
+        templateId: "template.memory-match",
+        assetEdit: { theme: "dinosaurs" }
+      }).success
+    ).toBe(true);
+    expect(
+      PublicContractSchemas.BuilderCommandSchema.safeParse({
+        ...baseCommand,
+        actionName: "preview-action",
+        interaction: { action: "primary" }
+      }).success
+    ).toBe(true);
+    expect(
+      PublicContractSchemas.BuilderCommandSchema.safeParse({
+        ...baseCommand,
+        actionName: "preview-action",
+        templateId: "template.memory-match",
+        interaction: { action: "primary" }
+      }).success
+    ).toBe(false);
+    expect(
+      PublicContractSchemas.BuilderCommandSchema.safeParse({
+        ...baseCommand,
+        actionName: "preview-action"
+      }).success
+    ).toBe(false);
+    expect(
+      PublicContractSchemas.BuilderCommandSchema.safeParse({
+        ...baseCommand,
+        actionName: "list-builder-tools",
+        assetEdit: { theme: "toys" }
+      }).success
+    ).toBe(false);
+    expect(
+      PublicContractSchemas.BuilderCommandSchema.safeParse({
+        ...baseCommand,
+        actionName: "assemble-game",
+        templateId: "template.memory-match",
+        profile
+      }).success
+    ).toBe(false);
+  });
+
   it("keeps v1 asset content types local to sprite, sound, animation, and text assets", () => {
     expect(AssetContentTypeSchema.options).toEqual(["image", "audio", "animation", "text"]);
     expect(AssetContentTypeSchema.safeParse("video").success).toBe(false);

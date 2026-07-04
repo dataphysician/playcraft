@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Action-Scoped Builder Commands
+
+Milestone:
+- `BuilderCommandSchema` now scopes template/input/asset-edit payloads to assemble and update actions.
+- Profile payloads are now accepted only by `import-profile` builder commands.
+- Preview commands now require `interaction` and reject interaction payloads on other actions.
+
+Supportive changes:
+- Contract tests now cover valid assemble/preview commands and reject cross-action payload fields.
+- Source scans now pin the action-scoped builder command refinement messages.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps builder tool commands contract-shaped and forward-only without ignored cross-action payloads, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Session-Owned Studio Service State
 
 Milestone:

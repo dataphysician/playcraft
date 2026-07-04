@@ -752,9 +752,25 @@ export const BuilderCommandSchema = PublicContractBaseSchema.extend({
     message: "assemble and update actions require a templateId",
     path: ["templateId"]
   })
+  .refine((value) => ["assemble-game", "update-game"].includes(value.actionName) || (!value.templateId && !value.input && !value.assetEdit), {
+    message: "template, input, and asset edit payloads are only accepted by assemble and update actions",
+    path: ["templateId"]
+  })
   .refine((value) => value.actionName !== "import-profile" || Boolean(value.profile), {
     message: "import profile actions require a profile",
     path: ["profile"]
+  })
+  .refine((value) => value.actionName === "import-profile" || !value.profile, {
+    message: "profile payloads are only accepted by import-profile actions",
+    path: ["profile"]
+  })
+  .refine((value) => value.actionName !== "preview-action" || Boolean(value.interaction), {
+    message: "preview actions require an interaction payload",
+    path: ["interaction"]
+  })
+  .refine((value) => value.actionName === "preview-action" || !value.interaction, {
+    message: "interaction payloads are only accepted by preview actions",
+    path: ["interaction"]
   });
 export type BuilderCommand = z.infer<typeof BuilderCommandSchema>;
 
@@ -975,7 +991,7 @@ function hasOnlyServiceResponsePayloads(
   );
 }
 
-export const PublicContractSchemas = {
+export const PublicContractSchemas: Record<string, z.ZodTypeAny> = {
   PlaycraftAssemblyRequestSchema,
   DomainProfileSchema,
   SafetyPolicyPackSchema,

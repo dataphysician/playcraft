@@ -246,6 +246,15 @@ describe("import-light boundaries and source scans", () => {
     expect(coreSource).toContain('fallbackPolicy: "fail-closed"');
   });
 
+  it("keeps builder command payload fields action-scoped", () => {
+    const source = readSource("packages/contracts/src/index.ts");
+
+    expect(source).toContain("template, input, and asset edit payloads are only accepted by assemble and update actions");
+    expect(source).toContain("profile payloads are only accepted by import-profile actions");
+    expect(source).toContain("preview actions require an interaction payload");
+    expect(source).toContain("interaction payloads are only accepted by preview actions");
+  });
+
   it("keeps service event serialization schema-first and non-coercive", () => {
     const source = readSource("packages/service/src/index.ts");
 
