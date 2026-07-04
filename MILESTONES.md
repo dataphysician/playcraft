@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Concrete Trusted Preview Identities
+
+Milestone:
+- Studio trusted preview component summaries now require concrete component identities instead of fabricating unresolved component IDs.
+- Trusted preview request keys now fail closed if replay ever provides a request without component identity.
+- Preview placeholder scans now cover the Studio trusted preview surface in addition to builder and service preview payloads.
+
+Supportive changes:
+- Studio UI tests now assert trusted preview summaries expose concrete replay component IDs and capabilities.
+- Source scans now block `component.unresolved` placeholders from trusted preview code.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps Studio preview metadata aligned with replay contracts and forward-only component identities without placeholder IDs, app-local preview shims, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Shared Local Asset Edit Catalog
 
 Milestone:

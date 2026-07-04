@@ -34,16 +34,17 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
   const replay = replayProfile(profile, registries);
 
   return replay.renderRequests.map((request, index) => {
-    const manifest = manifests.find(
-      (candidate) =>
-        candidate.id === request.componentId ||
-        (request.componentCapability !== undefined && candidate.renderCapability === request.componentCapability)
-    );
+    const manifest = manifestForRenderRequest(request);
+    const componentId = request.componentId ?? manifest?.id;
+    const componentCapability = request.componentCapability ?? manifest?.renderCapability;
+    if (!componentId || !componentCapability) {
+      throw new Error(`trusted preview request ${request.id} does not include a concrete component identity`);
+    }
 
     return {
       componentKey: renderRequestKey(request, index),
-      componentId: request.componentId ?? manifest?.id ?? "component.unresolved",
-      componentCapability: request.componentCapability ?? manifest?.renderCapability ?? "component:unresolved",
+      componentId,
+      componentCapability,
       mechanicBindingId: request.mechanicBindingId,
       emittedToolNames: manifest?.emittedTools.map((tool) => tool.toolName) ?? [],
       expectedEmittedEvents: [...request.expectedEmittedEvents]
@@ -96,7 +97,23 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
 }
 
 function renderRequestKey(request: ComponentRenderRequest, index: number): string {
-  return request.componentId ?? `${request.componentCapability ?? "component:unresolved"}.${index}`;
+  if (request.componentId) {
+    return request.componentId;
+  }
+
+  if (request.componentCapability) {
+    return `${request.componentCapability}.${index}`;
+  }
+
+  throw new Error(`trusted preview request ${request.id} does not include a component identity`);
+}
+
+function manifestForRenderRequest(request: ComponentRenderRequest) {
+  return manifests.find(
+    (candidate) =>
+      candidate.id === request.componentId ||
+      (request.componentCapability !== undefined && candidate.renderCapability === request.componentCapability)
+  );
 }
 
 function PreviewFailure({ failure }: { failure: TrustedRenderFailure["error"] }): React.ReactElement {

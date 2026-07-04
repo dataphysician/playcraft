@@ -21,7 +21,7 @@ import {
 } from "../apps/studio/src/local-client.js";
 import { LiveGame } from "../apps/studio/src/live-game.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
-import { TrustedPreview } from "../apps/studio/src/trusted-preview.js";
+import { TrustedPreview, getTrustedPreviewComponents } from "../apps/studio/src/trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "../apps/studio/src/types.js";
 
 const [profileA, profileB, profileC] = assembleMvpProfiles();
@@ -368,6 +368,19 @@ describe("studio UI", () => {
     fireEvent.click(await screen.findByRole("button", { name: "red circle" }));
     const interactions = await screen.findAllByText((text) => text.startsWith("Preview interaction:"));
     expect(interactions.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("uses concrete component identities for trusted preview summaries", () => {
+    const summaries = getTrustedPreviewComponents(profileA);
+
+    expect(summaries).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        componentId: "component.reveal-card-grid",
+        componentCapability: "component:reveal-card-grid"
+      })
+    ]));
+    expect(summaries.map((summary) => summary.componentId)).not.toContain("component.unresolved");
+    expect(summaries.map((summary) => summary.componentCapability)).not.toContain("component:unresolved");
   });
 
   it("keeps the memory game selected while swapping requested card assets", async () => {
