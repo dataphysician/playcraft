@@ -703,6 +703,7 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
     .object({
       defaultSource: BuilderInputSourceSchema,
       transcriptSource: z.literal("moonshine-transcript"),
+      noInputLabel: z.string().min(1).max(80),
       sourceOptions: z.array(BuilderInputSourceOptionSchema).min(1)
     })
     .strict(),

@@ -232,14 +232,20 @@ describe("import-light boundaries and source scans", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
 
     expect(contractSource).toContain("BuilderInputSourceOptionSchema");
+    expect(contractSource).toContain("noInputLabel: z.string()");
     expect(contractSource).toContain("sourceOptions: z.array(BuilderInputSourceOptionSchema)");
     expect(serviceSource).toContain("sourceOptions");
+    expect(serviceSource).toContain('noInputLabel: "none"');
     expect(serviceSource).toContain('displayLabel: "Text"');
     expect(serviceSource).toContain('displayLabel: "Transcript"');
     expect(studioSource).toContain("catalog?.input.sourceOptions");
+    expect(studioSource).toContain("requiredInputSourceOption");
+    expect(studioSource).toContain("input.noInputLabel");
     expect(studioSource).toContain("option.displayLabel");
     expect(studioSource).toContain("selectedInputOption?.generatePlaceholder");
     expect(studioSource).toContain("selectedInputOption?.updatePlaceholder");
+    expect(studioSource).not.toContain('sources.join(", ")');
+    expect(studioSource).not.toContain('"input: none"');
     expect(studioSource).not.toContain('onInputSourceChange("text")');
     expect(studioSource).not.toContain('onInputSourceChange("moonshine-transcript")');
     expect(studioSource).not.toContain("Moonshine transcript: memory game with dinosaurs");

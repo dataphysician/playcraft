@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Tool Input Summaries
+
+Milestone:
+- Builder catalog input metadata now publishes the display label for tools that accept no direct request input.
+- Studio Developer tool summaries render accepted input sources through catalog-owned source option labels.
+- Malformed catalogs that omit display metadata for accepted input sources now fail closed instead of leaking source IDs into the UI.
+
+Supportive changes:
+- Studio UI tests verify custom catalog source labels and no-input labels in the Developer tab.
+- Service and contract tests validate the new catalog input presentation field.
+- Source scans now block local source-ID joining and hard-coded no-input Developer summary text from returning.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps Developer-tab tool presentation catalog-owned and forward-only without UI-local source formatting heuristics, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Explicit Builder Tool Display Names
 
 Milestone:

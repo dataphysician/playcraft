@@ -165,6 +165,7 @@ describe("public contract schemas", () => {
         input: {
           defaultSource: "text",
           transcriptSource: "moonshine-transcript",
+          noInputLabel: "none",
           sourceOptions: [
             {
               source: "text",

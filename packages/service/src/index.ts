@@ -53,6 +53,7 @@ export const LOCAL_SERVICE_SESSION_POLICY = {
 export const LOCAL_SERVICE_INPUT_POLICY = {
   defaultSource: "text",
   transcriptSource: "moonshine-transcript",
+  noInputLabel: "none",
   sourceOptions: [
     {
       source: "text",

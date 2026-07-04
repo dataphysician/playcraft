@@ -463,7 +463,7 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               { key: tool.id, style: shellStyles.catalogItem },
               React.createElement("strong", null, tool.toolName),
               React.createElement("span", { style: shellStyles.catalogMeta }, tool.actionName),
-              React.createElement("span", { style: shellStyles.catalogMeta }, toolInputSourceSummary(tool.acceptedInputSources)),
+              React.createElement("span", { style: shellStyles.catalogMeta }, toolInputSourceSummary(tool.acceptedInputSources, catalog.input)),
               React.createElement("span", { style: shellStyles.catalogMeta }, toolArgumentsSummary(tool.argumentsSchema.fields))
             )
           )
@@ -515,8 +515,27 @@ function toolArgumentsSummary(fields: BuilderCatalog["tools"][number]["arguments
   return summary.length > 0 ? summary.join(", ") : "no arguments";
 }
 
-function toolInputSourceSummary(sources: BuilderCatalog["tools"][number]["acceptedInputSources"]): string {
-  return sources.length > 0 ? `input: ${sources.join(", ")}` : "input: none";
+function toolInputSourceSummary(
+  sources: BuilderCatalog["tools"][number]["acceptedInputSources"],
+  input: BuilderCatalog["input"]
+): string {
+  if (sources.length === 0) {
+    return `input: ${input.noInputLabel}`;
+  }
+
+  return `input: ${sources.map((source) => requiredInputSourceOption(input, source).displayLabel).join(", ")}`;
+}
+
+function requiredInputSourceOption(
+  input: BuilderCatalog["input"],
+  source: BuilderInputSource
+): BuilderInputSourceOption {
+  const option = input.sourceOptions.find((candidate) => candidate.source === source);
+  if (!option) {
+    throw new Error(`catalog input source ${source} is missing display metadata`);
+  }
+
+  return option;
 }
 
 function ProfilePortabilityPanel({

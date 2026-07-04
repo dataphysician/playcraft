@@ -43,6 +43,7 @@ describe("local Playcraft service", () => {
     expect(catalog.input).toEqual({
       defaultSource: "text",
       transcriptSource: "moonshine-transcript",
+      noInputLabel: "none",
       sourceOptions: [
         {
           source: "text",

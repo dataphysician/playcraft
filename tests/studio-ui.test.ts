@@ -333,6 +333,7 @@ describe("studio UI", () => {
         ...catalog,
         input: {
           ...catalog.input,
+          noInputLabel: "unavailable",
           sourceOptions: [
             {
               source: "text",
@@ -368,6 +369,11 @@ describe("studio UI", () => {
     fireEvent.click(screen.getByRole("button", { name: "Moon CPU" }));
 
     expect((screen.getByLabelText("Request") as HTMLInputElement).placeholder).toBe("Moonshine request from catalog");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+
+    expect((await screen.findAllByText("input: Typed, Moon CPU")).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("input: unavailable").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows the service catalog as an agent tool surface in the Developer tab", async () => {
@@ -379,7 +385,7 @@ describe("studio UI", () => {
     expect(screen.getByText("tool:assemble-game")).toBeDefined();
     expect(screen.getByText("tool:export-profile")).toBeDefined();
     expect(screen.getByText("assemble-game")).toBeDefined();
-    expect(screen.getAllByText("input: text, moonshine-transcript").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("input: Text, Transcript").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("input: none").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Memory Match MVP")).toBeDefined();
