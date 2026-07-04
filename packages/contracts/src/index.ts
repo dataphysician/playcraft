@@ -473,10 +473,27 @@ export const GameTemplateLiveSurfaceComponentCapabilitiesSchema = z
   .strict();
 export type GameTemplateLiveSurfaceComponentCapabilities = z.infer<typeof GameTemplateLiveSurfaceComponentCapabilitiesSchema>;
 
+export const GameTemplateLiveSurfaceComponentRoleSchema = z.enum(["primary", "choice"]);
+export type GameTemplateLiveSurfaceComponentRole = z.infer<typeof GameTemplateLiveSurfaceComponentRoleSchema>;
+
+export const GameTemplateAssetReplacementNamespaceSchema = z.enum(["card", "choice", "item"]);
+export type GameTemplateAssetReplacementNamespace = z.infer<typeof GameTemplateAssetReplacementNamespaceSchema>;
+
+export const GameTemplateAssetReplacementSourceSchema = z
+  .object({
+    componentRole: GameTemplateLiveSurfaceComponentRoleSchema,
+    prop: z.string().min(1).max(80),
+    namespace: GameTemplateAssetReplacementNamespaceSchema,
+    pairMapProp: z.string().min(1).max(80).optional()
+  })
+  .strict();
+export type GameTemplateAssetReplacementSource = z.infer<typeof GameTemplateAssetReplacementSourceSchema>;
+
 export const GameTemplateLiveSurfaceSchema = z
   .object({
     kind: GameTemplateLiveSurfaceKindSchema,
-    componentCapabilities: GameTemplateLiveSurfaceComponentCapabilitiesSchema
+    componentCapabilities: GameTemplateLiveSurfaceComponentCapabilitiesSchema,
+    assetReplacementSources: z.array(GameTemplateAssetReplacementSourceSchema).min(1)
   })
   .strict();
 export type GameTemplateLiveSurface = z.infer<typeof GameTemplateLiveSurfaceSchema>;

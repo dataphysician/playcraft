@@ -721,6 +721,11 @@ describe("local Playcraft service", () => {
       "component:sort-bins",
       "component:sequence-pad"
     ]);
+    expect(catalog.templates.slice(0, 3).map((template) => template.liveSurface.assetReplacementSources.map((source) => source.namespace))).toEqual([
+      ["card"],
+      ["item"],
+      ["choice", "choice"]
+    ]);
     expect(catalog.assetEdit.availableThemes.map((entry) => entry.theme)).toEqual([
       "dinosaurs",
       "toys",

@@ -322,6 +322,21 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).not.toContain('"component:sequence-pad"');
   });
 
+  it("keeps Studio library asset replacement sources template-owned", () => {
+    const assetLibrarySource = readSource("apps/studio/src/asset-library.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const packSource = readSource("packages/packs/src/index.ts");
+
+    expect(contractSource).toContain("GameTemplateAssetReplacementSourceSchema");
+    expect(packSource).toContain("assetReplacementSources");
+    expect(assetLibrarySource).toContain("template.liveSurface.assetReplacementSources");
+    expect(assetLibrarySource).toContain("componentForReplacementSource");
+    expect(assetLibrarySource).not.toContain('component.renderCapability === "component:reveal-card-grid"');
+    expect(assetLibrarySource).not.toContain('component.renderCapability === "component:sort-bins"');
+    expect(assetLibrarySource).not.toContain('component.renderCapability === "component:choice-grid"');
+    expect(assetLibrarySource).not.toContain('component.renderCapability === "component:sequence-pad"');
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

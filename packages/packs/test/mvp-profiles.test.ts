@@ -119,6 +119,16 @@ describe("MVP profile pack", () => {
     expect(gameTemplateDefinitions.find((template) => template.id === "template.sequence-repeat")?.liveSurface.componentCapabilities.choice).toBe(
       "component:choice-grid"
     );
+    expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.liveSurface.assetReplacementSources.map((source) => source.namespace))).toEqual([
+      ["card"],
+      ["item"],
+      ["choice", "choice"]
+    ]);
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.memory-match")?.liveSurface.assetReplacementSources[0]).toMatchObject({
+      componentRole: "primary",
+      prop: "cards",
+      pairMapProp: "pairs"
+    });
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)
     );

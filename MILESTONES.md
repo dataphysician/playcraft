@@ -1,5 +1,33 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template-Owned Asset Replacement Sources
+
+Milestone:
+- `GameTemplateDefinition.liveSurface` now publishes `assetReplacementSources` for replaceable local sprites.
+- Bundled memory, sorting, and sequence templates declare the component role, prop, namespace, and pair-map prop used for sprite replacement.
+- Studio asset-library replacement projection now follows those template sources instead of branching on specific component render capabilities.
+
+Supportive changes:
+- Pack and service catalog tests now assert starter template replacement namespaces.
+- Studio asset-library behavior tests continue to cover memory card sprites, card backs, and sorting bin assets.
+- Source scans now block capability-specific replacement branches in the Studio asset library.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-asset-library.test.tsx`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Refined provider/key literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps edit-aware local asset replacement contract-owned and forward-only without Studio-local capability branching, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Template-Owned Live Surface Component Roles
 
 Milestone:

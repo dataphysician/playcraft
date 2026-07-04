@@ -1,5 +1,13 @@
-import type { GameAssemblyProfile, JsonValue } from "@playcraft/contracts";
+import type {
+  ComponentBinding,
+  GameAssemblyProfile,
+  GameTemplateAssetReplacementNamespace,
+  GameTemplateAssetReplacementSource,
+  GameTemplateDefinition,
+  JsonValue
+} from "@playcraft/contracts";
 import { localAssetEditCatalog } from "@playcraft/assets";
+import { gameTemplateDefinitions } from "@playcraft/packs";
 
 import memoryMatchBackgroundUrl from "./assets/library/ui/backgrounds/memory-match.png";
 import sequenceRepeatBackgroundUrl from "./assets/library/ui/backgrounds/sequence-repeat.png";
@@ -102,44 +110,42 @@ export function createProfileLibraryAssetReplacements(
 ): Record<string, LibraryAssetReplacement> {
   const replacements: Record<string, LibraryAssetReplacement> = {};
   const themeFolders = themeFoldersForProfile(profile);
+  const template = liveTemplateForProfile(profile);
 
-  for (const component of profile.components) {
-    if (component.renderCapability === "component:reveal-card-grid") {
-      const cards = stringArrayProp(component.props, "cards");
-      const pairs = stringRecordProp(component.props, "pairs");
-      const pairKeys = uniqueStrings(cards.map((card) => pairs[card]).filter(Boolean));
-      for (const [index, pairKey] of pairKeys.entries()) {
-        const sprite = spriteForIdentifier(pairKey, themeFolders, index);
-        if (!sprite) {
-          continue;
-        }
+  if (!template) {
+    return replacements;
+  }
 
-        setReplacement(replacements, pairKey, sprite);
-        setReplacement(replacements, `card:${pairKey}`, sprite);
-        for (const card of cards.filter((entry) => pairs[entry] === pairKey)) {
-          setReplacement(replacements, card, sprite);
-          setReplacement(replacements, `card:${card}`, sprite);
-        }
-      }
+  for (const source of template.liveSurface.assetReplacementSources) {
+    const component = componentForReplacementSource(profile, template, source);
+    if (!component) {
       continue;
     }
 
-    if (component.renderCapability === "component:sort-bins") {
-      addTokenReplacements(replacements, stringArrayProp(component.props, "items"), themeFolders, "item");
+    if (source.pairMapProp) {
+      addPairedTokenReplacements(replacements, component, source, themeFolders);
       continue;
     }
 
-    if (component.renderCapability === "component:choice-grid") {
-      addTokenReplacements(replacements, stringArrayProp(component.props, "items"), themeFolders, "choice");
-      continue;
-    }
-
-    if (component.renderCapability === "component:sequence-pad") {
-      addTokenReplacements(replacements, stringArrayProp(component.props, "sequence"), themeFolders, "choice");
-    }
+    addTokenReplacements(replacements, stringArrayProp(component.props, source.prop), themeFolders, source.namespace);
   }
 
   return replacements;
+}
+
+function liveTemplateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | undefined {
+  return gameTemplateDefinitions.find((template) => template.assemblyRequestId === profile.assemblyRequestId);
+}
+
+function componentForReplacementSource(
+  profile: GameAssemblyProfile,
+  template: GameTemplateDefinition,
+  source: GameTemplateAssetReplacementSource
+): ComponentBinding | undefined {
+  const capability = template.liveSurface.componentCapabilities[source.componentRole];
+  return capability
+    ? profile.components.find((component) => component.renderCapability === capability)
+    : undefined;
 }
 
 export function sortingBinAssetFor(bin: string): LibraryAssetReplacement | undefined {
@@ -154,7 +160,7 @@ function addTokenReplacements(
   replacements: Record<string, LibraryAssetReplacement>,
   tokens: string[],
   themeFolders: string[],
-  namespace: "choice" | "item"
+  namespace: GameTemplateAssetReplacementNamespace
 ): void {
   for (const [index, token] of uniqueStrings(tokens).entries()) {
     const sprite = spriteForIdentifier(token, themeFolders, index);
@@ -164,6 +170,31 @@ function addTokenReplacements(
 
     setReplacement(replacements, token, sprite);
     setReplacement(replacements, `${namespace}:${token}`, sprite);
+  }
+}
+
+function addPairedTokenReplacements(
+  replacements: Record<string, LibraryAssetReplacement>,
+  component: ComponentBinding,
+  source: GameTemplateAssetReplacementSource,
+  themeFolders: string[]
+): void {
+  const tokens = stringArrayProp(component.props, source.prop);
+  const pairs = stringRecordProp(component.props, source.pairMapProp ?? "");
+  const pairKeys = uniqueStrings(tokens.map((token) => pairs[token]).filter(Boolean));
+
+  for (const [index, pairKey] of pairKeys.entries()) {
+    const sprite = spriteForIdentifier(pairKey, themeFolders, index);
+    if (!sprite) {
+      continue;
+    }
+
+    setReplacement(replacements, pairKey, sprite);
+    setReplacement(replacements, `${source.namespace}:${pairKey}`, sprite);
+    for (const token of tokens.filter((entry) => pairs[entry] === pairKey)) {
+      setReplacement(replacements, token, sprite);
+      setReplacement(replacements, `${source.namespace}:${token}`, sprite);
+    }
   }
 }
 

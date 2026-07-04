@@ -210,7 +210,13 @@ const mvpTemplates: MvpProfileTemplate[] = [
     assetPromptKind: "memory-cards",
     liveSurface: {
       kind: "memory",
-      componentCapabilities: { primary: "component:reveal-card-grid" }
+      componentCapabilities: { primary: "component:reveal-card-grid" },
+      assetReplacementSources: [{
+        componentRole: "primary",
+        prop: "cards",
+        namespace: "card",
+        pairMapProp: "pairs"
+      }]
     },
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
@@ -246,7 +252,12 @@ const mvpTemplates: MvpProfileTemplate[] = [
     assetPromptKind: "sorting-game",
     liveSurface: {
       kind: "sorting",
-      componentCapabilities: { primary: "component:sort-bins" }
+      componentCapabilities: { primary: "component:sort-bins" },
+      assetReplacementSources: [{
+        componentRole: "primary",
+        prop: "items",
+        namespace: "item"
+      }]
     },
     profileId: "profile.sorting.mvp",
     profileName: "Sorting MVP",
@@ -285,7 +296,19 @@ const mvpTemplates: MvpProfileTemplate[] = [
       componentCapabilities: {
         primary: "component:sequence-pad",
         choice: "component:choice-grid"
-      }
+      },
+      assetReplacementSources: [
+        {
+          componentRole: "primary",
+          prop: "sequence",
+          namespace: "choice"
+        },
+        {
+          componentRole: "choice",
+          prop: "items",
+          namespace: "choice"
+        }
+      ]
     },
     profileId: "profile.sequence-repeat.mvp",
     profileName: "Sequence Repeat MVP",
@@ -1307,7 +1330,13 @@ function memoryTemplate(input: {
     assetPromptKind: "memory-cards",
     liveSurface: {
       kind: "memory",
-      componentCapabilities: { primary: "component:reveal-card-grid" }
+      componentCapabilities: { primary: "component:reveal-card-grid" },
+      assetReplacementSources: [{
+        componentRole: "primary",
+        prop: "cards",
+        namespace: "card",
+        pairMapProp: "pairs"
+      }]
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
@@ -1356,7 +1385,12 @@ function sortingTemplate(input: {
     assetPromptKind: "sorting-game",
     liveSurface: {
       kind: "sorting",
-      componentCapabilities: { primary: "component:sort-bins" }
+      componentCapabilities: { primary: "component:sort-bins" },
+      assetReplacementSources: [{
+        componentRole: "primary",
+        prop: "items",
+        namespace: "item"
+      }]
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
@@ -1408,7 +1442,19 @@ function sequenceTemplate(input: {
       componentCapabilities: {
         primary: "component:sequence-pad",
         choice: "component:choice-grid"
-      }
+      },
+      assetReplacementSources: [
+        {
+          componentRole: "primary",
+          prop: "sequence",
+          namespace: "choice"
+        },
+        {
+          componentRole: "choice",
+          prop: "items",
+          namespace: "choice"
+        }
+      ]
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
