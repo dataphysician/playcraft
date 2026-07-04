@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Contract-Owned Local Timestamp
+
+Milestone:
+- The contracts package now exports `PLAYCRAFT_LOCAL_TIMESTAMP` for deterministic local records.
+- Builder session snapshots, service profile exports, builder input records, and Moonshine transcript records consume that contract timestamp instead of embedding date literals in runtime paths.
+- Deterministic local test behavior is preserved while timestamp ownership is explicit.
+
+Supportive changes:
+- Source scans now block builder/service timestamp literals from returning in runtime record construction.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts packages/contracts/test/schemas.test.ts packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps local-only deterministic records contract-owned and forward-only without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+
 ## 2026-07-04 - Builder CLI Session Policy
 
 Milestone:

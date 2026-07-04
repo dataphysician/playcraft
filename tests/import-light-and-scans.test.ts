@@ -411,6 +411,22 @@ describe("import-light boundaries and source scans", () => {
     expect(builderCliSource).not.toContain('id: `builder-command.${args.sessionId ?? "cli"}.${mappedName}`');
   });
 
+  it("keeps local service and builder timestamps contract-owned", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const builderSource = readSource("packages/builder/src/index.ts");
+    const serviceSource = readSource("packages/service/src/index.ts");
+    const localTimestamp = "2026-07-04T00:00:00.000Z";
+
+    expect(contractSource).toContain("PLAYCRAFT_LOCAL_TIMESTAMP");
+    expect(contractSource).toContain(localTimestamp);
+    expect(builderSource).toContain("PLAYCRAFT_LOCAL_TIMESTAMP");
+    expect(serviceSource).toContain("PLAYCRAFT_LOCAL_TIMESTAMP");
+    expect(builderSource).not.toContain(`updatedAt: "${localTimestamp}"`);
+    expect(serviceSource).not.toContain(`exportedAt: "${localTimestamp}"`);
+    expect(serviceSource).not.toContain(`receivedAt: "${localTimestamp}"`);
+    expect(serviceSource).not.toContain(`input.receivedAt ?? "${localTimestamp}"`);
+  });
+
   it("keeps service CLI response output action-scoped instead of payload-precedence based", () => {
     const source = readSource("packages/service/src/cli.ts");
 

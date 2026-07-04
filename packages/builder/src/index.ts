@@ -23,6 +23,7 @@ import {
   BuilderSessionSnapshotSchema,
   BuilderTemplateIdSchema,
   BuilderToolDefinitionSchema,
+  PLAYCRAFT_LOCAL_TIMESTAMP,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
   type BuilderCommand,
@@ -488,7 +489,7 @@ function snapshotForSession(session: BuilderSessionRecord): BuilderSessionSnapsh
     profile: session.profile,
     preview: session.preview,
     validation: session.profile?.validation,
-    updatedAt: "2026-07-04T00:00:00.000Z"
+    updatedAt: PLAYCRAFT_LOCAL_TIMESTAMP
   });
 }
 

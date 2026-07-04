@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const PLAYCRAFT_SCHEMA_VERSION = "playcraft.v1";
+export const PLAYCRAFT_LOCAL_TIMESTAMP = "2026-07-04T00:00:00.000Z";
 
 export const StableIdSchema = z
   .string()

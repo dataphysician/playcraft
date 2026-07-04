@@ -9,6 +9,7 @@ import {
   BuilderSessionSnapshotSchema,
   JsonValueSchema,
   MoonshineTranscriptRecordSchema,
+  PLAYCRAFT_LOCAL_TIMESTAMP,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
   type BuilderAssetEditCatalogEntry,
@@ -181,7 +182,7 @@ export class LocalPlaycraftService {
       profile: session.profile,
       preview: session.preview,
       validation: session.validation,
-      exportedAt: "2026-07-04T00:00:00.000Z",
+      exportedAt: PLAYCRAFT_LOCAL_TIMESTAMP,
       retrieval: {
         current: "bundled-local",
         planned: "server-catalog"
@@ -521,7 +522,7 @@ export function createBuilderInputRequest(input: {
     text,
     transcription: input.source === "moonshine-transcript" ? MOONSHINE_STREAMING_CPU_TRANSCRIPTION : undefined,
     moonshineTranscript,
-    receivedAt: "2026-07-04T00:00:00.000Z",
+    receivedAt: PLAYCRAFT_LOCAL_TIMESTAMP,
     metadata: {
       origin: "playcraft.local-service",
       ...(moonshineTranscript ? { moonshineTranscriptId: moonshineTranscript.transcriptId } : {})
@@ -556,7 +557,7 @@ export function createMoonshineTranscriptRecord(input: {
     localOnly: MOONSHINE_STREAMING_CPU_TRANSCRIPTION.localOnly,
     finalized: true,
     text: input.text.trim(),
-    receivedAt: input.receivedAt ?? "2026-07-04T00:00:00.000Z",
+    receivedAt: input.receivedAt ?? PLAYCRAFT_LOCAL_TIMESTAMP,
     segments: input.segments ?? [],
     metadata: {
       origin: "playcraft.local-moonshine-streaming-cpu",
