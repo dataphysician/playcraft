@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Operational Resume Prompt De-Hosted
+
+Milestone:
+- The repo-local OMX resume helper no longer preserves the removed hosted avatar vendor name in its scheduled prompt text.
+- Operational goal resumption now describes the forward-only local audio/text direction without stale vendor terminology.
+
+Supportive changes:
+- Kept the application source scan boundaries unchanged while separately cleaning the repo-local automation helper that lives outside app/package source.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Hidden-file removed vendor-name scan across repo-local text files.
+- Hidden-file removed avatar/persona marker scan across repo-local text files.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps repo-local goal automation aligned with the text/Moonshine-only builder direction without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Builder CLI Batch Output Parsing
 
 Milestone:
