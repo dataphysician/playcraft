@@ -1,5 +1,6 @@
 import type { BuilderAgUiEvent } from "@playcraft/builder";
 import {
+  BuilderServiceRequestSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderCatalog,
   type BuilderInputSource,
@@ -69,14 +70,14 @@ export function createStudioClientFromServiceTransport(options: {
     input: Partial<BuilderServiceRequest>
   ): BuilderServiceRequest {
     requestCounter += 1;
-    return {
+    return BuilderServiceRequestSchema.parse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: `builder-service-request.${options.defaultSessionId}.${requestCounter}`,
       version: "1.0.0",
       kind: "builder-service-request",
       actionName,
       ...input
-    };
+    });
   }
 
   return {

@@ -1,5 +1,23 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Service Envelope Producer Validation
+
+Milestone:
+- CLI `request --request-json` now parses exact service envelopes through `BuilderServiceRequestSchema` before dispatch.
+- Studio's service-backed client now validates every locally produced `BuilderServiceRequest` before sending it to local or HTTP transport.
+- Invalid outgoing service envelopes fail at the producer boundary instead of relying on downstream service handling.
+
+Supportive changes:
+- Added CLI coverage for rejecting an invalid exact service envelope with input text on a no-input action.
+- Added Studio client coverage proving malformed transcript payloads are rejected before transport send.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/studio-ui.test.ts`
+
+Constraint notes:
+- Keeps local CLI/API and Studio transport contracts schema-first.
+- Does not add hosted services, generated runtime code, auth, database state, or compatibility aliases.
+
 ## 2026-07-04 - Profile Import Payload Validation
 
 Milestone:

@@ -721,6 +721,33 @@ describe("local Playcraft service", () => {
     expect(err).toEqual([]);
   });
 
+  it("rejects invalid exact service request envelopes through the CLI schema", () => {
+    const out: string[] = [];
+    const err: string[] = [];
+
+    expect(
+      runLocalServiceCli([
+        "request",
+        "--request-json",
+        JSON.stringify({
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-service-request.test.invalid-envelope",
+          version: "1.0.0",
+          kind: "builder-service-request",
+          actionName: "catalog",
+          text: "Memory game with dinosaurs"
+        }),
+        "--json"
+      ], {
+        stdout: (message) => out.push(message),
+        stderr: (message) => err.push(message)
+      })
+    ).toBe(1);
+
+    expect(out).toEqual([]);
+    expect(err.join("\n")).toMatch(/only assemble and update service requests/u);
+  });
+
   it("exposes a direct service request handler for adapters without a CLI process", () => {
     const response = handleLocalServiceRequest({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

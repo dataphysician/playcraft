@@ -2,6 +2,7 @@ declare const process: { argv: string[]; exit(code?: number): never };
 
 import {
   BuilderProfileExportSchema,
+  BuilderServiceRequestSchema,
   GameAssemblyProfileSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
@@ -207,7 +208,7 @@ function parseServiceRequestJson(value: string | undefined): BuilderServiceReque
     throw new Error("request command requires --request-json");
   }
 
-  return JSON.parse(value) as BuilderServiceRequest;
+  return BuilderServiceRequestSchema.parse(JSON.parse(value));
 }
 
 function writeResponse(response: BuilderServiceResponse, json: boolean, io: LocalServiceCliIo): void {

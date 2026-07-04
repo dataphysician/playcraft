@@ -143,6 +143,25 @@ describe("studio UI", () => {
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.studio-client"))).toBe(true);
   });
 
+  it("validates Studio service requests before sending them to transport", async () => {
+    const send = vi.fn();
+    const client = createStudioClientFromServiceTransport({
+      defaultSessionId: "studio.invalid-request",
+      timelineIdPrefix: "timeline.invalid-request",
+      transport: {
+        send
+      }
+    });
+
+    await expect(async () => client.assembleFromIntent({
+      idea: "Memory game with dinosaurs",
+      speechTranscript: {
+        transcriptId: "moonshine-transcript.test.invalid"
+      } as never
+    })).rejects.toThrow(/schemaVersion|text|Required/u);
+    expect(send).not.toHaveBeenCalled();
+  });
+
   it("can assemble through a configured HTTP service endpoint", async () => {
     const requestedUrls: string[] = [];
     vi.stubGlobal("fetch", async (url: unknown, init: { body?: unknown } = {}) => {
