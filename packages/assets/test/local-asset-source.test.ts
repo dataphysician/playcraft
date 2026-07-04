@@ -30,6 +30,7 @@ const request: AssetGenerationRequest = {
 describe("deterministic local asset source", () => {
   it("publishes the shared local asset edit catalog used by service and Studio", () => {
     expect(localAssetEditCatalog.map((entry) => entry.theme)).toEqual(["dinosaurs", "toys", "dolphins", "fruits"]);
+    expect(localAssetEditCatalog.map((entry) => entry.displayLabel)).toEqual(["dinosaurs", "toys", "ocean animals", "fruit"]);
     expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
     expect(localAssetEditCatalog.every((entry) => entry.suggestedItems.length > 0)).toBe(true);
   });

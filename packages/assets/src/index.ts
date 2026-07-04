@@ -25,21 +25,25 @@ export const LOCAL_ASSET_SOURCE_VERSION = "1.0.0";
 export const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
   BuilderAssetEditCatalogEntrySchema.parse({
     theme: "dinosaurs",
+    displayLabel: "dinosaurs",
     aliases: ["dinosaur", "dinosaurs"],
     suggestedItems: ["dinosaur-1", "dinosaur-2", "dinosaur-3"]
   }),
   BuilderAssetEditCatalogEntrySchema.parse({
     theme: "toys",
+    displayLabel: "toys",
     aliases: ["toy", "toys"],
     suggestedItems: ["toy-1", "toy-2", "toy-3"]
   }),
   BuilderAssetEditCatalogEntrySchema.parse({
     theme: "dolphins",
+    displayLabel: "ocean animals",
     aliases: ["dolphin", "dolphins", "ocean animals", "ocean animal", "sea animals", "sea animal"],
     suggestedItems: ["dolphin-1", "dolphin-2", "dolphin-3"]
   }),
   BuilderAssetEditCatalogEntrySchema.parse({
     theme: "fruits",
+    displayLabel: "fruit",
     aliases: ["fruit", "fruits"],
     suggestedItems: ["fruit-1", "fruit-2", "fruit-3"]
   })

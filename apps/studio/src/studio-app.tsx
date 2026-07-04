@@ -484,7 +484,8 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
             React.createElement(
               "li",
               { key: entry.theme, style: shellStyles.catalogItem },
-              React.createElement("strong", null, entry.theme),
+              React.createElement("strong", null, entry.displayLabel),
+              React.createElement("span", { style: shellStyles.catalogMeta }, entry.theme),
               React.createElement("span", { style: shellStyles.catalogMeta }, entry.aliases.join(", ")),
               React.createElement("span", { style: shellStyles.catalogMeta }, entry.suggestedItems.join(", "))
             )
@@ -800,7 +801,7 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
   const games = catalog.templates.map((template) => displayGameName(template.displayName));
   const displayedGames = games.slice(0, 5);
   const moreGames = Math.max(0, games.length - displayedGames.length);
-  const assetThemes = catalog.assetEdit.availableThemes.map((entry) => preferredAssetThemeLabel(entry));
+  const assetThemes = catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel);
   const examples = catalog.templates.slice(0, 3).map((template, index) => {
     const request = sentenceCase(template.exampleRequest);
     const theme = assetThemes[index % Math.max(assetThemes.length, 1)];
@@ -816,10 +817,6 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
 
 function displayGameName(displayName: string): string {
   return displayName.replace(/\s+MVP$/u, "");
-}
-
-function preferredAssetThemeLabel(entry: BuilderCatalog["assetEdit"]["availableThemes"][number]): string {
-  return entry.aliases.find((alias) => alias.includes(" ")) ?? entry.theme;
 }
 
 function sentenceCase(value: string): string {

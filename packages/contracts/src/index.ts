@@ -588,6 +588,7 @@ export type BuilderToolDefinition = z.infer<typeof BuilderToolDefinitionSchema>;
 export const BuilderAssetEditCatalogEntrySchema = z
   .object({
     theme: z.string().min(1).max(80),
+    displayLabel: z.string().min(1).max(80),
     aliases: z.array(z.string().min(1).max(80)).default([]),
     suggestedItems: z.array(z.string().min(1).max(48)).default([])
   })

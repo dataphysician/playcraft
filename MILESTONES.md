@@ -1,5 +1,32 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Asset Tip Labels
+
+Milestone:
+- Builder asset edit catalog entries now publish `displayLabel` for user-facing asset tip text.
+- The local asset catalog owns labels such as `ocean animals` and `fruit` instead of making Studio pick labels from aliases.
+- Studio request tips and Developer-tab asset lever rows now render the catalog label directly.
+
+Supportive changes:
+- Asset, service, Studio UI, and schema tests now assert the label contract.
+- Source scans now block Studio alias-scanning presentation helpers from returning.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/assets/test/local-asset-source.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps asset edit presentation catalog-owned and forward-only without app-local alias display heuristics, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Template-Owned Asset Prompt Kinds
 
 Milestone:

@@ -247,6 +247,16 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).not.toMatch(/requestAliases\)\)/u);
   });
 
+  it("keeps Studio asset tip labels catalog-owned instead of alias-inferred", () => {
+    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+
+    expect(contractSource).toContain("displayLabel");
+    expect(studioSource).toContain("entry.displayLabel");
+    expect(studioSource).not.toContain("preferredAssetThemeLabel");
+    expect(studioSource).not.toContain("alias.includes");
+  });
+
   it("keeps Studio chat asset summaries session-owned instead of prompt-parsed", () => {
     const source = readSource("apps/studio/src/studio-app.tsx");
 

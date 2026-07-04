@@ -266,7 +266,7 @@ describe("studio UI", () => {
 
     expect(screen.getByRole("tooltip")).toBeDefined();
     expect(await screen.findByText("Available games: Memory Match, Sorting, Sequence Repeat, Shape Memory, Color Memory, plus 19 more.")).toBeDefined();
-    expect(screen.getByText("Asset edits: with dinosaurs, with toys, with ocean animals, with fruits.")).toBeDefined();
+    expect(screen.getByText("Asset edits: with dinosaurs, with toys, with ocean animals, with fruit.")).toBeDefined();
     expect(screen.getByText("Try: Memory game with dinosaurs; Sorting game with toys; Sequence repeat with ocean animals.")).toBeDefined();
   });
 
@@ -284,7 +284,8 @@ describe("studio UI", () => {
     expect(screen.getAllByText(/templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Memory Match MVP")).toBeDefined();
     expect(screen.getByText("memory, memory game, memory match")).toBeDefined();
-    expect(screen.getByText("dinosaurs")).toBeDefined();
+    expect(screen.getAllByText("dinosaurs").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("ocean animals")).toBeDefined();
     expect(screen.getByText("dinosaur-1, dinosaur-2, dinosaur-3")).toBeDefined();
   });
 

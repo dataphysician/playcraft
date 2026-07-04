@@ -43,10 +43,12 @@ describe("local Playcraft service", () => {
       availableThemes: expect.arrayContaining([
         expect.objectContaining({
           theme: "dinosaurs",
+          displayLabel: "dinosaurs",
           suggestedItems: ["dinosaur-1", "dinosaur-2", "dinosaur-3"]
         }),
         expect.objectContaining({
           theme: "dolphins",
+          displayLabel: "ocean animals",
           aliases: expect.arrayContaining(["ocean animals"])
         })
       ])
@@ -673,6 +675,12 @@ describe("local Playcraft service", () => {
       "toys",
       "dolphins",
       "fruits"
+    ]);
+    expect(catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel)).toEqual([
+      "dinosaurs",
+      "toys",
+      "ocean animals",
+      "fruit"
     ]);
     expect(catalog.assetEdit.availableThemes.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
 

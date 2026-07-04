@@ -170,6 +170,7 @@ describe("public contract schemas", () => {
           availableThemes: [
             {
               theme: "dinosaurs",
+              displayLabel: "dinosaurs",
               aliases: ["dinosaur", "dinosaurs"],
               suggestedItems: ["dinosaur-1", "dinosaur-2"]
             }
