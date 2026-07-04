@@ -1,5 +1,5 @@
 import React from "react";
-import type { BuilderInputSource, GameAssemblyProfile } from "@playcraft/contracts";
+import type { BuilderCatalog, BuilderInputSource, GameAssemblyProfile } from "@playcraft/contracts";
 import { LiveGame, type LiveGameInteraction } from "./live-game.js";
 import {
   TrustedPreview,
@@ -33,6 +33,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const [pending, setPending] = React.useState<PendingCommand | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
+  const [catalog, setCatalog] = React.useState<BuilderCatalog | undefined>();
 
   const activeProfile = session ? findActiveProfile(session) : undefined;
   const selectedEntry = session?.timeline.find((entry) => entry.id === selectedTimelineId) ?? session?.timeline.at(-1);
@@ -57,6 +58,29 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
       return componentSummaries[0]?.componentKey;
     });
   }, [componentSummaries]);
+
+  React.useEffect(() => {
+    let active = true;
+    setCatalog(undefined);
+
+    if (client.catalog) {
+      void Promise.resolve(client.catalog())
+        .then((nextCatalog) => {
+          if (active) {
+            setCatalog(nextCatalog);
+          }
+        })
+        .catch(() => {
+          if (active) {
+            setCatalog(undefined);
+          }
+        });
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [client]);
 
   async function runStudioCommand(text: string, source: BuilderInputSource = inputSource): Promise<void> {
     if (!text) {
@@ -194,6 +218,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     ),
     React.createElement(CommandBar, {
       commandText,
+      catalog,
       inputSource,
       hasSession: Boolean(session?.sessionId),
       pending,
@@ -261,6 +286,7 @@ function DeveloperPanel({
 
 function CommandBar({
   commandText,
+  catalog,
   inputSource,
   hasSession,
   pending,
@@ -271,6 +297,7 @@ function CommandBar({
   onStartOver
 }: {
   commandText: string;
+  catalog: BuilderCatalog | undefined;
   inputSource: BuilderInputSource;
   hasSession: boolean;
   pending: PendingCommand | null;
@@ -282,6 +309,7 @@ function CommandBar({
 }): React.ReactElement {
   const buttonLabel = hasSession ? "Update Game" : "Generate Game";
   const [tipsOpen, setTipsOpen] = React.useState(false);
+  const tips = React.useMemo(() => requestTipLines(catalog), [catalog]);
 
   return React.createElement(
     "footer",
@@ -318,17 +346,7 @@ function CommandBar({
             ? React.createElement(
                 "div",
                 { id: "game-request-tips", role: "tooltip", style: shellStyles.tipPanel },
-                React.createElement("p", { style: shellStyles.tipLine }, "Available games: Memory Match, Sorting, Sequence Repeat."),
-                React.createElement(
-                  "p",
-                  { style: shellStyles.tipLine },
-                  "Asset edits: with dinosaurs, with toys, assets with ocean animals, cards with fruit."
-                ),
-                React.createElement(
-                  "p",
-                  { style: shellStyles.tipLine },
-                  "Try: Memory game with dinosaurs; Sort shapes by color; Repeat a pattern with gems."
-                )
+                ...tips.map((line) => React.createElement("p", { key: line, style: shellStyles.tipLine }, line))
               )
             : null
         )
@@ -471,6 +489,46 @@ function assetThemeForProfile(profile: GameAssemblyProfile): string | undefined 
     prompt
   );
   return match?.[1];
+}
+
+function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
+  if (!catalog) {
+    return ["Available games: loading catalog.", "Asset edits: loading catalog.", "Try: loading catalog."];
+  }
+
+  const games = catalog.templates.map((template) => displayGameName(template.displayName));
+  const assetThemes = catalog.assetEdit.availableThemes.map((entry) => preferredAssetThemeLabel(entry));
+  const examples = catalog.templates.slice(0, 3).map((template, index) => {
+    const request = sentenceCase(preferredTemplateAlias(template.requestAliases));
+    const theme = assetThemes[index % Math.max(assetThemes.length, 1)];
+    return theme ? `${request} with ${theme}` : request;
+  });
+
+  return [
+    `Available games: ${joinList(games)}.`,
+    `Asset edits: ${joinList(assetThemes.map((theme) => `with ${theme}`))}.`,
+    `Try: ${examples.join("; ")}.`
+  ];
+}
+
+function displayGameName(displayName: string): string {
+  return displayName.replace(/\s+MVP$/u, "");
+}
+
+function preferredTemplateAlias(aliases: string[]): string {
+  return aliases.find((alias) => /\bgame\b/u.test(alias)) ?? aliases.find((alias) => alias.includes(" ")) ?? aliases[0] ?? "game request";
+}
+
+function preferredAssetThemeLabel(entry: BuilderCatalog["assetEdit"]["availableThemes"][number]): string {
+  return entry.aliases.find((alias) => alias.includes(" ")) ?? entry.theme;
+}
+
+function sentenceCase(value: string): string {
+  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
+}
+
+function joinList(values: string[]): string {
+  return values.join(", ");
 }
 
 function ProfileSummaryPanel({ profile }: { profile: GameAssemblyProfile }): React.ReactElement {

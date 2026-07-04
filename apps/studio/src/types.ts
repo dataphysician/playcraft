@@ -1,4 +1,4 @@
-import type { BuilderInputSource, GameAssemblyProfile, MoonshineTranscriptRecord } from "@playcraft/contracts";
+import type { BuilderCatalog, BuilderInputSource, GameAssemblyProfile, MoonshineTranscriptRecord } from "@playcraft/contracts";
 
 export type StudioTimelineKind = "lifecycle" | "state" | "activity" | "tool" | "custom" | "frontend";
 
@@ -34,6 +34,7 @@ export interface StudioChangeInput {
 }
 
 export interface StudioClient {
+  catalog?(): BuilderCatalog | Promise<BuilderCatalog>;
   assembleFromIntent(input: StudioAssembleInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   requestChange(input: StudioChangeInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   reset?(): void;

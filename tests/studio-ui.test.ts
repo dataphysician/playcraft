@@ -150,19 +150,21 @@ describe("studio UI", () => {
     });
 
     const client = createConfiguredStudioClient({ serviceEndpoint: "http://127.0.0.1:8787/playcraft" });
+    const catalog = await Promise.resolve(client.catalog?.());
     const session = await client.assembleFromIntent({
       idea: "Sort shapes by color",
       source: "text"
     });
 
-    expect(requestedUrls).toEqual(["http://127.0.0.1:8787/playcraft"]);
+    expect(catalog?.assetEdit.availableThemes.map((entry) => entry.theme)).toContain("dinosaurs");
+    expect(requestedUrls).toEqual(["http://127.0.0.1:8787/playcraft", "http://127.0.0.1:8787/playcraft"]);
     expect(session.activeProfileId).toBe("profile.sorting.mvp");
     expect(session.profiles[0].profileName).toBe("Sorting MVP");
     expect(session.timeline.length).toBeGreaterThan(0);
     expect(session.timeline.some((entry) => entry.detail.includes("template.sorting"))).toBe(true);
   });
 
-  it("shows available games and asset edits in the request tips tooltip", () => {
+  it("shows catalog-driven available games and asset edits in the request tips tooltip", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
     expect(screen.queryByText("Generate a game to play it here.")).toBeNull();
@@ -173,8 +175,9 @@ describe("studio UI", () => {
     fireEvent.mouseEnter(screen.getByRole("button", { name: "Request tips" }));
 
     expect(screen.getByRole("tooltip")).toBeDefined();
-    expect(screen.getByText("Available games: Memory Match, Sorting, Sequence Repeat.")).toBeDefined();
-    expect(screen.getByText("Asset edits: with dinosaurs, with toys, assets with ocean animals, cards with fruit.")).toBeDefined();
+    expect(await screen.findByText("Available games: Memory Match, Sorting, Sequence Repeat.")).toBeDefined();
+    expect(screen.getByText("Asset edits: with dinosaurs, with toys, with ocean animals, with fruits.")).toBeDefined();
+    expect(screen.getByText("Try: Memory game with dinosaurs; Sorting game with toys; Sequence repeat with ocean animals.")).toBeDefined();
   });
 
   it("keeps the command bar in the viewport after game generation", async () => {

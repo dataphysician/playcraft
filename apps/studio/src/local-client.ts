@@ -1,6 +1,7 @@
 import type { BuilderAgUiEvent } from "@playcraft/builder";
 import {
   PLAYCRAFT_SCHEMA_VERSION,
+  type BuilderCatalog,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
   type GameAssemblyProfile,
@@ -75,6 +76,12 @@ export function createStudioClientFromServiceTransport(options: {
   }
 
   return {
+    catalog() {
+      return mapTransportResponse(
+        options.transport.send(nextRequest("catalog", {})),
+        (response) => catalogFromResponse(response)
+      );
+    },
     assembleFromIntent(input) {
       const sessionId = input.sessionId ?? options.defaultSessionId;
       const speechTranscript = input.speechTranscript;
@@ -110,6 +117,14 @@ export function createStudioClientFromServiceTransport(options: {
       timeline.length = 0;
     }
   };
+}
+
+function catalogFromResponse(response: BuilderServiceResponse): BuilderCatalog {
+  if (!response.catalog) {
+    throw new Error(`${response.actionName} response did not include catalog output`);
+  }
+
+  return response.catalog;
 }
 
 function mapTransportResponse<T>(

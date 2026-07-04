@@ -67,6 +67,11 @@ After v1 gates pass, continue hardening middleweight runtime/studio features:
 
 Middleweight work must not move core assembly semantics into app routes, Tauri commands, database models, or provider SDK adapters.
 
+Current implementation notes, July 4, 2026:
+
+- Milestones reached: local service envelope, HTTP service transport, CLI service surface, Studio and Mobile shell service wiring, local Moonshine transcript input, bundled asset-edit catalog, and catalog-driven Studio request tips.
+- Supportive changes: stale provider/avatar references are covered by source scans, app entrypoints are documented, and request examples now come from service catalog data instead of hardcoded Studio text.
+
 ## 6. Provider Adapter Path
 
 Real providers are optional adapters, not v1 dependencies.
