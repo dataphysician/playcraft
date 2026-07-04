@@ -23,6 +23,7 @@ import {
   BuilderSessionSnapshotSchema,
   BuilderTemplateIdSchema,
   BuilderToolDefinitionSchema,
+  BuilderToolPresentationSchema,
   PLAYCRAFT_LOCAL_TIMESTAMP,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
@@ -32,6 +33,7 @@ import {
   type BuilderSessionSnapshot,
   type BuilderTemplateId,
   type BuilderToolDefinition,
+  type BuilderToolPresentation,
   type GameAssemblyProfile,
   type GameTemplateAssetEditOperation,
   type GameTemplateDefinition,
@@ -55,6 +57,11 @@ export const BUILDER_SESSION_POLICY = {
   defaultBatchSessionId: "builder.batch",
   defaultCatalogSessionId: "builder.cli"
 } as const;
+
+export const BUILDER_TOOL_PRESENTATION_POLICY: BuilderToolPresentation = BuilderToolPresentationSchema.parse({
+  argumentsPrefix: "args",
+  noArgumentsLabel: "none"
+});
 
 export const BuilderPreviewPayloadSchema = z
   .object({

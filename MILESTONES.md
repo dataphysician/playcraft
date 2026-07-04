@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Contract-Owned Builder Tool Presentation
+
+Milestone:
+- Builder tool argument presentation now has a named `BuilderToolPresentationSchema` contract fragment.
+- `playcraft-builder catalog` consumes `BUILDER_TOOL_PRESENTATION_POLICY` instead of owning local `args`/`none` summary labels.
+- Local service tool presentation policy is parsed through the same contract fragment used by the builder package.
+
+Supportive changes:
+- Contract tests validate strict builder tool presentation fragments without public-object wrappers.
+- Builder tests verify the exported presentation policy alongside callable tool schemas.
+- Source scans now require the builder CLI to pass the parsed presentation policy into catalog summaries.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps agent-facing tool presentation contract-shaped and forward-only across builder and service CLIs without local label shortcuts, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Service CLI Tool Argument Summaries
 
 Milestone:

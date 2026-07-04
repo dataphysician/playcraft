@@ -7,6 +7,7 @@ import {
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
   BuilderSessionSnapshotSchema,
+  BuilderToolPresentationSchema,
   JsonValueSchema,
   MoonshineTranscriptRecordSchema,
   PLAYCRAFT_LOCAL_TIMESTAMP,
@@ -24,6 +25,7 @@ import {
   type BuilderServiceResponse,
   type BuilderSessionSnapshot,
   type BuilderTemplateId,
+  type BuilderToolPresentation,
   type GameAssemblyProfile,
   type JsonValue,
   type MoonshineTranscriptRecord,
@@ -70,10 +72,10 @@ export const LOCAL_SERVICE_INPUT_POLICY = {
   ]
 } as const;
 
-export const LOCAL_SERVICE_TOOL_PRESENTATION_POLICY = {
+export const LOCAL_SERVICE_TOOL_PRESENTATION_POLICY: BuilderToolPresentation = BuilderToolPresentationSchema.parse({
   argumentsPrefix: "args",
   noArgumentsLabel: "none"
-} as const;
+});
 
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;

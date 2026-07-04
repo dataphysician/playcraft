@@ -234,7 +234,7 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("BuilderInputSourceOptionSchema");
     expect(contractSource).toContain("noInputLabel: z.string()");
     expect(contractSource).toContain("sourceOptions: z.array(BuilderInputSourceOptionSchema)");
-    expect(contractSource).toContain("toolPresentation: z");
+    expect(contractSource).toContain("toolPresentation: BuilderToolPresentationSchema");
     expect(serviceSource).toContain("sourceOptions");
     expect(serviceSource).toContain("LOCAL_SERVICE_TOOL_PRESENTATION_POLICY");
     expect(serviceSource).toContain('noInputLabel: "none"');
@@ -277,13 +277,21 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps builder CLI catalog summaries contract-shaped", () => {
     const builderCliSource = readSource("packages/builder/src/cli.ts");
+    const builderSource = readSource("packages/builder/src/index.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
 
-    expect(builderCliSource).toContain("writeCatalogSummary(handler.listTools(), handler.listTemplates(), io)");
+    expect(contractSource).toContain("BuilderToolPresentationSchema");
+    expect(builderSource).toContain("BUILDER_TOOL_PRESENTATION_POLICY");
+    expect(builderSource).toContain("BuilderToolPresentationSchema.parse");
+    expect(builderCliSource).toContain("writeCatalogSummary(handler.listTools(), handler.listTemplates(), BUILDER_TOOL_PRESENTATION_POLICY, io)");
     expect(builderCliSource).toContain("tool.displayName");
     expect(builderCliSource).toContain("tool.argumentsSchema");
+    expect(builderCliSource).toContain("presentation.argumentsPrefix");
+    expect(builderCliSource).toContain("presentation.noArgumentsLabel");
     expect(builderCliSource).toContain("template.displayLabel");
     expect(builderCliSource).toContain("template.exampleRequest");
     expect(builderCliSource).toContain("if (!args.json)");
+    expect(builderCliSource).not.toContain('"args: none"');
   });
 
   it("keeps Studio service event ingestion schema-backed", () => {

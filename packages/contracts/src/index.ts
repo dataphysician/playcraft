@@ -693,6 +693,14 @@ export const BuilderSessionBoundServiceActionNameSchema = z.enum([
 ]);
 export type BuilderSessionBoundServiceActionName = z.infer<typeof BuilderSessionBoundServiceActionNameSchema>;
 
+export const BuilderToolPresentationSchema = z
+  .object({
+    argumentsPrefix: z.string().min(1).max(40),
+    noArgumentsLabel: z.string().min(1).max(80)
+  })
+  .strict();
+export type BuilderToolPresentation = z.infer<typeof BuilderToolPresentationSchema>;
+
 export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-catalog"),
   defaultTemplateId: BuilderTemplateIdSchema,
@@ -707,12 +715,7 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
       sourceOptions: z.array(BuilderInputSourceOptionSchema).min(1)
     })
     .strict(),
-  toolPresentation: z
-    .object({
-      argumentsPrefix: z.string().min(1).max(40),
-      noArgumentsLabel: z.string().min(1).max(80)
-    })
-    .strict(),
+  toolPresentation: BuilderToolPresentationSchema,
   sessions: z
     .object({
       defaultAssembleSessionId: StableIdSchema,
