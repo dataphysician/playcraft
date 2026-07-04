@@ -247,6 +247,15 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).not.toMatch(/requestAliases\)\)/u);
   });
 
+  it("keeps Studio chat asset summaries session-owned instead of prompt-parsed", () => {
+    const source = readSource("apps/studio/src/studio-app.tsx");
+
+    expect(source).toContain("session.activeAssetEdit");
+    expect(source).not.toContain("assetThemeForProfile");
+    expect(source).not.toContain("assetRequests[0]?.prompt");
+    expect(source).not.toMatch(/memory card illustrations\|sorting game illustrations/u);
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

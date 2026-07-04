@@ -787,21 +787,9 @@ function findActiveProfile(session: StudioSessionSnapshot): GameAssemblyProfile 
 function chatSummaryForSession(mode: PendingCommand, session: StudioSessionSnapshot): string {
   const profile = findActiveProfile(session);
   const profileName = profile?.profileName ?? "game";
-  const assetTheme = profile ? assetThemeForProfile(profile) : undefined;
+  const assetTheme = session.activeAssetEdit?.theme ?? session.activeAssetEdit?.items?.join(", ");
   const action = mode === "generate" ? "Generated" : "Updated";
   return `${action} ${profileName}${assetTheme ? ` with ${assetTheme} assets` : ""}.`;
-}
-
-function assetThemeForProfile(profile: GameAssemblyProfile): string | undefined {
-  const prompt = profile.assetRequests[0]?.prompt;
-  if (!prompt) {
-    return undefined;
-  }
-
-  const match = /^child-safe\s+(.+?)\s+(?:memory card illustrations|sorting game illustrations|sequence game button illustrations|game illustrations)\b/u.exec(
-    prompt
-  );
-  return match?.[1];
 }
 
 function requestTipLines(catalog: BuilderCatalog | undefined): string[] {

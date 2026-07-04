@@ -427,6 +427,31 @@ describe("studio UI", () => {
     expect(screen.getByText("Updated Memory Match MVP with toys assets.")).toBeDefined();
   });
 
+  it("summarizes active asset edits from service session state instead of profile prompts", async () => {
+    const client: StudioClient = {
+      assembleFromIntent: () => ({
+        activeAssetEdit: { theme: "dinosaurs" },
+        activeProfileId: "profile.memory-match.mvp",
+        profiles: [{
+          ...profileA,
+          assetRequests: []
+        }],
+        sessionId: "session.summary",
+        timeline: []
+      }),
+      requestChange: () => {
+        throw new Error("not used");
+      }
+    };
+    render(React.createElement(StudioApp, { client }));
+
+    fireEvent.change(screen.getByLabelText("Request"), { target: { value: "Memory game with dinosaurs" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate Game" }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Developer" }));
+
+    expect(await screen.findByText("Generated Memory Match MVP with dinosaurs assets.")).toBeDefined();
+  });
+
   it("uses explicit memory pairs instead of card id suffix heuristics", async () => {
     const profile = {
       ...profileA,

@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Session-Owned Studio Asset Summaries
+
+Milestone:
+- Studio chat summaries now report asset edits from `session.activeAssetEdit` instead of parsing the generated asset prompt.
+- Prompt wording is no longer a hidden UI data contract for displaying active asset themes.
+- Session snapshots remain the source of truth for active builder levers surfaced to the user.
+
+Supportive changes:
+- Studio UI tests now cover a profile with no asset prompts while still summarizing the active session asset edit.
+- Source scans now block the removed prompt parser from returning.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps Studio status copy contract-shaped and forward-only without prompt parsing heuristics, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Catalog-Owned Request Examples
 
 Milestone:
