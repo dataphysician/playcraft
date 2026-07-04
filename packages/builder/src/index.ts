@@ -585,6 +585,18 @@ function builderToolArgumentsSchema(actionName: BuilderToolDefinition["actionNam
   const optionalString = { type: "string", required: false } as const;
   const requiredString = { type: "string", required: true } as const;
   const optionalObject = { type: "object", required: false } as const;
+  const previewInteraction: JsonObjectSchemaDescriptor["fields"][string] = {
+    type: "object",
+    required: false,
+    fields: {
+      action: {
+        type: "string",
+        required: false,
+        allowedValues: ["primary"]
+      }
+    },
+    allowUnknown: false
+  };
 
   const fieldsByAction: Record<BuilderToolDefinition["actionName"], JsonObjectSchemaDescriptor["fields"]> = {
     "assemble-game": {
@@ -600,7 +612,7 @@ function builderToolArgumentsSchema(actionName: BuilderToolDefinition["actionNam
       templateId: requiredString
     },
     "preview-action": {
-      interaction: optionalObject,
+      interaction: previewInteraction,
       sessionId: requiredString
     },
     "list-builder-tools": {

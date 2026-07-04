@@ -310,6 +310,17 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain('case "component:hint-bubble"');
   });
 
+  it("publishes concrete preview interaction tool arguments", () => {
+    const builderSource = readSource("packages/builder/src/index.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+
+    expect(contractSource).toContain("fields?: Record<string, JsonField>");
+    expect(builderSource).toContain("const previewInteraction");
+    expect(builderSource).toContain('allowedValues: ["primary"]');
+    expect(builderSource).toContain("interaction: previewInteraction");
+    expect(builderSource).not.toContain('"preview-action": {\n      interaction: optionalObject');
+  });
+
   it("keeps Live App surface selection template-owned instead of component-priority inferred", () => {
     const liveGameSource = readSource("apps/studio/src/live-game.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");

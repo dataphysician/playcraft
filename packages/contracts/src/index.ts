@@ -31,14 +31,27 @@ export const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
   z.union([JsonPrimitiveSchema, z.array(JsonValueSchema), z.record(JsonValueSchema)])
 );
 
-export const JsonFieldSchema = z
-  .object({
-    type: z.enum(["string", "number", "boolean", "object", "array", "record"]),
-    required: z.boolean().default(true),
-    minItems: z.number().int().nonnegative().optional(),
-    allowedValues: z.array(JsonPrimitiveSchema).optional()
-  })
-  .strict();
+export type JsonField = {
+  type: "string" | "number" | "boolean" | "object" | "array" | "record";
+  required?: boolean;
+  minItems?: number;
+  allowedValues?: z.infer<typeof JsonPrimitiveSchema>[];
+  fields?: Record<string, JsonField>;
+  allowUnknown?: boolean;
+};
+
+export const JsonFieldSchema: z.ZodType<JsonField> = z.lazy(() =>
+  z
+    .object({
+      type: z.enum(["string", "number", "boolean", "object", "array", "record"]),
+      required: z.boolean().default(true),
+      minItems: z.number().int().nonnegative().optional(),
+      allowedValues: z.array(JsonPrimitiveSchema).optional(),
+      fields: z.record(JsonFieldSchema).optional(),
+      allowUnknown: z.boolean().optional()
+    })
+    .strict()
+);
 
 export const JsonObjectSchemaDescriptorSchema = z
   .object({

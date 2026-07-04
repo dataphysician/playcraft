@@ -73,6 +73,18 @@ describe("local Playcraft service", () => {
       type: "string",
       required: true
     });
+    expect(catalog.tools.find((tool) => tool.actionName === "preview-action")?.argumentsSchema.fields.interaction).toEqual({
+      allowUnknown: false,
+      fields: {
+        action: {
+          allowedValues: ["primary"],
+          required: false,
+          type: "string"
+        }
+      },
+      type: "object",
+      required: false
+    });
     expect(catalog.tools.find((tool) => tool.actionName === "import-profile")?.argumentsSchema.fields.profile).toEqual({
       type: "object",
       required: true

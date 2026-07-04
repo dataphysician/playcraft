@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Structured Preview Tool Arguments
+
+Milestone:
+- `JsonFieldSchema` now supports nested object fields for callable tool argument descriptors.
+- The builder preview tool now publishes `interaction.action` with the explicit local action value `primary`.
+- Service catalog output exposes the same concrete preview interaction argument shape for agent clients.
+
+Supportive changes:
+- Builder and service catalog tests now assert the nested preview interaction descriptor.
+- Source scans now block reverting preview interactions to an unstructured object argument.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- Refined provider/key literal scan.
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps the agent-facing preview action contract explicit and local without broad object payload guessing, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Concrete Component Render Requests
 
 Milestone:

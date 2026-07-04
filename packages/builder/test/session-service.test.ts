@@ -63,6 +63,14 @@ describe("builder session service", () => {
       required: true
     });
     expect(tools.find((tool) => tool.actionName === "preview-action")?.argumentsSchema.fields.interaction).toEqual({
+      allowUnknown: false,
+      fields: {
+        action: {
+          allowedValues: ["primary"],
+          required: false,
+          type: "string"
+        }
+      },
       type: "object",
       required: false
     });
