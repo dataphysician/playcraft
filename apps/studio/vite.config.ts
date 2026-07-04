@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   plugins: [react()],
   build: {
-    emptyOutDir: false
+    outDir: "web-dist",
+    emptyOutDir: true
   },
   resolve: {
     alias: {

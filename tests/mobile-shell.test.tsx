@@ -57,7 +57,7 @@ describe("Tauri mobile shell", () => {
     expect(tauriConfig.productName).toBe("Playcraft Mobile");
     expect(tauriConfig.identifier).toBe("dev.playcraft.mobile");
     expect(tauriConfig.build.devUrl).toBe("http://127.0.0.1:5174");
-    expect(tauriConfig.build.frontendDist).toBe("../dist");
+    expect(tauriConfig.build.frontendDist).toBe("../web-dist");
     expect(tauriConfig.bundle.active).toBe(false);
     expect(tauriConfig.app.security.csp).toContain("http://127.0.0.1:8787");
   });

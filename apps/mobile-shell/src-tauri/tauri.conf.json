@@ -7,7 +7,7 @@
     "beforeDevCommand": "pnpm --filter @playcraft/mobile-shell dev",
     "beforeBuildCommand": "pnpm --filter @playcraft/mobile-shell build",
     "devUrl": "http://127.0.0.1:5174",
-    "frontendDist": "../dist"
+    "frontendDist": "../web-dist"
   },
   "app": {
     "windows": [

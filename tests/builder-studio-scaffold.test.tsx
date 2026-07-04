@@ -45,13 +45,18 @@ function readJson<TSchema extends z.ZodTypeAny>(path: string, schema: TSchema): 
 describe("builder/studio workspace scaffold", () => {
   it("wires the workspace, root scripts, tsconfig references, and package aliases", () => {
     const workspace = readText("pnpm-workspace.yaml");
+    const gitignore = readText(".gitignore");
     const readme = readText("README.md");
+    const mobileViteConfig = readText("apps/mobile-shell/vite.config.ts");
     const rootPackage = readJson("package.json", rootPackageJsonSchema);
+    const studioViteConfig = readText("apps/studio/vite.config.ts");
+    const staleEmptyOutDirSetting = `emptyOutDir: ${String(false)}`;
     const tsconfig = readJson("tsconfig.json", tsconfigJsonSchema);
 
     expect(readme).toContain("pnpm serve:service");
     expect(readme).toContain("VITE_PLAYCRAFT_SERVICE_URL=http://127.0.0.1:8787/playcraft");
     expect(readme).toContain("playcraft-service catalog --json");
+    expect(gitignore).toContain("apps/*/web-dist/");
     expect(workspace).toContain('  - "apps/*"');
     expect(rootPackage.scripts["dev:studio"]).toBe("pnpm --filter @playcraft/studio dev");
     expect(rootPackage.scripts["build:studio"]).toBe("pnpm --filter @playcraft/studio build");
@@ -70,6 +75,12 @@ describe("builder/studio workspace scaffold", () => {
     expect(tsconfig.compilerOptions.paths["@playcraft/service"]).toEqual(["packages/service/src/index.ts"]);
     expect(tsconfig.compilerOptions.paths["@playcraft/studio"]).toEqual(["apps/studio/src/index.ts"]);
     expect(tsconfig.compilerOptions.paths["@playcraft/mobile-shell"]).toEqual(["apps/mobile-shell/src/App.tsx"]);
+    expect(studioViteConfig).toContain('outDir: "web-dist"');
+    expect(studioViteConfig).toContain("emptyOutDir: true");
+    expect(studioViteConfig).not.toContain(staleEmptyOutDirSetting);
+    expect(mobileViteConfig).toContain('outDir: "web-dist"');
+    expect(mobileViteConfig).toContain("emptyOutDir: true");
+    expect(mobileViteConfig).not.toContain(staleEmptyOutDirSetting);
   });
 
   it("defines builder, service, studio, and mobile package manifests with the expected boundaries", () => {

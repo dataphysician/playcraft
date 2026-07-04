@@ -1,6 +1,7 @@
 node_modules/
 packages/*/dist/
 apps/*/dist/
+apps/*/web-dist/
 coverage/
 .vitest/
 *.tsbuildinfo

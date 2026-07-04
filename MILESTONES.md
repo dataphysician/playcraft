@@ -1,5 +1,32 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Clean App Browser Bundle Output
+
+Milestone:
+- Studio and Mobile Vite builds now emit browser bundles into `web-dist` instead of sharing TypeScript's `dist` output.
+- Vite builds clean `web-dist` on each run instead of preserving stale hashed app bundles.
+- The Tauri mobile shell now points at the dedicated browser bundle directory.
+
+Supportive changes:
+- Added `apps/*/web-dist/` to ignored local build artifacts.
+- Scaffold tests now lock in the browser-bundle output directory and cleaned Vite builds.
+- Mobile shell tests now verify Tauri reads the dedicated browser bundle directory.
+
+Validation:
+- `pnpm test tests/builder-studio-scaffold.test.tsx`
+- `pnpm test tests/mobile-shell.test.tsx`
+- Stale Vite/Tauri app output-setting scan.
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- Verified each `web-dist` has one current hashed app entry while TypeScript declarations remain in `dist`.
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps user-facing Studio/Mobile build artifacts reproducible and forward-only without stale mixed outputs, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Scaffold JSON Fixture Schema Parsing
 
 Milestone:
