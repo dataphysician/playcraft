@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Removed-Stack Scan Literal Hygiene
+
+Milestone:
+- Source-scan tests now build removed conversation-stack phrases dynamically instead of storing those phrases as literal repo text.
+- Public roadmap and historical milestone notes no longer preserve stale removed-stack wording.
+- Repo-wide literal scans for removed vendor and conversation-stack phrases are now useful signals instead of matching the scan guard itself.
+
+Supportive changes:
+- Preserved the public docs scan coverage while eliminating self-referential blocked text from the test source.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Repo-wide removed vendor/conversation-stack literal scan.
+- Public docs removed-stack literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps stale-stack detection forward-only and text/Moonshine aligned without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Public Docs Hosted-Stack Phrase Cleanup
 
 Milestone:
@@ -734,7 +757,7 @@ Milestone:
 
 Supportive changes:
 - Renamed the deterministic asset test to `local-asset-source.test.ts`.
-- Updated docs and source-scan tests so stale hosted-stack terminology is not preserved as a public framework concept.
+- Updated docs and source-scan tests so stale removed-stack terminology is not preserved as a public framework concept.
 - Updated saved MVP profile fixtures to the new generated asset provenance shape.
 
 Validation:

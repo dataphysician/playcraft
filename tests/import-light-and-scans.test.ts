@@ -82,7 +82,7 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/Ta[v]us|ta[v]us|re[p]lica|C[V]I/u);
   });
 
-  it("keeps repository source free of the removed video-avatar hosted stack", () => {
+  it("keeps repository source free of the removed hosted conversation stack", () => {
     const blockedTerms = ["Ta" + "vus", "ta" + "vus", "re" + "plica", "C" + "VI", "Geo" + "rgina"];
     const violations = repoSourceFiles().flatMap((path) => {
       const source = readSource(path);
@@ -112,10 +112,10 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps public framework docs free of removed hosted-stack phrasing", () => {
     const blockedTerms = [
-      "hosted hosted",
-      "SDK SDK",
-      "hosted-stack-specific",
-      "video-avatar"
+      "hosted " + "hosted",
+      "SDK " + "SDK",
+      "hosted-stack-" + "specific",
+      "video-" + "avatar"
     ];
     const docs = repoSourceFiles()
       .filter((path) => path === "README.md" || path.startsWith("playcraft-agentic-framework/"));

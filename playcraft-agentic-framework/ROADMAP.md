@@ -70,7 +70,7 @@ Middleweight work must not move core assembly semantics into app routes, Tauri c
 Current implementation notes, July 4, 2026:
 
 - Milestones reached: local service envelope, HTTP service transport, CLI service surface, Studio and Mobile shell service wiring, local Moonshine transcript input, bundled asset-edit catalog, catalog-driven Studio request tips, per-session service state, and profile export/import.
-- Supportive changes: stale hosted-avatar references are covered by source scans, app entrypoints are documented, request examples come from service catalog data instead of hardcoded Studio text, and imported profiles are replay-checked before becoming active.
+- Supportive changes: stale removed-stack references are covered by source scans, app entrypoints are documented, request examples come from service catalog data instead of hardcoded Studio text, and imported profiles are replay-checked before becoming active.
 
 ## 6. Server Catalog and Asset Source Path
 
