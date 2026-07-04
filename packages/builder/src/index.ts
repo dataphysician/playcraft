@@ -645,7 +645,7 @@ function applyAssetEdit(
   const assetRequests = profile.assetRequests.map((request) =>
     AssetGenerationRequestSchema.parse({
       ...request,
-      prompt: promptForAssetEdit(profile, edit),
+      prompt: promptForAssetEdit(templateForProfile(profile), edit),
       metadata: {
         ...request.metadata,
         assetEditTheme: edit.theme,
@@ -751,24 +751,17 @@ function editComponentProps(
   }
 }
 
-function promptForAssetEdit(profile: GameAssemblyProfile, edit: NormalizedAssetEdit): string {
-  if (hasComponentCapability(profile, "component:reveal-card-grid")) {
-    return `child-safe ${edit.theme} memory card illustrations for paired cards ${pairedCardIds(edit).join(", ")}`;
+function promptForAssetEdit(template: GameTemplateDefinition, edit: NormalizedAssetEdit): string {
+  switch (template.assetPromptKind) {
+    case "memory-cards":
+      return `child-safe ${edit.theme} memory card illustrations for paired cards ${pairedCardIds(edit).join(", ")}`;
+    case "sorting-game":
+      return `child-safe ${edit.theme} sorting game illustrations for ${edit.items.join(", ")}`;
+    case "sequence-buttons":
+      return `child-safe ${edit.theme} sequence game button illustrations for ${edit.items.join(", ")}`;
+    case "general-game":
+      return `child-safe ${edit.theme} game illustrations for ${template.displayName}`;
   }
-
-  if (hasComponentCapability(profile, "component:sort-bins")) {
-    return `child-safe ${edit.theme} sorting game illustrations for ${edit.items.join(", ")}`;
-  }
-
-  if (hasComponentCapability(profile, "component:sequence-pad")) {
-    return `child-safe ${edit.theme} sequence game button illustrations for ${edit.items.join(", ")}`;
-  }
-
-  return `child-safe ${edit.theme} game illustrations for ${profile.profileName}`;
-}
-
-function hasComponentCapability(profile: GameAssemblyProfile, renderCapability: string): boolean {
-  return profile.components.some((component) => component.renderCapability === renderCapability);
 }
 
 function pairedCardIds(edit: NormalizedAssetEdit): string[] {

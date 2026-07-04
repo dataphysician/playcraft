@@ -94,6 +94,11 @@ describe("MVP profile pack", () => {
       "Sorting game",
       "Sequence repeat"
     ]);
+    expect(gameTemplateDefinitions.slice(0, 3).map((template) => template.assetPromptKind)).toEqual([
+      "memory-cards",
+      "sorting-game",
+      "sequence-buttons"
+    ]);
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)
     );

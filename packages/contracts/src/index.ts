@@ -454,6 +454,14 @@ export const BuilderTemplateIdSchema = StableIdSchema.refine((value) => value.st
 });
 export type BuilderTemplateId = z.infer<typeof BuilderTemplateIdSchema>;
 
+export const GameTemplateAssetPromptKindSchema = z.enum([
+  "memory-cards",
+  "sorting-game",
+  "sequence-buttons",
+  "general-game"
+]);
+export type GameTemplateAssetPromptKind = z.infer<typeof GameTemplateAssetPromptKindSchema>;
+
 export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   id: BuilderTemplateIdSchema,
   kind: z.literal("game-template"),
@@ -462,6 +470,7 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   capabilityTags: z.array(CapabilityTagSchema).min(1),
   requestAliases: z.array(z.string().min(2).max(80)).min(1),
   exampleRequest: z.string().min(2).max(120),
+  assetPromptKind: GameTemplateAssetPromptKindSchema,
   assemblyRequestId: StableIdSchema,
   profileId: StableIdSchema,
   supportedAgeBands: z.array(AgeBandSchema).min(1),

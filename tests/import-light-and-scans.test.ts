@@ -256,6 +256,18 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/memory card illustrations\|sorting game illustrations/u);
   });
 
+  it("keeps builder asset prompt wording template-owned instead of component-inferred", () => {
+    const builderSource = readSource("packages/builder/src/index.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const packSource = readSource("packages/packs/src/index.ts");
+
+    expect(contractSource).toContain("assetPromptKind");
+    expect(packSource).toContain("assetPromptKind: template.assetPromptKind");
+    expect(builderSource).toContain("template.assetPromptKind");
+    expect(builderSource).not.toContain("hasComponentCapability");
+    expect(builderSource).not.toContain("promptForAssetEdit(profile");
+  });
+
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),

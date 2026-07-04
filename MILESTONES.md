@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template-Owned Asset Prompt Kinds
+
+Milestone:
+- `GameTemplateDefinition` now declares the asset prompt kind used for edit-aware local asset generation.
+- The builder now formats asset edit prompts from the selected template contract instead of inferring game type from component capabilities.
+- Imported profiles continue resolving template ownership by assembly request ID before asset edits are applied.
+
+Supportive changes:
+- Pack tests assert starter templates publish memory, sorting, and sequence asset prompt kinds.
+- Source scans now block the removed component-capability prompt heuristic from returning.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- Removed vendor/conversation-stack/text-label literal scan.
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps asset edit behavior catalog-owned and forward-only without component-presence heuristics, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Session-Owned Studio Asset Summaries
 
 Milestone:

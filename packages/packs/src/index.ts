@@ -23,6 +23,7 @@ import {
   type DomainProfile,
   type FrontendToolDefinition,
   type GameAssemblyProfile,
+  type GameTemplateAssetPromptKind,
   type GameTemplateDefinition,
   type GeneratedAssetRecord,
   type JsonValue,
@@ -204,6 +205,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     capabilityTags: ["game:memory-match", "mechanic:match-pairs"],
     requestAliases: ["memory", "memory game", "memory match", "matching cards", "card pairs", "pair match"],
     exampleRequest: "Memory game",
+    assetPromptKind: "memory-cards",
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
     assetPrompt: "friendly starter card illustrations for a child-safe memory match game",
@@ -234,6 +236,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     capabilityTags: ["game:sorting", "mechanic:sort-into-bins"],
     requestAliases: ["sort", "sorting", "sorting game", "category", "categories", "color bins", "group by color"],
     exampleRequest: "Sorting game",
+    assetPromptKind: "sorting-game",
     profileId: "profile.sorting.mvp",
     profileName: "Sorting MVP",
     assetPrompt: "simple colorful shapes for a child-safe sorting game",
@@ -264,6 +267,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     capabilityTags: ["game:sequence-repeat", "mechanic:sequence-repeat"],
     requestAliases: ["sequence", "sequence repeat", "pattern", "repeat", "repeat pattern", "copy the pattern"],
     exampleRequest: "Sequence repeat",
+    assetPromptKind: "sequence-buttons",
     profileId: "profile.sequence-repeat.mvp",
     profileName: "Sequence Repeat MVP",
     assetPrompt: "soft glowing buttons for a child-safe sequence repeat game",
@@ -566,6 +570,7 @@ export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.ma
     capabilityTags: template.capabilityTags,
     requestAliases: template.requestAliases,
     exampleRequest: template.exampleRequest,
+    assetPromptKind: template.assetPromptKind,
     assemblyRequestId: mvpAssemblyRequests[index].id,
     profileId: template.profileId,
     supportedAgeBands: ["2-3", "4-6", "7-9"],
@@ -1222,6 +1227,7 @@ interface MvpProfileTemplate {
   capabilityTags: string[];
   requestAliases: string[];
   exampleRequest: string;
+  assetPromptKind: GameTemplateAssetPromptKind;
   profileId: string;
   profileName: string;
   assetPrompt: string;
@@ -1252,6 +1258,7 @@ function memoryTemplate(input: {
     capabilityTags: [`game:${input.slug}`, "mechanic:match-pairs"],
     requestAliases: input.aliases,
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
+    assetPromptKind: "memory-cards",
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
@@ -1294,6 +1301,7 @@ function sortingTemplate(input: {
     capabilityTags: [`game:${input.slug}`, "mechanic:sort-into-bins"],
     requestAliases: input.aliases,
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
+    assetPromptKind: "sorting-game",
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
@@ -1336,6 +1344,7 @@ function sequenceTemplate(input: {
     capabilityTags: [`game:${input.slug}`, "mechanic:sequence-repeat"],
     requestAliases: input.aliases,
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
+    assetPromptKind: "sequence-buttons",
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
