@@ -32,12 +32,13 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
     }
 
     if (commandName === "catalog") {
+      const sessionId = args.sessionId ?? "builder.cli";
       const result = handler.execute({
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        id: `builder-command.${args.sessionId ?? "cli"}.catalog`,
+        id: `builder-command.${sessionId}.catalog`,
         version: "1.0.0",
         kind: "builder-command",
-        sessionId: args.sessionId ?? "builder.cli",
+        sessionId,
         actionName: "list-builder-tools"
       });
       writeResult(result, Boolean(args.json), io);
@@ -50,12 +51,15 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
       return 1;
     }
 
+    const sessionId = mappedName === "assemble-game"
+      ? args.sessionId ?? "builder.cli"
+      : requiredSessionId(args, commandName);
     const result = handler.execute({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-      id: `builder-command.${args.sessionId ?? "cli"}.${mappedName}`,
+      id: `builder-command.${sessionId}.${mappedName}`,
       version: "1.0.0",
       kind: "builder-command",
-      sessionId: args.sessionId ?? "builder.cli",
+      sessionId,
       actionName: mappedName,
       templateId: args.template,
       interaction: mappedName === "preview-action" ? { action: "primary" } : undefined
@@ -88,6 +92,14 @@ function parseArgs(argv: string[]): { template?: BuilderTemplateId; sessionId?: 
   }
 
   return output;
+}
+
+function requiredSessionId(args: { sessionId?: string }, commandName: string): string {
+  if (!args.sessionId) {
+    throw new Error(`${commandName} requires --session`);
+  }
+
+  return args.sessionId;
 }
 
 function requiredFlagValue(argv: string[], index: number, flag: string): string {

@@ -325,6 +325,16 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).not.toContain("sessionId?: string }): BuilderExecutionResult");
   });
 
+  it("keeps session-bound builder CLI commands free of default sessions", () => {
+    const builderCliSource = readSource("packages/builder/src/cli.ts");
+
+    expect(builderCliSource).toContain("function requiredSessionId");
+    expect(builderCliSource).toContain('throw new Error(`${commandName} requires --session`)');
+    expect(builderCliSource).toContain('mappedName === "assemble-game"');
+    expect(builderCliSource).not.toContain('sessionId: args.sessionId ?? "builder.cli"');
+    expect(builderCliSource).not.toContain('id: `builder-command.${args.sessionId ?? "cli"}.${mappedName}`');
+  });
+
   it("keeps service CLI response output action-scoped instead of payload-precedence based", () => {
     const source = readSource("packages/service/src/cli.ts");
 

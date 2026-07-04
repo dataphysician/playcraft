@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Builder CLI Sessions
+
+Milestone:
+- Builder CLI `update` and `preview` commands now require `--session` instead of defaulting to `builder.cli`.
+- Builder CLI `assemble` remains the first-run session creation path and can still use the local CLI default.
+
+Supportive changes:
+- Builder CLI tests now reject session-bound commands without `--session`.
+- Source scans now block the removed session-bound `builder.cli` fallback in mapped CLI command construction.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan.
+
+Constraint notes:
+- Keeps the agent-facing builder CLI explicit and forward-only without hidden session targeting, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Explicit Studio Import Targets
 
 Milestone:

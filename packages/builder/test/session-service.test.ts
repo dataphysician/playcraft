@@ -360,6 +360,21 @@ describe("builder session service", () => {
     expect(stderr.pop()).toMatch(/--template requires a value/u);
     expect(stdout).toEqual([]);
   });
+
+  it("requires explicit sessions for session-bound builder CLI commands", () => {
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const io = {
+      stdout: (message: string) => stdout.push(message),
+      stderr: (message: string) => stderr.push(message)
+    };
+
+    expect(runBuilderCli(["update", "--template", "template.memory-match"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/update requires --session/u);
+    expect(runBuilderCli(["preview"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/preview requires --session/u);
+    expect(stdout).toEqual([]);
+  });
 });
 
 function cardsFor(profile: ReturnType<PlaycraftBuilderSessionService["execute"]>["result"]["profile"]): unknown {
