@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Sorting Bin Asset Catalog
+
+Milestone:
+- Studio sorting bin sprites now resolve through an explicit local static asset catalog instead of color-name substring checks.
+- Bin asset matching uses normalized token sequences, so unrelated labels such as `blueberry` or `greenhouse` do not select color bins.
+- The static Playcraft UI asset layer remains local and catalog-shaped for future server/catalog retrieval.
+
+Supportive changes:
+- Exported the sorting bin asset catalog for tests and UI inspection.
+- Added Studio asset-library coverage for catalog order, alias matching, and no-substring false positives.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+
+Constraint notes:
+- Keeps toddler-game visual assets local and explicit without generated runtime code, hosted providers, auth, database state, or migration shims.
+
 ## 2026-07-04 - Ambiguous Template Resolution
 
 Milestone:

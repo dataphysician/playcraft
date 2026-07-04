@@ -18,6 +18,11 @@ interface ReplacementSprite extends LibraryAssetReplacement {
   theme: string;
 }
 
+interface SortingBinAsset extends LibraryAssetReplacement {
+  aliases: string[];
+  id: string;
+}
+
 export const playcraftUiAssets = {
   backgrounds: {
     memoryMatch: memoryMatchBackgroundUrl,
@@ -33,6 +38,27 @@ export const playcraftUiAssets = {
     red: sortingBinRedUrl
   }
 } as const;
+
+export const sortingBinAssetCatalog: SortingBinAsset[] = [
+  {
+    aliases: ["red", "red bin", "color red"],
+    altText: "red sorting bin",
+    id: "red",
+    uri: playcraftUiAssets.sortingBins.red
+  },
+  {
+    aliases: ["blue", "blue bin", "color blue"],
+    altText: "blue sorting bin",
+    id: "blue",
+    uri: playcraftUiAssets.sortingBins.blue
+  },
+  {
+    aliases: ["green", "green bin", "color green"],
+    altText: "green sorting bin",
+    id: "green",
+    uri: playcraftUiAssets.sortingBins.green
+  }
+];
 
 const replacementImageModules = import.meta.glob("./assets/library/replacements/**/*.png", {
   eager: true,
@@ -106,18 +132,11 @@ export function createProfileLibraryAssetReplacements(
 }
 
 export function sortingBinAssetFor(bin: string): LibraryAssetReplacement | undefined {
-  const normalized = normalizeText(bin);
-  if (normalized.includes("red")) {
-    return { altText: "red sorting bin", uri: playcraftUiAssets.sortingBins.red };
-  }
-  if (normalized.includes("blue")) {
-    return { altText: "blue sorting bin", uri: playcraftUiAssets.sortingBins.blue };
-  }
-  if (normalized.includes("green")) {
-    return { altText: "green sorting bin", uri: playcraftUiAssets.sortingBins.green };
-  }
-
-  return undefined;
+  const binTokens = normalizedTokens(bin);
+  const asset = sortingBinAssetCatalog.find((entry) =>
+    entry.aliases.some((alias) => tokenSequenceIncludes(binTokens, normalizedTokens(alias)))
+  );
+  return asset ? { altText: asset.altText, uri: asset.uri } : undefined;
 }
 
 function addTokenReplacements(
@@ -251,6 +270,20 @@ function normalizeText(value: string): string {
     .replace(/[^a-z0-9 -]+/gu, " ")
     .replace(/\s+/gu, " ")
     .trim();
+}
+
+function normalizedTokens(value: string): string[] {
+  return normalizeText(value).split(" ").filter(Boolean);
+}
+
+function tokenSequenceIncludes(tokens: string[], sequence: string[]): boolean {
+  if (sequence.length === 0 || sequence.length > tokens.length) {
+    return false;
+  }
+
+  return tokens.some((_, index) =>
+    sequence.every((token, offset) => tokens[index + offset] === token)
+  );
 }
 
 function slugLabel(value: string): string {

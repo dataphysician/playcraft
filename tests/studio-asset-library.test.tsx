@@ -1,7 +1,11 @@
 import React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { createProfileLibraryAssetReplacements } from "../apps/studio/src/asset-library.js";
+import {
+  createProfileLibraryAssetReplacements,
+  sortingBinAssetCatalog,
+  sortingBinAssetFor
+} from "../apps/studio/src/asset-library.js";
 import { createLocalStudioClient } from "../apps/studio/src/local-client.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
 
@@ -43,5 +47,12 @@ describe("studio asset library", () => {
     expect(await screen.findByText("Sorting MVP")).toBeDefined();
     expect(screen.getByRole("img", { name: "red sorting bin" })).toBeDefined();
     expect(screen.getByRole("img", { name: "blue sorting bin" })).toBeDefined();
+  });
+
+  it("maps sorting bin sprites from an explicit local catalog instead of substring guesses", () => {
+    expect(sortingBinAssetCatalog.map((entry) => entry.id)).toEqual(["red", "blue", "green"]);
+    expect(sortingBinAssetFor("blue bin")?.altText).toBe("blue sorting bin");
+    expect(sortingBinAssetFor("blueberry")).toBeUndefined();
+    expect(sortingBinAssetFor("greenhouse")).toBeUndefined();
   });
 });
