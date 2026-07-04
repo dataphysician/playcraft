@@ -43,7 +43,7 @@ const defaultIo: LocalServiceCliIo = {
 export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request> [--text <request>] [--transcript <moonshine transcript>] [--source <text|speech-transcript>] [--session <id>] [--template <template-id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
+    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request> [--text <request>] [--transcript <moonshine transcript>] [--source <text|moonshine-transcript>] [--session <id>] [--template <template-id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
     return 1;
   }
 
@@ -143,7 +143,7 @@ function parseSource(value: string): BuilderInputSource {
     return value;
   }
 
-  if (value === "speech-transcript") {
+  if (value === "moonshine-transcript") {
     return value;
   }
 
@@ -174,8 +174,8 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
   if (inputCommand && !text) {
     throw new Error("assemble and update require --text or --transcript");
   }
-  if (inputCommand && args.source === "speech-transcript" && !transcriptText) {
-    throw new Error("speech-transcript source requires --transcript so the CLI can send a Moonshine transcript record");
+  if (inputCommand && args.source === "moonshine-transcript" && !transcriptText) {
+    throw new Error("moonshine-transcript source requires --transcript so the CLI can send a Moonshine transcript record");
   }
   const profileExport = parseProfileExportJson(args.profileExportJson);
   const profile = parseProfileJson(args.profileJson);
@@ -190,8 +190,8 @@ function serviceRequest(commandName: CliCommand, args: ParsedArgs, idSuffix: str
 
   if (inputCommand) {
     request.assetEdit = args.assetEdit;
-    request.source = transcriptText ? "speech-transcript" : args.source ?? "text";
-    request.speechTranscript = transcriptText
+    request.source = transcriptText ? "moonshine-transcript" : args.source ?? "text";
+    request.moonshineTranscript = transcriptText
       ? createMoonshineTranscriptRecord({
           id: `moonshine-transcript.cli.${idSuffix}`,
           metadata: {

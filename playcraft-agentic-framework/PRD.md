@@ -59,7 +59,7 @@ The first useful domain is child-friendly educational mini games, but the framew
 | `GeneratedAssetRecord` | Provenance-rich output of an asset request. |
 | `PlaycraftAgUiEventEnvelope` | Validated Playcraft payload carried inside AG-UI `Custom` events. |
 | `PlaycraftEventRecord` | Normalized runtime/replay event emitted by mechanics, rules, components, and tools. |
-| `BuilderInputRequest` | Local text or Moonshine Streaming CPU speech-transcript input accepted by the builder. |
+| `BuilderInputRequest` | Local text or Moonshine Streaming CPU transcript input accepted by the builder. |
 | `BuilderToolDefinition` | Contract for reusable builder actions such as assemble, update, preview, and catalog listing. |
 
 ## 5. AG-UI Strategy

@@ -67,7 +67,7 @@ describe("public contract schemas", () => {
         },
         allowUnknown: false
       },
-      acceptedInputSources: ["text", "speech-transcript"],
+      acceptedInputSources: ["text", "moonshine-transcript"],
       localOnly: true,
       emittedEvents: ["builder:profile-ready"],
       requiredContracts: ["BuilderCommandSchema", "GameTemplateDefinitionSchema"]
@@ -137,14 +137,14 @@ describe("public contract schemas", () => {
         version: "1.0.0",
         kind: "builder-input",
         inputId: "builder-input.fixture",
-        source: "speech-transcript",
+        source: "moonshine-transcript",
         text: "memory game with dinosaurs",
         transcription: {
           engine: "moonshine-streaming",
           runtime: "cpu",
           localOnly: true
         },
-        speechTranscript: moonshineTranscriptRecord,
+        moonshineTranscript: moonshineTranscriptRecord,
         receivedAt: "2026-07-04T00:00:00.000Z",
         metadata: {
           origin: "contract-test"
@@ -161,7 +161,7 @@ describe("public contract schemas", () => {
         defaultTemplateId: "template.memory-match",
         templates: gameTemplateDefinitions,
         tools: [builderToolFixture],
-        acceptedInputSources: ["text", "speech-transcript"],
+        acceptedInputSources: ["text", "moonshine-transcript"],
         assetEdit: {
           supported: true,
           acceptedKeys: ["theme", "items"],
@@ -537,7 +537,7 @@ describe("public contract schemas", () => {
         version: "1.0.0",
         kind: "builder-input",
         inputId: "builder-input.test.missing-transcript",
-        source: "speech-transcript",
+        source: "moonshine-transcript",
         text: "memory game with dinosaurs",
         transcription: {
           engine: "moonshine-streaming",
@@ -555,7 +555,7 @@ describe("public contract schemas", () => {
         version: "1.0.0",
         kind: "builder-service-request",
         actionName: "assemble",
-        source: "speech-transcript",
+        source: "moonshine-transcript",
         text: "memory game with dinosaurs"
       }).success
     ).toBe(false);

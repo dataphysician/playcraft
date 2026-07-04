@@ -73,8 +73,8 @@ describe("studio UI", () => {
     const speech = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",
       sequence: 2,
-      source: "speech-transcript",
-      speechTranscript: transcript,
+      source: "moonshine-transcript",
+      moonshineTranscript: transcript,
       text: transcript.text
     });
 
@@ -133,14 +133,14 @@ describe("studio UI", () => {
     });
     const session = await Promise.resolve(client.assembleFromIntent({
       idea: "ignored once transcript exists",
-      speechTranscript: transcript
+      moonshineTranscript: transcript
     }));
 
     expect(requests[0]).toMatchObject({
       actionName: "assemble",
       sessionId: "studio.transcript",
-      source: "speech-transcript",
-      speechTranscript: {
+      source: "moonshine-transcript",
+      moonshineTranscript: {
         transcriptId: "moonshine-transcript.test.studio-client"
       },
       text: "Repeat a pattern with gems"
@@ -161,7 +161,7 @@ describe("studio UI", () => {
 
     await expect(async () => client.assembleFromIntent({
       idea: "Memory game with dinosaurs",
-      speechTranscript: {
+      moonshineTranscript: {
         transcriptId: "moonshine-transcript.test.invalid"
       } as never
     })).rejects.toThrow(/schemaVersion|text|Required/u);
@@ -296,7 +296,7 @@ describe("studio UI", () => {
     expect(screen.getByText("tool:assemble-game")).toBeDefined();
     expect(screen.getByText("tool:export-profile")).toBeDefined();
     expect(screen.getByText("assemble-game")).toBeDefined();
-    expect(screen.getAllByText("input: text, speech-transcript").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("input: text, moonshine-transcript").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("input: none").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Memory Match MVP")).toBeDefined();

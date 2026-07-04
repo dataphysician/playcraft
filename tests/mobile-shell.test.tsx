@@ -66,7 +66,7 @@ describe("Tauri mobile shell", () => {
     const client = createMobileShellStudioClient();
     const session = client.assembleFromIntent({
       idea: "Memory game with toys",
-      source: "speech-transcript"
+      source: "moonshine-transcript"
     });
 
     expect(session.activeProfileId).toBe("profile.memory-match.mvp");
@@ -82,7 +82,7 @@ describe("Tauri mobile shell", () => {
     const client = createMobileShellStudioClient();
     const session = await Promise.resolve(client.assembleFromIntent({
       idea: "ignored once transcript exists",
-      speechTranscript: transcript
+      moonshineTranscript: transcript
     }));
 
     expect(session.activeProfileId).toBe("profile.memory-match.mvp");
@@ -105,7 +105,7 @@ describe("Tauri mobile shell", () => {
     const client = createMobileShellStudioClient("http://127.0.0.1:8787/playcraft");
     const session = await client.assembleFromIntent({
       idea: "Repeat a pattern with gems",
-      source: "speech-transcript"
+      source: "moonshine-transcript"
     });
 
     expect(requestedUrls).toEqual(["http://127.0.0.1:8787/playcraft"]);

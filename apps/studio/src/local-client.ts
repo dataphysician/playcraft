@@ -92,19 +92,19 @@ export function createStudioClientFromServiceTransport(options: {
     },
     assembleFromIntent(input) {
       const sessionId = input.sessionId ?? options.defaultSessionId;
-      const speechTranscript = speechTranscriptForClientInput({
+      const moonshineTranscript = moonshineTranscriptForClientInput({
         requestId: `moonshine-transcript.${options.defaultSessionId}.${requestCounter + 1}`,
         source: input.source,
-        speechTranscript: input.speechTranscript,
+        moonshineTranscript: input.moonshineTranscript,
         text: input.idea
       });
       return mapTransportResponse(
         options.transport.send(
           nextRequest("assemble", {
             sessionId,
-            source: speechTranscript ? "speech-transcript" : input.source ?? "text",
-            speechTranscript,
-            text: speechTranscript?.text ?? input.idea
+            source: moonshineTranscript ? "moonshine-transcript" : input.source ?? "text",
+            moonshineTranscript,
+            text: moonshineTranscript?.text ?? input.idea
           })
         ),
         (response) => snapshotFromResponse(sessionId, response)
@@ -134,19 +134,19 @@ export function createStudioClientFromServiceTransport(options: {
       );
     },
     requestChange(input) {
-      const speechTranscript = speechTranscriptForClientInput({
+      const moonshineTranscript = moonshineTranscriptForClientInput({
         requestId: `moonshine-transcript.${options.defaultSessionId}.${requestCounter + 1}`,
         source: input.source,
-        speechTranscript: input.speechTranscript,
+        moonshineTranscript: input.moonshineTranscript,
         text: input.changeRequest
       });
       return mapTransportResponse(
         options.transport.send(
           nextRequest("update", {
             sessionId: input.sessionId,
-            source: speechTranscript ? "speech-transcript" : input.source ?? "text",
-            speechTranscript,
-            text: speechTranscript?.text ?? input.changeRequest
+            source: moonshineTranscript ? "moonshine-transcript" : input.source ?? "text",
+            moonshineTranscript,
+            text: moonshineTranscript?.text ?? input.changeRequest
           })
         ),
         (response) => snapshotFromResponse(input.sessionId, response)
@@ -160,17 +160,17 @@ export function createStudioClientFromServiceTransport(options: {
   };
 }
 
-function speechTranscriptForClientInput(input: {
+function moonshineTranscriptForClientInput(input: {
   requestId: string;
   source?: BuilderInputSource;
-  speechTranscript?: MoonshineTranscriptRecord;
+  moonshineTranscript?: MoonshineTranscriptRecord;
   text: string;
 }): MoonshineTranscriptRecord | undefined {
-  if (input.speechTranscript) {
-    return input.speechTranscript;
+  if (input.moonshineTranscript) {
+    return input.moonshineTranscript;
   }
 
-  if (input.source !== "speech-transcript") {
+  if (input.source !== "moonshine-transcript") {
     return undefined;
   }
 

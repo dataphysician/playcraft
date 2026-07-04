@@ -106,7 +106,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
         nextSession = await Promise.resolve(client.requestChange({ sessionId, changeRequest: text, source }));
       }
 
-      const speaker: ChatMessage["speaker"] = source === "speech-transcript" ? "Transcript" : "You";
+      const speaker: ChatMessage["speaker"] = source === "moonshine-transcript" ? "Transcript" : "You";
       setSession(nextSession);
       setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
       setCommandText("");
@@ -674,7 +674,7 @@ function CommandBar({
         value: commandText,
         onChange: (event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value),
         placeholder:
-          inputSource === "speech-transcript"
+          inputSource === "moonshine-transcript"
             ? "Moonshine transcript: memory game with dinosaurs"
             : hasSession
               ? "Change the game or replace assets..."
@@ -698,9 +698,9 @@ function CommandBar({
           "button",
           {
             type: "button",
-            "aria-pressed": inputSource === "speech-transcript",
-            onClick: () => onInputSourceChange("speech-transcript"),
-            style: inputSource === "speech-transcript" ? shellStyles.inputSourceButtonActive : shellStyles.inputSourceButton
+            "aria-pressed": inputSource === "moonshine-transcript",
+            onClick: () => onInputSourceChange("moonshine-transcript"),
+            style: inputSource === "moonshine-transcript" ? shellStyles.inputSourceButtonActive : shellStyles.inputSourceButton
           },
           "Transcript"
         )

@@ -47,7 +47,7 @@ export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
   sessionId?: string;
   source?: BuilderInputSource;
-  speechTranscript?: MoonshineTranscriptRecord;
+  moonshineTranscript?: MoonshineTranscriptRecord;
   templateId?: BuilderTemplateId;
   text: string;
 }
@@ -103,7 +103,7 @@ export class LocalPlaycraftService {
       defaultTemplateId: DEFAULT_TEMPLATE_ID,
       templates: this.handler.listTemplates(),
       tools: this.handler.listTools(),
-      acceptedInputSources: ["text", "speech-transcript"],
+      acceptedInputSources: ["text", "moonshine-transcript"],
       assetEdit: {
         supported: true,
         acceptedKeys: ["theme", "items"],
@@ -257,7 +257,7 @@ export class LocalPlaycraftService {
         assetEdit: request.assetEdit,
         sessionId,
         source: sourceForServiceRequest(request),
-        speechTranscript: request.speechTranscript,
+        moonshineTranscript: request.moonshineTranscript,
         templateId: request.templateId,
         text: textForServiceRequest(request)
       });
@@ -272,7 +272,7 @@ export class LocalPlaycraftService {
       assetEdit: request.assetEdit,
       sessionId,
       source: sourceForServiceRequest(request),
-      speechTranscript: request.speechTranscript,
+      moonshineTranscript: request.moonshineTranscript,
       templateId: request.templateId,
       text: textForServiceRequest(request)
     });
@@ -291,7 +291,7 @@ export class LocalPlaycraftService {
       assetEdit: input.assetEdit,
       sequence: this.inputCounter,
       source: input.source ?? "text",
-      speechTranscript: input.speechTranscript,
+      moonshineTranscript: input.moonshineTranscript,
       templateId: input.templateId,
       text: input.text
     });
@@ -424,7 +424,7 @@ export function resolveBuilderInputCommand(input: {
   assetEdit?: BuilderAssetEdit;
   sequence: number;
   source: BuilderInputSource;
-  speechTranscript?: MoonshineTranscriptRecord;
+  moonshineTranscript?: MoonshineTranscriptRecord;
   templateId?: BuilderTemplateId;
   text: string;
 }): ResolvedBuilderInputCommand {
@@ -432,7 +432,7 @@ export function resolveBuilderInputCommand(input: {
   const request = createBuilderInputRequest({
     sequence: input.sequence,
     source: input.source,
-    speechTranscript: input.speechTranscript,
+    moonshineTranscript: input.moonshineTranscript,
     text: commandText
   });
   const templateMatch = templateMatchForText(commandText);
@@ -487,14 +487,14 @@ export function resolveBuilderInputCommand(input: {
 export function createBuilderInputRequest(input: {
   sequence: number;
   source: BuilderInputSource;
-  speechTranscript?: MoonshineTranscriptRecord;
+  moonshineTranscript?: MoonshineTranscriptRecord;
   text: string;
 }): BuilderInputRequest {
-  const speechTranscript =
-    input.source === "speech-transcript"
-      ? input.speechTranscript
+  const moonshineTranscript =
+    input.source === "moonshine-transcript"
+      ? input.moonshineTranscript
       : undefined;
-  const text = speechTranscript?.text ?? input.text;
+  const text = moonshineTranscript?.text ?? input.text;
 
   return BuilderInputRequestSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -504,12 +504,12 @@ export function createBuilderInputRequest(input: {
     inputId: `builder-input.local.${input.sequence}`,
     source: input.source,
     text,
-    transcription: input.source === "speech-transcript" ? MOONSHINE_STREAMING_CPU_TRANSCRIPTION : undefined,
-    speechTranscript,
+    transcription: input.source === "moonshine-transcript" ? MOONSHINE_STREAMING_CPU_TRANSCRIPTION : undefined,
+    moonshineTranscript,
     receivedAt: "2026-07-04T00:00:00.000Z",
     metadata: {
       origin: "playcraft.local-service",
-      ...(speechTranscript ? { speechTranscriptId: speechTranscript.transcriptId } : {})
+      ...(moonshineTranscript ? { moonshineTranscriptId: moonshineTranscript.transcriptId } : {})
     }
   });
 }
@@ -551,15 +551,15 @@ export function createMoonshineTranscriptRecord(input: {
 }
 
 function sourceForServiceRequest(request: BuilderServiceRequest): BuilderInputSource {
-  if (request.speechTranscript) {
-    return "speech-transcript";
+  if (request.moonshineTranscript) {
+    return "moonshine-transcript";
   }
 
   return request.source ?? "text";
 }
 
 function textForServiceRequest(request: BuilderServiceRequest): string {
-  return request.speechTranscript?.text ?? request.text ?? "";
+  return request.moonshineTranscript?.text ?? request.text ?? "";
 }
 
 interface TemplateTextMatch {

@@ -60,8 +60,8 @@ export const BuilderPreviewPayloadSchema = z
 export type BuilderAgUiEvent = AgUiEvent;
 
 export const builderToolDefinitions: BuilderToolDefinition[] = [
-  builderTool("builder-tool.assemble-game", "tool:assemble-game", "Assemble a mini-game from a registered local template.", "assemble-game", ["text", "speech-transcript"]),
-  builderTool("builder-tool.update-game", "tool:update-game", "Update the active mini-game template or its asset edit levers.", "update-game", ["text", "speech-transcript"]),
+  builderTool("builder-tool.assemble-game", "tool:assemble-game", "Assemble a mini-game from a registered local template.", "assemble-game", ["text", "moonshine-transcript"]),
+  builderTool("builder-tool.update-game", "tool:update-game", "Update the active mini-game template or its asset edit levers.", "update-game", ["text", "moonshine-transcript"]),
   builderTool("builder-tool.preview-action", "tool:preview-action", "Replay one trusted UI interaction against the active profile.", "preview-action", []),
   builderTool("builder-tool.list-builder-tools", "tool:list-builder-tools", "List the local Playcraft builder tools and bundled game templates.", "list-builder-tools", []),
   builderTool("builder-tool.get-session", "tool:get-session", "Inspect the active local builder session snapshot.", "get-session", []),

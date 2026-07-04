@@ -555,17 +555,17 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
 }).strict();
 export type GameTemplateDefinition = z.infer<typeof GameTemplateDefinitionSchema>;
 
-export const BuilderInputSourceSchema = z.enum(["text", "speech-transcript"]);
+export const BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"]);
 export type BuilderInputSource = z.infer<typeof BuilderInputSourceSchema>;
 
-export const SpeechTranscriptionConfigSchema = z
+export const MoonshineTranscriptionConfigSchema = z
   .object({
     engine: z.literal("moonshine-streaming"),
     runtime: z.literal("cpu"),
     localOnly: z.literal(true)
   })
   .strict();
-export type SpeechTranscriptionConfig = z.infer<typeof SpeechTranscriptionConfigSchema>;
+export type MoonshineTranscriptionConfig = z.infer<typeof MoonshineTranscriptionConfigSchema>;
 
 export const MoonshineTranscriptSegmentSchema = z
   .object({
@@ -599,30 +599,30 @@ export const BuilderInputRequestSchema = PublicContractBaseSchema.extend({
   inputId: StableIdSchema,
   source: BuilderInputSourceSchema,
   text: z.string().min(1).max(500),
-  transcription: SpeechTranscriptionConfigSchema.optional(),
-  speechTranscript: MoonshineTranscriptRecordSchema.optional(),
+  transcription: MoonshineTranscriptionConfigSchema.optional(),
+  moonshineTranscript: MoonshineTranscriptRecordSchema.optional(),
   receivedAt: z.string().datetime(),
   metadata: z.record(JsonValueSchema).default({})
 }).strict()
-  .refine((value) => value.source !== "speech-transcript" || Boolean(value.transcription), {
-    message: "speech transcripts must declare the local transcription config",
+  .refine((value) => value.source !== "moonshine-transcript" || Boolean(value.transcription), {
+    message: "Moonshine transcripts must declare the local transcription config",
     path: ["transcription"]
   })
-  .refine((value) => value.source !== "speech-transcript" || Boolean(value.speechTranscript), {
-    message: "speech-transcript input requires a Moonshine transcript record",
-    path: ["speechTranscript"]
+  .refine((value) => value.source !== "moonshine-transcript" || Boolean(value.moonshineTranscript), {
+    message: "moonshine-transcript input requires a Moonshine transcript record",
+    path: ["moonshineTranscript"]
   })
-  .refine((value) => value.source !== "text" || (!value.transcription && !value.speechTranscript), {
-    message: "text input must not include speech transcription config or transcript records",
+  .refine((value) => value.source !== "text" || (!value.transcription && !value.moonshineTranscript), {
+    message: "text input must not include Moonshine transcription config or transcript records",
     path: ["transcription"]
   })
-  .refine((value) => !value.speechTranscript || value.source === "speech-transcript", {
-    message: "Moonshine transcript records require speech-transcript source",
+  .refine((value) => !value.moonshineTranscript || value.source === "moonshine-transcript", {
+    message: "Moonshine transcript records require moonshine-transcript source",
     path: ["source"]
   })
-  .refine((value) => !value.speechTranscript || value.speechTranscript.text === value.text, {
+  .refine((value) => !value.moonshineTranscript || value.moonshineTranscript.text === value.text, {
     message: "Moonshine transcript record text must match builder input text",
-    path: ["speechTranscript"]
+    path: ["moonshineTranscript"]
   });
 export type BuilderInputRequest = z.infer<typeof BuilderInputRequestSchema>;
 
@@ -862,7 +862,7 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   sessionId: StableIdSchema.optional(),
   text: z.string().min(1).max(500).optional(),
   source: BuilderInputSourceSchema.optional(),
-  speechTranscript: MoonshineTranscriptRecordSchema.optional(),
+  moonshineTranscript: MoonshineTranscriptRecordSchema.optional(),
   templateId: BuilderTemplateIdSchema.optional(),
   assetEdit: BuilderAssetEditSchema.optional(),
   profile: GameAssemblyProfileSchema.optional(),
@@ -872,15 +872,15 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
     message: "update, preview, get-session, export-profile, and import-profile requests require sessionId",
     path: ["sessionId"]
   })
-  .refine((value) => value.actionName !== "assemble" || Boolean(value.text || value.speechTranscript), {
+  .refine((value) => value.actionName !== "assemble" || Boolean(value.text || value.moonshineTranscript), {
     message: "assemble requests require text or a Moonshine transcript record",
     path: ["text"]
   })
-  .refine((value) => value.actionName !== "update" || Boolean(value.text || value.speechTranscript), {
+  .refine((value) => value.actionName !== "update" || Boolean(value.text || value.moonshineTranscript), {
     message: "update requests require text or a Moonshine transcript record",
     path: ["text"]
   })
-  .refine((value) => ["assemble", "update"].includes(value.actionName) || (!value.text && !value.source && !value.speechTranscript), {
+  .refine((value) => ["assemble", "update"].includes(value.actionName) || (!value.text && !value.source && !value.moonshineTranscript), {
     message: "only assemble and update service requests may include input text or transcript records",
     path: ["text"]
   })
@@ -900,17 +900,17 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
     message: "assemble and update requests must not include profile import payloads",
     path: ["profile"]
   })
-  .refine((value) => !value.speechTranscript || value.source !== "text", {
+  .refine((value) => !value.moonshineTranscript || value.source !== "text", {
     message: "Moonshine transcript records must not use text source",
     path: ["source"]
   })
-  .refine((value) => value.source !== "speech-transcript" || Boolean(value.speechTranscript), {
-    message: "speech-transcript service requests require a Moonshine transcript record",
-    path: ["speechTranscript"]
+  .refine((value) => value.source !== "moonshine-transcript" || Boolean(value.moonshineTranscript), {
+    message: "moonshine-transcript service requests require a Moonshine transcript record",
+    path: ["moonshineTranscript"]
   })
-  .refine((value) => !value.speechTranscript || !value.text || value.text === value.speechTranscript.text, {
+  .refine((value) => !value.moonshineTranscript || !value.text || value.text === value.moonshineTranscript.text, {
     message: "service request text must match Moonshine transcript record text",
-    path: ["speechTranscript"]
+    path: ["moonshineTranscript"]
   })
   .refine((value) => value.actionName !== "import-profile" || Boolean(value.profile || value.profileExport), {
     message: "import-profile requests require profile or profileExport",

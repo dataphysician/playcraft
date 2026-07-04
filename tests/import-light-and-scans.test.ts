@@ -189,6 +189,36 @@ describe("import-light boundaries and source scans", () => {
     expect(packSource).not.toContain("audio:prompted");
   });
 
+  it("keeps transcript input sources Moonshine-explicit", () => {
+    const blockedTerms = [
+      "speech" + "-transcript",
+      "speech" + "Transcript",
+      "Speech" + "TranscriptionConfig"
+    ];
+    const checkedFiles = [
+      "packages/contracts/src/index.ts",
+      "packages/builder/src/index.ts",
+      "packages/service/src/index.ts",
+      "packages/service/src/cli.ts",
+      "apps/studio/src/local-client.ts",
+      "apps/studio/src/studio-app.tsx",
+      "apps/studio/src/types.ts",
+      "README.md",
+      "playcraft-agentic-framework/README.md",
+      "playcraft-agentic-framework/PRD.md",
+      "playcraft-agentic-framework/ARCHITECTURE.md",
+      "playcraft-agentic-framework/DEV_GUIDE.md"
+    ];
+    const violations = checkedFiles.flatMap((path) => {
+      const source = readSource(path);
+      return blockedTerms.some((term) => source.includes(term)) ? [path] : [];
+    });
+
+    expect(readSource("packages/contracts/src/index.ts")).toContain('BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"])');
+    expect(readSource("packages/contracts/src/index.ts")).toContain("moonshineTranscript: MoonshineTranscriptRecordSchema.optional()");
+    expect(violations).toEqual([]);
+  });
+
   it("keeps Studio service event ingestion schema-backed", () => {
     const source = readSource("apps/studio/src/local-client.ts");
 

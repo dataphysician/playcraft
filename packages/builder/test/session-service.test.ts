@@ -51,7 +51,7 @@ describe("builder session service", () => {
     const tools = createHandler().listTools();
 
     expect(tools.every((tool) => tool.argumentsSchema.schemaVersion === PLAYCRAFT_SCHEMA_VERSION)).toBe(true);
-    expect(tools.find((tool) => tool.actionName === "assemble-game")?.acceptedInputSources).toEqual(["text", "speech-transcript"]);
+    expect(tools.find((tool) => tool.actionName === "assemble-game")?.acceptedInputSources).toEqual(["text", "moonshine-transcript"]);
     expect(tools.find((tool) => tool.actionName === "preview-action")?.acceptedInputSources).toEqual([]);
     expect(tools.find((tool) => tool.actionName === "export-profile")?.acceptedInputSources).toEqual([]);
     expect(tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId).toEqual({

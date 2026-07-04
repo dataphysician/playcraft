@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Moonshine-Explicit Transcript Source
+
+Milestone:
+- Builder input source contracts now expose `moonshine-transcript` instead of a generic transcript source label.
+- Service, CLI, Studio, Mobile shell, and tests now use the `moonshineTranscript` payload field for transcript records.
+
+Supportive changes:
+- Contract schema names now use `MoonshineTranscriptionConfig` for the local CPU transcript config.
+- Source scans now block the retired generic transcript source/property/config labels from product and docs sources.
+- Public docs now describe transcript input as local Moonshine Streaming CPU transcript records without generic speech-input API names.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts packages/builder/test/session-service.test.ts tests/studio-ui.test.ts tests/mobile-shell.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Exact removed vendor-name scan across tracked and repo-local hidden text returned no matches.
+- Retired generic transcript source/property literal scan returned no matches.
+
+Constraint notes:
+- Keeps the input API forward-only and Moonshine-explicit without generic speech-source compatibility aliases, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Touch-Only Play Input Modalities
 
 Milestone:
@@ -1891,9 +1915,9 @@ Milestone:
 - The Studio input toggle now says "Transcript" instead of implying live speech capture.
 
 Supportive changes:
-- Added schema and service tests rejecting `source: "speech-transcript"` without a transcript record.
+- Added schema and service tests rejecting `source: "moonshine-transcript"` without a transcript record.
 - Removed service-side transcript record fabrication from plain text.
-- Added a clearer CLI error for `--source speech-transcript` without `--transcript`.
+- Added a clearer CLI error for `--source moonshine-transcript` without `--transcript`.
 - Updated docs to state transcript records are created at the client/CLI edge, not inside the service.
 
 Validation:

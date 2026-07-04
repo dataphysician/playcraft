@@ -66,7 +66,7 @@ describe("local Playcraft service", () => {
       type: "string",
       required: true
     });
-    expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.acceptedInputSources).toEqual(["text", "speech-transcript"]);
+    expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.acceptedInputSources).toEqual(["text", "moonshine-transcript"]);
     expect(catalog.tools.find((tool) => tool.actionName === "preview-action")?.acceptedInputSources).toEqual([]);
     expect(catalog.tools.find((tool) => tool.actionName === "get-session")?.acceptedInputSources).toEqual([]);
     expect(catalog.tools.find((tool) => tool.actionName === "update-game")?.argumentsSchema.fields.sessionId).toEqual({
@@ -116,15 +116,15 @@ describe("local Playcraft service", () => {
     ]);
   });
 
-  it("assembles and updates games through text or local speech transcripts", () => {
+  it("assembles and updates games through text or local Moonshine transcripts", () => {
     const service = createLocalPlaycraftService();
     const transcript = createMoonshineTranscriptRecord({
       id: "moonshine-transcript.test.assemble",
       text: "Memory game with dinosaurs"
     });
     const assembled = service.assemble({
-      source: "speech-transcript",
-      speechTranscript: transcript,
+      source: "moonshine-transcript",
+      moonshineTranscript: transcript,
       text: transcript.text
     });
     const updated = service.update({
@@ -159,14 +159,14 @@ describe("local Playcraft service", () => {
       kind: "builder-service-request",
       actionName: "assemble",
       sessionId: "session.transcript-record",
-      speechTranscript: transcript
+      moonshineTranscript: transcript
     });
     const serializedEvents = JSON.stringify(response.execution?.events);
 
     expect(response.execution?.result.profile?.id).toBe("profile.sorting.mvp");
     expect(serializedEvents).toContain("moonshine-streaming");
     expect(serializedEvents).toContain("moonshine-transcript.test.service-request");
-    expect(serializedEvents).toContain("speechTranscriptId");
+    expect(serializedEvents).toContain("moonshineTranscriptId");
   });
 
   it("rejects non-JSON builder events instead of coercing them through serialization", () => {
@@ -221,7 +221,7 @@ describe("local Playcraft service", () => {
         version: "1.0.0",
         kind: "builder-service-request",
         actionName: "assemble",
-        source: "speech-transcript",
+        source: "moonshine-transcript",
         text: "Memory game with dinosaurs"
       })
     ).toThrow(/Moonshine transcript record/u);
@@ -263,8 +263,8 @@ describe("local Playcraft service", () => {
       kind: "builder-service-request",
       actionName: "assemble",
       sessionId: "session.service-api",
-      source: "speech-transcript",
-      speechTranscript: transcript,
+      source: "moonshine-transcript",
+      moonshineTranscript: transcript,
       text: transcript.text
     });
     const updated = service.handle({
@@ -410,8 +410,8 @@ describe("local Playcraft service", () => {
       kind: "builder-service-request",
       actionName: "assemble",
       sessionId: "session.http-client",
-      source: "speech-transcript",
-      speechTranscript: transcript,
+      source: "moonshine-transcript",
+      moonshineTranscript: transcript,
       text: transcript.text
     });
 
@@ -456,8 +456,8 @@ describe("local Playcraft service", () => {
           kind: "builder-service-request",
           actionName: "assemble",
           sessionId: "session.live-http",
-          source: "speech-transcript",
-          speechTranscript: transcript,
+          source: "moonshine-transcript",
+          moonshineTranscript: transcript,
           text: transcript.text
         })
       });
@@ -779,7 +779,7 @@ describe("local Playcraft service", () => {
     expect(assembled.result.profile?.components[0]?.props.cards).toEqual(["dolphin-a", "dolphin-b", "turtle-a", "turtle-b"]);
     expect(err).toEqual([]);
 
-    expect(runLocalServiceCli(["assemble", "--source", "speech-transcript", "--text", "Memory game"], io)).toBe(1);
+    expect(runLocalServiceCli(["assemble", "--source", "moonshine-transcript", "--text", "Memory game"], io)).toBe(1);
     expect(err.pop()).toMatch(/requires --transcript/u);
 
     const outputCount = out.length;
@@ -1063,8 +1063,8 @@ describe("local Playcraft service", () => {
       kind: "builder-service-request",
       actionName: "assemble",
       sessionId: "session.cli-envelope",
-      source: "speech-transcript",
-      speechTranscript: transcript,
+      source: "moonshine-transcript",
+      moonshineTranscript: transcript,
       text: transcript.text
     };
 

@@ -31,14 +31,14 @@ export interface StudioAssembleInput {
   sessionId?: string;
   idea: string;
   source?: BuilderInputSource;
-  speechTranscript?: MoonshineTranscriptRecord;
+  moonshineTranscript?: MoonshineTranscriptRecord;
 }
 
 export interface StudioChangeInput {
   sessionId: string;
   changeRequest: string;
   source?: BuilderInputSource;
-  speechTranscript?: MoonshineTranscriptRecord;
+  moonshineTranscript?: MoonshineTranscriptRecord;
 }
 
 export interface StudioClient {
