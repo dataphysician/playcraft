@@ -183,15 +183,18 @@ function addPairedTokenReplacements(
   const pairs = stringRecordProp(component.props, source.pairMapProp ?? "");
   const pairKeys = uniqueStrings(tokens.map((token) => pairs[token]).filter(Boolean));
 
-  for (const [index, pairKey] of pairKeys.entries()) {
-    const sprite = spriteForIdentifier(pairKey, themeFolders, index);
+  for (const pairKey of pairKeys) {
+    const pairTokens = tokens.filter((entry) => pairs[entry] === pairKey);
+    const sprite = pairTokens
+      .map((token) => spriteForPairedCardIdentifier(token, themeFolders))
+      .find((entry): entry is ReplacementSprite => Boolean(entry));
     if (!sprite) {
       continue;
     }
 
     setReplacement(replacements, pairKey, sprite);
     setReplacement(replacements, `${source.namespace}:${pairKey}`, sprite);
-    for (const token of tokens.filter((entry) => pairs[entry] === pairKey)) {
+    for (const token of pairTokens) {
       setReplacement(replacements, token, sprite);
       setReplacement(replacements, `${source.namespace}:${token}`, sprite);
     }
@@ -264,7 +267,7 @@ function spriteForIdentifier(identifier: string, themeFolders: string[], index: 
   }
 
   const candidates = themeSprites;
-  const exact = candidates.find((sprite) => normalized === sprite.id || normalized.endsWith(`-${sprite.id}`));
+  const exact = candidates.find((sprite) => normalized === sprite.id);
   if (exact) {
     return exact;
   }
@@ -276,6 +279,21 @@ function spriteForIdentifier(identifier: string, themeFolders: string[], index: 
   }
 
   return candidates[index % candidates.length];
+}
+
+function spriteForPairedCardIdentifier(identifier: string, themeFolders: string[]): ReplacementSprite | undefined {
+  const pairedCardSpriteId = pairedCardSpriteIdentifier(identifier);
+  if (!pairedCardSpriteId) {
+    return undefined;
+  }
+
+  return replacementSprites.find((sprite) => themeFolders.includes(sprite.theme) && sprite.id === pairedCardSpriteId);
+}
+
+function pairedCardSpriteIdentifier(identifier: string): string | undefined {
+  const normalized = slugLabel(identifier);
+  const match = /^(?<spriteId>[a-z0-9][a-z0-9-]*)-[ab]$/u.exec(normalized);
+  return match?.groups?.spriteId;
 }
 
 function ordinalForIdentifier(value: string): number | undefined {

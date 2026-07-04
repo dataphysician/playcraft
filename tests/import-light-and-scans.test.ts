@@ -321,6 +321,14 @@ describe("import-light boundaries and source scans", () => {
     expect(studioAssetLibrarySource).not.toContain('dolphins: ["dolphin"');
   });
 
+  it("keeps edit-aware card sprite matching explicit for paired-card IDs", () => {
+    const assetLibrarySource = readSource("apps/studio/src/asset-library.ts");
+
+    expect(assetLibrarySource).toContain("function spriteForPairedCardIdentifier");
+    expect(assetLibrarySource).toContain("function pairedCardSpriteIdentifier");
+    expect(assetLibrarySource).not.toContain("normalized.endsWith");
+  });
+
   it("keeps imported profile template selection tied to assembly request contracts", () => {
     const source = readSource("packages/builder/src/index.ts");
 

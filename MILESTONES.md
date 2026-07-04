@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Paired Card Sprite Matching
+
+Milestone:
+- Studio asset replacement now maps paired memory card IDs to local sprites through an explicit paired-card suffix rule.
+- `dinosaur-1-a` can resolve to the `dinosaur-1` sprite, while unrelated suffix matches no longer map indirectly to catalog sprites.
+- Stale `ocean-animal-*` card IDs no longer resolve to dolphin sprites through suffix matching.
+
+Supportive changes:
+- Studio asset-library tests cover direct catalog-suggested card IDs and stale indirect card IDs.
+- Source scans now block the old `normalized.endsWith` sprite suffix matcher from returning.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Refined provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps edit-aware asset replacement profile-driven and forward-only without suffix-guess compatibility matching, hosted providers, generated runtime code, auth, database state, or migration shims.
+
 ## 2026-07-04 - Explicit CLI Execution Summaries
 
 Milestone:

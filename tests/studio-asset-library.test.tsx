@@ -23,8 +23,35 @@ describe("studio asset library", () => {
     expect(oceanProfile).toBeDefined();
     expect(fruitProfile).toBeDefined();
     expect(createProfileLibraryAssetReplacements(oceanProfile!)["card:dolphin-1-a"]?.altText).toBe("dolphin 1 sprite");
-    expect(createProfileLibraryAssetReplacements(oceanProfile!)["card:ocean-animal-1-a"]).toBeUndefined();
     expect(createProfileLibraryAssetReplacements(fruitProfile!)["card:fruit-1-a"]?.altText).toBe("fruit 1 sprite");
+  });
+
+  it("does not map stale indirect paired-card IDs through sprite suffixes", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with ocean animals" });
+    const profile = session.profiles.at(-1);
+
+    expect(profile).toBeDefined();
+    const staleProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["ocean-animal-1-a", "ocean-animal-1-b"],
+                pairs: {
+                  "ocean-animal-1-a": "pair-1",
+                  "ocean-animal-1-b": "pair-1"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    expect(createProfileLibraryAssetReplacements(staleProfile)["card:ocean-animal-1-a"]).toBeUndefined();
   });
 
   it("exposes validated local sprite URLs through profile replacements", () => {
