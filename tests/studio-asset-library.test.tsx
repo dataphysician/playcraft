@@ -182,6 +182,61 @@ describe("studio asset library", () => {
     );
   });
 
+  it("rejects malformed asset replacement token arrays instead of filtering entries", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const malformedCardsProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["toy-1-a", 7, "toy-1-b"]
+              }
+            }
+          : component
+      )
+    };
+
+    expect(() => createProfileLibraryAssetReplacements(malformedCardsProfile)).toThrow(
+      /asset replacement prop cards contains non-string entries at 1/u
+    );
+  });
+
+  it("rejects malformed asset replacement pair maps instead of filtering values", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const malformedPairsProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                pairs: {
+                  ...(component.props.pairs as Record<string, unknown>),
+                  "toy-1-b": 7
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    expect(() => createProfileLibraryAssetReplacements(malformedPairsProfile)).toThrow(
+      /asset replacement prop pairs contains non-string values for toy-1-b/u
+    );
+  });
+
   it("exposes validated local sprite URLs through profile replacements", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toys" });

@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Asset Replacement Prop Collections
+
+Milestone:
+- Studio local asset replacement now requires replacement source props to be authored string arrays and string records.
+- Local replacement lookup no longer filters malformed token arrays or pair maps before matching sprites.
+
+Supportive changes:
+- Studio asset-library tests cover malformed replacement token arrays and pair maps.
+- Source scans guard exact replacement prop parsing and block filter-based collection coercion.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps local asset replacement profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or malformed prop filtering.
+
 ## 2026-07-05 - Exact Asset Replacement Sources
 
 Milestone:

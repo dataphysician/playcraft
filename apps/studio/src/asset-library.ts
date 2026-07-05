@@ -365,21 +365,41 @@ function ordinalForIdentifier(value: string): number | undefined {
 function stringArrayProp(props: Record<string, JsonValue>, key: string): string[] {
   const value = props[key];
   if (!Array.isArray(value)) {
-    return [];
+    throw new Error(`asset replacement prop ${key} must be an authored string array`);
   }
 
-  return value.filter((entry): entry is string => typeof entry === "string");
+  const invalidIndexes: number[] = [];
+  const values: string[] = [];
+  value.forEach((entry, index) => {
+    if (typeof entry === "string") {
+      values.push(entry);
+      return;
+    }
+
+    invalidIndexes.push(index);
+  });
+  if (invalidIndexes.length > 0) {
+    throw new Error(`asset replacement prop ${key} contains non-string entries at ${invalidIndexes.join(", ")}`);
+  }
+
+  return values;
 }
 
 function stringRecordProp(props: Record<string, JsonValue>, key: string): Record<string, string> {
   const value = props[key];
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return {};
+    throw new Error(`asset replacement prop ${key} must be an authored string record`);
+  }
+
+  const invalidKeys = Object.entries(value)
+    .filter((entry) => typeof entry[1] !== "string")
+    .map(([entryKey]) => entryKey);
+  if (invalidKeys.length > 0) {
+    throw new Error(`asset replacement prop ${key} contains non-string values for ${invalidKeys.join(", ")}`);
   }
 
   return Object.fromEntries(
-    Object.entries(value)
-      .filter((entry): entry is [string, string] => typeof entry[1] === "string")
+    Object.entries(value).map(([entryKey, entryValue]) => [entryKey, entryValue as string])
   );
 }
 

@@ -1453,10 +1453,18 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).toContain("asset replacement source ${source.componentRole}:${source.prop} is missing a live surface component capability");
     expect(assetLibrarySource).toContain("is missing asset replacement component for ${capability}");
     expect(assetLibrarySource).toContain("has multiple asset replacement components");
+    expect(assetLibrarySource).toContain("asset replacement prop ${key} must be an authored string array");
+    expect(assetLibrarySource).toContain("asset replacement prop ${key} contains non-string entries");
+    expect(assetLibrarySource).toContain("asset replacement prop ${key} must be an authored string record");
+    expect(assetLibrarySource).toContain("asset replacement prop ${key} contains non-string values");
     expect(assetLibrarySource).not.toContain("if (!component) {\n      continue;");
+    expect(assetLibrarySource).not.toContain("return value.filter((entry): entry is string => typeof entry === \"string\");");
+    expect(assetLibrarySource).not.toContain(".filter((entry): entry is [string, string] => typeof entry[1] === \"string\")");
     expect(assetLibrarySource).not.toContain("profile.components.find((component) => component.renderCapability === capability)");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects asset replacement sources without a declared live surface component capability");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects asset replacement sources whose component is missing from the profile");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects malformed asset replacement token arrays instead of filtering entries");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects malformed asset replacement pair maps instead of filtering values");
     expect(assetLibrarySource).toContain("const matches = sortingBinAssetCatalog.filter((entry)");
     expect(assetLibrarySource).toContain("maps to multiple local bin assets");
     expect(assetLibrarySource).not.toContain("const asset = sortingBinAssetCatalog.find((entry)");
@@ -1495,7 +1503,7 @@ describe("import-light boundaries and source scans", () => {
     expect(tokenReaders).toContain('entry.filter((item): item is string => typeof item === "string")');
     expect(tokenReaders).not.toContain('typeof entry === "string" ? entry : JSON.stringify(entry)');
     expect(tokenReaders).not.toContain('typeof item === "string" ? item : JSON.stringify(item)');
-    expect(studioTestSource).toContain("ignores non-string live game token entries instead of stringifying JSON labels");
+    expect(studioTestSource).toContain("rejects non-string live game token entries instead of filtering JSON labels");
     expect(readSource("packages/builder/test/session-service.test.ts")).toContain("json-round");
   });
 
