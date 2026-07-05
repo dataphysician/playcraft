@@ -627,8 +627,22 @@ function builderTool(
     inputSourceSummary: builderToolInputSourceSummary(acceptedInputSources),
     localOnly: true,
     emittedEvents: ["builder:command", "builder:profile-ready"],
-    requiredContracts: ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"]
+    requiredContracts: builderToolRequiredContracts(actionName)
   });
+}
+
+function builderToolRequiredContracts(actionName: BuilderToolDefinition["actionName"]): BuilderToolDefinition["requiredContracts"] {
+  const contractsByAction: Record<BuilderToolDefinition["actionName"], BuilderToolDefinition["requiredContracts"]> = {
+    "assemble-game": ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"],
+    "update-game": ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"],
+    "preview-action": ["BuilderCommandSchema", "BuilderPreviewStateSchema"],
+    "list-builder-tools": ["BuilderToolDefinitionSchema", "GameTemplateDefinitionSchema"],
+    "get-session": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema"],
+    "export-profile": ["BuilderCommandSchema", "BuilderProfileExportSchema"],
+    "import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]
+  };
+
+  return contractsByAction[actionName];
 }
 
 function builderToolArgumentSummary(schema: JsonObjectSchemaDescriptor): string {

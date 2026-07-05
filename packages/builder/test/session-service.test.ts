@@ -112,6 +112,17 @@ describe("builder session service", () => {
       ["export-profile", "Export Profile"],
       ["import-profile", "Import Profile"]
     ]);
+    expect(Object.fromEntries(tools.map((tool) => [tool.actionName, tool.requiredContracts]))).toEqual({
+      "assemble-game": ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"],
+      "update-game": ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"],
+      "preview-action": ["BuilderCommandSchema", "BuilderPreviewStateSchema"],
+      "list-builder-tools": ["BuilderToolDefinitionSchema", "GameTemplateDefinitionSchema"],
+      "get-session": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema"],
+      "export-profile": ["BuilderCommandSchema", "BuilderProfileExportSchema"],
+      "import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]
+    });
+    expect(tools.find((tool) => tool.actionName === "export-profile")?.requiredContracts).not.toContain("BuilderInputRequestSchema");
+    expect(tools.find((tool) => tool.actionName === "import-profile")?.requiredContracts).not.toContain("GameTemplateDefinitionSchema");
     expect(tools.find((tool) => tool.actionName === "assemble-game")?.acceptedInputSources).toEqual(["text", "moonshine-transcript"]);
     expect(tools.find((tool) => tool.actionName === "assemble-game")?.inputSourceSummary).toBe("input: Text, Transcript");
     expect(tools.find((tool) => tool.actionName === "assemble-game")?.argumentSummary).toBe("args: assetEdit:object, input:object, sessionId:string, templateId*:string");

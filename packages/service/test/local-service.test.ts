@@ -287,6 +287,9 @@ describe("local Playcraft service", () => {
     expect(catalog.tools.find((tool) => tool.actionName === "preview-action")?.inputSourceSummary).toBe("input: none");
     expect(catalog.tools.find((tool) => tool.actionName === "preview-action")?.argumentSummary).toBe("args: interaction*:object, sessionId*:string");
     expect(catalog.tools.find((tool) => tool.actionName === "get-session")?.acceptedInputSources).toEqual([]);
+    expect(catalog.tools.find((tool) => tool.actionName === "get-session")?.requiredContracts).toEqual(["BuilderCommandSchema", "BuilderSessionSnapshotSchema"]);
+    expect(catalog.tools.find((tool) => tool.actionName === "export-profile")?.requiredContracts).toEqual(["BuilderCommandSchema", "BuilderProfileExportSchema"]);
+    expect(catalog.tools.find((tool) => tool.actionName === "import-profile")?.requiredContracts).toEqual(["BuilderCommandSchema", "GameAssemblyProfileSchema"]);
     expect(catalog.tools.find((tool) => tool.actionName === "update-game")?.argumentsSchema.fields.sessionId).toEqual({
       type: "string",
       required: true

@@ -292,8 +292,17 @@ describe("import-light boundaries and source scans", () => {
     const builderSource = readSource("packages/builder/src/index.ts");
     const builderTestSource = readSource("packages/builder/test/session-service.test.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");
+    const rootReadme = readSource("README.md");
+    const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
+    const frameworkReadme = readSource("playcraft-agentic-framework/README.md");
 
     expect(contractSource).toContain("argumentSummary: z.string()");
+    expect(rootReadme).toContain("per-action required contracts");
+    expect(architecture).toContain("per-action required contracts");
+    expect(frameworkReadme).toContain("per-action required contracts");
+    expect(builderSource).toContain("builderToolRequiredContracts");
+    expect(builderSource).toContain('"export-profile": ["BuilderCommandSchema", "BuilderProfileExportSchema"]');
+    expect(builderSource).toContain('"import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]');
     expect(builderSource).toContain("builderToolArgumentSummary");
     expect(builderSource).toContain("BUILDER_ARGUMENT_SUMMARY_LABELS");
     expect(builderSource).not.toContain("BUILDER_TOOL_PRESENTATION_POLICY");
@@ -302,6 +311,8 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain("argumentsPrefix");
     expect(builderSource).not.toContain("noArgumentsLabel");
     expect(builderTestSource).toContain("keeps builder tool argument schemas aligned with the command schema");
+    expect(builderTestSource).toContain('"get-session": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema"]');
+    expect(builderTestSource).toContain('"import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]');
     expect(builderTestSource).toContain("ALL_BUILDER_COMMAND_PAYLOAD_FIELDS");
     expect(builderTestSource).toContain("BuilderCommandSchema.safeParse");
     expect(builderCliSource).toContain("writeCatalogSummary(handler.listTools(), handler.listTemplates(), io)");

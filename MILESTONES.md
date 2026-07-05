@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Builder Required Contract Discovery
+
+Milestone:
+- Builder tool definitions now publish action-specific `requiredContracts` instead of applying the assemble/update contract set to every tool.
+- Session/profile tools advertise the contracts agents actually need, such as `BuilderSessionSnapshotSchema`, `BuilderProfileExportSchema`, and `GameAssemblyProfileSchema`.
+- The service catalog exposes the corrected builder tool contract dependencies through `catalog.tools`.
+
+Supportive changes:
+- Builder tests pin the required contract map for every published tool.
+- Service catalog tests verify get-session, export-profile, and import-profile contract dependencies.
+- Source scans and canonical docs now guard per-action required contract discovery.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps builder tool metadata precise and catalog-owned without hosted providers, generated runtime code, auth, database state, compatibility shims, or noisy tool-level contract dependencies.
+
 ## 2026-07-04 - Builder Tool Schema Parity
 
 Milestone:

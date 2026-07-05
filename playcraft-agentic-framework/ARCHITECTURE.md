@@ -36,7 +36,7 @@ The core must not depend on a specific app framework, route system, database, au
 | Packs | Versioned mechanics, rules, components, themes, asset sources, domain profiles, and safety policies. |
 | Assets | Local asset-source asset requests, capability manifests, deterministic local asset source, provenance records. |
 | Renderer | Trusted React component registry and render requests. |
-| Builder tools | Local CLI/API actions that assemble templates, update asset levers, preview trusted interactions, inspect sessions, export/import profiles, and expose callable argument schemas plus template request aliases in the tool/template catalog. |
+| Builder tools | Local CLI/API actions that assemble templates, update asset levers, preview trusted interactions, inspect sessions, export/import profiles, and expose callable argument schemas, per-action required contracts, and template request aliases in the tool/template catalog. |
 | Service | Local app/API facade that accepts validated `BuilderServiceRequest` envelopes, emits `BuilderServiceResponse`, normalizes text and Moonshine Streaming CPU transcript records, emits `BuilderIntentResolution`, and calls builder tools. |
 | Studio/shells | Vite React studio and Tauri Mobile-facing shell that consume the shared service transport without moving contracts, registries, or game rules into the app layer. |
 
