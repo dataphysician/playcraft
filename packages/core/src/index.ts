@@ -509,15 +509,45 @@ function getStringArrayFromRecord(record: unknown, key: string): string[] {
   }
 
   const value = Reflect.get(record, key);
-  return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : [];
+  return isStringArray(value) ? value : [];
 }
 
-function contractCompatibilityStringArray(entry: RegistryEntry, key: string): string[] {
+interface ContractCompatibilityFields {
+  ageBands: string[];
+  domainProfileIds: string[];
+  modalities: string[];
+  safetyPolicyIds: string[];
+}
+
+function contractCompatibilityForEntry(entry: RegistryEntry): ContractCompatibilityFields | undefined {
   if (entry.kind !== "mechanic" && entry.kind !== "rule-module") {
-    return [];
+    return undefined;
   }
 
-  return getStringArrayFromRecord(entry.compatibility, key);
+  const compatibility = Reflect.get(entry, "compatibility");
+  if (!isContractCompatibilityFields(compatibility)) {
+    return undefined;
+  }
+
+  return compatibility;
+}
+
+function isContractCompatibilityFields(value: unknown): value is ContractCompatibilityFields {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const candidate = value as Partial<Record<keyof ContractCompatibilityFields, unknown>>;
+  return (
+    isStringArray(candidate.ageBands) &&
+    isStringArray(candidate.domainProfileIds) &&
+    isStringArray(candidate.modalities) &&
+    isStringArray(candidate.safetyPolicyIds)
+  );
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
 function domainProfileIdsForEntry(entry: RegistryEntry): string[] {
@@ -529,7 +559,7 @@ function domainProfileIdsForEntry(entry: RegistryEntry): string[] {
     return getStringArray(entry, "supportedDomains");
   }
 
-  return contractCompatibilityStringArray(entry, "domainProfileIds");
+  return contractCompatibilityForEntry(entry)?.domainProfileIds ?? [];
 }
 
 function safetyPolicyIdsForEntry(entry: RegistryEntry): string[] {
@@ -541,7 +571,7 @@ function safetyPolicyIdsForEntry(entry: RegistryEntry): string[] {
     return [entry.defaultSafetyPolicyId];
   }
 
-  return contractCompatibilityStringArray(entry, "safetyPolicyIds");
+  return contractCompatibilityForEntry(entry)?.safetyPolicyIds ?? [];
 }
 
 function ageBandsForEntry(entry: RegistryEntry): string[] {
@@ -553,7 +583,7 @@ function ageBandsForEntry(entry: RegistryEntry): string[] {
     return getStringArray(entry, "ageBands");
   }
 
-  return contractCompatibilityStringArray(entry, "ageBands");
+  return contractCompatibilityForEntry(entry)?.ageBands ?? [];
 }
 
 function modalitiesForEntry(entry: RegistryEntry): string[] {
@@ -565,5 +595,5 @@ function modalitiesForEntry(entry: RegistryEntry): string[] {
     return getStringArray(entry, "modalities");
   }
 
-  return contractCompatibilityStringArray(entry, "modalities");
+  return contractCompatibilityForEntry(entry)?.modalities ?? [];
 }

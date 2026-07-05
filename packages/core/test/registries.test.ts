@@ -140,4 +140,40 @@ describe("capability registries", () => {
 
     expect(result.selected?.id).toBe("loose.entry");
   });
+
+  it("does not use partial compatibility objects from loose mechanic-shaped entries", () => {
+    type LooseEntry = RegistryEntry & { kind: string };
+    const looseEntrySchema = {
+      parse(value: unknown): LooseEntry {
+        if (
+          typeof value !== "object" ||
+          value === null ||
+          Array.isArray(value) ||
+          typeof Reflect.get(value, "id") !== "string" ||
+          typeof Reflect.get(value, "version") !== "string" ||
+          typeof Reflect.get(value, "kind") !== "string"
+        ) {
+          throw new Error("invalid loose registry entry");
+        }
+
+        return value as LooseEntry;
+      }
+    };
+    const registry = new CapabilityRegistry("loose", looseEntrySchema);
+
+    registry.register({
+      id: "loose.partial-mechanic",
+      version: "1.0.0",
+      kind: "mechanic",
+      compatibility: {
+        domainProfileIds: ["domain.current"]
+      }
+    });
+
+    const result = registry.select({
+      domainProfileId: "domain.other"
+    });
+
+    expect(result.selected?.id).toBe("loose.partial-mechanic");
+  });
 });

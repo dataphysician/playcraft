@@ -169,7 +169,14 @@ describe("import-light boundaries and source scans", () => {
     const registryTestSource = readSource("packages/core/test/registries.test.ts");
 
     expect(coreSource).not.toContain("function " + "compatibilityStringArray");
+    expect(coreSource).not.toContain("contractCompatibilityForEntry(entry,");
+    expect(coreSource).toContain("function contractCompatibilityForEntry(entry: RegistryEntry): ContractCompatibilityFields | undefined");
+    expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.domainProfileIds");
+    expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.safetyPolicyIds");
+    expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.ageBands");
+    expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.modalities");
     expect(coreSource).toContain('entry.kind !== "mechanic" && entry.kind !== "rule-module"');
+    expect(registryTestSource).toContain("does not use partial compatibility objects from loose mechanic-shaped entries");
     expect(registryTestSource).not.toContain('supportedDomains: ["domain.alias"]');
     expect(registryTestSource).not.toContain('supportedAgeBands: ["adult"]');
     expect(registryTestSource).not.toContain('supportedModalities: ["audio"]');

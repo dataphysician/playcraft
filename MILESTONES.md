@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Registry Compatibility Contract Lookup
+
+Milestone:
+- Core registry compatibility selection now reads mechanic and rule compatibility through an explicit `ContractCompatibilityFields` helper.
+- Domain, safety, age-band, and modality filtering now use named compatibility fields instead of a generic compatibility key lookup.
+- Loose registry entries that only partially resemble mechanic compatibility data are ignored for compatibility filtering.
+
+Supportive changes:
+- Registry tests cover partial loose compatibility objects and preserve canonical rule compatibility selection.
+- Source scans guard explicit compatibility-field reads and block a return to key-parameter compatibility lookups.
+
+Validation:
+- `pnpm test packages/core/test/registries.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps registry selection contract-shaped and forward-only without hardcoded game-type branches, provider dispatch, generated runtime code, auth, database state, or compatibility alias shims.
+
 ## 2026-07-04 - Exact Envelope Contract Discovery
 
 Milestone:
