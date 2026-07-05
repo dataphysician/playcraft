@@ -1404,7 +1404,11 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");
     expect(liveGameSource).toContain("has multiple live surface components");
     expect(liveGameSource).toContain("function singleValue");
+    expect(liveGameSource).toContain("function requireSingleValue");
+    expect(liveGameSource).toContain("function memoryCardForDeckId");
+    expect(liveGameSource).toContain("const matches = deck.filter((entry) => entry.id === cardId);");
     expect(liveGameSource).not.toContain("return matches[0]");
+    expect(liveGameSource).not.toContain("deck.find((entry) => entry.id === next[0])");
     expect(liveGameSource).toContain("function LiveGameFailure");
     expect(liveGameSource).toContain('"data-testid": "live-game-error"');
     expect(liveGameSource).not.toContain("profile.components.find((component) => component.renderCapability === capability)");

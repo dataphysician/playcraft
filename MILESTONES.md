@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Memory Card Lookup
+
+Milestone:
+- Live App memory-card reveal handling now resolves the previously selected deck card through an explicit exact-id helper instead of a first-match deck lookup.
+- Memory gameplay keeps authored duplicate-card validation and adds exact runtime recovery for selected card ids.
+
+Supportive changes:
+- Source scans guard the Live App deck-id lookup helper and block the old `deck.find` selected-card path.
+- Existing Live App memory tests continue covering duplicate card ids, missing authored pairs, incomplete pairs, and playable card interaction.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Live App gameplay local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match memory selection.
+
 ## 2026-07-05 - Exact Core Selection Helpers
 
 Milestone:

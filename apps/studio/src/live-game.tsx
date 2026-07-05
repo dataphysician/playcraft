@@ -277,8 +277,8 @@ function MemoryGame({
     let matchedNow = false;
 
     if (next.length === 2) {
-      const first = deck.find((entry) => entry.id === next[0]);
-      matchedNow = first?.pairKey === card.pairKey;
+      const first = memoryCardForDeckId(deck, next[0]!);
+      matchedNow = first.pairKey === card.pairKey;
       setMoves(nextMoves);
       if (matchedNow) {
         setMatched((current) => new Set([...current, card.pairKey]));
@@ -1706,6 +1706,19 @@ function colorForToken(
 
 function singleValue<TValue>(values: TValue[]): TValue | undefined {
   return values.length === 1 ? values[0] : undefined;
+}
+
+function requireSingleValue<TValue>(values: TValue[], label: string): TValue {
+  const value = singleValue(values);
+  if (value === undefined) {
+    throw new Error(`${label} requires exactly one value`);
+  }
+  return value;
+}
+
+function memoryCardForDeckId(deck: MemoryCard[], cardId: string): MemoryCard {
+  const matches = deck.filter((entry) => entry.id === cardId);
+  return requireSingleValue(matches, `memory deck card ${cardId}`);
 }
 
 function tokenStyleMatchesForToken(token: string, tokenStyleCatalog: TokenStyleCatalog): GameTemplateTokenStyle[] {
