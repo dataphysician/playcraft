@@ -40,7 +40,8 @@ import {
   type GeneratedAssetRecord,
   type JsonObjectSchemaDescriptor,
   type JsonValue,
-  type PlaycraftAssemblyRequest
+  type PlaycraftAssemblyRequest,
+  type PlaycraftEventRecord
 } from "@playcraft/contracts";
 import { replayProfile, validateGameAssemblyProfile, type PlaycraftRegistries, type ReplayResult } from "@playcraft/core";
 import {
@@ -398,7 +399,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     });
 
     const runId = `${command.sessionId}.${requireSessionTemplateId(session)}`;
-    const replayEvent = session.profile.replay.eventLog[0];
+    const replayEvent = requireSinglePreviewReplayEvent(session.profile);
     const events: BuilderAgUiEvent[] = [
       toolCall(runId, interaction.toolName, { action }, 0),
       toolResult(runId, interaction.toolName, interaction.payload, 1),
@@ -533,6 +534,19 @@ function requireSessionTemplateId(session: BuilderSessionRecord): BuilderTemplat
   }
 
   return session.templateId;
+}
+
+function requireSinglePreviewReplayEvent(profile: GameAssemblyProfile): PlaycraftEventRecord {
+  if (profile.replay.eventLog.length !== 1) {
+    throw new Error(`profile ${profile.id} preview requires exactly one replay event`);
+  }
+
+  const [replayEvent] = profile.replay.eventLog;
+  if (!replayEvent) {
+    throw new Error(`profile ${profile.id} preview requires exactly one replay event`);
+  }
+
+  return replayEvent;
 }
 
 function requireRenderRequestComponentId(renderRequest: ReplayResult["renderRequests"][number] | undefined): string {

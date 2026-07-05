@@ -470,6 +470,34 @@ describe("builder session service", () => {
     expect(preview.result.profile?.id).toBe("profile.sequence-repeat.mvp");
   });
 
+  it("rejects imported profiles with ambiguous preview replay events", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const [replayEvent] = exported!.replay.eventLog;
+    expect(replayEvent).toBeDefined();
+    const ambiguousReplayProfile = {
+      ...exported!,
+      replay: {
+        ...exported!.replay,
+        eventLog: [replayEvent!, replayEvent!]
+      }
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.ambiguous-replay", ambiguousReplayProfile);
+
+    expect(() =>
+      target.execute(command({
+        actionName: "preview-action",
+        id: "builder-command.test.preview-ambiguous-replay",
+        interaction: { action: "primary" },
+        sessionId: "session.ambiguous-replay",
+        templateId: undefined
+      }))
+    ).toThrow(/preview requires exactly one replay event/u);
+  });
+
   it("imports renamed profiles by assembly contract instead of bundled profile id", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;

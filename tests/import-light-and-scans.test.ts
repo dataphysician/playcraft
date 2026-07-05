@@ -653,6 +653,9 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain("const matches = replay.renderRequests.filter((request) => request.componentCapability === primaryCapability);");
     expect(builderSource).toContain("has multiple live-surface primary render requests");
     expect(builderSource).not.toContain("replay.renderRequests.find((request) => request.componentCapability === primaryCapability)");
+    expect(builderSource).toContain("function requireSinglePreviewReplayEvent");
+    expect(builderSource).toContain("preview requires exactly one replay event");
+    expect(builderSource).not.toContain("session.profile.replay.eventLog[0]");
     expect(builderSource).toContain("function requireSessionTemplateId");
     expect(builderSource).not.toContain("interactiveRenderRequestForReplay");
     expect(builderSource).not.toContain("replay.renderRequests[0]");

@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Builder Preview Replay Events
+
+Milestone:
+- Builder preview actions now require a single replay event before emitting replay.event custom events.
+- Imported or custom profiles with empty or multi-event replay logs no longer let preview actions publish a first replay event by event-log order.
+
+Supportive changes:
+- Builder session tests cover imported profiles with ambiguous replay event logs before preview actions.
+- Source scans require the single replay-event guard and block first replay-event indexing from the builder preview action path.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Builder replay-event source scan confirmed the single-event guard and no first replay-event indexing path.
+
+Constraint notes:
+- Keeps agent-facing preview replay events explicit and fail-closed without hosted providers, generated runtime code, auth, database state, compatibility shims, or replay event-order heuristics.
+
 ## 2026-07-04 - Fail-Closed Studio Primary Preview Auto-Selection
 
 Milestone:
