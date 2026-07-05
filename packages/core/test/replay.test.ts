@@ -113,4 +113,22 @@ describe("saved profile replay", () => {
       new RegExp(`profile profile\\.memory-match\\.mvp has duplicate mechanic binding ids: ${saved.mechanics[0]!.bindingId.replace(/\./gu, "\\.")}`, "u")
     );
   });
+
+  it("fails closed when saved profile components contain duplicate binding ids", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const duplicateComponentProfile = {
+      ...saved,
+      components: [
+        ...saved.components,
+        {
+          ...saved.components[0]!
+        }
+      ]
+    };
+
+    expect(() => replayProfile(duplicateComponentProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate component binding ids: ${saved.components[0]!.bindingId.replace(/\./gu, "\\.")}`, "u")
+    );
+  });
 });

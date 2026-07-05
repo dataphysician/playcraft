@@ -689,9 +689,12 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps trusted preview selected component misses fail-closed", () => {
+    const coreSource = readSource("packages/core/src/index.ts");
     const source = readSource("apps/studio/src/trusted-preview.tsx");
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
 
+    expect(coreSource).toContain("duplicate_component_binding_id");
+    expect(coreSource).toContain("const duplicateComponentBindingIds = duplicateStrings(profile.components.map((component) => component.bindingId));");
     expect(source).toContain("selected trusted preview component");
     expect(source).toContain("function renderRequestKey(request: ComponentRenderRequest): string");
     expect(source).toContain("return request.id;");
@@ -716,7 +719,8 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).not.toContain("componentSummaries[0]");
     expect(source).not.toContain("??\n        replay.renderRequests[0]");
     expect(source).not.toContain("?? replay.renderRequests[0]");
-    expect(readSource("tests/studio-ui.test.ts")).toContain("fails closed when a selected trusted preview component key matches multiple render requests");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile components contain duplicate binding ids");
+    expect(readSource("tests/studio-ui.test.ts")).toContain("fails closed when a selected trusted preview component key has duplicate component bindings");
   });
 
   it("keeps component render fallback policy fail-closed only", () => {

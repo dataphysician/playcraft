@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Component Binding IDs
+
+Milestone:
+- Core profile validation now rejects duplicate component binding ids before saved profile replay.
+- Replay no longer builds duplicate render request ids from repeated component binding identity.
+
+Supportive changes:
+- Core replay tests cover duplicate saved profile component binding ids.
+- Source scans guard duplicate component binding validation beside trusted preview render request identity checks.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps component binding identity profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or duplicate render request ids.
+
 ## 2026-07-05 - Exact Core Mechanic Binding IDs
 
 Milestone:
