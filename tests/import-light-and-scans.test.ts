@@ -1103,6 +1103,11 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("requiredAnyOf");
     expect(contractSource).toContain("exclusiveAnyOf");
     expect(contractSource).toContain("forbiddenTogether");
+    expect(contractSource).toContain("serviceActionRequiresSession");
+    expect(contractSource).toContain("serviceActionAcceptsInput");
+    expect(contractSource).toContain("serviceActionResponsePayload");
+    expect(contractSource).toContain("non-input service action ${value.actionName} must not accept ${field}");
+    expect(contractSource).toContain("input service action ${value.actionName} must require text or moonshineTranscript");
     expect(contractSource).toContain("BuilderServiceRequestBatchSchema");
     expect(contractSource).toContain("z.array(BuilderServiceRequestSchema).min(1)");
     expect(serviceSource).toContain("LOCAL_SERVICE_CATALOG");
@@ -1115,6 +1120,7 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).toContain("handleLocalServiceRequestBatch");
     expect(serviceSource).toContain("BuilderServiceRequestBatchSchema.parse");
     expect(serviceTestSource).toContain("keeps service catalog request metadata aligned with the request schema");
+    expect(readSource("packages/contracts/test/schemas.test.ts")).toContain("keeps service catalog action metadata aligned with action ownership");
     expect(serviceTestSource).toContain("ALL_SERVICE_REQUEST_FIELDS");
     expect(serviceTestSource).toContain("BuilderServiceRequestSchema.safeParse");
     expect(cliSource).toContain("request-batch");

@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Service Catalog Actions Are Action-Owned
+
+Milestone:
+- `BuilderServiceCatalogActionSchema` now validates service action metadata against the action name: session ownership, input ownership, response payload, required fields, and accepted request fields must agree.
+- Non-input service actions cannot advertise text, source, transcript, or template input fields, and input actions must require exactly one of text or Moonshine transcript input.
+
+Supportive changes:
+- Contract tests cover valid assemble and preview action metadata plus wrong input flags, response payload drift, missing input fields, wrong session flags, non-input actions accepting input, and required fields outside accepted fields.
+- Source scans guard the service-action ownership helpers and contract coverage.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps CLI, Studio, Mobile shell, and future server catalog metadata aligned with the local text and Moonshine Streaming CPU request contract without hosted providers, generated runtime code, auth, database state, compatibility shims, or action metadata drift.
+
 ## 2026-07-05 - Builder Tool Input Sources Are Action-Owned
 
 Milestone:

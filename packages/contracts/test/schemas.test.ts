@@ -3,6 +3,7 @@ import {
   AssetContentTypeSchema,
   BuilderCatalogSchema,
   BuilderInputRequestSchema,
+  BuilderServiceCatalogActionSchema,
   BuilderServiceRequestBatchSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
@@ -957,6 +958,75 @@ describe("public contract schemas", () => {
       input: {
         ...validCatalog.input,
         sourceOptions: validCatalog.input.sourceOptions.slice(0, 1)
+      }
+    }).success).toBe(false);
+  });
+
+  it("keeps service catalog action metadata aligned with action ownership", () => {
+    const validAssembleAction = {
+      actionName: "assemble",
+      displayName: "Assemble",
+      requiresSession: false,
+      acceptsInput: true,
+      request: {
+        acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
+        requiredFields: [],
+        requiredAnyOf: [["text", "moonshineTranscript"]],
+        exclusiveAnyOf: [["text", "moonshineTranscript"]],
+        forbiddenTogether: [],
+        summary: "Requires text or a Moonshine transcript record."
+      },
+      responsePayload: "execution"
+    };
+    const validPreviewAction = {
+      actionName: "preview",
+      displayName: "Preview",
+      requiresSession: true,
+      acceptsInput: false,
+      request: {
+        acceptedFields: ["sessionId", "interaction"],
+        requiredFields: ["sessionId", "interaction"],
+        requiredAnyOf: [],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
+        summary: "Requires sessionId and an explicit interaction."
+      },
+      responsePayload: "execution"
+    };
+
+    expect(BuilderServiceCatalogActionSchema.safeParse(validAssembleAction).success).toBe(true);
+    expect(BuilderServiceCatalogActionSchema.safeParse(validPreviewAction).success).toBe(true);
+    expect(BuilderServiceCatalogActionSchema.safeParse({
+      ...validAssembleAction,
+      acceptsInput: false
+    }).success).toBe(false);
+    expect(BuilderServiceCatalogActionSchema.safeParse({
+      ...validAssembleAction,
+      responsePayload: "catalog"
+    }).success).toBe(false);
+    expect(BuilderServiceCatalogActionSchema.safeParse({
+      ...validAssembleAction,
+      request: {
+        ...validAssembleAction.request,
+        acceptedFields: ["sessionId", "text", "source", "templateId", "assetEdit"]
+      }
+    }).success).toBe(false);
+    expect(BuilderServiceCatalogActionSchema.safeParse({
+      ...validPreviewAction,
+      requiresSession: false
+    }).success).toBe(false);
+    expect(BuilderServiceCatalogActionSchema.safeParse({
+      ...validPreviewAction,
+      request: {
+        ...validPreviewAction.request,
+        acceptedFields: ["sessionId", "interaction", "text"]
+      }
+    }).success).toBe(false);
+    expect(BuilderServiceCatalogActionSchema.safeParse({
+      ...validPreviewAction,
+      request: {
+        ...validPreviewAction.request,
+        requiredFields: ["sessionId", "templateId"]
       }
     }).success).toBe(false);
   });

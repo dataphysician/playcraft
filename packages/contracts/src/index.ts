@@ -854,8 +854,184 @@ export const BuilderServiceCatalogActionSchema = z
     request: BuilderServiceCatalogActionRequestSchema,
     responsePayload: z.enum(["catalog", "execution", "session", "profileExport", "reset"])
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    const expectedRequiresSession = serviceActionRequiresSession(value.actionName);
+    if (value.requiresSession !== expectedRequiresSession) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `service action ${value.actionName} requiresSession must be ${String(expectedRequiresSession)}`,
+        path: ["requiresSession"]
+      });
+    }
+
+    const expectedAcceptsInput = serviceActionAcceptsInput(value.actionName);
+    if (value.acceptsInput !== expectedAcceptsInput) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `service action ${value.actionName} acceptsInput must be ${String(expectedAcceptsInput)}`,
+        path: ["acceptsInput"]
+      });
+    }
+
+    const expectedResponsePayload = serviceActionResponsePayload(value.actionName);
+    if (value.responsePayload !== expectedResponsePayload) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `service action ${value.actionName} responsePayload must be ${expectedResponsePayload}`,
+        path: ["responsePayload"]
+      });
+    }
+
+    addDuplicateServiceRequestFieldIssues(context, value.request.acceptedFields, ["request", "acceptedFields"]);
+    addDuplicateServiceRequestFieldIssues(context, value.request.requiredFields, ["request", "requiredFields"]);
+
+    for (const field of value.request.requiredFields) {
+      if (!value.request.acceptedFields.includes(field)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `required field ${field} must be accepted by service action ${value.actionName}`,
+          path: ["request", "requiredFields"]
+        });
+      }
+    }
+
+    for (const group of [
+      ...value.request.requiredAnyOf,
+      ...value.request.exclusiveAnyOf,
+      ...value.request.forbiddenTogether
+    ]) {
+      addDuplicateServiceRequestFieldIssues(context, group, ["request"]);
+      for (const field of group) {
+        if (!value.request.acceptedFields.includes(field)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `request group field ${field} must be accepted by service action ${value.actionName}`,
+            path: ["request", "acceptedFields"]
+          });
+        }
+      }
+    }
+
+    if (expectedRequiresSession && !value.request.requiredFields.includes("sessionId")) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `service action ${value.actionName} must require sessionId`,
+        path: ["request", "requiredFields"]
+      });
+    }
+
+    if (!expectedRequiresSession && value.actionName !== "assemble" && value.request.acceptedFields.includes("sessionId")) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `service action ${value.actionName} must not accept sessionId`,
+        path: ["request", "acceptedFields"]
+      });
+    }
+
+    const inputFields: z.infer<typeof BuilderServiceRequestFieldNameSchema>[] = ["text", "source", "moonshineTranscript", "templateId"];
+    if (expectedAcceptsInput) {
+      for (const field of ["text", "source", "moonshineTranscript"] as const) {
+        if (!value.request.acceptedFields.includes(field)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `input service action ${value.actionName} must accept ${field}`,
+            path: ["request", "acceptedFields"]
+          });
+        }
+      }
+      if (!serviceRequestFieldGroupIncludes(value.request.requiredAnyOf, ["text", "moonshineTranscript"])) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `input service action ${value.actionName} must require text or moonshineTranscript`,
+          path: ["request", "requiredAnyOf"]
+        });
+      }
+      if (!serviceRequestFieldGroupIncludes(value.request.exclusiveAnyOf, ["text", "moonshineTranscript"])) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `input service action ${value.actionName} must make text and moonshineTranscript exclusive`,
+          path: ["request", "exclusiveAnyOf"]
+        });
+      }
+    } else {
+      for (const field of inputFields) {
+        if (value.request.acceptedFields.includes(field)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `non-input service action ${value.actionName} must not accept ${field}`,
+            path: ["request", "acceptedFields"]
+          });
+        }
+      }
+    }
+  });
 export type BuilderServiceCatalogAction = z.infer<typeof BuilderServiceCatalogActionSchema>;
+
+function serviceActionRequiresSession(actionName: z.infer<typeof BuilderServiceActionNameSchema>): boolean {
+  return actionName === "update" ||
+    actionName === "preview" ||
+    actionName === "get-session" ||
+    actionName === "export-profile" ||
+    actionName === "import-profile";
+}
+
+function serviceActionAcceptsInput(actionName: z.infer<typeof BuilderServiceActionNameSchema>): boolean {
+  return actionName === "assemble" || actionName === "update";
+}
+
+function serviceActionResponsePayload(
+  actionName: z.infer<typeof BuilderServiceActionNameSchema>
+): "catalog" | "execution" | "session" | "profileExport" | "reset" {
+  const responsePayloadByAction: Record<
+    z.infer<typeof BuilderServiceActionNameSchema>,
+    "catalog" | "execution" | "session" | "profileExport" | "reset"
+  > = {
+    assemble: "execution",
+    catalog: "catalog",
+    "export-profile": "profileExport",
+    "get-session": "session",
+    "import-profile": "execution",
+    preview: "execution",
+    reset: "reset",
+    update: "execution"
+  };
+
+  return responsePayloadByAction[actionName];
+}
+
+function serviceRequestFieldGroupIncludes(
+  groups: Array<z.infer<typeof BuilderServiceRequestFieldNameSchema>[]>,
+  expectedFields: z.infer<typeof BuilderServiceRequestFieldNameSchema>[]
+): boolean {
+  return groups.some((group) =>
+    group.length === expectedFields.length && expectedFields.every((field) => group.includes(field))
+  );
+}
+
+function addDuplicateServiceRequestFieldIssues(
+  context: z.RefinementCtx,
+  fields: z.infer<typeof BuilderServiceRequestFieldNameSchema>[],
+  path: Array<string | number>
+): void {
+  const seen = new Set<z.infer<typeof BuilderServiceRequestFieldNameSchema>>();
+  const duplicates = new Set<z.infer<typeof BuilderServiceRequestFieldNameSchema>>();
+
+  for (const field of fields) {
+    if (seen.has(field)) {
+      duplicates.add(field);
+    }
+    seen.add(field);
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `service request field ${duplicate} must be unique`,
+      path
+    });
+  }
+}
 
 export const BuilderServiceCatalogSchema = z
   .object({
