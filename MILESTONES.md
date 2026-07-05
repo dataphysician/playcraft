@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Studio Replacement Catalog Matches
+
+Milestone:
+- Studio local asset replacement now rejects duplicate replacement catalog theme/folder matches.
+- Paired-card local sprite replacement now fails closed if future replacement folders expose the same paired sprite id.
+
+Supportive changes:
+- Studio asset-library tests cover duplicate shared catalog replacement folders.
+- Source scans block first-match paired-card sprite lookup from returning.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Studio local replacement folders catalog-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or replacement catalog order inference.
+
 ## 2026-07-05 - Exact Asset Edit Component Operations
 
 Milestone:

@@ -591,6 +591,9 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).toContain("entry.localReplacementFolder");
     expect(studioAssetLibrarySource).toContain('from "@playcraft/assets"');
     expect(studioAssetLibrarySource).toContain("entry.localReplacementFolder === theme");
+    expect(studioAssetLibrarySource).toContain("function catalogEntryForReplacementTheme");
+    expect(studioAssetLibrarySource).toContain("maps to multiple catalog entries");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate local replacement catalog themes instead of using catalog order");
     expect(studioAssetLibrarySource).toContain("request.metadata.assetEditTheme");
     expect(studioAssetLibrarySource).not.toContain("addMetadataValue(values, request.metadata.assetEditItems)");
     expect(studioAssetLibrarySource).not.toContain("values.add(request.prompt)");
@@ -606,8 +609,10 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).toContain("asset replacement pair ${pairKey} maps to multiple local sprites");
     expect(assetLibrarySource).toContain("asset replacement pair ${pairKey} is missing local sprites");
     expect(assetLibrarySource).toContain("function spriteForPairedCardIdentifier");
+    expect(assetLibrarySource).toContain("maps to multiple paired local sprites");
     expect(assetLibrarySource).toContain("function pairedCardSpriteIdentifier");
     expect(assetLibrarySource).not.toContain("normalized.endsWith");
+    expect(assetLibrarySource).not.toContain("return replacementSprites.find((sprite) => themeFolders.includes(sprite.theme) && sprite.id === pairedCardSpriteId)");
     expect(assetLibrarySource).not.toContain(".find((entry): entry is ReplacementSprite => Boolean(entry))");
     expect(assetLibrarySource).not.toContain("candidates[index % candidates.length]");
   });

@@ -4,7 +4,8 @@ import type {
   GameTemplateAssetReplacementNamespace,
   GameTemplateAssetReplacementSource,
   GameProfileTemplateSnapshot,
-  JsonValue
+  JsonValue,
+  BuilderAssetEditCatalogEntry
 } from "@playcraft/contracts";
 import { localAssetEditCatalog } from "@playcraft/assets";
 
@@ -290,11 +291,20 @@ function valuesMatchTheme(values: string[], theme: string): boolean {
 function themeTerms(theme: string): string[] {
   const normalized = normalizeText(theme);
   const singular = singularize(normalized);
-  const catalogEntry = localAssetEditCatalog.find((entry) =>
-    entry.theme === theme || entry.localReplacementFolder === theme
-  );
+  const catalogEntry = catalogEntryForReplacementTheme(theme);
 
   return uniqueStrings([normalized, singular, catalogEntry?.theme, catalogEntry?.displayLabel, ...(catalogEntry?.aliases ?? [])].filter((entry): entry is string => Boolean(entry)));
+}
+
+function catalogEntryForReplacementTheme(theme: string): BuilderAssetEditCatalogEntry | undefined {
+  const matches = localAssetEditCatalog.filter((entry) =>
+    entry.theme === theme || entry.localReplacementFolder === theme
+  );
+  if (matches.length > 1) {
+    throw new Error(`local asset replacement theme ${theme} maps to multiple catalog entries: ${matches.map((entry) => entry.theme).join(", ")}`);
+  }
+
+  return matches[0];
 }
 
 function spriteForIdentifier(identifier: string, themeFolders: string[]): ReplacementSprite | undefined {
@@ -333,7 +343,12 @@ function spriteForPairedCardIdentifier(identifier: string, themeFolders: string[
     return undefined;
   }
 
-  return replacementSprites.find((sprite) => themeFolders.includes(sprite.theme) && sprite.id === pairedCardSpriteId);
+  const matches = replacementSprites.filter((sprite) => themeFolders.includes(sprite.theme) && sprite.id === pairedCardSpriteId);
+  if (matches.length > 1) {
+    throw new Error(`asset replacement token ${identifier} maps to multiple paired local sprites: ${matches.map((sprite) => `${sprite.theme}/${sprite.id}`).join(", ")}`);
+  }
+
+  return matches[0];
 }
 
 function pairedCardSpriteIdentifier(identifier: string): string | undefined {
