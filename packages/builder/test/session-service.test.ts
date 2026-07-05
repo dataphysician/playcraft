@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
+import { localAssetEditCatalog } from "@playcraft/assets";
 import {
   BuilderCommandSchema,
   BuilderCommandResultSchema,
@@ -252,6 +253,27 @@ describe("builder session service", () => {
     expect(edited.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
     expect(edited.result.profile?.assetRequests[0]?.prompt).not.toContain("dolphin-3");
     expect(edited.result.validation?.valid).toBe(true);
+  });
+
+  it("rejects duplicate builder asset catalog aliases instead of using catalog order", () => {
+    const service = new PlaycraftBuilderSessionService();
+    localAssetEditCatalog.push({
+      aliases: ["ocean animals"],
+      aliasSummary: "ocean animals",
+      displayLabel: "duplicate ocean animals",
+      localReplacementFolder: "duplicate-dolphins",
+      suggestedItems: ["duplicate-dolphin-1", "duplicate-dolphin-2"],
+      suggestedItemSummary: "duplicate-dolphin-1, duplicate-dolphin-2",
+      theme: "duplicate-dolphins"
+    });
+
+    try {
+      expect(() => service.execute(command({ templateId: "template.memory-match", assetEdit: { theme: "ocean animals" } }))).toThrow(
+        /asset edit theme ocean animals maps to multiple builder asset edit catalog entries: dolphins, duplicate-dolphins/u
+      );
+    } finally {
+      localAssetEditCatalog.pop();
+    }
   });
 
   it("updates imported memory profiles from authored pair counts instead of the bundled pair count", () => {

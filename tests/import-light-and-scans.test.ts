@@ -583,9 +583,12 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain("localAssetEditCatalog");
     expect(builderSource).toContain("BuilderAssetEditSchema.parse(assetEdit)");
     expect(builderSource).toContain("assetEditCatalogEntryFor");
+    expect(builderSource).toContain("maps to multiple builder asset edit catalog entries");
     expect(builderSource).toContain("catalogEntry?.suggestedItems");
+    expect(readSource("packages/builder/test/session-service.test.ts")).toContain("rejects duplicate builder asset catalog aliases instead of using catalog order");
     expect(builderSource).not.toContain('"custom assets"');
     expect(builderSource).not.toContain("defaultItemsForTheme");
+    expect(builderSource).not.toContain("return localAssetEditCatalog.find((entry)");
     expect(serviceSource).toContain('from "@playcraft/assets"');
     expect(serviceCliSource).toContain("entry.localReplacementFolder");
     expect(studioSource).toContain("entry.localReplacementFolder");

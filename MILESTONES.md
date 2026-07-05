@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Builder Asset Catalog Matches
+
+Milestone:
+- Builder asset edits now reject duplicate shared asset catalog theme/alias matches.
+- CLI/API game generation no longer chooses the first catalog entry when local replacement aliases collide.
+
+Supportive changes:
+- Builder session tests cover duplicate shared catalog aliases during asset edits.
+- Source scans block first-match builder asset catalog lookup from returning.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps asset edit item selection catalog-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or asset catalog order inference.
+
 ## 2026-07-05 - Exact Live App Token Styles
 
 Milestone:

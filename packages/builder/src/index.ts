@@ -1019,9 +1019,14 @@ function pairMapForCards(cards: string[]): Record<string, string> {
 
 function assetEditCatalogEntryFor(theme: string): typeof localAssetEditCatalog[number] | undefined {
   const candidate = cleanLabel(theme);
-  return localAssetEditCatalog.find((entry) =>
+  const matches = localAssetEditCatalog.filter((entry) =>
     [entry.theme, ...entry.aliases].some((alias) => cleanLabel(alias) === candidate)
   );
+  if (matches.length > 1) {
+    throw new Error(`asset edit theme ${theme} maps to multiple builder asset edit catalog entries: ${matches.map((entry) => entry.theme).join(", ")}`);
+  }
+
+  return matches[0];
 }
 
 function freeformItemsForTheme(singularTheme: string): string[] {
