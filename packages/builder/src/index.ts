@@ -568,18 +568,12 @@ function templateForId(templateId: BuilderTemplateId): GameTemplateDefinition {
   return template;
 }
 
-function templateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | GameProfileTemplateSnapshot {
+function templateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {
   if (profile.template) {
     return profile.template;
   }
 
-  const template = gameTemplateDefinitions.find((entry) => entry.assemblyRequestId === profile.assemblyRequestId);
-
-  if (!template) {
-    throw new Error(`profile ${profile.id} assembly request ${profile.assemblyRequestId} is not backed by a bundled game template or profile template snapshot`);
-  }
-
-  return template;
+  throw new Error(`profile ${profile.id} must carry a template snapshot for assembly request ${profile.assemblyRequestId}`);
 }
 
 function templateForBuildOrUpdate(

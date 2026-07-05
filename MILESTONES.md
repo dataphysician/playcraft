@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Required Profile Template Snapshots
+
+Milestone:
+- Builder profile import/update paths now require `profile.template` instead of recovering templates from bundled assembly request IDs.
+- Missing template snapshots now fail explicitly before imported/custom profiles are previewed or asset-edited.
+- Pack-generated profiles already carry snapshots, so current generated and example profiles remain self-describing.
+
+Supportive changes:
+- Builder tests model missing-snapshot imports directly.
+- Source scans block `assemblyRequestId`-based bundled template lookup in `templateForProfile`.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm --filter @playcraft/service test`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps imported/custom profile handling self-describing without hosted providers, generated runtime code, auth, database state, compatibility shims, or bundled-template inference.
+
 ## 2026-07-04 - Profile-Carried Template Snapshots
 
 Milestone:

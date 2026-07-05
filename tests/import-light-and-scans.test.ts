@@ -441,7 +441,8 @@ describe("import-light boundaries and source scans", () => {
 
     expect(builderSource).toContain("if (profile.template)");
     expect(builderSource).toContain("return profile.template");
-    expect(builderSource).toContain("entry.assemblyRequestId === profile.assemblyRequestId");
+    expect(builderSource).toContain("must carry a template snapshot");
+    expect(builderSource).not.toContain("entry.assemblyRequestId === profile.assemblyRequestId");
     expect(packSource).toContain("template: templateSnapshotForProfileTemplate(template, context.request.id)");
     expect(packSource).toContain("function templateSnapshotForProfileTemplate");
     expect(packSource).toContain("GameProfileTemplateSnapshotSchema.parse");
