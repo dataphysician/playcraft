@@ -180,7 +180,7 @@ function LiveGameForProfile({
       }
       case "sorting": {
         const component = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
-        validateTokenStylesForTokens(profile.id, sortingStyleTokens(component), tokenStyleCatalog);
+        validateSortingSurfaceProps(profile.id, component, tokenStyleCatalog);
         return React.createElement(SortingGame, {
           profile,
           component,
@@ -1177,6 +1177,37 @@ function sortingStyleTokens(component: ComponentBinding): string[] {
     ...stringArrayProp(component.props, "bins"),
     ...Object.values(targets)
   ];
+}
+
+function validateSortingSurfaceProps(
+  profileId: string,
+  component: ComponentBinding,
+  tokenStyleCatalog: TokenStyleCatalog
+): void {
+  const items = stringArrayProp(component.props, "items");
+  const bins = stringArrayProp(component.props, "bins");
+  const targets = stringRecordProp(component.props, "targets");
+  const duplicateItems = duplicateStrings(items);
+  if (duplicateItems.length > 0) {
+    throw new Error(`profile ${profileId} sorting items contain duplicate item ids: ${duplicateItems.join(", ")}`);
+  }
+
+  const duplicateBins = duplicateStrings(bins);
+  if (duplicateBins.length > 0) {
+    throw new Error(`profile ${profileId} sorting bins contain duplicate bin ids: ${duplicateBins.join(", ")}`);
+  }
+
+  for (const item of items) {
+    const target = targets[item];
+    if (!target) {
+      throw new Error(`profile ${profileId} sorting item ${item} is missing an authored target`);
+    }
+    if (!bins.includes(target)) {
+      throw new Error(`profile ${profileId} sorting item ${item} references missing bin ${target}`);
+    }
+  }
+
+  validateTokenStylesForTokens(profileId, sortingStyleTokens(component), tokenStyleCatalog);
 }
 
 function sequenceStyleTokens(sequenceComponent: ComponentBinding, choiceComponent: ComponentBinding | undefined): string[] {

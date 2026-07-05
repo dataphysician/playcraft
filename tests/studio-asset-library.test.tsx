@@ -334,6 +334,36 @@ describe("studio asset library", () => {
     expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
   });
 
+  it("rejects duplicate Live App sorting item ids instead of using placement keys", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Sorting game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const duplicateItemProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:sort-bins"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                items: ["toy-1", "toy-1"],
+                targets: {
+                  "toy-1": "red"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile: duplicateItemProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("sorting items contain duplicate item ids: toy-1");
+    expect(screen.queryByRole("button", { name: "toy-1" })).toBeNull();
+  });
+
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toybox" });

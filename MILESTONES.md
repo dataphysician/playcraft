@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Sorting Items
+
+Milestone:
+- Live App sorting games now reject imported/custom profiles with duplicate item ids, duplicate bin ids, missing targets, or targets outside authored bins before rendering.
+- Sorting placement progress no longer depends on object-key collisions when a profile carries ambiguous item identity.
+
+Supportive changes:
+- Studio asset-library tests cover duplicate sorting item ids in profile-carried Live App props.
+- Source scans guard the sorting surface validator and duplicate-item error path.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Live App sorting interactions profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or placement-key inference.
+
 ## 2026-07-05 - Exact Live App Memory Cards
 
 Milestone:
