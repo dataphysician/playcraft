@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Profile-Carried Template Snapshots
+
+Milestone:
+- Deterministic pack assembly now embeds a `GameProfileTemplateSnapshot` in generated MVP profiles.
+- Studio live rendering and asset replacement now read live-surface metadata from `profile.template` instead of importing bundled template definitions.
+- Saved example profiles were refreshed so exported examples are self-describing with their template snapshots.
+
+Supportive changes:
+- Pack tests assert generated profiles carry matching template snapshots.
+- Builder import tests explicitly model missing-snapshot custom profiles.
+- Source scans guard Studio live-game and asset-library code against bundled template lookup by `assemblyRequestId`.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/studio-asset-library.test.tsx tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps generated and imported game profiles self-describing for local/server retrieval without hosted providers, generated runtime code, auth, database state, compatibility shims, or UI-local bundled-template inference.
+
 ## 2026-07-04 - Exclusive Service Input Envelopes
 
 Milestone:

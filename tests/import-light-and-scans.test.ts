@@ -436,13 +436,17 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps imported profile template selection tied to assembly request contracts", () => {
-    const source = readSource("packages/builder/src/index.ts");
+    const builderSource = readSource("packages/builder/src/index.ts");
+    const packSource = readSource("packages/packs/src/index.ts");
 
-    expect(source).toContain("if (profile.template)");
-    expect(source).toContain("return profile.template");
-    expect(source).toContain("entry.assemblyRequestId === profile.assemblyRequestId");
-    expect(source).not.toContain("profileComponentIds");
-    expect(source).not.toContain("requiredComponentIds.every");
+    expect(builderSource).toContain("if (profile.template)");
+    expect(builderSource).toContain("return profile.template");
+    expect(builderSource).toContain("entry.assemblyRequestId === profile.assemblyRequestId");
+    expect(packSource).toContain("template: templateSnapshotForProfileTemplate(template, context.request.id)");
+    expect(packSource).toContain("function templateSnapshotForProfileTemplate");
+    expect(packSource).toContain("GameProfileTemplateSnapshotSchema.parse");
+    expect(builderSource).not.toContain("profileComponentIds");
+    expect(builderSource).not.toContain("requiredComponentIds.every");
   });
 
   it("keeps retired sample memory-card IDs out of source and fixtures", () => {
@@ -973,13 +977,19 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps Studio library asset replacement sources template-owned", () => {
     const assetLibrarySource = readSource("apps/studio/src/asset-library.ts");
+    const liveGameSource = readSource("apps/studio/src/live-game.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");
 
     expect(contractSource).toContain("GameTemplateAssetReplacementSourceSchema");
     expect(contractSource).toContain("GameProfileTemplateSnapshotSchema");
     expect(packSource).toContain("assetReplacementSources");
-    expect(assetLibrarySource).toContain("profile.template ?? gameTemplateDefinitions.find");
+    expect(assetLibrarySource).toContain("return profile.template");
+    expect(assetLibrarySource).not.toContain("@playcraft/packs");
+    expect(assetLibrarySource).not.toContain("gameTemplateDefinitions.find");
+    expect(liveGameSource).toContain("return profile.template");
+    expect(liveGameSource).not.toContain("@playcraft/packs");
+    expect(liveGameSource).not.toContain("gameTemplateDefinitions.find");
     expect(assetLibrarySource).toContain("template.liveSurface.assetReplacementSources");
     expect(assetLibrarySource).toContain("componentForReplacementSource");
     expect(assetLibrarySource).not.toContain('component.renderCapability === "component:reveal-card-grid"');

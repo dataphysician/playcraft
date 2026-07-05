@@ -3,13 +3,11 @@ import type {
   ComponentBinding,
   GameAssemblyProfile,
   GameProfileTemplateSnapshot,
-  GameTemplateDefinition,
   GameTemplateLiveSurface,
   GameTemplateTokenStyle,
   GeneratedAssetRecord,
   JsonValue
 } from "@playcraft/contracts";
-import { gameTemplateDefinitions } from "@playcraft/packs";
 import { createProfileLibraryAssetReplacements, playcraftUiAssets, sortingBinAssetFor } from "./asset-library.js";
 import emptyGameHeroUrl from "./assets/empty-game-hero.png";
 
@@ -1090,8 +1088,8 @@ function CompletionPanel({
   );
 }
 
-function liveTemplateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | GameProfileTemplateSnapshot | undefined {
-  return profile.template ?? gameTemplateDefinitions.find((template) => template.assemblyRequestId === profile.assemblyRequestId);
+function liveTemplateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot | undefined {
+  return profile.template;
 }
 
 function tokenStyleCatalogForSurface(liveSurface: GameTemplateLiveSurface): TokenStyleCatalog {

@@ -12,6 +12,7 @@ import {
   DomainProfileSchema,
   FrontendToolDefinitionSchema,
   GameAssemblyProfileSchema,
+  GameProfileTemplateSnapshotSchema,
   GameTemplateDefinitionSchema,
   MechanicDefinitionSchema,
   PLAYCRAFT_SCHEMA_VERSION,
@@ -883,6 +884,7 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
     kind: "game-assembly-profile",
     profileName: template.profileName,
     assemblyRequestId: context.request.id,
+    template: templateSnapshotForProfileTemplate(template, context.request.id),
     domainProfile: {
       id: domain.id,
       version: domain.version
@@ -915,6 +917,21 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
   return GameAssemblyProfileSchema.parse({
     ...profileWithPlaceholder,
     validation: validateGameAssemblyProfile(profileWithPlaceholder, context.registries)
+  });
+}
+
+function templateSnapshotForProfileTemplate(template: MvpProfileTemplate, assemblyRequestId: string) {
+  return GameProfileTemplateSnapshotSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: template.id,
+    version: "1.0.0",
+    kind: "game-template-snapshot",
+    displayName: template.profileName,
+    displayLabel: template.displayLabel,
+    assetPromptKind: template.assetPromptKind,
+    assetEditOperations: template.assetEditOperations,
+    liveSurface: template.liveSurface,
+    assemblyRequestId
   });
 }
 

@@ -4,11 +4,9 @@ import type {
   GameTemplateAssetReplacementNamespace,
   GameTemplateAssetReplacementSource,
   GameProfileTemplateSnapshot,
-  GameTemplateDefinition,
   JsonValue
 } from "@playcraft/contracts";
 import { localAssetEditCatalog } from "@playcraft/assets";
-import { gameTemplateDefinitions } from "@playcraft/packs";
 
 import memoryMatchBackgroundUrl from "./assets/library/ui/backgrounds/memory-match.png";
 import sequenceRepeatBackgroundUrl from "./assets/library/ui/backgrounds/sequence-repeat.png";
@@ -134,13 +132,13 @@ export function createProfileLibraryAssetReplacements(
   return replacements;
 }
 
-function liveTemplateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | GameProfileTemplateSnapshot | undefined {
-  return profile.template ?? gameTemplateDefinitions.find((template) => template.assemblyRequestId === profile.assemblyRequestId);
+function liveTemplateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot | undefined {
+  return profile.template;
 }
 
 function componentForReplacementSource(
   profile: GameAssemblyProfile,
-  template: GameTemplateDefinition | GameProfileTemplateSnapshot,
+  template: GameProfileTemplateSnapshot,
   source: GameTemplateAssetReplacementSource
 ): ComponentBinding | undefined {
   const capability = template.liveSurface.componentCapabilities[source.componentRole];

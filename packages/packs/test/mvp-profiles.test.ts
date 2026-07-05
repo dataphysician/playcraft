@@ -28,6 +28,12 @@ describe("MVP profile pack", () => {
     ]);
     expect(profiles.every((profile) => profile.validation.valid)).toBe(true);
     expect(profiles.every((profile) => profile.assets.every((asset) => asset.sourceId === "asset-source.local-deterministic"))).toBe(true);
+    expect(profiles.every((profile) => profile.template?.assemblyRequestId === profile.assemblyRequestId)).toBe(true);
+    expect(profiles.slice(0, 3).map((profile) => profile.template?.id)).toEqual([
+      "template.memory-match",
+      "template.sorting",
+      "template.sequence-repeat"
+    ]);
   });
 
   it("keeps saved profile fixtures in sync with deterministic assembly", () => {

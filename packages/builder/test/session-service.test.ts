@@ -401,7 +401,8 @@ describe("builder session service", () => {
     const unknownAssemblyProfile = {
       ...exported!,
       id: "profile.custom-memory",
-      assemblyRequestId: "request.custom-memory"
+      assemblyRequestId: "request.custom-memory",
+      template: undefined
     };
 
     const target = new PlaycraftBuilderSessionService();

@@ -5,6 +5,90 @@
   "kind": "game-assembly-profile",
   "profileName": "Sorting MVP",
   "assemblyRequestId": "request.sorting.mvp",
+  "template": {
+    "schemaVersion": "playcraft.v1",
+    "id": "template.sorting",
+    "version": "1.0.0",
+    "kind": "game-template-snapshot",
+    "displayName": "Sorting MVP",
+    "displayLabel": "Sorting",
+    "assetPromptKind": "sorting-game",
+    "assetEditOperations": [
+      {
+        "componentCapability": "component:choice-grid",
+        "operation": "choice-items"
+      },
+      {
+        "componentCapability": "component:sort-bins",
+        "operation": "sorting-items"
+      },
+      {
+        "componentCapability": "component:hint-bubble",
+        "operation": "hint-message"
+      }
+    ],
+    "liveSurface": {
+      "kind": "sorting",
+      "componentCapabilities": {
+        "primary": "component:sort-bins"
+      },
+      "assetReplacementSources": [
+        {
+          "componentRole": "primary",
+          "prop": "items",
+          "namespace": "item"
+        }
+      ],
+      "tokenStyles": [
+        {
+          "tokens": [
+            "red"
+          ],
+          "background": "#fee2e2",
+          "border": "#ef4444",
+          "foreground": "#7f1d1d",
+          "accent": "#fecaca"
+        },
+        {
+          "tokens": [
+            "blue"
+          ],
+          "background": "#dbeafe",
+          "border": "#2563eb",
+          "foreground": "#1e3a8a",
+          "accent": "#bfdbfe"
+        },
+        {
+          "tokens": [
+            "green"
+          ],
+          "background": "#dcfce7",
+          "border": "#16a34a",
+          "foreground": "#14532d",
+          "accent": "#bbf7d0"
+        },
+        {
+          "tokens": [
+            "yellow"
+          ],
+          "background": "#fef3c7",
+          "border": "#eab308",
+          "foreground": "#713f12",
+          "accent": "#fde68a"
+        }
+      ],
+      "defaultTokenStyle": {
+        "tokens": [
+          "default"
+        ],
+        "background": "#ede9fe",
+        "border": "#7c3aed",
+        "foreground": "#4c1d95",
+        "accent": "#ddd6fe"
+      }
+    },
+    "assemblyRequestId": "request.sorting.mvp"
+  },
   "domainProfile": {
     "id": "domain.child-edu",
     "version": "1.0.0"
