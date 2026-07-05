@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Profile Replay Events Are Schema-Owned
+
+Milestone:
+- `GameAssemblyProfileSchema` now rejects duplicate replay event IDs, duplicate replay event sequences, and replay event logs whose array order contradicts sequence metadata.
+- Core replay no longer carries separate replay event identity/order validators after profile schema parsing.
+
+Supportive changes:
+- Contract tests cover duplicate replay event IDs, duplicate replay event sequences, and unsorted replay event logs.
+- Core replay tests now expect malformed replay logs to fail at the saved profile contract boundary.
+- Source scans guard the schema-owned replay event checks and reject the removed late core replay branches.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden stale removed-provider exact scan
+- full ignored-path legacy transcript/provider scan
+
+Constraint notes:
+- Keeps saved profiles self-validating for local agent-driven toddler mini-game assembly without replay-log order fallback or duplicate event identity slipping into runtime replay.
+
 ## 2026-07-05 - Profile Asset Identities Are Schema-Owned
 
 Milestone:

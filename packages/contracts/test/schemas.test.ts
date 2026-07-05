@@ -823,6 +823,62 @@ describe("public contract schemas", () => {
     ).toBe(false);
   });
 
+  it("requires profiles to carry unique ordered replay events", () => {
+    const profile = assembleMvpProfiles()[0];
+    expect(profile).toBeDefined();
+    const replayEvent = profile!.replay.eventLog[0];
+    expect(replayEvent).toBeDefined();
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        replay: {
+          ...profile!.replay,
+          eventLog: [
+            ...profile!.replay.eventLog,
+            {
+              ...replayEvent!,
+              sequence: replayEvent!.sequence + 1
+            }
+          ]
+        }
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        replay: {
+          ...profile!.replay,
+          eventLog: [
+            ...profile!.replay.eventLog,
+            {
+              ...replayEvent!,
+              id: `${replayEvent!.id}.duplicate`
+            }
+          ]
+        }
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        replay: {
+          ...profile!.replay,
+          eventLog: [
+            {
+              ...replayEvent!,
+              id: `${replayEvent!.id}.later`,
+              sequence: replayEvent!.sequence + 1
+            },
+            replayEvent!
+          ]
+        }
+      }).success
+    ).toBe(false);
+  });
+
   it("keeps render requests strict and identified", () => {
     const result = ComponentRenderRequestSchema.safeParse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

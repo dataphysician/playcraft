@@ -187,7 +187,7 @@ describe("saved profile replay", () => {
     };
 
     expect(() => replayProfile(duplicateReplayEventProfile, createDefaultRegistries())).toThrow(
-      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate replay event ids: ${saved.replay.eventLog[0]!.id.replace(/\./gu, "\\.")}`, "u")
+      new RegExp(`profile replay event ${saved.replay.eventLog[0]!.id.replace(/\./gu, "\\.")} must be unique`, "u")
     );
   });
 
@@ -209,7 +209,7 @@ describe("saved profile replay", () => {
     };
 
     expect(() => replayProfile(duplicateReplaySequenceProfile, createDefaultRegistries())).toThrow(
-      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate replay event sequences: ${saved.replay.eventLog[0]!.sequence}`, "u")
+      new RegExp(`profile replay event sequence ${saved.replay.eventLog[0]!.sequence} must be unique`, "u")
     );
   });
 
@@ -233,7 +233,7 @@ describe("saved profile replay", () => {
     };
 
     expect(() => replayProfile(unsortedReplayEventProfile, createDefaultRegistries())).toThrow(
-      /profile profile\.memory-match\.mvp has replay event sequences that are not in ascending order/u
+      /profile replay event sequences must be in ascending order/u
     );
   });
 });

@@ -657,6 +657,30 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
       });
     }
 
+    for (const duplicate of profileDuplicateStrings(value.replay.eventLog.map((event) => event.id))) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `profile replay event ${duplicate} must be unique`,
+        path: ["replay", "eventLog"]
+      });
+    }
+
+    for (const duplicate of profileDuplicateStrings(value.replay.eventLog.map((event) => String(event.sequence)))) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `profile replay event sequence ${duplicate} must be unique`,
+        path: ["replay", "eventLog"]
+      });
+    }
+
+    if (!profileReplayEventSequencesAreAscending(value.replay.eventLog)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "profile replay event sequences must be in ascending order",
+        path: ["replay", "eventLog"]
+      });
+    }
+
     for (const capability of liveSurfaceComponentCapabilities(value.template.liveSurface.componentCapabilities)) {
       const matches = value.components.filter((component) => component.renderCapability === capability);
       if (matches.length === 0) {
@@ -695,6 +719,16 @@ function profileDuplicateStrings(values: string[]): string[] {
   }
 
   return [...duplicates];
+}
+
+function profileReplayEventSequencesAreAscending(eventLog: PlaycraftEventRecord[]): boolean {
+  for (let index = 1; index < eventLog.length; index += 1) {
+    if (eventLog[index]!.sequence < eventLog[index - 1]!.sequence) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export const BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"]);

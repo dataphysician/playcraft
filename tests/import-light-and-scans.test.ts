@@ -794,18 +794,27 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps saved replay event identity unique instead of log-order trusted", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
     const coreSource = readSource("packages/core/src/index.ts");
     const replayTestSource = readSource("packages/core/test/replay.test.ts");
+    const contractTestSource = readSource("packages/contracts/test/schemas.test.ts");
 
-    expect(coreSource).toContain("duplicate_replay_event_id");
-    expect(coreSource).toContain("const duplicateReplayEventIds = duplicateStrings(profile.replay.eventLog.map((event) => event.id));");
+    expect(contractSource).toContain("profileDuplicateStrings(value.replay.eventLog.map((event) => event.id))");
+    expect(contractSource).toContain("profile replay event ${duplicate} must be unique");
+    expect(contractTestSource).toContain("requires profiles to carry unique ordered replay events");
     expect(replayTestSource).toContain("fails closed when saved profile replay events contain duplicate event ids");
-    expect(coreSource).toContain("duplicate_replay_event_sequence");
-    expect(coreSource).toContain("const duplicateReplayEventSequences = duplicateStrings(profile.replay.eventLog.map((event) => String(event.sequence)));");
+    expect(coreSource).not.toContain("duplicate_replay_event_id");
+    expect(coreSource).not.toContain("const duplicateReplayEventIds = duplicateStrings(profile.replay.eventLog.map((event) => event.id));");
+    expect(contractSource).toContain("profileDuplicateStrings(value.replay.eventLog.map((event) => String(event.sequence)))");
+    expect(contractSource).toContain("profile replay event sequence ${duplicate} must be unique");
     expect(replayTestSource).toContain("fails closed when saved profile replay events contain duplicate event sequences");
-    expect(coreSource).toContain("function replayEventSequencesAreAscending");
-    expect(coreSource).toContain("unsorted_replay_event_sequence");
+    expect(coreSource).not.toContain("duplicate_replay_event_sequence");
+    expect(coreSource).not.toContain("const duplicateReplayEventSequences = duplicateStrings(profile.replay.eventLog.map((event) => String(event.sequence)));");
+    expect(contractSource).toContain("function profileReplayEventSequencesAreAscending");
+    expect(contractSource).toContain("profile replay event sequences must be in ascending order");
     expect(replayTestSource).toContain("fails closed when saved profile replay events are not in sequence order");
+    expect(coreSource).not.toContain("function replayEventSequencesAreAscending");
+    expect(coreSource).not.toContain("unsorted_replay_event_sequence");
     expect(coreSource).not.toContain(".sort((left, right) => left.sequence - right.sequence)");
     expect(coreSource).not.toContain("profile.replay.eventLog[0]");
   });
