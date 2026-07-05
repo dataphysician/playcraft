@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Prop Collections
+
+Milestone:
+- Live App game surfaces now require authored string arrays, string matrices, and string records for profile props used by playable interactions.
+- Live App rendering no longer filters malformed collection entries before building memory, sorting, or sequence surfaces.
+
+Supportive changes:
+- Studio UI tests cover malformed sorting bins and sequence round entries.
+- Source scans guard exact Live App prop parsing and malformed JSON prop rejection.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Live App interactions profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or malformed prop filtering.
+
 ## 2026-07-05 - Exact Asset Replacement Prop Collections
 
 Milestone:

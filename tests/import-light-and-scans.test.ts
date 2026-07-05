@@ -1501,9 +1501,17 @@ describe("import-light boundaries and source scans", () => {
 
     expect(tokenReaders).toContain('value.filter((entry): entry is string => typeof entry === "string")');
     expect(tokenReaders).toContain('entry.filter((item): item is string => typeof item === "string")');
+    expect(tokenReaders).toContain("live game prop ${key} must be an authored string array");
+    expect(tokenReaders).toContain("live game prop ${key} contains non-string entries");
+    expect(tokenReaders).toContain("live game prop ${key} must be an authored string matrix");
+    expect(tokenReaders).toContain("live game prop ${key} contains non-array rows");
+    expect(tokenReaders).toContain("live game prop ${key} must be an authored string record");
+    expect(tokenReaders).toContain("live game prop ${key} contains non-string values");
     expect(tokenReaders).not.toContain('typeof entry === "string" ? entry : JSON.stringify(entry)');
     expect(tokenReaders).not.toContain('typeof item === "string" ? item : JSON.stringify(item)');
     expect(studioTestSource).toContain("rejects non-string live game token entries instead of filtering JSON labels");
+    expect(studioTestSource).toContain("rejects non-string sorting bins instead of filtering malformed live props");
+    expect(studioTestSource).toContain("rejects non-string sequence round entries instead of filtering malformed live props");
     expect(readSource("packages/builder/test/session-service.test.ts")).toContain("json-round");
   });
 

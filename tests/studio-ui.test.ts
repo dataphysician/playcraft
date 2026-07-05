@@ -1044,6 +1044,32 @@ describe("studio UI", () => {
     expect(screen.getByText("1 / 2")).toBeDefined();
   });
 
+  it("rejects non-string sorting bins instead of filtering malformed live props", () => {
+    const profile = {
+      ...profileB,
+      components: profileB.components.map((component) =>
+        component.renderCapability === "component:sort-bins"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                items: ["moon"],
+                bins: ["red", { label: "json-bin" }],
+                targets: {
+                  moon: "red"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("live game prop bins contains non-string entries at 1");
+    expect(screen.queryByRole("button", { name: "moon" })).toBeNull();
+  });
+
   it("supports drag/drop sorting with ghost and target feedback", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
@@ -1108,6 +1134,41 @@ describe("studio UI", () => {
     fireEvent.click(screen.getByRole("button", { name: "moon" }));
 
     expect(await screen.findByText("Sequence complete.")).toBeDefined();
+  });
+
+  it("rejects non-string sequence round entries instead of filtering malformed live props", () => {
+    const profile = {
+      ...profileC,
+      components: profileC.components.map((component) => {
+        if (component.renderCapability === "component:sequence-pad") {
+          return {
+            ...component,
+            props: {
+              ...component.props,
+              sequence: ["moon"],
+              rounds: [["moon"], ["star", { label: "json-round" }]]
+            }
+          };
+        }
+
+        if (component.renderCapability === "component:choice-grid") {
+          return {
+            ...component,
+            props: {
+              ...component.props,
+              items: ["moon", "star"]
+            }
+          };
+        }
+
+        return component;
+      })
+    };
+
+    render(React.createElement(LiveGame, { profile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("live game prop rounds contains non-string entries at 1.1");
+    expect(screen.queryByRole("button", { name: "Start Round" })).toBeNull();
   });
 
   it("routes the live game from the template surface contract instead of component priority", async () => {
