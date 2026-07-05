@@ -501,6 +501,9 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
   if (duplicateReplayEventSequences.length > 0) {
     errors.push(schemaIssue(["replay", "eventLog"], "duplicate_replay_event_sequence", `profile ${profile.id} has duplicate replay event sequences: ${duplicateReplayEventSequences.join(", ")}`, "error"));
   }
+  if (!replayEventSequencesAreAscending(profile.replay.eventLog)) {
+    errors.push(schemaIssue(["replay", "eventLog"], "unsorted_replay_event_sequence", `profile ${profile.id} has replay event sequences that are not in ascending order`, "error"));
+  }
 
   const mechanicBindingIds = new Set(profile.mechanics.map((mechanic) => mechanic.bindingId));
   const assetIds = new Set(profile.assets.map((asset) => asset.assetId));
@@ -569,6 +572,16 @@ function duplicateStrings(values: string[]): string[] {
   }
 
   return [...duplicates];
+}
+
+function replayEventSequencesAreAscending(eventLog: PlaycraftEventRecord[]): boolean {
+  for (let index = 1; index < eventLog.length; index += 1) {
+    if (eventLog[index]!.sequence < eventLog[index - 1]!.sequence) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function createPlaycraftEvent(input: Omit<PlaycraftEventRecord, "schemaVersion" | "version" | "kind">): PlaycraftEventRecord {

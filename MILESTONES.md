@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Replay Event Order
+
+Milestone:
+- Core profile validation now rejects saved replay event logs whose sequence numbers are out of ascending order.
+- Replay no longer normalizes or silently accepts a saved event log whose array order contradicts its sequence metadata.
+
+Supportive changes:
+- Core replay tests cover out-of-order saved replay events while keeping event ids and sequence numbers unique.
+- Source scans guard the ascending-order validation and explicitly block sequence sorting as a repair path.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps replay ordering profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or replay log normalization.
+
 ## 2026-07-05 - Exact Core Replay Event Sequences
 
 Milestone:

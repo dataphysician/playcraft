@@ -737,6 +737,10 @@ describe("import-light boundaries and source scans", () => {
     expect(coreSource).toContain("duplicate_replay_event_sequence");
     expect(coreSource).toContain("const duplicateReplayEventSequences = duplicateStrings(profile.replay.eventLog.map((event) => String(event.sequence)));");
     expect(replayTestSource).toContain("fails closed when saved profile replay events contain duplicate event sequences");
+    expect(coreSource).toContain("function replayEventSequencesAreAscending");
+    expect(coreSource).toContain("unsorted_replay_event_sequence");
+    expect(replayTestSource).toContain("fails closed when saved profile replay events are not in sequence order");
+    expect(coreSource).not.toContain(".sort((left, right) => left.sequence - right.sequence)");
     expect(coreSource).not.toContain("profile.replay.eventLog[0]");
   });
 
