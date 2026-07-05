@@ -142,23 +142,23 @@ function LiveGameForProfile({
   assetReplacements?: AssetReplacementInput;
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
+  const template = liveTemplateForProfile(profile);
+  const liveSurface = template.liveSurface;
+  const tokenStyleCatalog = tokenStyleCatalogForSurface(liveSurface);
   const libraryAssetReplacements = React.useMemo(() => createProfileLibraryAssetReplacements(profile), [profile]);
   const mergedAssetReplacements = React.useMemo(
     () => ({ ...libraryAssetReplacements, ...assetReplacements }),
     [assetReplacements, libraryAssetReplacements]
   );
   const replacements = useProfileAssetReplacements(profile, mergedAssetReplacements);
-  const template = liveTemplateForProfile(profile);
-  const liveSurface = template?.liveSurface;
-  const tokenStyleCatalog = liveSurface ? tokenStyleCatalogForSurface(liveSurface) : undefined;
 
-  switch (liveSurface?.kind) {
+  switch (liveSurface.kind) {
     case "memory":
       return React.createElement(MemoryGame, {
         profile,
         component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         replacements,
-        tokenStyleCatalog: requireTokenStyleCatalog(tokenStyleCatalog),
+        tokenStyleCatalog,
         onInteraction
       });
     case "sorting":
@@ -166,7 +166,7 @@ function LiveGameForProfile({
         profile,
         component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         replacements,
-        tokenStyleCatalog: requireTokenStyleCatalog(tokenStyleCatalog),
+        tokenStyleCatalog,
         onInteraction
       });
     case "sequence":
@@ -175,7 +175,7 @@ function LiveGameForProfile({
         sequenceComponent: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         choiceComponent: optionalComponentByCapability(profile, liveSurface.componentCapabilities.choice),
         replacements,
-        tokenStyleCatalog: requireTokenStyleCatalog(tokenStyleCatalog),
+        tokenStyleCatalog,
         onInteraction
       });
   }
@@ -1088,7 +1088,11 @@ function CompletionPanel({
   );
 }
 
-function liveTemplateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot | undefined {
+function liveTemplateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {
+  if (!profile.template) {
+    throw new Error(`live game profile ${profile.id} must carry a template snapshot`);
+  }
+
   return profile.template;
 }
 
@@ -1097,14 +1101,6 @@ function tokenStyleCatalogForSurface(liveSurface: GameTemplateLiveSurface): Toke
     defaultStyle: liveSurface.defaultTokenStyle,
     tokenStyles: liveSurface.tokenStyles
   };
-}
-
-function requireTokenStyleCatalog(catalog: TokenStyleCatalog | undefined): TokenStyleCatalog {
-  if (!catalog) {
-    throw new Error("live surface does not include token style catalog");
-  }
-
-  return catalog;
 }
 
 function requiredComponentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding {

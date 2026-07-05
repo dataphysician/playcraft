@@ -111,10 +111,6 @@ export function createProfileLibraryAssetReplacements(
   const themeFolders = themeFoldersForProfile(profile);
   const template = liveTemplateForProfile(profile);
 
-  if (!template) {
-    return replacements;
-  }
-
   for (const source of template.liveSurface.assetReplacementSources) {
     const component = componentForReplacementSource(profile, template, source);
     if (!component) {
@@ -132,7 +128,11 @@ export function createProfileLibraryAssetReplacements(
   return replacements;
 }
 
-function liveTemplateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot | undefined {
+function liveTemplateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {
+  if (!profile.template) {
+    throw new Error(`asset replacement profile ${profile.id} must carry a template snapshot`);
+  }
+
   return profile.template;
 }
 

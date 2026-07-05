@@ -93,6 +93,20 @@ describe("studio asset library", () => {
     expect(createProfileLibraryAssetReplacements(staleProfile)["card:toy-1-a"]).toBeUndefined();
   });
 
+  it("requires profile-carried template snapshots before mapping local replacements", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const snapshotlessProfile = {
+      ...profile!,
+      template: undefined
+    };
+
+    expect(() => createProfileLibraryAssetReplacements(snapshotlessProfile)).toThrow(/must carry a template snapshot/u);
+  });
+
   it("maps local sprites through profile-carried custom template snapshots", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toys" });

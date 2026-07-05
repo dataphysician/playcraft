@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Studio Template Snapshot Enforcement
+
+Milestone:
+- Studio live-game rendering now requires `profile.template` before selecting a live surface.
+- Studio local asset replacement discovery now requires `profile.template` before mapping edit-aware sprites.
+- Snapshotless imported/custom profiles fail closed in the UI layer instead of rendering a placeholder surface or silently skipping asset replacements.
+
+Supportive changes:
+- Studio UI and asset-library tests cover snapshotless profile rejection.
+- Source scans now block optional `template?.liveSurface` dispatch and UI-side missing-template skips.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps Studio aligned with self-describing game profiles and avoids hosted providers, generated runtime code, auth, database state, compatibility shims, or UI-local bundled-template recovery.
+
 ## 2026-07-04 - Required Profile Template Snapshots
 
 Milestone:

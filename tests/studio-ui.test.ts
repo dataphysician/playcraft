@@ -589,6 +589,15 @@ describe("studio UI", () => {
     expect(screen.getByText("Updated Memory Match MVP with toys assets.")).toBeDefined();
   });
 
+  it("requires profile-carried template snapshots for live game rendering", () => {
+    const snapshotlessProfile = {
+      ...profileA,
+      template: undefined
+    };
+
+    expect(() => render(React.createElement(LiveGame, { profile: snapshotlessProfile }))).toThrow(/must carry a template snapshot/u);
+  });
+
   it("summarizes active asset edits from service session state instead of profile prompts", async () => {
     const activeProfile = {
       ...profileA,
