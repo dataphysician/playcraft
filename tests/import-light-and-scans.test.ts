@@ -634,6 +634,8 @@ describe("import-light boundaries and source scans", () => {
 
     expect(cliSource).toContain("request-batch");
     expect(cliSource).toContain("parseServiceRequestBatchJson");
+    expect(cliSource).toContain("rejectNonEnvelopeFlags");
+    expect(cliSource).toContain("only accepts --request-json and --json");
     expect(cliSource).toContain("BuilderServiceRequestSchema.array().min(1)");
     expect(rootReadme).toContain("playcraft-service request-batch");
     expect(devGuide).toContain("playcraft-service request-batch");

@@ -54,12 +54,14 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
     const catalog = service.catalog();
 
     if (commandName === "request") {
+      rejectNonEnvelopeFlags(args, commandName);
       const response = service.handle(parseServiceRequestJson(args.requestJson));
       writeServiceEnvelopeResponse(response, Boolean(args.json), io);
       return 0;
     }
 
     if (commandName === "request-batch") {
+      rejectNonEnvelopeFlags(args, commandName);
       const responses = parseServiceRequestBatchJson(args.requestJson).map((request) => service.handle(request));
       writeServiceEnvelopeBatchResponse(responses, Boolean(args.json), io);
       return 0;
@@ -251,6 +253,21 @@ function parseServiceRequestBatchJson(value: string | undefined): BuilderService
   }
 
   return BuilderServiceRequestSchema.array().min(1).parse(JSON.parse(value));
+}
+
+function rejectNonEnvelopeFlags(args: ParsedArgs, commandName: "request" | "request-batch"): void {
+  if (
+    args.assetEdit ||
+    args.profileExportJson ||
+    args.profileJson ||
+    args.sessionId ||
+    args.source ||
+    args.templateId ||
+    args.text ||
+    args.transcriptText
+  ) {
+    throw new Error(`${commandName} only accepts --request-json and --json`);
+  }
 }
 
 function writeResponse(response: BuilderServiceResponse, json: boolean, io: LocalServiceCliIo): void {

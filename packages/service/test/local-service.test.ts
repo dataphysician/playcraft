@@ -1293,6 +1293,49 @@ describe("local Playcraft service", () => {
     expect(err.join("\n")).toMatch(/only assemble and update service requests/u);
   });
 
+  it("rejects friendly flags on exact service envelope CLI commands", () => {
+    const out: string[] = [];
+    const err: string[] = [];
+    const request = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.cli-envelope-flags",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "catalog"
+    };
+
+    expect(
+      runLocalServiceCli([
+        "request",
+        "--request-json",
+        JSON.stringify(request),
+        "--text",
+        "Memory game",
+        "--json"
+      ], {
+        stdout: (message) => out.push(message),
+        stderr: (message) => err.push(message)
+      })
+    ).toBe(1);
+    expect(err.pop()).toMatch(/request only accepts --request-json and --json/u);
+
+    expect(
+      runLocalServiceCli([
+        "request-batch",
+        "--request-json",
+        JSON.stringify([request]),
+        "--session",
+        "session.ignored",
+        "--json"
+      ], {
+        stdout: (message) => out.push(message),
+        stderr: (message) => err.push(message)
+      })
+    ).toBe(1);
+    expect(err.pop()).toMatch(/request-batch only accepts --request-json and --json/u);
+    expect(out).toEqual([]);
+  });
+
   it("rejects invalid service request batches through the CLI schema", () => {
     const out: string[] = [];
     const err: string[] = [];

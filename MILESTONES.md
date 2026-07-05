@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Reject Mixed Envelope CLI Flags
+
+Milestone:
+- Exact-envelope service CLI commands now reject friendly CLI flags instead of silently ignoring them.
+- `playcraft-service request` and `request-batch` only accept `--request-json` plus `--json`.
+- The exact-envelope path remains contract-shaped while friendly commands remain the only text/transcript/asset flag surface.
+
+Supportive changes:
+- Service CLI tests cover rejected `--text` on `request` and rejected `--session` on `request-batch`.
+- Source scans pin the envelope flag guard and its explicit error text.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps CLI contract boundaries forward-only and explicit without hidden flag precedence, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Add Service CLI Request Batches
 
 Milestone:
