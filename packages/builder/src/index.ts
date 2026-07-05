@@ -584,6 +584,8 @@ function builderTool(
   actionName: BuilderToolDefinition["actionName"],
   acceptedInputSources: BuilderToolDefinition["acceptedInputSources"]
 ): BuilderToolDefinition {
+  const argumentsSchema = builderToolArgumentsSchema(actionName);
+
   return BuilderToolDefinitionSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
     id,
@@ -593,13 +595,19 @@ function builderTool(
     displayName,
     description,
     actionName,
-    argumentsSchema: builderToolArgumentsSchema(actionName),
+    argumentsSchema,
+    argumentSummary: builderToolArgumentSummary(argumentsSchema, BUILDER_TOOL_PRESENTATION_POLICY),
     acceptedInputSources,
     inputSourceSummary: builderToolInputSourceSummary(acceptedInputSources),
     localOnly: true,
     emittedEvents: ["builder:command", "builder:profile-ready"],
     requiredContracts: ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"]
   });
+}
+
+function builderToolArgumentSummary(schema: JsonObjectSchemaDescriptor, presentation: BuilderToolPresentation): string {
+  const summary = Object.entries(schema.fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
+  return `${presentation.argumentsPrefix}: ${summary.length > 0 ? summary.join(", ") : presentation.noArgumentsLabel}`;
 }
 
 function builderToolInputSourceSummary(sources: BuilderToolDefinition["acceptedInputSources"]): string {

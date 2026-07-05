@@ -337,6 +337,7 @@ describe("studio UI", () => {
             ? {
                 ...tool,
                 inputSourceSummary: "input: unavailable",
+                argumentSummary: "params: empty",
                 argumentsSchema: {
                   ...tool.argumentsSchema,
                   fields: {}
@@ -344,7 +345,8 @@ describe("studio UI", () => {
               }
             : {
                 ...tool,
-                inputSourceSummary: tool.acceptedInputSources.length > 0 ? "input: Typed, Moon CPU" : "input: unavailable"
+                inputSourceSummary: tool.acceptedInputSources.length > 0 ? "input: Typed, Moon CPU" : "input: unavailable",
+                argumentSummary: tool.argumentSummary.replace(/^args:/u, "params:")
               }
         ),
         input: {

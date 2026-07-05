@@ -6,11 +6,9 @@ import {
   type BuilderCommandResult,
   type BuilderTemplateId,
   type BuilderToolDefinition,
-  type BuilderToolPresentation,
-  type GameTemplateDefinition,
-  type JsonObjectSchemaDescriptor
+  type GameTemplateDefinition
 } from "@playcraft/contracts";
-import { BUILDER_SESSION_POLICY, BUILDER_TOOL_PRESENTATION_POLICY, createBuilderCommandHandler, type BuilderExecutionResult } from "./index.js";
+import { BUILDER_SESSION_POLICY, createBuilderCommandHandler, type BuilderExecutionResult } from "./index.js";
 
 export interface BuilderCliIo {
   stdout(message: string): void;
@@ -51,7 +49,7 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
         actionName: "list-builder-tools"
       });
       if (!args.json) {
-        writeCatalogSummary(handler.listTools(), handler.listTemplates(), BUILDER_TOOL_PRESENTATION_POLICY, io);
+        writeCatalogSummary(handler.listTools(), handler.listTemplates(), io);
         return 0;
       }
       writeResult(result, Boolean(args.json), io);
@@ -147,23 +145,17 @@ function builderExecutionSummary(result: BuilderCommandResult): string {
 function writeCatalogSummary(
   tools: BuilderToolDefinition[],
   templates: GameTemplateDefinition[],
-  presentation: BuilderToolPresentation,
   io: BuilderCliIo
 ): void {
   io.stdout("tools:");
   for (const tool of tools) {
-    io.stdout(`- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${toolArgumentsSummary(tool.argumentsSchema, presentation)}`);
+    io.stdout(`- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${tool.argumentSummary}`);
   }
 
   io.stdout("templates:");
   for (const template of templates) {
     io.stdout(`- ${template.displayLabel} [${template.id}] try: ${template.exampleRequest}; aliases: ${template.requestAliasSummary}`);
   }
-}
-
-function toolArgumentsSummary(schema: JsonObjectSchemaDescriptor, presentation: BuilderToolPresentation): string {
-  const summary = Object.entries(schema.fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
-  return `${presentation.argumentsPrefix}: ${summary.length > 0 ? summary.join(", ") : presentation.noArgumentsLabel}`;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

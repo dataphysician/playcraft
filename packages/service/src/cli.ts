@@ -15,7 +15,6 @@ import {
   type BuilderServiceResponse,
   type BuilderTemplateId,
   type GameAssemblyProfile,
-  type JsonObjectSchemaDescriptor
 } from "@playcraft/contracts";
 import { createLocalPlaycraftService, createMoonshineTranscriptRecord } from "./index.js";
 
@@ -313,7 +312,7 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   io.stdout("tools:");
   for (const tool of catalog.tools) {
     io.stdout(
-      `- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${tool.inputSourceSummary}; ${toolArgumentsSummary(catalog, tool.argumentsSchema)}`
+      `- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${tool.inputSourceSummary}; ${tool.argumentSummary}`
     );
   }
 
@@ -322,11 +321,6 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   for (const line of catalog.requestTips.summaryLines) {
     io.stdout(`- ${line}`);
   }
-}
-
-function toolArgumentsSummary(catalog: BuilderCatalog, schema: JsonObjectSchemaDescriptor): string {
-  const summary = Object.entries(schema.fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
-  return `${catalog.toolPresentation.argumentsPrefix}: ${summary.length > 0 ? summary.join(", ") : catalog.toolPresentation.noArgumentsLabel}`;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

@@ -704,11 +704,17 @@ function SequenceGame({
   const [feedback, setFeedback] = React.useState<SequenceFeedback | undefined>();
   const [phase, setPhase] = React.useState<SequencePhase>("watch");
   const [score, setScore] = React.useState(0);
+  const didMountRef = React.useRef(false);
   const componentArt = resolveComponentAsset(profile, sequenceComponent, "illustration", replacements);
   const activeRound = rounds[roundIndex] ?? [];
   const complete = phase === "complete";
 
   React.useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
     setRoundIndex(0);
     setProgress(0);
     setAttempts(0);

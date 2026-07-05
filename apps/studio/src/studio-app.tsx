@@ -464,7 +464,7 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               React.createElement("strong", null, tool.toolName),
               React.createElement("span", { style: shellStyles.catalogMeta }, tool.actionName),
               React.createElement("span", { style: shellStyles.catalogMeta }, tool.inputSourceSummary),
-              React.createElement("span", { style: shellStyles.catalogMeta }, toolArgumentsSummary(tool.argumentsSchema.fields, catalog.toolPresentation))
+              React.createElement("span", { style: shellStyles.catalogMeta }, tool.argumentSummary)
             )
           )
         )
@@ -508,14 +508,6 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
       )
     )
   );
-}
-
-function toolArgumentsSummary(
-  fields: BuilderCatalog["tools"][number]["argumentsSchema"]["fields"],
-  presentation: BuilderCatalog["toolPresentation"]
-): string {
-  const summary = Object.entries(fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
-  return `${presentation.argumentsPrefix}: ${summary.length > 0 ? summary.join(", ") : presentation.noArgumentsLabel}`;
 }
 
 function ProfilePortabilityPanel({

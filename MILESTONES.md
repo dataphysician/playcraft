@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Publish Tool Argument Summaries
+
+Milestone:
+- Builder tool definitions now include `argumentSummary` as the agent-facing argument presentation field.
+- Builder, service, and Studio Developer catalog surfaces render tool-owned argument summaries instead of rebuilding schema display strings locally.
+- CLI catalog output for both builder and service tools now reads `tool.argumentSummary` from the public tool contract.
+
+Supportive changes:
+- Contract, builder, service, Studio UI, and source-scan tests validate tool-owned argument summaries.
+- Source scans block removed Studio, service CLI, and builder CLI argument-summary helpers from returning.
+- Sequence gameplay now skips the post-mount reset effect so a fast first Start Round click is not overwritten back to the watch state.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts packages/contracts/test/schemas.test.ts packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Keeps agent-facing tool argument presentation contract-owned and forward-only without UI/CLI argument formatting, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Publish Tool Input Source Summaries
 
 Milestone:

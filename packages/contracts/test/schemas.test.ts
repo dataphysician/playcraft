@@ -68,6 +68,7 @@ describe("public contract schemas", () => {
         },
         allowUnknown: false
       },
+      argumentSummary: "args: assetEdit:object, input:object, sessionId:string, templateId*:string",
       acceptedInputSources: ["text", "moonshine-transcript"],
       inputSourceSummary: "input: Text, Transcript",
       localOnly: true,
@@ -823,6 +824,7 @@ describe("public contract schemas", () => {
         },
         allowUnknown: false
       },
+      argumentSummary: "args: templateId*:string",
       acceptedInputSources: ["text"],
       inputSourceSummary: "input: Text",
       localOnly: true,
