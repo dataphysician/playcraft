@@ -457,7 +457,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     aliases: ["number memory", "number match cards", "matching numbers", "find number pairs"],
     prompt: "friendly number cards for a child-safe memory game",
     title: "Number pairs",
-    pairItems: ["number-1", "number-2"],
+    pairItems: ["number-1", "number-2", "number-3"],
     seed: "seed-number-memory"
   }),
   memoryTemplate({
@@ -1685,7 +1685,7 @@ function sequenceTemplate(input: {
 }
 
 function pairedCards(items: string[]): { cards: string[]; pairs: Record<string, string> } {
-  const cards = items.slice(0, 2).flatMap((item) => [`${item}-a`, `${item}-b`]);
+  const cards = items.flatMap((item) => [`${item}-a`, `${item}-b`]);
   const pairs = Object.fromEntries(
     cards.map((card, index) => [card, `pair-${Math.floor(index / 2) + 1}`])
   );

@@ -1,5 +1,23 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Authored Memory Template Pair Counts
+
+Milestone:
+- Bundled memory template construction now uses every authored `pairItems` entry instead of truncating generated cards to the first two pairs.
+- Number Memory now exercises a three-pair bundled profile, proving the reusable template helper supports more than the default Memory Match shape.
+
+Supportive changes:
+- Pack tests assert Number Memory emits six cards and three explicit pair groups.
+- Source scans block the old `items.slice(0, 2).flatMap` memory template truncation path.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+
+Constraint notes:
+- Keeps bundled toddler memory templates profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or hard-coded two-pair template assumptions.
+
 ## 2026-07-05 - Exact Asset Request Item Metadata
 
 Milestone:

@@ -217,6 +217,30 @@ describe("MVP profile pack", () => {
     expect(gameTemplateDefinitions.find((template) => template.id === "template.sorting")?.requestAliasSummary).toBe("sort, sorting, sorting game");
   });
 
+  it("keeps memory template card counts authored by pair items instead of truncating to two pairs", () => {
+    const profile = createDefaultPlanner().assemble(
+      mvpAssemblyRequests.find((request) => request.id === "request.number-memory.mvp")!
+    );
+    const revealGrid = profile.components.find((component) => component.renderCapability === "component:reveal-card-grid");
+
+    expect(revealGrid?.props.cards).toEqual([
+      "number-1-a",
+      "number-1-b",
+      "number-2-a",
+      "number-2-b",
+      "number-3-a",
+      "number-3-b"
+    ]);
+    expect(revealGrid?.props.pairs).toMatchObject({
+      "number-1-a": "pair-1",
+      "number-1-b": "pair-1",
+      "number-2-a": "pair-2",
+      "number-2-b": "pair-2",
+      "number-3-a": "pair-3",
+      "number-3-b": "pair-3"
+    });
+  });
+
   it("keeps bundled mechanics and templates free of runtime audio capture modalities", () => {
     const removedModality = `vo${"ice"}`;
 

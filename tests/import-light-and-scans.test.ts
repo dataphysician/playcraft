@@ -224,6 +224,16 @@ describe("import-light boundaries and source scans", () => {
     expect(packTestSource).toContain('primary: "rule:sequence-progressed"');
   });
 
+  it("keeps memory template pair counts authored instead of truncating pair items", () => {
+    const packSource = readSource("packages/packs/src/index.ts");
+    const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
+
+    expect(packSource).toContain("const cards = items.flatMap");
+    expect(packSource).toContain('"number-3"');
+    expect(packTestSource).toContain("keeps memory template card counts authored by pair items instead of truncating to two pairs");
+    expect(packSource).not.toContain("items.slice(0, 2).flatMap");
+  });
+
   it("keeps trusted component tool emission single-tool explicit", () => {
     const packSource = readSource("packages/packs/src/index.ts");
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
