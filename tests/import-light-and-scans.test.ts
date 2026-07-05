@@ -1236,6 +1236,7 @@ describe("import-light boundaries and source scans", () => {
 
     expect(source).toContain("isGenericAssetTheme");
     expect(source).toContain("function assetIntentClauses");
+    expect(source).toContain(".split(/(?:[;!?]+|\\.(?:\\s+|$))/u)");
     expect(source).toContain("function matchAssetThemes");
     expect(source).toContain("function uniqueAssetThemeMatches");
     expect(source).toContain("ambiguous asset request matched");
@@ -1249,6 +1250,7 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceTestSource).toContain("rejects text asset edits with too many explicit items instead of truncating them");
     expect(serviceTestSource).toContain("rejects text asset edit themes that exceed the contract instead of truncating them");
     expect(serviceTestSource).toContain("rejects ambiguous asset edit text instead of selecting the first match");
+    expect(serviceTestSource).toContain("keeps dotted freeform asset folder names literal instead of treating dots as truncation");
     expect(contractSource).toContain("genericThemeTokens");
     expect(contractSource).toContain("freeformItemSuffixes");
     expect(assetCatalogSource).toContain("localAssetEditGenericThemeTokens");
@@ -1266,6 +1268,7 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain('new Set(["asset", "assets"');
     expect(source).not.toContain("matchCatalogAssetTheme");
     expect(source).not.toContain("replace\\\\s+");
+    expect(source).not.toContain(".split(/[.!?;]/u)[0]");
     expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:game\|profile\|challenge\|assets/u);
     expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:assets\?\|cards/u);
   });

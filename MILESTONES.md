@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Literal Dotted Asset Folder Names
+
+Milestone:
+- Local service text asset parsing now preserves dots inside freeform asset folder names instead of truncating at the first period.
+- Asset intent clauses still split sentence-style punctuation so separate asset requests remain ambiguous and fail closed.
+
+Supportive changes:
+- Source scans guard sentence-aware asset clause splitting and block the old punctuation truncation path.
+- Service tests cover dotted freeform asset folder names while existing ambiguity tests continue covering multi-sentence asset requests.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden removed-provider exact scan
+
+Constraint notes:
+- Keeps local asset-folder requests literal, extensible, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or punctuation truncation heuristics.
+
 ## 2026-07-05 - Exact Core Registry Selected Match
 
 Milestone:

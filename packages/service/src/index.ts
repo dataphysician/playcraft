@@ -1023,7 +1023,7 @@ function requireSingleValue<TValue>(values: TValue[], label: string): TValue {
 
 function assetIntentClauses(text: string): string[] {
   return text
-    .split(/[;.!?]+/u)
+    .split(/(?:[;!?]+|\.(?:\s+|$))/u)
     .map((entry) => entry.trim())
     .filter(Boolean);
 }
@@ -1086,7 +1086,6 @@ function isGenericAssetTheme(value: string): boolean {
 
 function cleanAssetTheme(value: string): string {
   return value
-    .split(/[.!?;]/u)[0]
     .replace(/\b(?:a|an|the)\b/gu, " ")
     .replace(/[^a-z0-9 ,.-]+/gu, " ")
     .replace(/\s+/gu, " ")

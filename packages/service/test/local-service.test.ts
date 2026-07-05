@@ -1196,6 +1196,22 @@ describe("local Playcraft service", () => {
     });
   });
 
+  it("keeps dotted freeform asset folder names literal instead of treating dots as truncation", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Use assets with ocean.friends"
+    });
+
+    expect(resolved.templateId).toBe("template.memory-match");
+    expect(resolved.assetEdit).toEqual({ theme: "ocean.friends" });
+    expect(resolved.resolution.assetDecision).toMatchObject({
+      source: "freeform-asset-request",
+      matchedText: "ocean.friends"
+    });
+  });
+
   it("rejects generic asset nouns as freeform asset themes", () => {
     const resolved = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",
