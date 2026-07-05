@@ -36,14 +36,14 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
   const replay = replayProfile(profile, registries);
   const primaryCapability = profile.template.liveSurface.componentCapabilities.primary;
 
-  return replay.renderRequests.map((request, index) => {
+  return replay.renderRequests.map((request) => {
     const manifest = requiredTrustedManifestForRenderRequest(request);
     const componentId = request.componentId;
     const componentCapability = request.componentCapability;
     const emittedToolNames = manifest.emittedTools.map((tool) => tool.toolName);
 
     return {
-      componentKey: renderRequestKey(request, index),
+      componentKey: renderRequestKey(request),
       componentId,
       componentCapability,
       mechanicBindingId: request.mechanicBindingId,
@@ -78,7 +78,7 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
   try {
     request = selectedComponentKey === undefined
       ? renderRequestForTemplatePrimary(profile, replay.renderRequests)
-      : replay.renderRequests.find((candidate, index) => renderRequestKey(candidate, index) === selectedComponentKey);
+      : replay.renderRequests.find((candidate) => renderRequestKey(candidate) === selectedComponentKey);
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "trusted preview primary component selection failed";
     return React.createElement(PreviewFailure, { failure: { code: "invalid-request", message } });
@@ -127,8 +127,8 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
   );
 }
 
-function renderRequestKey(request: ComponentRenderRequest, index: number): string {
-  return `${request.componentId}.${index}`;
+function renderRequestKey(request: ComponentRenderRequest): string {
+  return request.id;
 }
 
 function renderRequestForTemplatePrimary(

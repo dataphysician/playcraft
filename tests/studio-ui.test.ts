@@ -568,9 +568,11 @@ describe("studio UI", () => {
 
   it("uses concrete component identities for trusted preview summaries", () => {
     const summaries = getTrustedPreviewComponents(profileA);
+    const primaryBindingId = profileA.components.find((component) => component.renderCapability === "component:reveal-card-grid")?.bindingId;
 
     expect(summaries).toEqual(expect.arrayContaining([
       expect.objectContaining({
+        componentKey: `render.${profileA.id}.${primaryBindingId}`,
         componentId: "component.reveal-card-grid",
         componentCapability: "component:reveal-card-grid",
         isPrimaryPreviewSurface: true,

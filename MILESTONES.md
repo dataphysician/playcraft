@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Stable Trusted Preview Component Keys
+
+Milestone:
+- Studio trusted preview component selection now uses the replay render request id as the component key.
+- Component keys no longer depend on `componentId` plus render request array index.
+
+Supportive changes:
+- Studio UI tests assert preview summaries expose the stable render request id derived from the profile and component binding.
+- Source scans block returning to index-based `renderRequestKey` calls.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Studio preview selection replay-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or array-order component identity.
+
 ## 2026-07-05 - Fail-Closed Replay Manifest Tool Metadata
 
 Milestone:
