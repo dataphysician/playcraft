@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Self-Describing Service Session Templates
+
+Milestone:
+- `BuilderSessionSnapshotSchema` now requires profile-bearing snapshots to include an active template id.
+- Session active template ids must match both the profile template snapshot and preview active template id.
+- Local service session merging no longer restores missing snapshot template ids from service-local state.
+
+Supportive changes:
+- Contract tests cover missing and mismatched session template ids.
+- Service tests reject builder snapshots that omit active template ids instead of recovering from stored session state.
+- Source scans guard the stricter snapshot messages and block the removed stale-template recovery expression.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Service snapshot source scan confirmed no `state?.activeTemplateId ?? snapshot.activeTemplateId` recovery path.
+
+Constraint notes:
+- Keeps service session snapshots self-describing and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or stale session-template recovery.
+
 ## 2026-07-04 - Studio Trusted Preview Primary Surface
 
 Milestone:

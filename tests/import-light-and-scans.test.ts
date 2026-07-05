@@ -432,7 +432,10 @@ describe("import-light boundaries and source scans", () => {
 
     expect(contractSource).toContain("session snapshots with activeProfileId require an active profile payload");
     expect(contractSource).toContain("session snapshots with profile payloads require activeProfileId");
+    expect(contractSource).toContain("session snapshots with profile payloads require activeTemplateId");
     expect(contractSource).toContain("session snapshot profile id must match activeProfileId");
+    expect(contractSource).toContain("session snapshot template id must match profile template");
+    expect(contractSource).toContain("session snapshot activeTemplateId must match preview activeTemplateId");
     expect(contractSource).toContain("command results with profile payloads require preview activeProfileId");
     expect(contractSource).toContain("command result profile id must match preview activeProfileId");
     expect(contractSource).toContain("profile exports require preview activeProfileId");
@@ -685,6 +688,7 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("activeTemplateId: BuilderTemplateId;");
     expect(source).not.toContain("activeTemplateId: result.preview.activeTemplateId ?? existing?.activeTemplateId");
     expect(source).not.toContain("activeTemplateId: output.result.preview.activeTemplateId");
+    expect(source).not.toContain("activeTemplateId: state?.activeTemplateId ?? snapshot.activeTemplateId");
   });
 
   it("keeps service CLI preview/get/export free of hidden assemble seeding", () => {

@@ -609,6 +609,42 @@ describe("local Playcraft service", () => {
     ).toThrow(/requires activeTemplateId/u);
   });
 
+  it("rejects session snapshots missing active template ids instead of restoring local state", () => {
+    const baseHandler = createBuilderCommandHandler();
+    const handler: BuilderCommandHandler = {
+      assembleTemplates: (...args) => baseHandler.assembleTemplates(...args),
+      execute: (...args) => baseHandler.execute(...args),
+      importProfile: (...args) => baseHandler.importProfile(...args),
+      listTemplates: () => baseHandler.listTemplates(),
+      listTools: () => baseHandler.listTools(),
+      getSessionSnapshot(...args) {
+        const snapshot = baseHandler.getSessionSnapshot(...args);
+        return {
+          ...snapshot,
+          activeTemplateId: undefined,
+          preview: {
+            ...snapshot.preview,
+            activeTemplateId: undefined
+          }
+        };
+      }
+    };
+    const service = createLocalPlaycraftService(handler);
+
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.missing-template-snapshot",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        sessionId: "session.missing-template-snapshot",
+        source: "text",
+        text: "Memory game with dinosaurs"
+      })
+    ).toThrow(/session snapshots with profile payloads require activeTemplateId/u);
+  });
+
   it("rejects transcript-sourced service requests without Moonshine transcript records", () => {
     const service = createLocalPlaycraftService();
 

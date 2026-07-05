@@ -1028,9 +1028,21 @@ export const BuilderSessionSnapshotSchema = z
     message: "session snapshots with profile payloads require activeProfileId",
     path: ["activeProfileId"]
   })
+  .refine((value) => !value.profile || Boolean(value.activeTemplateId), {
+    message: "session snapshots with profile payloads require activeTemplateId",
+    path: ["activeTemplateId"]
+  })
   .refine((value) => !value.profile || !value.activeProfileId || value.profile.id === value.activeProfileId, {
     message: "session snapshot profile id must match activeProfileId",
     path: ["profile"]
+  })
+  .refine((value) => !value.profile || !value.activeTemplateId || value.profile.template.id === value.activeTemplateId, {
+    message: "session snapshot template id must match profile template",
+    path: ["activeTemplateId"]
+  })
+  .refine((value) => !value.activeTemplateId || value.preview.activeTemplateId === value.activeTemplateId, {
+    message: "session snapshot activeTemplateId must match preview activeTemplateId",
+    path: ["preview", "activeTemplateId"]
   });
 export type BuilderSessionSnapshot = z.infer<typeof BuilderSessionSnapshotSchema>;
 

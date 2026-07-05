@@ -1112,8 +1112,7 @@ function requireResultTemplateId(result: BuilderExecutionResult["result"]): Buil
 function mergeSessionState(snapshot: BuilderSessionSnapshot, state: LocalSessionState | undefined): BuilderSessionSnapshot {
   return BuilderSessionSnapshotSchema.parse({
     ...snapshot,
-    activeAssetEdit: state?.activeAssetEdit,
-    activeTemplateId: state?.activeTemplateId ?? snapshot.activeTemplateId
+    activeAssetEdit: state?.activeAssetEdit
   });
 }
 

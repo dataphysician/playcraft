@@ -768,6 +768,7 @@ describe("public contract schemas", () => {
     expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
       ...baseSession,
       activeProfileId: undefined,
+      activeTemplateId: undefined,
       profile: undefined,
       preview: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -787,6 +788,28 @@ describe("public contract schemas", () => {
     expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
       ...baseSession,
       activeProfileId: "profile.other"
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
+      ...baseSession,
+      activeTemplateId: undefined
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
+      ...baseSession,
+      activeTemplateId: "template.sorting"
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
+      ...baseSession,
+      preview: {
+        ...preview,
+        activeTemplateId: undefined
+      }
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
+      ...baseSession,
+      preview: {
+        ...preview,
+        activeTemplateId: "template.sorting"
+      }
     }).success).toBe(false);
   });
 
