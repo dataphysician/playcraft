@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Component Asset Bindings
+
+Milestone:
+- Core profile validation now rejects component asset binding names that are not declared by the component manifest.
+- Saved profile replay no longer lets stale component asset binding metadata pass through to later renderer failures.
+
+Supportive changes:
+- Core replay tests cover unknown saved component asset binding names.
+- Source scans guard the core validation error alongside the trusted renderer binding check.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps component asset bindings manifest-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or stale asset binding metadata.
+
 ## 2026-07-05 - Exact Live App Prop Collections
 
 Milestone:

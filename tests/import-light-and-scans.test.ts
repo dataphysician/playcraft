@@ -1517,6 +1517,7 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps trusted rendering component-id concrete without capability fallback dispatch", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
+    const coreSource = readSource("packages/core/src/index.ts");
     const rendererSource = readSource("packages/renderer/src/index.tsx");
     const previewSource = readSource("apps/studio/src/trusted-preview.tsx");
 
@@ -1536,6 +1537,9 @@ describe("import-light boundaries and source scans", () => {
     expect(rendererSource).toContain("unknown asset bindings for ${manifest.id}");
     expect(rendererSource).toContain("const unknownBindings = Object.keys(request.assetBindings).filter");
     expect(readSource("packages/renderer/test/trusted-renderer.test.tsx")).toContain("rejects unknown asset bindings instead of ignoring extra profile data");
+    expect(coreSource).toContain("unknown_asset_binding");
+    expect(coreSource).toContain("const unknownAssetBindings = Object.keys(component.assetBindings).filter");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved component asset bindings include unknown manifest bindings");
     expect(rendererSource).not.toContain("entry.manifest.id === request.componentId");
     expect(rendererSource).not.toContain("entry.manifest.renderCapability === request.componentCapability");
     expect(previewSource).toContain("candidate.id === request.componentId && candidate.version === request.componentVersion");

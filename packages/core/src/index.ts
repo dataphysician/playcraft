@@ -493,6 +493,12 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
       errors.push(schemaIssue(["components", index, "renderCapability"], "unsupported_capability", `component ${component.componentId} does not provide ${component.renderCapability}`, "error"));
     }
 
+    const knownAssetBindings = new Set(manifest.requiredAssets.map((requirement) => requirement.binding));
+    const unknownAssetBindings = Object.keys(component.assetBindings).filter((binding) => !knownAssetBindings.has(binding));
+    if (unknownAssetBindings.length > 0) {
+      errors.push(schemaIssue(["components", index, "assetBindings"], "unknown_asset_binding", `component ${component.bindingId} has unknown asset bindings: ${unknownAssetBindings.join(", ")}`, "error"));
+    }
+
     for (const requirement of manifest.requiredAssets) {
       if (!requirement.required) {
         continue;

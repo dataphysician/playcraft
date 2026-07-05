@@ -54,4 +54,27 @@ describe("saved profile replay", () => {
 
     expect(() => replayProfile(saved, registries)).toThrow(/component component\.reveal-card-grid@1\.0\.0 is not registered/u);
   });
+
+  it("fails closed when saved component asset bindings include unknown manifest bindings", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const staleBindingProfile = {
+      ...saved,
+      components: saved.components.map((component, index) =>
+        index === 0
+          ? {
+              ...component,
+              assetBindings: {
+                ...component.assetBindings,
+                stale: saved.assets[0]!.assetId
+              }
+            }
+          : component
+      )
+    };
+
+    expect(() => replayProfile(staleBindingProfile, createDefaultRegistries())).toThrow(
+      /component profile\.memory-match\.mvp\.component\.1 has unknown asset bindings: stale/u
+    );
+  });
 });
