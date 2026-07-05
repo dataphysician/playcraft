@@ -38,10 +38,10 @@ Ask the CLI what an agent can assemble:
 pnpm --filter @playcraft/service exec playcraft-service catalog --json
 pnpm --filter @playcraft/service exec playcraft-service assemble --text "Memory game with dinosaurs" --json
 pnpm --filter @playcraft/service exec playcraft-service assemble --transcript "Sort shapes by color" --json
-pnpm --filter @playcraft/service exec playcraft-service export-profile --text "Memory game with dinosaurs" --json
+pnpm --filter @playcraft/service exec playcraft-service request-batch --request-json '[{"schemaVersion":"playcraft.v1","id":"builder-service-request.readme.assemble","version":"1.0.0","kind":"builder-service-request","actionName":"assemble","sessionId":"session.readme","text":"Memory game with dinosaurs"},{"schemaVersion":"playcraft.v1","id":"builder-service-request.readme.export","version":"1.0.0","kind":"builder-service-request","actionName":"export-profile","sessionId":"session.readme"}]' --json
 ```
 
-The catalog exposes bundled templates, callable builder tools, accepted input sources, profile get/export/import actions, and local replacement themes such as dinosaurs, toys, dolphins/ocean animals, and fruits.
+The catalog exposes bundled templates, callable builder tools, accepted input sources, profile get/export/import actions, and local replacement themes such as dinosaurs, toys, dolphins/ocean animals, and fruits. Use `request-batch` when a CLI workflow needs multiple validated service envelopes to share one local session.
 
 ## Architecture
 

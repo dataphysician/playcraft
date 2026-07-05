@@ -627,6 +627,19 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("response.execution ?? response.session");
   });
 
+  it("keeps service CLI stateful examples on exact request batches", () => {
+    const cliSource = readSource("packages/service/src/cli.ts");
+    const rootReadme = readSource("README.md");
+    const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
+
+    expect(cliSource).toContain("request-batch");
+    expect(cliSource).toContain("parseServiceRequestBatchJson");
+    expect(cliSource).toContain("BuilderServiceRequestSchema.array().min(1)");
+    expect(rootReadme).toContain("playcraft-service request-batch");
+    expect(devGuide).toContain("playcraft-service request-batch");
+    expect(`${rootReadme}\n${devGuide}`).not.toMatch(/export-profile\s+--(?:text|transcript|asset-theme|asset-item)/u);
+  });
+
   it("keeps Studio request tips catalog-owned instead of app-composed", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");

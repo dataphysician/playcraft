@@ -1228,6 +1228,44 @@ describe("local Playcraft service", () => {
     expect(err).toEqual([]);
   });
 
+  it("lets agents submit same-process service request batches through the CLI", () => {
+    const out: string[] = [];
+    const err: string[] = [];
+    const requests = [
+      {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.cli-batch-assemble",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        sessionId: "session.cli-batch",
+        text: "Memory game with dinosaurs"
+      },
+      {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.cli-batch-export",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "export-profile",
+        sessionId: "session.cli-batch"
+      }
+    ];
+
+    expect(
+      runLocalServiceCli(["request-batch", "--request-json", JSON.stringify(requests), "--json"], {
+        stdout: (message) => out.push(message),
+        stderr: (message) => err.push(message)
+      })
+    ).toBe(0);
+
+    const responses = BuilderServiceResponseSchema.array().parse(JSON.parse(out.pop() ?? "[]"));
+    expect(responses.map((response) => response.actionName)).toEqual(["assemble", "export-profile"]);
+    expect(responses[0]?.execution?.result.profile?.assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
+    expect(responses[1]?.profileExport?.sessionId).toBe("session.cli-batch");
+    expect(responses[1]?.profileExport?.profile.id).toBe("profile.memory-match.mvp");
+    expect(err).toEqual([]);
+  });
+
   it("rejects invalid exact service request envelopes through the CLI schema", () => {
     const out: string[] = [];
     const err: string[] = [];
@@ -1253,6 +1291,28 @@ describe("local Playcraft service", () => {
 
     expect(out).toEqual([]);
     expect(err.join("\n")).toMatch(/only assemble and update service requests/u);
+  });
+
+  it("rejects invalid service request batches through the CLI schema", () => {
+    const out: string[] = [];
+    const err: string[] = [];
+
+    expect(
+      runLocalServiceCli(["request-batch", "--request-json", JSON.stringify([]), "--json"], {
+        stdout: (message) => out.push(message),
+        stderr: (message) => err.push(message)
+      })
+    ).toBe(1);
+    expect(err.pop()).toMatch(/Array must contain at least 1/u);
+
+    expect(
+      runLocalServiceCli(["request-batch", "--json"], {
+        stdout: (message) => out.push(message),
+        stderr: (message) => err.push(message)
+      })
+    ).toBe(1);
+    expect(err.pop()).toMatch(/request-batch command requires --request-json/u);
+    expect(out).toEqual([]);
   });
 
   it("exposes a direct service request handler for adapters without a CLI process", () => {

@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Add Service CLI Request Batches
+
+Milestone:
+- `playcraft-service request-batch` now executes a JSON array of validated `BuilderServiceRequest` envelopes on one local service instance.
+- Agents can run stateful CLI workflows such as assemble then export without adding persistence or hidden session defaults.
+- The root README no longer advertises `export-profile` with input flags and now shows the exact-envelope batch path.
+
+Supportive changes:
+- Service CLI tests cover a same-process assemble/export request batch and validate the exported profile.
+- Service CLI tests reject empty batches and missing `--request-json`.
+- Source scans pin `request-batch` docs and block stale input-flag export examples.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Stale service CLI example scan returned no matches.
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps the CLI agent surface explicit and forward-only through validated service envelopes without CLI persistence, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Prove Mobile Profile Tool Surface
 
 Milestone:

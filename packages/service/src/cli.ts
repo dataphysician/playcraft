@@ -44,7 +44,7 @@ const defaultIo: LocalServiceCliIo = {
 export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request> [--text <request>] [--transcript <moonshine transcript>] [--source <text|moonshine-transcript>] [--session <id>] [--template <template-id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
+    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request|request-batch> [--text <request>] [--transcript <moonshine transcript>] [--source <text|moonshine-transcript>] [--session <id>] [--template <template-id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
     return 1;
   }
 
@@ -56,6 +56,12 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
     if (commandName === "request") {
       const response = service.handle(parseServiceRequestJson(args.requestJson));
       writeServiceEnvelopeResponse(response, Boolean(args.json), io);
+      return 0;
+    }
+
+    if (commandName === "request-batch") {
+      const responses = parseServiceRequestBatchJson(args.requestJson).map((request) => service.handle(request));
+      writeServiceEnvelopeBatchResponse(responses, Boolean(args.json), io);
       return 0;
     }
 
@@ -239,6 +245,14 @@ function parseServiceRequestJson(value: string | undefined): BuilderServiceReque
   return BuilderServiceRequestSchema.parse(JSON.parse(value));
 }
 
+function parseServiceRequestBatchJson(value: string | undefined): BuilderServiceRequest[] {
+  if (!value) {
+    throw new Error("request-batch command requires --request-json");
+  }
+
+  return BuilderServiceRequestSchema.array().min(1).parse(JSON.parse(value));
+}
+
 function writeResponse(response: BuilderServiceResponse, json: boolean, io: LocalServiceCliIo): void {
   if (json) {
     io.stdout(JSON.stringify(payloadForResponse(response), null, 2));
@@ -301,6 +315,17 @@ function writeServiceEnvelopeResponse(response: BuilderServiceResponse, json: bo
   }
 
   writeResponse(response, false, io);
+}
+
+function writeServiceEnvelopeBatchResponse(responses: BuilderServiceResponse[], json: boolean, io: LocalServiceCliIo): void {
+  if (json) {
+    io.stdout(JSON.stringify(responses, null, 2));
+    return;
+  }
+
+  for (const response of responses) {
+    writeResponse(response, false, io);
+  }
 }
 
 function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): void {
