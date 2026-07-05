@@ -125,7 +125,10 @@ export const PublicContractNameSchema = z.enum([
   "BuilderServiceExecutionSchema",
   "BuilderServiceRequestSchema",
   "BuilderServiceRequestBatchSchema",
-  "BuilderServiceResponseSchema"
+  "BuilderServiceResponseSchema",
+  "McpManifestSchema",
+  "WorkflowGraphSchema",
+  "AssetCatalogManifestSchema"
 ]);
 export type PublicContractName = z.infer<typeof PublicContractNameSchema>;
 
@@ -1307,6 +1310,232 @@ export const BuilderCatalogRequestTipsSchema = z
   .strict();
 export type BuilderCatalogRequestTips = z.infer<typeof BuilderCatalogRequestTipsSchema>;
 
+export const McpToolArgumentSchema = z
+  .object({
+    name: z.string().min(1),
+    type: z.string().min(1),
+    description: z.string().min(1),
+    required: z.boolean().default(false),
+    enum: z.array(z.unknown()).optional()
+  })
+  .strict();
+export type McpToolArgument = z.infer<typeof McpToolArgumentSchema>;
+
+export const McpToolSchema = z
+  .object({
+    name: z.string().min(1),
+    description: z.string().min(1),
+    parameters: z.record(McpToolArgumentSchema)
+  })
+  .strict();
+export type McpTool = z.infer<typeof McpToolSchema>;
+
+export const McpManifestSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("mcp-manifest"),
+  name: z.string().min(1),
+  tools: z.array(McpToolSchema).min(1)
+}).strict();
+export type McpManifest = z.infer<typeof McpManifestSchema>;
+
+const SseRunStartedFrameSchema = z
+  .object({
+    kind: z.literal("sse-run-started"),
+    runId: StableIdSchema,
+    sequence: z.number().int().nonnegative(),
+    payload: z.object({ runId: StableIdSchema }).strict()
+  })
+  .strict();
+
+const SseToolCallFrameSchema = z
+  .object({
+    kind: z.literal("sse-tool-call"),
+    runId: StableIdSchema,
+    sequence: z.number().int().nonnegative(),
+    payload: z
+      .object({
+        toolName: z.string().min(1),
+        args: JsonValueSchema
+      })
+      .strict()
+  })
+  .strict();
+
+const SseToolResultFrameSchema = z
+  .object({
+    kind: z.literal("sse-tool-result"),
+    runId: StableIdSchema,
+    sequence: z.number().int().nonnegative(),
+    payload: z
+      .object({
+        toolName: z.string().min(1),
+        result: JsonValueSchema
+      })
+      .strict()
+  })
+  .strict();
+
+const SseCustomFrameSchema = z
+  .object({
+    kind: z.literal("sse-custom"),
+    runId: StableIdSchema,
+    sequence: z.number().int().nonnegative(),
+    payload: JsonValueSchema
+  })
+  .strict();
+
+const SseRunFinishedFrameSchema = z
+  .object({
+    kind: z.literal("sse-run-finished"),
+    runId: StableIdSchema,
+    sequence: z.number().int().nonnegative(),
+    payload: z.object({ runId: StableIdSchema }).strict()
+  })
+  .strict();
+
+const SseRunErrorFrameSchema = z
+  .object({
+    kind: z.literal("sse-run-error"),
+    runId: StableIdSchema,
+    sequence: z.number().int().nonnegative(),
+    payload: z
+      .object({
+        message: z.string().min(1)
+      })
+      .strict()
+  })
+  .strict();
+
+export const SseFrameSchema = z.discriminatedUnion("kind", [
+  SseRunStartedFrameSchema,
+  SseToolCallFrameSchema,
+  SseToolResultFrameSchema,
+  SseCustomFrameSchema,
+  SseRunFinishedFrameSchema,
+  SseRunErrorFrameSchema
+]);
+export type SseFrame = z.infer<typeof SseFrameSchema>;
+
+export const WorkflowEdgeSchema = z
+  .object({
+    from: StableIdSchema,
+    to: StableIdSchema
+  })
+  .strict();
+export type WorkflowEdge = z.infer<typeof WorkflowEdgeSchema>;
+
+export const WorkflowNodeSchema = z
+  .object({
+    id: StableIdSchema,
+    actionName: BuilderServiceActionNameSchema,
+    payload: z.record(JsonValueSchema).default({}),
+    dependsOn: z.array(StableIdSchema).default([]),
+    condition: z.string().min(1).optional(),
+    continueOnError: z.boolean().default(false)
+  })
+  .strict();
+export type WorkflowNode = z.infer<typeof WorkflowNodeSchema>;
+
+export const WorkflowGraphSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("workflow-graph"),
+  nodes: z.array(WorkflowNodeSchema).min(1).max(20),
+  edges: z.array(WorkflowEdgeSchema).min(1),
+  startNodeId: StableIdSchema
+}).strict()
+  .superRefine((value, context) => {
+    const nodeIds = new Set(value.nodes.map((node) => node.id));
+    if (!nodeIds.has(value.startNodeId)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "workflow graph startNodeId must reference an existing node",
+        path: ["startNodeId"]
+      });
+    }
+
+    for (const edge of value.edges) {
+      if (!nodeIds.has(edge.from)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `workflow edge from ${edge.from} must reference an existing node`,
+          path: ["edges"]
+        });
+      }
+      if (!nodeIds.has(edge.to)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `workflow edge to ${edge.to} must reference an existing node`,
+          path: ["edges"]
+        });
+      }
+    }
+
+    const adjacencyList = new Map<string, string[]>();
+    for (const node of value.nodes) {
+      adjacencyList.set(node.id, []);
+    }
+    for (const edge of value.edges) {
+      const neighbors = adjacencyList.get(edge.from) || [];
+      neighbors.push(edge.to);
+      adjacencyList.set(edge.from, neighbors);
+    }
+
+    const visited = new Set<string>();
+    const recursionStack = new Set<string>();
+
+    function hasCycle(nodeId: string): boolean {
+      visited.add(nodeId);
+      recursionStack.add(nodeId);
+
+      const neighbors = adjacencyList.get(nodeId) || [];
+      for (const neighbor of neighbors) {
+        if (!visited.has(neighbor)) {
+          if (hasCycle(neighbor)) {
+            return true;
+          }
+        } else if (recursionStack.has(neighbor)) {
+          return true;
+        }
+      }
+
+      recursionStack.delete(nodeId);
+      return false;
+    }
+
+    for (const node of value.nodes) {
+      if (!visited.has(node.id)) {
+        if (hasCycle(node.id)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "workflow graph contains a cycle",
+            path: ["nodes"]
+          });
+          return;
+        }
+      }
+    }
+  });
+export type WorkflowGraph = z.infer<typeof WorkflowGraphSchema>;
+
+export const AssetCatalogManifestSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("asset-catalog-manifest"),
+  source: z.literal("catalog.json"),
+  theme: z.string().min(1).max(80),
+  displayLabel: z.string().min(1).max(80),
+  aliases: z.array(z.string().min(1).max(80)).default([]),
+  suggestedItems: z.array(z.string().min(1).max(48)).min(1),
+  spriteNaming: z
+    .object({
+      kind: z.enum(["ordinal", "exact", "paired"]),
+      rules: z.record(z.unknown())
+    })
+    .strict()
+}).strict();
+export type AssetCatalogManifest = z.infer<typeof AssetCatalogManifestSchema>;
+
+export const BuilderTemplateNamespaceSchema = StableIdSchema.refine((value) => value.startsWith("template.custom."), {
+  message: "builder template namespace IDs must start with template.custom."
+});
+export type BuilderTemplateNamespace = z.infer<typeof BuilderTemplateNamespaceSchema>;
+
 export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-catalog"),
   defaultTemplateId: BuilderTemplateIdSchema,
@@ -1345,7 +1574,14 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
       current: z.literal("bundled-local"),
       planned: z.literal("server-catalog")
     })
+    .strict(),
+  mcp: z
+    .object({
+      manifest: McpManifestSchema,
+      tools: z.array(McpToolSchema)
+    })
     .strict()
+    .optional()
 }).strict()
   .superRefine((value, context) => {
     const acceptedSources = value.acceptedInputSources;
@@ -1805,6 +2041,20 @@ export const BuilderPreviewStateSchema = z
   .strict();
 export type BuilderPreviewState = z.infer<typeof BuilderPreviewStateSchema>;
 
+export const BuilderSessionOwnershipSchema = z
+  .object({
+    ownerId: StableIdSchema,
+    createdAt: z.string().datetime(),
+    expiresAt: z.string().datetime(),
+    capabilities: z.array(z.string().min(1)).min(1)
+  })
+  .strict()
+  .refine((value) => new Date(value.expiresAt as string) > new Date(value.createdAt as string), {
+    message: "session ownership expiresAt must be after createdAt",
+    path: ["expiresAt"]
+  });
+export type BuilderSessionOwnership = z.infer<typeof BuilderSessionOwnershipSchema>;
+
 export const BuilderCommandResultSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-command-result"),
   commandId: StableIdSchema,
@@ -1835,7 +2085,8 @@ export const BuilderSessionSnapshotSchema = z
     profile: GameAssemblyProfileSchema.optional(),
     preview: BuilderPreviewStateSchema,
     validation: AssemblyValidationResultSchema.optional(),
-    updatedAt: z.string().datetime()
+    updatedAt: z.string().datetime(),
+    ownership: BuilderSessionOwnershipSchema.optional()
   })
   .strict()
   .refine((value) => !value.activeProfileId || Boolean(value.profile), {
@@ -2004,7 +2255,89 @@ export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
 export const BuilderServiceRequestBatchSchema = z.array(BuilderServiceRequestSchema).min(1);
 export type BuilderServiceRequestBatch = z.infer<typeof BuilderServiceRequestBatchSchema>;
 
-export const BuilderServiceResponseSchema = PublicContractBaseSchema.extend({
+function createBuilderServiceResponseSchema() {
+  return PublicContractBaseSchema.extend({
+    kind: z.literal("builder-service-response"),
+    requestId: StableIdSchema,
+    actionName: BuilderServiceActionNameSchema,
+    catalog: BuilderCatalogSchema.optional(),
+    execution: BuilderServiceExecutionSchema.optional(),
+    session: BuilderSessionSnapshotSchema.optional(),
+    profileExport: BuilderProfileExportSchema.optional(),
+    reset: z.literal(true).optional()
+  }).strict()
+    .refine((value) => value.actionName !== "catalog" || Boolean(value.catalog), {
+      message: "catalog responses require a catalog",
+      path: ["catalog"]
+    })
+    .refine((value) => value.actionName !== "catalog" || hasOnlyServiceResponsePayloads(value, ["catalog"]), {
+      message: "catalog responses only include catalog output",
+      path: ["catalog"]
+    })
+    .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || Boolean(value.execution && value.session), {
+      message: "assemble, update, and preview responses require execution output and a session snapshot",
+      path: ["execution"]
+    })
+    .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || hasOnlyServiceResponsePayloads(value, ["execution", "session"]), {
+      message: "assemble, update, and preview responses only include execution output and a session snapshot",
+      path: ["execution"]
+    })
+    .refine((value) => value.actionName !== "get-session" || Boolean(value.session), {
+      message: "get-session responses require a session snapshot",
+      path: ["session"]
+    })
+    .refine((value) => value.actionName !== "get-session" || hasOnlyServiceResponsePayloads(value, ["session"]), {
+      message: "get-session responses only include a session snapshot",
+      path: ["session"]
+    })
+    .refine((value) => value.actionName !== "export-profile" || Boolean(value.profileExport), {
+      message: "export-profile responses require a profile export",
+      path: ["profileExport"]
+    })
+    .refine((value) => value.actionName !== "export-profile" || hasOnlyServiceResponsePayloads(value, ["profileExport"]), {
+      message: "export-profile responses only include a profile export",
+      path: ["profileExport"]
+    })
+    .refine((value) => value.actionName !== "import-profile" || Boolean(value.execution && value.session), {
+      message: "import-profile responses require execution output and a session snapshot",
+      path: ["execution"]
+    })
+    .refine((value) => value.actionName !== "import-profile" || hasOnlyServiceResponsePayloads(value, ["execution", "session"]), {
+      message: "import-profile responses only include execution output and a session snapshot",
+      path: ["execution"]
+    })
+    .refine((value) => value.actionName !== "reset" || value.reset === true, {
+      message: "reset responses require reset acknowledgement",
+      path: ["reset"]
+    })
+    .refine((value) => value.actionName !== "reset" || hasOnlyServiceResponsePayloads(value, ["reset"]), {
+      message: "reset responses only include reset acknowledgement",
+      path: ["reset"]
+    });
+}
+export type BuilderServiceResponse = z.infer<typeof PublicContractBaseSchema> & {
+  kind: "builder-service-response";
+  requestId: string;
+  actionName: BuilderServiceActionName;
+  catalog?: BuilderCatalog;
+  execution?: BuilderServiceExecution;
+  session?: BuilderSessionSnapshot;
+  profileExport?: BuilderProfileExport;
+  reset?: true;
+};
+
+type BuilderServiceResponseInput = z.input<typeof PublicContractBaseSchema> & {
+  kind: "builder-service-response";
+  requestId: string;
+  actionName: z.input<typeof BuilderServiceActionNameSchema>;
+  catalog?: z.input<typeof BuilderCatalogSchema>;
+  execution?: z.input<typeof BuilderServiceExecutionSchema>;
+  session?: z.input<typeof BuilderSessionSnapshotSchema>;
+  profileExport?: z.input<typeof BuilderProfileExportSchema>;
+  reset?: true;
+};
+
+export const BuilderServiceResponseSchema: z.ZodType<BuilderServiceResponse, z.ZodTypeDef, BuilderServiceResponseInput> = PublicContractBaseSchema.extend({
   kind: z.literal("builder-service-response"),
   requestId: StableIdSchema,
   actionName: BuilderServiceActionNameSchema,
@@ -2062,7 +2395,6 @@ export const BuilderServiceResponseSchema = PublicContractBaseSchema.extend({
     message: "reset responses only include reset acknowledgement",
     path: ["reset"]
   });
-export type BuilderServiceResponse = z.infer<typeof BuilderServiceResponseSchema>;
 
 function hasOnlyServiceResponsePayloads(
   value: Record<string, unknown>,
@@ -2106,8 +2438,11 @@ export const PublicContractSchemas: Record<PublicContractName, z.ZodTypeAny> = {
   BuilderServiceExecutionSchema,
   BuilderServiceRequestSchema,
   BuilderServiceRequestBatchSchema,
-  BuilderServiceResponseSchema
-} as const;
+  BuilderServiceResponseSchema,
+  McpManifestSchema,
+  WorkflowGraphSchema,
+  AssetCatalogManifestSchema
+};
 
 export function schemaIssue(path: Array<string | number>, code: string, message: string, severity: z.infer<typeof ValidationSeveritySchema>): z.infer<typeof SchemaIssueSchema> {
   return { path, code, message, severity };

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AssetContentTypeSchema,
   BuilderCatalogSchema,
+  BuilderSessionSnapshotSchema,
   BuilderInputRequestSchema,
   BuilderServiceCatalogActionSchema,
   BuilderServiceCatalogSchema,
@@ -16,7 +17,16 @@ import {
   PLAYCRAFT_SCHEMA_VERSION,
   PlaycraftAgUiEventEnvelopeSchema,
   PublicContractNameSchema,
-  PublicContractSchemas
+  PublicContractSchemas,
+  McpManifestSchema,
+  McpToolSchema,
+  SseFrameSchema,
+  WorkflowGraphSchema,
+  WorkflowNodeSchema,
+  WorkflowEdgeSchema,
+  BuilderSessionOwnershipSchema,
+  AssetCatalogManifestSchema,
+  BuilderTemplateNamespaceSchema
 } from "@playcraft/contracts";
 import { replayProfile } from "@playcraft/core";
 import {
@@ -592,6 +602,69 @@ describe("public contract schemas", () => {
           },
           validation: profile.validation,
           updatedAt: "2026-07-04T00:00:00.000Z"
+        }
+      },
+      McpManifestSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "mcp-manifest.fixture",
+        version: "1.0.0",
+        kind: "mcp-manifest",
+        name: "test-manifest",
+        tools: [
+          {
+            name: "tool:test",
+            description: "A test tool",
+            parameters: {
+              arg1: {
+                name: "arg1",
+                type: "string",
+                description: "A test argument",
+                required: true
+              }
+            }
+          }
+        ]
+      },
+      WorkflowGraphSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "workflow-graph.fixture",
+        version: "1.0.0",
+        kind: "workflow-graph",
+        nodes: [
+          {
+            id: "node-1",
+            actionName: "catalog",
+            payload: {},
+            dependsOn: []
+          },
+          {
+            id: "node-2",
+            actionName: "assemble",
+            payload: {},
+            dependsOn: ["node-1"]
+          }
+        ],
+        edges: [
+          {
+            from: "node-1",
+            to: "node-2"
+          }
+        ],
+        startNodeId: "node-1"
+      },
+      AssetCatalogManifestSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "asset-catalog-manifest.fixture",
+        version: "1.0.0",
+        kind: "asset-catalog-manifest",
+        source: "catalog.json",
+        theme: "dinosaurs",
+        displayLabel: "Dinosaurs",
+        aliases: ["dinosaur"],
+        suggestedItems: ["dinosaur-1", "dinosaur-2"],
+        spriteNaming: {
+          kind: "ordinal",
+          rules: {}
         }
       }
     };
@@ -2216,5 +2289,317 @@ describe("public contract schemas", () => {
         session
       }).success
     ).toBe(false);
+  });
+
+  it("validates MCP manifests", () => {
+    expect(
+      McpManifestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "mcp-manifest.test",
+        version: "1.0.0",
+        kind: "mcp-manifest",
+        name: "test-manifest",
+        tools: [
+          {
+            name: "tool:test",
+            description: "A test tool",
+            parameters: {
+              arg1: {
+                name: "arg1",
+                type: "string",
+                description: "A test argument",
+                required: true
+              }
+            }
+          }
+        ]
+      }).success
+    ).toBe(true);
+
+    expect(
+      McpManifestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "mcp-manifest.test",
+        version: "1.0.0",
+        kind: "mcp-manifest",
+        name: "test-manifest"
+      }).success
+    ).toBe(false);
+  });
+
+  it("validates MCP tools", () => {
+    expect(
+      McpToolSchema.safeParse({
+        name: "tool:test",
+        description: "A test tool",
+        parameters: {
+          arg1: {
+            name: "arg1",
+            type: "string",
+            description: "A test argument",
+            required: true
+          }
+        }
+      }).success
+    ).toBe(true);
+  });
+
+  it("discriminates SSE frame kinds", () => {
+    expect(SseFrameSchema.safeParse({
+      kind: "sse-run-started",
+      runId: "run.test",
+      sequence: 0,
+      payload: { runId: "run.test" }
+    }).success).toBe(true);
+
+    expect(SseFrameSchema.safeParse({
+      kind: "sse-tool-call",
+      runId: "run.test",
+      sequence: 1,
+      payload: { toolName: "tool:test", args: {} }
+    }).success).toBe(true);
+
+    expect(SseFrameSchema.safeParse({
+      kind: "sse-tool-result",
+      runId: "run.test",
+      sequence: 2,
+      payload: { toolName: "tool:test", result: "ok" }
+    }).success).toBe(true);
+
+    expect(SseFrameSchema.safeParse({
+      kind: "sse-custom",
+      runId: "run.test",
+      sequence: 3,
+      payload: { data: "custom" }
+    }).success).toBe(true);
+
+    expect(SseFrameSchema.safeParse({
+      kind: "sse-run-finished",
+      runId: "run.test",
+      sequence: 4,
+      payload: { runId: "run.test" }
+    }).success).toBe(true);
+
+    expect(SseFrameSchema.safeParse({
+      kind: "sse-run-error",
+      runId: "run.test",
+      sequence: 5,
+      payload: { message: "error" }
+    }).success).toBe(true);
+
+    expect(SseFrameSchema.safeParse({
+      kind: "sse-unknown",
+      runId: "run.test",
+      sequence: 6,
+      payload: {}
+    }).success).toBe(false);
+  });
+
+  it("validates workflow graphs", () => {
+    expect(
+      WorkflowGraphSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "workflow-graph.test",
+        version: "1.0.0",
+        kind: "workflow-graph",
+        nodes: [
+          { id: "node-1", actionName: "catalog", payload: {}, dependsOn: [] },
+          { id: "node-2", actionName: "assemble", payload: {}, dependsOn: ["node-1"] }
+        ],
+        edges: [{ from: "node-1", to: "node-2" }],
+        startNodeId: "node-1"
+      }).success
+    ).toBe(true);
+
+    expect(
+      WorkflowGraphSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "workflow-graph.test",
+        version: "1.0.0",
+        kind: "workflow-graph",
+        nodes: [
+          { id: "node-1", actionName: "catalog", payload: {}, dependsOn: [] },
+          { id: "node-2", actionName: "assemble", payload: {}, dependsOn: ["node-1"] }
+        ],
+        edges: [{ from: "node-1", to: "node-2" }, { from: "node-2", to: "node-1" }],
+        startNodeId: "node-1"
+      }).success
+    ).toBe(false);
+
+    const manyNodes = Array.from({ length: 21 }, (_, index) => ({
+      id: `node-${index}`,
+      actionName: "catalog" as const,
+      payload: {},
+      dependsOn: [] as string[]
+    }));
+
+    expect(
+      WorkflowGraphSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "workflow-graph.test",
+        version: "1.0.0",
+        kind: "workflow-graph",
+        nodes: manyNodes,
+        edges: [],
+        startNodeId: "node-0"
+      }).success
+    ).toBe(false);
+  });
+
+  it("validates session ownership", () => {
+    expect(
+      BuilderSessionOwnershipSchema.safeParse({
+        ownerId: "owner.test",
+        createdAt: "2026-07-04T00:00:00.000Z",
+        expiresAt: "2026-07-05T00:00:00.000Z",
+        capabilities: ["capability:test"]
+      }).success
+    ).toBe(true);
+
+    expect(
+      BuilderSessionOwnershipSchema.safeParse({
+        ownerId: "owner.test",
+        createdAt: "2026-07-05T00:00:00.000Z",
+        expiresAt: "2026-07-04T00:00:00.000Z",
+        capabilities: ["capability:test"]
+      }).success
+    ).toBe(false);
+  });
+
+  it("validates asset catalog manifests", () => {
+    expect(
+      AssetCatalogManifestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "asset-catalog-manifest.test",
+        version: "1.0.0",
+        kind: "asset-catalog-manifest",
+        source: "catalog.json",
+        theme: "dinosaurs",
+        displayLabel: "Dinosaurs",
+        aliases: ["dinosaur"],
+        suggestedItems: ["dinosaur-1", "dinosaur-2"],
+        spriteNaming: {
+          kind: "ordinal",
+          rules: {}
+        }
+      }).success
+    ).toBe(true);
+
+    expect(
+      AssetCatalogManifestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "asset-catalog-manifest.test",
+        version: "1.0.0",
+        kind: "asset-catalog-manifest",
+        source: "manifest.json",
+        theme: "dinosaurs",
+        displayLabel: "Dinosaurs",
+        aliases: ["dinosaur"],
+        suggestedItems: ["dinosaur-1", "dinosaur-2"],
+        spriteNaming: {
+          kind: "ordinal",
+          rules: {}
+        }
+      }).success
+    ).toBe(false);
+  });
+
+  it("enforces custom template namespace", () => {
+    expect(BuilderTemplateNamespaceSchema.safeParse("template.custom.foo").success).toBe(true);
+    expect(BuilderTemplateNamespaceSchema.safeParse("template.memory-match").success).toBe(false);
+  });
+
+  it("keeps builder catalogs backward compatible without mcp", () => {
+    const validCatalog = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-catalog.backward-compat",
+      version: "1.0.0",
+      kind: "builder-catalog",
+      defaultTemplateId: "template.memory-match",
+      templates: gameTemplateDefinitions,
+      tools: builderToolCatalogFixture(),
+      acceptedInputSources: ["text", "moonshine-transcript"],
+      input: {
+        defaultSource: "text",
+        transcriptSource: "moonshine-transcript",
+        noInputLabel: "none",
+        sourceOptions: [
+          {
+            source: "text",
+            displayLabel: "Text",
+            generatePlaceholder: "Memory game with dinosaurs",
+            updatePlaceholder: "Change the game or replace assets..."
+          },
+          {
+            source: "moonshine-transcript",
+            displayLabel: "Transcript",
+            generatePlaceholder: "Moonshine transcript: memory game with dinosaurs",
+            updatePlaceholder: "Moonshine transcript: change the game or replace assets"
+          }
+        ]
+      },
+      requestTips: {
+        availableGames: gameTemplateDefinitions.map((template) => template.displayLabel),
+        featuredGames: ["Memory Match"],
+        assetEdits: ["with dinosaurs"],
+        examples: ["Memory game with dinosaurs"],
+        summaryLines: ["Available games: Memory Match."]
+      },
+      service: serviceCatalogFixture(),
+      sessions: {
+        defaultAssembleSessionId: "service.session",
+        sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
+      },
+      assetEdit: {
+        supported: true,
+        acceptedKeys: ["theme", "items"],
+        maxItems: 12,
+        localReplacementFolders: true,
+        freeformItemSuffixes: ["1", "2", "3"],
+        genericThemeTokens: [],
+        availableThemes: [
+          {
+            theme: "dinosaurs",
+            displayLabel: "dinosaurs",
+            localReplacementFolder: "dinosaurs",
+            aliases: ["dinosaur", "dinosaurs"],
+            aliasSummary: "dinosaur, dinosaurs",
+            suggestedItemSummary: "dinosaur-1, dinosaur-2",
+            suggestedItems: ["dinosaur-1", "dinosaur-2"]
+          }
+        ]
+      },
+      retrieval: {
+        current: "bundled-local",
+        planned: "server-catalog"
+      }
+    };
+
+    expect(BuilderCatalogSchema.safeParse(validCatalog).success).toBe(true);
+  });
+
+  it("keeps builder session snapshots backward compatible without ownership", () => {
+    const profile = assembleMvpProfiles()[0];
+    const preview = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      sessionId: "session.backward-compat",
+      activeProfileId: profile.id,
+      activeTemplateId: "template.memory-match",
+      interactionCount: 0
+    };
+
+    expect(
+      BuilderSessionSnapshotSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        kind: "builder-session-snapshot",
+        sessionId: "session.backward-compat",
+        activeProfileId: profile.id,
+        activeTemplateId: "template.memory-match",
+        profile,
+        preview,
+        validation: profile.validation,
+        updatedAt: "2026-07-04T00:00:00.000Z"
+      }).success
+    ).toBe(true);
   });
 });
