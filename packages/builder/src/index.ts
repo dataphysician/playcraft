@@ -19,6 +19,7 @@ import {
   BuilderCommandResultSchema,
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
+  BuilderSessionOwnershipSchema,
   BuilderSessionSnapshotSchema,
   BuilderAssetEditSchema,
   BuilderTemplateIdSchema,
@@ -31,6 +32,7 @@ import {
   type BuilderCommand,
   type BuilderCommandResult,
   type BuilderPreviewState,
+  type BuilderSessionOwnership,
   type BuilderSessionSnapshot,
   type BuilderTemplateId,
   type BuilderToolDefinition,
@@ -59,6 +61,17 @@ export const BUILDER_SESSION_POLICY = {
   defaultBatchSessionId: "builder.batch",
   defaultCatalogSessionId: "builder.cli"
 } as const;
+
+export const BUILDER_SESSION_TTL_MS = 60 * 60 * 1000;
+
+export const BUILDER_DEFAULT_OWNER_ID = "builder.local.owner";
+
+export interface BuilderExecutionError {
+  kind: "session-expired";
+  sessionId: string;
+  ownerId: string;
+  expiresAt: string;
+}
 
 const BUILDER_ARGUMENT_SUMMARY_LABELS = {
   empty: "none",
@@ -94,11 +107,13 @@ export interface BuilderSessionRecord {
   profile?: GameAssemblyProfile;
   replay?: ReplayResult;
   preview: BuilderPreviewState;
+  ownership?: BuilderSessionOwnership;
 }
 
 export interface BuilderExecutionResult {
   result: BuilderCommandResult;
   events: BuilderAgUiEvent[];
+  error?: BuilderExecutionError;
 }
 
 type BuildOrUpdateCommand = BuilderCommand & {
@@ -112,6 +127,7 @@ export interface BuilderCommandHandler {
   importProfile(sessionId: string, profile: GameAssemblyProfile, commandId?: string): BuilderExecutionResult;
   listTools(): BuilderToolDefinition[];
   listTemplates(): GameTemplateDefinition[];
+  setSessionOwnership?(sessionId: string, ownership: BuilderSessionOwnership): void;
 }
 
 export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
@@ -123,6 +139,11 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
   execute(commandInput: BuilderCommand): BuilderExecutionResult {
     const command = BuilderCommandSchema.parse(commandInput);
     const session = this.getOrCreateSession(command.sessionId);
+
+    const expired = expiredOwnershipFor(command.sessionId, session.ownership);
+    if (expired) {
+      return expiredSessionResult(command.sessionId, expired);
+    }
 
     switch (command.actionName) {
       case "assemble-game":
@@ -143,6 +164,11 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       default:
         throw new Error(`unsupported command ${(command as { actionName: string }).actionName}`);
     }
+  }
+
+  setSessionOwnership(sessionId: string, ownership: BuilderSessionOwnership): void {
+    const session = this.getOrCreateSession(sessionId);
+    session.ownership = BuilderSessionOwnershipSchema.parse(ownership);
   }
 
   assembleTemplates(templateIds: BuilderTemplateId[], sessionId = BUILDER_SESSION_POLICY.defaultBatchSessionId): BuilderExecutionResult[] {
@@ -184,6 +210,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     session.profile = profile;
     session.replay = replay;
     session.preview = preview;
+    session.ownership = createBuilderSessionOwnership(Date.now());
 
     const result = BuilderCommandResultSchema.parse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -248,6 +275,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     session.profile = profile;
     session.replay = replay;
     session.preview = preview;
+    session.ownership = createBuilderSessionOwnership(Date.now());
 
     const result = BuilderCommandResultSchema.parse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -497,7 +525,8 @@ function snapshotForSession(session: BuilderSessionRecord): BuilderSessionSnapsh
     profile: session.profile,
     preview: session.preview,
     validation: session.profile?.validation,
-    updatedAt: PLAYCRAFT_LOCAL_TIMESTAMP
+    updatedAt: PLAYCRAFT_LOCAL_TIMESTAMP,
+    ownership: session.ownership
   });
 }
 
@@ -521,6 +550,69 @@ function previewForReplay(
     lastToolName: previousPreview.lastToolName,
     lastToolPayload: previousPreview.lastToolPayload
   });
+}
+
+const BUILDER_SESSION_CAPABILITIES = [
+  "assemble-game",
+  "update-game",
+  "preview-action",
+  "list-builder-tools",
+  "get-session",
+  "export-profile",
+  "import-profile"
+] as const;
+
+function createBuilderSessionOwnership(nowMs: number): BuilderSessionOwnership {
+  const createdAt = new Date(nowMs).toISOString();
+  const expiresAt = new Date(nowMs + BUILDER_SESSION_TTL_MS).toISOString();
+  return BuilderSessionOwnershipSchema.parse({
+    ownerId: BUILDER_DEFAULT_OWNER_ID,
+    createdAt,
+    expiresAt,
+    capabilities: [...BUILDER_SESSION_CAPABILITIES]
+  });
+}
+
+function expiredOwnershipFor(sessionId: string, ownership: BuilderSessionOwnership | undefined): BuilderSessionOwnership | undefined {
+  if (!ownership) {
+    return undefined;
+  }
+
+  const expiresAtMs = new Date(ownership.expiresAt).getTime();
+  if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) {
+    return ownership;
+  }
+
+  return undefined;
+}
+
+function expiredSessionResult(sessionId: string, ownership: BuilderSessionOwnership): BuilderExecutionResult {
+  const preview = BuilderPreviewStateSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    sessionId,
+    renderedComponentIds: [],
+    interactionCount: 0
+  });
+  const result = BuilderCommandResultSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: `builder-result.expired.${sessionId}`,
+    version: "1.0.0",
+    kind: "builder-command-result",
+    commandId: `builder-command.expired.${sessionId}`,
+    sessionId,
+    preview
+  });
+
+  return {
+    result,
+    events: [],
+    error: {
+      kind: "session-expired",
+      sessionId,
+      ownerId: ownership.ownerId,
+      expiresAt: ownership.expiresAt
+    }
+  };
 }
 
 function requirePreviewComponentId(preview: BuilderPreviewState): string {

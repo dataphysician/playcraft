@@ -1096,7 +1096,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `packages/assets/src/index.ts`, `packages/assets/test/local-asset-source.test.ts`, `apps/studio/src/assets/library/replacements/*/catalog.json`, `tests/studio-asset-library.test.tsx`
   - Pre-commit: `pnpm exec vitest run`
 
-- [ ] 10. Session ownership types + expiry enforcement
+- [x] 10. Session ownership types + expiry enforcement
 
   **What to do**:
   - Extend `BuilderSessionSnapshotSchema` (from T1) with optional `ownership?: BuilderSessionOwnershipSchema`

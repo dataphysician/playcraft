@@ -3,10 +3,12 @@ import {
   BuilderInputRequestSchema,
   BuilderIntentResolutionSchema,
   BuilderProfileExportSchema,
+  BuilderServiceErrorSchema,
   BuilderServiceExecutionSchema,
   BuilderServiceRequestBatchSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
+  BuilderSessionOwnershipSchema,
   BuilderSessionSnapshotSchema,
   BuilderPreviewStateSchema,
   JsonValueSchema,
@@ -17,6 +19,7 @@ import {
   type BuilderAssetEdit,
   type BuilderAssetEditCatalogEntry,
   type BuilderCatalog,
+  type BuilderServiceActionName,
   type BuilderServiceCatalog,
   type BuilderCommand,
   type BuilderCommandResult,
@@ -26,10 +29,12 @@ import {
   type BuilderPreviewInteraction,
   type BuilderPreviewState,
   type BuilderProfileExport,
+  type BuilderServiceError,
   type BuilderServiceExecution,
   type BuilderServiceRequest,
   type BuilderServiceRequestBatch,
   type BuilderServiceResponse,
+  type BuilderSessionOwnership,
   type BuilderSessionSnapshot,
   type BuilderTemplateId,
   type GameAssemblyProfile,
@@ -66,6 +71,19 @@ export const LOCAL_SERVICE_SESSION_POLICY = {
   defaultAssembleSessionId: "service.session",
   sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
 } as const;
+
+export const LOCAL_SERVICE_SESSION_TTL_MS = 60 * 60 * 1000;
+
+export const LOCAL_SERVICE_DEFAULT_OWNER_ID = "service.local.owner";
+
+const LOCAL_SERVICE_SESSION_CAPABILITIES = [
+  "assemble",
+  "update",
+  "preview",
+  "get-session",
+  "export-profile",
+  "import-profile"
+] as const;
 
 export const LOCAL_SERVICE_INPUT_POLICY = {
   defaultSource: "text",
@@ -358,6 +376,7 @@ export class LocalPlaycraftService {
     const resolved = this.resolveInput(input.sessionId, input, {
       activeTemplateId: activeSession.activeTemplateId
     });
+    this.refreshSessionOwnership(input.sessionId);
     this.updateSessionState(input.sessionId, resolved);
     return this.execute("update-game", input.sessionId, resolved);
   }
@@ -373,7 +392,7 @@ export class LocalPlaycraftService {
       actionName: "preview-action",
       interaction
     });
-    this.refreshSessionStateFromResult(sessionId, output.result);
+    this.refreshSessionStateFromResult(sessionId, output.result, false);
     return output;
   }
 
@@ -416,15 +435,30 @@ export class LocalPlaycraftService {
     );
     this.sessionState.set(sessionId, {
       activeAssetEdit: input.assetEdit,
-      activeTemplateId: requireResultTemplateId(output.result)
+      activeTemplateId: requireResultTemplateId(output.result),
+      ownership: createSessionOwnership(sessionId, this.now())
     });
     return output;
   }
 
-  reset(): void {
+  reset(input?: { ownerId?: string }): { kind: "ownership-mismatch"; ownerId: string } | undefined {
+    if (input?.ownerId !== undefined) {
+      const owners = new Set<string>();
+      for (const state of this.sessionState.values()) {
+        if (state.ownership) {
+          owners.add(state.ownership.ownerId);
+        }
+      }
+      const currentOwner = [...owners][0] ?? LOCAL_SERVICE_DEFAULT_OWNER_ID;
+      if (input.ownerId !== currentOwner) {
+        return { kind: "ownership-mismatch", ownerId: input.ownerId };
+      }
+    }
+
     this.inputCounter = 0;
     this.commandCounter = 0;
     this.sessionState.clear();
+    return undefined;
   }
 
   executeWorkflow(requestInput: BuilderServiceRequest): BuilderServiceResponse {
@@ -510,12 +544,23 @@ export class LocalPlaycraftService {
     }
 
     if (request.actionName === "reset") {
-      this.reset();
+      const mismatch = this.reset();
+      if (mismatch) {
+        return serviceResponse(request, { error: mismatch });
+      }
       return serviceResponse(request, { reset: true });
     }
 
     if (request.actionName === "execute-workflow") {
       return this.executeWorkflow(request);
+    }
+
+    const sessionBoundError = this.checkSessionBoundOwnership(request);
+    if (sessionBoundError) {
+      return serviceResponse(request, {
+        error: sessionBoundError,
+        session: this.getSession(sessionBoundError.sessionId ?? serviceRequestSessionId(request))
+      });
     }
 
     if (request.actionName === "get-session") {
@@ -595,6 +640,34 @@ export class LocalPlaycraftService {
     });
   }
 
+  private checkSessionBoundOwnership(request: BuilderServiceRequest): BuilderServiceError | undefined {
+    const sessionBoundActions = LOCAL_SERVICE_SESSION_POLICY.sessionBoundActions as readonly BuilderServiceActionName[];
+    if (!sessionBoundActions.includes(request.actionName)) {
+      return undefined;
+    }
+
+    if (!request.sessionId) {
+      return undefined;
+    }
+
+    const snapshot = this.getSession(request.sessionId);
+    if (!snapshot.ownership) {
+      return undefined;
+    }
+
+    const expiresAtMs = new Date(snapshot.ownership.expiresAt).getTime();
+    if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) {
+      return BuilderServiceErrorSchema.parse({
+        kind: "session-expired",
+        sessionId: request.sessionId,
+        ownerId: snapshot.ownership.ownerId,
+        message: `session ${request.sessionId} expired at ${snapshot.ownership.expiresAt}`
+      });
+    }
+
+    return undefined;
+  }
+
   handleBatch(requestInputs: BuilderServiceRequestBatch): BuilderServiceResponse[] {
     return BuilderServiceRequestBatchSchema.parse(requestInputs).map((request) => this.handle(request));
   }
@@ -635,23 +708,40 @@ export class LocalPlaycraftService {
       input: resolved.input,
       assetEdit: resolved.assetEdit
     });
-    this.refreshSessionStateFromResult(sessionId, output.result);
+    this.refreshSessionStateFromResult(sessionId, output.result, actionName === "assemble-game");
     return output;
   }
 
   private updateSessionState(sessionId: string, resolved: ResolvedBuilderInputCommand): void {
     this.sessionState.set(sessionId, {
       activeAssetEdit: resolved.assetEdit,
-      activeTemplateId: resolved.templateId
+      activeTemplateId: resolved.templateId,
+      ownership: createSessionOwnership(sessionId, this.now())
     });
   }
 
-  private refreshSessionStateFromResult(sessionId: string, result: BuilderExecutionResult["result"]): void {
+  private refreshSessionStateFromResult(sessionId: string, result: BuilderExecutionResult["result"], refreshOwnership: boolean): void {
     const existing = this.sessionState.get(sessionId);
     this.sessionState.set(sessionId, {
       activeAssetEdit: existing?.activeAssetEdit,
-      activeTemplateId: requireResultTemplateId(result)
+      activeTemplateId: requireResultTemplateId(result),
+      ownership: refreshOwnership || !existing?.ownership
+        ? createSessionOwnership(sessionId, this.now())
+        : existing.ownership
     });
+  }
+
+  private refreshSessionOwnership(sessionId: string): void {
+    const existing = this.sessionState.get(sessionId);
+    this.sessionState.set(sessionId, {
+      ...existing,
+      activeTemplateId: existing?.activeTemplateId ?? DEFAULT_GAME_TEMPLATE_ID,
+      ownership: createSessionOwnership(sessionId, this.now())
+    });
+  }
+
+  private now(): number {
+    return Date.now();
   }
 
   private requireActiveSessionForUpdate(sessionId: string): BuilderSessionSnapshot & {
@@ -707,10 +797,22 @@ export class LocalPlaycraftService {
 interface LocalSessionState {
   activeAssetEdit?: BuilderAssetEdit;
   activeTemplateId: BuilderTemplateId;
+  ownership?: BuilderSessionOwnership;
 }
 
 function streamRunId(): string {
   return `stream.${Date.now().toString(36)}.${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createSessionOwnership(_sessionId: string, nowMs: number): BuilderSessionOwnership {
+  const createdAt = new Date(nowMs).toISOString();
+  const expiresAt = new Date(nowMs + LOCAL_SERVICE_SESSION_TTL_MS).toISOString();
+  return BuilderSessionOwnershipSchema.parse({
+    ownerId: LOCAL_SERVICE_DEFAULT_OWNER_ID,
+    createdAt,
+    expiresAt,
+    capabilities: [...LOCAL_SERVICE_SESSION_CAPABILITIES]
+  });
 }
 
 function requestTipsForCatalog(
@@ -1314,6 +1416,7 @@ function serviceResponse(
     profileExport?: BuilderProfileExport;
     reset?: true;
     session?: BuilderSessionSnapshot;
+    error?: BuilderServiceError | { kind: "ownership-mismatch"; ownerId: string };
   }
 ): BuilderServiceResponse {
   return BuilderServiceResponseSchema.parse({
@@ -1346,7 +1449,8 @@ function requireResultTemplateId(result: BuilderExecutionResult["result"]): Buil
 function mergeSessionState(snapshot: BuilderSessionSnapshot, state: LocalSessionState | undefined): BuilderSessionSnapshot {
   return BuilderSessionSnapshotSchema.parse({
     ...snapshot,
-    activeAssetEdit: state?.activeAssetEdit
+    activeAssetEdit: state?.activeAssetEdit,
+    ownership: state?.ownership ?? snapshot.ownership
   });
 }
 

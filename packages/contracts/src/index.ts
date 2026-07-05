@@ -2225,7 +2225,20 @@ export const BuilderServiceExecutionSchema = z
   .strict();
 export type BuilderServiceExecution = z.infer<typeof BuilderServiceExecutionSchema>;
 
-const BuilderServiceResponsePayloadKeys = ["catalog", "execution", "session", "profileExport", "reset"] as const;
+export const BuilderServiceErrorKindSchema = z.enum(["session-expired", "ownership-mismatch"]);
+export type BuilderServiceErrorKind = z.infer<typeof BuilderServiceErrorKindSchema>;
+
+export const BuilderServiceErrorSchema = z
+  .object({
+    kind: BuilderServiceErrorKindSchema,
+    sessionId: StableIdSchema.optional(),
+    ownerId: StableIdSchema.optional(),
+    message: z.string().min(1)
+  })
+  .strict();
+export type BuilderServiceError = z.infer<typeof BuilderServiceErrorSchema>;
+
+const BuilderServiceResponsePayloadKeys = ["catalog", "execution", "session", "profileExport", "reset", "error"] as const;
 
 export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-service-request"),
@@ -2331,6 +2344,7 @@ export type BuilderServiceResponse = z.infer<typeof PublicContractBaseSchema> & 
   session?: BuilderSessionSnapshot;
   profileExport?: BuilderProfileExport;
   reset?: true;
+  error?: BuilderServiceError;
 };
 
 type BuilderServiceResponseInput = z.input<typeof PublicContractBaseSchema> & {
@@ -2342,6 +2356,7 @@ type BuilderServiceResponseInput = z.input<typeof PublicContractBaseSchema> & {
   session?: z.input<typeof BuilderSessionSnapshotSchema>;
   profileExport?: z.input<typeof BuilderProfileExportSchema>;
   reset?: true;
+  error?: z.input<typeof BuilderServiceErrorSchema>;
 };
 
 export const BuilderServiceResponseSchema: z.ZodType<BuilderServiceResponse, z.ZodTypeDef, BuilderServiceResponseInput> = PublicContractBaseSchema.extend({
@@ -2352,7 +2367,8 @@ export const BuilderServiceResponseSchema: z.ZodType<BuilderServiceResponse, z.Z
   execution: BuilderServiceExecutionSchema.optional(),
   session: BuilderSessionSnapshotSchema.optional(),
   profileExport: BuilderProfileExportSchema.optional(),
-  reset: z.literal(true).optional()
+  reset: z.literal(true).optional(),
+  error: BuilderServiceErrorSchema.optional()
 }).strict()
   .refine((value) => value.actionName !== "catalog" || Boolean(value.catalog), {
     message: "catalog responses require a catalog",
@@ -2362,35 +2378,35 @@ export const BuilderServiceResponseSchema: z.ZodType<BuilderServiceResponse, z.Z
     message: "catalog responses only include catalog output",
     path: ["catalog"]
   })
-  .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || Boolean(value.execution && value.session), {
+  .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || Boolean(value.execution && value.session) || Boolean(value.error), {
     message: "assemble, update, and preview responses require execution output and a session snapshot",
     path: ["execution"]
   })
-  .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || hasOnlyServiceResponsePayloads(value, ["execution", "session"]), {
+  .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || hasOnlyServiceResponsePayloads(value, ["execution", "session", "error"]), {
     message: "assemble, update, and preview responses only include execution output and a session snapshot",
     path: ["execution"]
   })
-  .refine((value) => value.actionName !== "get-session" || Boolean(value.session), {
+  .refine((value) => value.actionName !== "get-session" || Boolean(value.session) || Boolean(value.error), {
     message: "get-session responses require a session snapshot",
     path: ["session"]
   })
-  .refine((value) => value.actionName !== "get-session" || hasOnlyServiceResponsePayloads(value, ["session"]), {
+  .refine((value) => value.actionName !== "get-session" || hasOnlyServiceResponsePayloads(value, ["session", "error"]), {
     message: "get-session responses only include a session snapshot",
     path: ["session"]
   })
-  .refine((value) => value.actionName !== "export-profile" || Boolean(value.profileExport), {
+  .refine((value) => value.actionName !== "export-profile" || Boolean(value.profileExport) || Boolean(value.error), {
     message: "export-profile responses require a profile export",
     path: ["profileExport"]
   })
-  .refine((value) => value.actionName !== "export-profile" || hasOnlyServiceResponsePayloads(value, ["profileExport"]), {
+  .refine((value) => value.actionName !== "export-profile" || hasOnlyServiceResponsePayloads(value, ["profileExport", "error"]), {
     message: "export-profile responses only include a profile export",
     path: ["profileExport"]
   })
-  .refine((value) => value.actionName !== "import-profile" || Boolean(value.execution && value.session), {
+  .refine((value) => value.actionName !== "import-profile" || Boolean(value.execution && value.session) || Boolean(value.error), {
     message: "import-profile responses require execution output and a session snapshot",
     path: ["execution"]
   })
-  .refine((value) => value.actionName !== "import-profile" || hasOnlyServiceResponsePayloads(value, ["execution", "session"]), {
+  .refine((value) => value.actionName !== "import-profile" || hasOnlyServiceResponsePayloads(value, ["execution", "session", "error"]), {
     message: "import-profile responses only include execution output and a session snapshot",
     path: ["execution"]
   })
@@ -2407,7 +2423,7 @@ function hasOnlyServiceResponsePayloads(
   allowedPayloads: Array<(typeof BuilderServiceResponsePayloadKeys)[number]>
 ): boolean {
   return BuilderServiceResponsePayloadKeys.every((key) =>
-    allowedPayloads.includes(key) ? value[key] !== undefined : value[key] === undefined
+    allowedPayloads.includes(key) ? true : value[key] === undefined
   );
 }
 

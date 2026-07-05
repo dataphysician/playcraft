@@ -63,6 +63,15 @@
       "agent": "Sisyphus-Junior",
       "category": "deep",
       "updated_at": "2026-07-05T20:05:29.487Z"
+    },
+    "todo:10": {
+      "task_key": "todo:10",
+      "task_label": "10",
+      "task_title": "Session ownership types + expiry enforcement",
+      "session_id": "ses_0cc1bfb89ffe1T8lGgIhrR4YAI",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-07-05T20:15:14.511Z"
     }
   }
 }

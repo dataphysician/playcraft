@@ -1310,6 +1310,37 @@ describe("builder session service", () => {
     expect(imported.result.preview.activeComponentId).toBe("component.reveal-card-grid");
     expect(replayed.result.preview.lastToolName).toBe("tool:reveal-card");
   });
+
+  it("surfaces session-expired as a typed BuilderExecutionResult error instead of throwing", () => {
+    const service = new PlaycraftBuilderSessionService();
+    service.execute(command({ templateId: "template.memory-match" }));
+    const freshSnapshot = service.getSessionSnapshot("session.test");
+    expect(freshSnapshot.ownership).toBeDefined();
+
+    const expiredOwnership = {
+      ...freshSnapshot.ownership!,
+      createdAt: new Date(Date.now() - 120_000).toISOString(),
+      expiresAt: new Date(Date.now() - 60_000).toISOString()
+    };
+    const ownerId = expiredOwnership.ownerId;
+
+    service.setSessionOwnership("session.test", expiredOwnership);
+
+    const result = service.execute(command({
+      actionName: "update-game",
+      sessionId: "session.test",
+      templateId: "template.sorting"
+    }));
+
+    expect(result.error).toEqual({
+      kind: "session-expired",
+      sessionId: "session.test",
+      ownerId,
+      expiresAt: expiredOwnership.expiresAt
+    });
+    expect(result.result.preview.interactionCount).toBe(0);
+    expect(result.events).toEqual([]);
+  });
 });
 
 function cardsFor(profile: ReturnType<PlaycraftBuilderSessionService["execute"]>["result"]["profile"]): unknown {

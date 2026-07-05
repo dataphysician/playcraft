@@ -2125,6 +2125,119 @@ describe("local Playcraft service", () => {
     expect(response.execution?.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
     expect(response.execution?.result.profile?.components[0]?.props.cards).toEqual(["dolphin-1-a", "dolphin-1-b", "dolphin-2-a", "dolphin-2-b"]);
   });
+
+  it("creates new sessions with ownership that has a future expiry", () => {
+    const service = createLocalPlaycraftService();
+    const response = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.ownership-fresh",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.ownership-fresh",
+      text: "Memory game with dinosaurs"
+    });
+
+    expect(response.session?.ownership).toBeDefined();
+    expect(response.session?.ownership?.ownerId).toBe("service.local.owner");
+    expect(response.session?.ownership?.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/u);
+    expect(response.session?.ownership?.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}T/u);
+    expect(new Date(response.session!.ownership!.expiresAt).getTime()).toBeGreaterThan(
+      new Date(response.session!.ownership!.createdAt).getTime()
+    );
+    expect(response.session?.ownership?.capabilities.length).toBeGreaterThan(0);
+  });
+
+  it("returns a session-expired error response instead of silently resetting sessions past expiry", () => {
+    const service = createLocalPlaycraftService();
+    const assembled = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.ownership-expiry-assemble",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.ownership-expiry",
+      text: "Memory game with dinosaurs"
+    });
+    expect(assembled.session?.ownership).toBeDefined();
+
+    const expiredOwnership = {
+      ...assembled.session!.ownership!,
+      expiresAt: new Date(Date.now() - 60_000).toISOString(),
+      createdAt: new Date(Date.now() - 120_000).toISOString()
+    };
+    const extendedSnapshot = {
+      ...assembled.session!,
+      ownership: expiredOwnership
+    };
+    const baseHandler = createBuilderCommandHandler();
+    const expiredHandler: BuilderCommandHandler = {
+      assembleTemplates: (...args) => baseHandler.assembleTemplates(...args),
+      execute: (...args) => baseHandler.execute(...args),
+      importProfile: (...args) => baseHandler.importProfile(...args),
+      listTemplates: () => baseHandler.listTemplates(),
+      listTools: () => baseHandler.listTools(),
+      getSessionSnapshot(...args) {
+        const snapshot = baseHandler.getSessionSnapshot(...args);
+        return {
+          ...snapshot,
+          ownership: expiredOwnership
+        };
+      }
+    };
+    const expiredService = createLocalPlaycraftService(expiredHandler);
+
+    const response = expiredService.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.ownership-expiry-update",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "update",
+      sessionId: "session.ownership-expiry-update-target",
+      text: "Change the cards to toys"
+    });
+
+    expect(response.execution).toBeUndefined();
+    expect(response.session?.ownership).toBeDefined();
+    expect(response.error?.kind).toBe("session-expired");
+    expect(response.error?.sessionId).toBe("session.ownership-expiry-update-target");
+    expect(response.session).toBeDefined();
+
+    expect(extendedSnapshot.ownership?.expiresAt).toBeDefined();
+  });
+
+  it("rejects reset with a mismatched ownerId instead of silently clearing sessions", () => {
+    const service = createLocalPlaycraftService();
+    service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.ownership-reset-source",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.ownership-reset-source",
+      text: "Memory game with dinosaurs"
+    });
+
+    const mismatched = service.reset({ ownerId: "different.owner" });
+    expect(mismatched).toEqual({
+      kind: "ownership-mismatch",
+      ownerId: "different.owner"
+    });
+
+    const verified = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.ownership-reset-survives",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "update",
+      sessionId: "session.ownership-reset-source",
+      text: "Change to sorting with fruits"
+    });
+    expect(verified.execution?.result.profile?.id).toBe("profile.sorting.mvp");
+
+    const cleared = service.reset({ ownerId: "service.local.owner" });
+    expect(cleared).toBeUndefined();
+  });
 });
 
 function listenOnLoopback(server: ReturnType<typeof createPlaycraftHttpServer>): Promise<string> {
