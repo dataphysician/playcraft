@@ -250,6 +250,103 @@ describe("builder session service", () => {
     expect(edited.result.validation?.valid).toBe(true);
   });
 
+  it("updates imported memory profiles from authored pair counts instead of the bundled pair count", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const custom = {
+      ...exported!,
+      id: "profile.custom-memory-three-pairs",
+      components: exported!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["moon-a", "moon-b", "comet-a", "comet-b", "star-a", "star-b"],
+                columns: 3,
+                pairs: {
+                  "moon-a": "pair-1",
+                  "moon-b": "pair-1",
+                  "comet-a": "pair-2",
+                  "comet-b": "pair-2",
+                  "star-a": "pair-3",
+                  "star-b": "pair-3"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.custom-memory-three-pairs", custom);
+    const updated = target.execute(command({
+      actionName: "update-game",
+      assetEdit: {
+        theme: "space",
+        items: ["rocket", "moon", "star"]
+      },
+      sessionId: "session.custom-memory-three-pairs",
+      templateId: "template.memory-match"
+    }));
+
+    expect(updated.result.profile?.id).toBe("profile.custom-memory-three-pairs");
+    expect(cardsFor(updated.result.profile)).toEqual(["rocket-a", "rocket-b", "moon-a", "moon-b", "star-a", "star-b"]);
+    expect(pairsFor(updated.result.profile)).toEqual({
+      "rocket-a": "pair-1",
+      "rocket-b": "pair-1",
+      "moon-a": "pair-2",
+      "moon-b": "pair-2",
+      "star-a": "pair-3",
+      "star-b": "pair-3"
+    });
+    expect(columnsFor(updated.result.profile)).toBe(3);
+    expect(updated.result.validation?.valid).toBe(true);
+  });
+
+  it("rejects memory asset edits that do not cover every authored pair", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const custom = {
+      ...exported!,
+      id: "profile.custom-memory-undercovered",
+      components: exported!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["moon-a", "moon-b", "comet-a", "comet-b", "star-a", "star-b"],
+                pairs: {
+                  "moon-a": "pair-1",
+                  "moon-b": "pair-1",
+                  "comet-a": "pair-2",
+                  "comet-b": "pair-2",
+                  "star-a": "pair-3",
+                  "star-b": "pair-3"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.custom-memory-undercovered", custom);
+
+    expect(() => target.execute(command({
+      actionName: "update-game",
+      assetEdit: {
+        theme: "space",
+        items: ["rocket", "moon"]
+      },
+      sessionId: "session.custom-memory-undercovered",
+      templateId: "template.memory-match"
+    }))).toThrow(/memory-pairs requires at least 3 asset edit items for authored pairs/u);
+  });
+
   it("keeps sorting targets in sync when asset edits rename items", () => {
     const service = new PlaycraftBuilderSessionService();
     const edited = service.execute(command({ templateId: "template.sorting", assetEdit: { theme: "toys" } }));
@@ -881,4 +978,9 @@ function cardsFor(profile: ReturnType<PlaycraftBuilderSessionService["execute"]>
 function pairsFor(profile: ReturnType<PlaycraftBuilderSessionService["execute"]>["result"]["profile"]): unknown {
   const revealGrid = profile?.components.find((component) => component.componentId === "component.reveal-card-grid");
   return revealGrid?.props.pairs;
+}
+
+function columnsFor(profile: ReturnType<PlaycraftBuilderSessionService["execute"]>["result"]["profile"]): unknown {
+  const revealGrid = profile?.components.find((component) => component.componentId === "component.reveal-card-grid");
+  return revealGrid?.props.columns;
 }

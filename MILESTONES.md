@@ -1,5 +1,23 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Authored Memory Pair Asset Coverage
+
+Milestone:
+- Memory asset edits now derive replacement card counts from authored profile `cards` and `pairs` props instead of assuming the bundled two-pair layout.
+- Memory pair edits require authored `cards`, `pairs`, and `columns` props and reject under-covered replacement item sets.
+
+Supportive changes:
+- Builder tests cover imported three-pair memory profiles and rejection of short explicit replacement item lists.
+- Source scans require authored memory pair-count helpers and block the old column fallback and pair-helper call without a pair count.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+
+Constraint notes:
+- Keeps edit-aware local memory assets profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, bundled-template pair-count assumptions, or missing-column defaults.
+
 ## 2026-07-04 - Exact Sequence Asset Item Coverage
 
 Milestone:

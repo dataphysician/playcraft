@@ -819,13 +819,14 @@ function editComponentProps(
 ): Record<string, JsonValue> {
   switch (operation?.operation) {
     case "memory-pairs":
-      const cards = pairedCardIds(edit);
+      const pairCount = requireMemoryPairCount(props);
+      const cards = pairedCardIds(edit, pairCount);
       return {
         ...props,
         title: `${titleCase(edit.theme)} pairs`,
         cards,
         pairs: pairMapForCards(cards),
-        columns: props.columns ?? 2
+        columns: requireNumberProp(props, "columns", "memory-pairs")
       };
     case "choice-items":
       return {
@@ -876,7 +877,7 @@ function editComponentProps(
 function promptForAssetEdit(template: GameTemplateDefinition | GameProfileTemplateSnapshot, edit: NormalizedAssetEdit): string {
   switch (template.assetPromptKind) {
     case "memory-cards":
-      return `child-safe ${edit.theme} memory card illustrations for paired cards ${pairedCardIds(edit).join(", ")}`;
+      return `child-safe ${edit.theme} memory card illustrations for ${edit.items.join(", ")}`;
     case "sorting-game":
       return `child-safe ${edit.theme} sorting game illustrations for ${edit.items.join(", ")}`;
     case "sequence-buttons":
@@ -886,12 +887,44 @@ function promptForAssetEdit(template: GameTemplateDefinition | GameProfileTempla
   }
 }
 
-function pairedCardIds(edit: NormalizedAssetEdit): string[] {
-  const bases = edit.items.slice(0, 2);
+function pairedCardIds(edit: NormalizedAssetEdit, pairCount: number): string[] {
+  const bases = requireAssetEditItemsForMemoryPairs(edit, pairCount);
   return bases.flatMap((item) => {
     const cardBase = slugLabel(item);
     return [`${cardBase}-a`, `${cardBase}-b`];
   });
+}
+
+function requireAssetEditItemsForMemoryPairs(edit: NormalizedAssetEdit, pairCount: number): string[] {
+  if (edit.items.length < pairCount) {
+    throw new Error(`memory-pairs requires at least ${pairCount} asset edit items for authored pairs`);
+  }
+
+  return edit.items.slice(0, pairCount);
+}
+
+function requireMemoryPairCount(props: Record<string, JsonValue>): number {
+  const cards = requireStringArrayProp(props, "cards", "memory-pairs");
+  const pairs = requireStringRecordProp(props, "pairs", "memory-pairs");
+  const pairIds = cards.map((card) => {
+    const pairId = pairs[card];
+    if (!pairId) {
+      throw new Error(`memory-pairs card ${card} is missing an authored pair id`);
+    }
+
+    return pairId;
+  });
+  const uniquePairIds = uniqueStrings(pairIds);
+  const cardsPerPair = new Map(uniquePairIds.map((pairId) => [pairId, 0]));
+  for (const pairId of pairIds) {
+    cardsPerPair.set(pairId, (cardsPerPair.get(pairId) ?? 0) + 1);
+  }
+  const invalidPair = [...cardsPerPair.entries()].find(([, count]) => count !== 2);
+  if (invalidPair) {
+    throw new Error(`memory-pairs authored pair ${invalidPair[0]} must contain exactly two cards`);
+  }
+
+  return uniquePairIds.length;
 }
 
 function pairMapForCards(cards: string[]): Record<string, string> {
@@ -984,6 +1017,39 @@ function requireStringArrayProp(
   }
 
   return values;
+}
+
+function requireStringRecordProp(
+  props: Record<string, JsonValue>,
+  key: string,
+  operation: GameTemplateAssetEditOperation["operation"]
+): Record<string, string> {
+  const value = props[key];
+  if (!value || Array.isArray(value) || typeof value !== "object") {
+    throw new Error(`asset edit operation ${operation} requires non-empty string record prop ${key}`);
+  }
+
+  const record = Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string")
+  );
+  if (Object.keys(record).length === 0) {
+    throw new Error(`asset edit operation ${operation} requires non-empty string record prop ${key}`);
+  }
+
+  return record;
+}
+
+function requireNumberProp(
+  props: Record<string, JsonValue>,
+  key: string,
+  operation: GameTemplateAssetEditOperation["operation"]
+): number {
+  const value = props[key];
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`asset edit operation ${operation} requires numeric prop ${key}`);
+  }
+
+  return value;
 }
 
 function stringMatrixProp(props: Record<string, JsonValue>, key: string): string[][] {

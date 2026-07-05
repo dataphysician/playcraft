@@ -1149,8 +1149,15 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps builder asset edit operations from inventing missing authored props", () => {
     const builderSource = readSource("packages/builder/src/index.ts");
+    const builderTestSource = readSource("packages/builder/test/session-service.test.ts");
 
     expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string array prop ${key}");
+    expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string record prop ${key}");
+    expect(builderSource).toContain("asset edit operation ${operation} requires numeric prop ${key}");
+    expect(builderSource).toContain("function requireMemoryPairCount");
+    expect(builderSource).toContain("memory-pairs requires at least ${pairCount} asset edit items");
+    expect(builderTestSource).toContain("updates imported memory profiles from authored pair counts instead of the bundled pair count");
+    expect(builderTestSource).toContain("rejects memory asset edits that do not cover every authored pair");
     expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string matrix prop ${key}");
     expect(builderSource).toContain('requireStringArrayProp(props, "bins", "sorting-items")');
     expect(builderSource).toContain("function requireAssetEditItemsForBins");
@@ -1161,6 +1168,8 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("packages/builder/test/session-service.test.ts")).toContain("rejects sequence asset edits that do not cover every authored sequence token");
     expect(builderSource).not.toContain('bins.length > 0 ? bins : ["red", "blue"]');
     expect(builderSource).not.toContain('activeBins.map((bin) => `${bin} ${edit.singularTheme}`)');
+    expect(builderSource).not.toContain("columns: props.columns ?? 2");
+    expect(builderSource).not.toContain("pairedCardIds(edit)");
     expect(builderSource).not.toContain("items[index % items.length]");
     expect(builderSource).not.toContain("remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>, fallback");
     expect(builderSource).not.toContain("return [fallback]");
