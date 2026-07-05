@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Registry Selected Match
+
+Milestone:
+- Core registry query selection now uses the shared exact single-value helper for the `selected` match instead of indexed extraction after a length check.
+- Registry selection remains fail-closed for zero or multiple matches while removing positional selected-candidate extraction.
+
+Supportive changes:
+- Source scans guard helper-based registry `selected` assignment and block the old `matches.length === 1 ? matches[0] : null` expression.
+- Existing registry tests continue covering ambiguous matches, version requirements, and compatibility contract boundaries.
+
+Validation:
+- `pnpm test packages/core/test/registries.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden removed-provider exact scan
+
+Constraint notes:
+- Keeps core registry selection local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or indexed selected-match extraction.
+
 ## 2026-07-05 - Exact Pack Generated Asset Selection
 
 Milestone:
