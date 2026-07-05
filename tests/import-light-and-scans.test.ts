@@ -277,12 +277,15 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps template requirement lookup exact instead of first pack match", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
     const coreSource = readSource("packages/core/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
-    expect(coreSource).toContain("duplicate_rule_binding_id");
-    expect(coreSource).toContain("const duplicateRuleBindingIds = duplicateStrings(profile.rules.map((rule) => rule.bindingId));");
+    expect(contractSource).toContain("profileDuplicateStrings(value.rules.map((rule) => rule.bindingId))");
+    expect(contractSource).toContain("profile rule binding ${duplicate} must be unique");
+    expect(coreSource).not.toContain("duplicate_rule_binding_id");
+    expect(coreSource).not.toContain("const duplicateRuleBindingIds = duplicateStrings(profile.rules.map((rule) => rule.bindingId));");
     expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile rules contain duplicate binding ids");
     expect(packSource).toContain("duplicate mechanic capability ${capability}");
     expect(packSource).toContain("duplicate rule category ${category}");
@@ -335,8 +338,10 @@ describe("import-light boundaries and source scans", () => {
     expect(coreSource).toContain("mechanicBindingId: component.renderMechanicBindingId");
     expect(coreSource).not.toContain("mechanicBindingId: component.mechanicBindingIds[0]");
     expect(coreSource).toContain("render mechanic binding");
-    expect(coreSource).toContain("duplicate_mechanic_binding_id");
-    expect(coreSource).toContain("const duplicateMechanicBindingIds = duplicateStrings(profile.mechanics.map((mechanic) => mechanic.bindingId));");
+    expect(contractSource).toContain("profileDuplicateStrings(value.mechanics.map((mechanic) => mechanic.bindingId))");
+    expect(contractSource).toContain("profile mechanic binding ${duplicate} must be unique");
+    expect(coreSource).not.toContain("duplicate_mechanic_binding_id");
+    expect(coreSource).not.toContain("const duplicateMechanicBindingIds = duplicateStrings(profile.mechanics.map((mechanic) => mechanic.bindingId));");
     expect(packSource).toContain("componentMechanicCapabilities");
     expect(packSource).toContain("componentRenderMechanicCapabilities");
     expect(packSource).toContain("requiredComponentMechanicBindingIds");
@@ -754,12 +759,15 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps trusted preview selected component misses fail-closed", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
     const coreSource = readSource("packages/core/src/index.ts");
     const source = readSource("apps/studio/src/trusted-preview.tsx");
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
 
-    expect(coreSource).toContain("duplicate_component_binding_id");
-    expect(coreSource).toContain("const duplicateComponentBindingIds = duplicateStrings(profile.components.map((component) => component.bindingId));");
+    expect(contractSource).toContain("profileDuplicateStrings(value.components.map((component) => component.bindingId))");
+    expect(contractSource).toContain("profile component binding ${duplicate} must be unique");
+    expect(coreSource).not.toContain("duplicate_component_binding_id");
+    expect(coreSource).not.toContain("const duplicateComponentBindingIds = duplicateStrings(profile.components.map((component) => component.bindingId));");
     expect(source).toContain("selected trusted preview component");
     expect(source).toContain("function renderRequestKey(request: ComponentRenderRequest): string");
     expect(source).toContain("return request.id;");

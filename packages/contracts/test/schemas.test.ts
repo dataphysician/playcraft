@@ -766,6 +766,47 @@ describe("public contract schemas", () => {
     ).toBe(false);
   });
 
+  it("requires profiles to carry unique mechanic rule and component binding ids", () => {
+    const profile = assembleMvpProfiles()[0];
+    expect(profile).toBeDefined();
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        mechanics: [
+          ...profile!.mechanics,
+          {
+            ...profile!.mechanics[0]!
+          }
+        ]
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        rules: [
+          ...profile!.rules,
+          {
+            ...profile!.rules[0]!
+          }
+        ]
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        components: [
+          ...profile!.components,
+          {
+            ...profile!.components[0]!
+          }
+        ]
+      }).success
+    ).toBe(false);
+  });
+
   it("requires profiles to carry exactly one live surface component per authored capability", () => {
     const profile = assembleMvpProfiles()[0];
     expect(profile).toBeDefined();

@@ -130,7 +130,7 @@ describe("saved profile replay", () => {
     };
 
     expect(() => replayProfile(duplicateMechanicProfile, createDefaultRegistries())).toThrow(
-      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate mechanic binding ids: ${saved.mechanics[0]!.bindingId.replace(/\./gu, "\\.")}`, "u")
+      new RegExp(`profile mechanic binding ${saved.mechanics[0]!.bindingId.replace(/\./gu, "\\.")} must be unique`, "u")
     );
   });
 
@@ -148,7 +148,7 @@ describe("saved profile replay", () => {
     };
 
     expect(() => replayProfile(duplicateRuleProfile, createDefaultRegistries())).toThrow(
-      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate rule binding ids: ${saved.rules[0]!.bindingId.replace(/\./gu, "\\.")}`, "u")
+      new RegExp(`profile rule binding ${saved.rules[0]!.bindingId.replace(/\./gu, "\\.")} must be unique`, "u")
     );
   });
 
@@ -166,7 +166,7 @@ describe("saved profile replay", () => {
     };
 
     expect(() => replayProfile(duplicateComponentProfile, createDefaultRegistries())).toThrow(
-      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate component binding ids: ${saved.components[1]!.bindingId.replace(/\./gu, "\\.")}`, "u")
+      new RegExp(`profile component binding ${saved.components[1]!.bindingId.replace(/\./gu, "\\.")} must be unique`, "u")
     );
   });
 

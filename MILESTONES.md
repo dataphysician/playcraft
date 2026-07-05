@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Profile Binding Identities Are Schema-Owned
+
+Milestone:
+- `GameAssemblyProfileSchema` now rejects duplicate mechanic binding IDs, rule binding IDs, and component binding IDs.
+- Core validation no longer carries separate duplicate binding-id validators after profile schema parsing.
+
+Supportive changes:
+- Contract tests cover duplicate mechanic, rule, and component binding IDs.
+- Core replay tests now expect duplicate binding identity failures at the saved profile contract boundary.
+- Source scans guard the schema-owned binding identity checks and reject the removed core duplicate binding branches.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden stale removed-provider exact scan
+- full ignored-path legacy transcript/provider scan
+
+Constraint notes:
+- Keeps saved profiles self-validating for local agent-driven toddler mini-game assembly without late replay-only duplicate binding identity checks.
+
 ## 2026-07-05 - Profile Replay Events Are Schema-Owned
 
 Milestone:

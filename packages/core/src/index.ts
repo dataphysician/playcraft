@@ -480,21 +480,6 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
     }
   }
 
-  const duplicateMechanicBindingIds = duplicateStrings(profile.mechanics.map((mechanic) => mechanic.bindingId));
-  if (duplicateMechanicBindingIds.length > 0) {
-    errors.push(schemaIssue(["mechanics"], "duplicate_mechanic_binding_id", `profile ${profile.id} has duplicate mechanic binding ids: ${duplicateMechanicBindingIds.join(", ")}`, "error"));
-  }
-
-  const duplicateRuleBindingIds = duplicateStrings(profile.rules.map((rule) => rule.bindingId));
-  if (duplicateRuleBindingIds.length > 0) {
-    errors.push(schemaIssue(["rules"], "duplicate_rule_binding_id", `profile ${profile.id} has duplicate rule binding ids: ${duplicateRuleBindingIds.join(", ")}`, "error"));
-  }
-
-  const duplicateComponentBindingIds = duplicateStrings(profile.components.map((component) => component.bindingId));
-  if (duplicateComponentBindingIds.length > 0) {
-    errors.push(schemaIssue(["components"], "duplicate_component_binding_id", `profile ${profile.id} has duplicate component binding ids: ${duplicateComponentBindingIds.join(", ")}`, "error"));
-  }
-
   const mechanicBindingIds = new Set(profile.mechanics.map((mechanic) => mechanic.bindingId));
   const assetIds = new Set(profile.assets.map((asset) => asset.assetId));
 
@@ -546,22 +531,6 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
   }
 
   return validationResult(profile.id, errors.length === 0, errors, warnings);
-}
-
-function duplicateStrings(values: string[]): string[] {
-  const seen = new Set<string>();
-  const duplicates = new Set<string>();
-
-  for (const value of values) {
-    if (seen.has(value)) {
-      duplicates.add(value);
-      continue;
-    }
-
-    seen.add(value);
-  }
-
-  return [...duplicates];
 }
 
 export function createPlaycraftEvent(input: Omit<PlaycraftEventRecord, "schemaVersion" | "version" | "kind">): PlaycraftEventRecord {

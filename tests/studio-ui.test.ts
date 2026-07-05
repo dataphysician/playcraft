@@ -1322,7 +1322,8 @@ describe("studio UI", () => {
       selectedComponentKey
     }));
 
-    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("duplicate component binding ids");
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("profile component binding");
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("must be unique");
     expect(screen.getByTestId("trusted-preview-error").textContent).toContain(celebration!.bindingId);
     expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
   });

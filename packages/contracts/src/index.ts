@@ -641,6 +641,30 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
     path: ["validation", "profileId"]
   })
   .superRefine((value, context) => {
+    for (const duplicate of profileDuplicateStrings(value.mechanics.map((mechanic) => mechanic.bindingId))) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `profile mechanic binding ${duplicate} must be unique`,
+        path: ["mechanics"]
+      });
+    }
+
+    for (const duplicate of profileDuplicateStrings(value.rules.map((rule) => rule.bindingId))) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `profile rule binding ${duplicate} must be unique`,
+        path: ["rules"]
+      });
+    }
+
+    for (const duplicate of profileDuplicateStrings(value.components.map((component) => component.bindingId))) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `profile component binding ${duplicate} must be unique`,
+        path: ["components"]
+      });
+    }
+
     for (const duplicate of profileDuplicateStrings(value.assetRequests.map((request) => request.requestId))) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
