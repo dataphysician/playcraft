@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Reject Default Template Assembly Fallback
+
+Milestone:
+- First-run assemble requests now require an explicit template id or recognizable game request text before selecting a game template.
+- The public intent-resolution contract no longer advertises a `default-template` decision source for hidden first-run template selection.
+
+Supportive changes:
+- Service tests cover vague first-run assemble requests through both the local service and resolver API.
+- Source scans require the explicit assemble error and block the old service default-template decision and catalog-default active-template fallback.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Default-template source scan confirmed the explicit first-run assemble error and no old default-template decision path.
+
+Constraint notes:
+- Keeps first-run game assembly explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or hidden catalog-default game selection.
+
 ## 2026-07-04 - Explicit Studio Timeline Detail Selection
 
 Milestone:

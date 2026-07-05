@@ -300,7 +300,7 @@ export class LocalPlaycraftService {
     const sessionId = input.sessionId ?? this.catalog().sessions.defaultAssembleSessionId;
     const state = this.sessionState.get(sessionId);
     const resolved = this.resolveInput(sessionId, input, {
-      activeTemplateId: state?.activeTemplateId ?? this.catalog().defaultTemplateId
+      activeTemplateId: state?.activeTemplateId
     });
     this.updateSessionState(sessionId, resolved);
     return this.execute("assemble-game", sessionId, resolved);
@@ -476,7 +476,7 @@ export class LocalPlaycraftService {
   private resolveInput(
     sessionId: string,
     input: LocalBuilderInput,
-    active: { activeTemplateId: BuilderTemplateId }
+    active: { activeTemplateId?: BuilderTemplateId }
   ): ResolvedBuilderInputCommand {
     this.inputCounter += 1;
     const state = this.sessionState.get(sessionId);
@@ -908,7 +908,7 @@ function templateDecisionFor(input: {
     return { source: "active-template", templateId: input.activeTemplateId };
   }
 
-  return { source: "default-template", templateId: DEFAULT_GAME_TEMPLATE_ID };
+  throw new Error("assemble requests require a game template id or a recognizable game request");
 }
 
 function assetDecisionFor(input: {

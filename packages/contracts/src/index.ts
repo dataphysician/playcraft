@@ -903,8 +903,7 @@ export const BuilderIntentResolutionSchema = PublicContractBaseSchema.extend({
         "explicit-template-id",
         "catalog-template-alias",
         "ambiguous-template-match",
-        "active-template",
-        "default-template"
+        "active-template"
       ]),
       matchedTemplateIds: z.array(BuilderTemplateIdSchema).default([]),
       matchedCapabilityTags: z.array(CapabilityTagSchema).default([]),

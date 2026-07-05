@@ -450,6 +450,25 @@ describe("local Playcraft service", () => {
     expect(updated.result.profile?.assetRequests[0]?.prompt).toContain("fruits sorting game illustrations");
   });
 
+  it("rejects vague first-run assemble requests instead of using the catalog default template", () => {
+    const service = createLocalPlaycraftService();
+
+    expect(() =>
+      service.assemble({
+        source: "text",
+        text: "make it more colorful"
+      })
+    ).toThrow(/assemble requests require a game template id or a recognizable game request/u);
+
+    expect(() =>
+      resolveBuilderInputCommand({
+        sequence: 1,
+        source: "text",
+        text: "make it more colorful"
+      })
+    ).toThrow(/assemble requests require a game template id or a recognizable game request/u);
+  });
+
   it("rejects updates for sessions without an active assembled game", () => {
     const service = createLocalPlaycraftService();
 
