@@ -152,9 +152,9 @@ describe("capability registries", () => {
           typeof value !== "object" ||
           value === null ||
           Array.isArray(value) ||
-          typeof Reflect.get(value, "id") !== "string" ||
-          typeof Reflect.get(value, "version") !== "string" ||
-          typeof Reflect.get(value, "kind") !== "string"
+          typeof (value as Record<string, unknown>).id !== "string" ||
+          typeof (value as Record<string, unknown>).version !== "string" ||
+          typeof (value as Record<string, unknown>).kind !== "string"
         ) {
           throw new Error("invalid loose registry entry");
         }
@@ -194,9 +194,9 @@ describe("capability registries", () => {
           typeof value !== "object" ||
           value === null ||
           Array.isArray(value) ||
-          typeof Reflect.get(value, "id") !== "string" ||
-          typeof Reflect.get(value, "version") !== "string" ||
-          typeof Reflect.get(value, "kind") !== "string"
+          typeof (value as Record<string, unknown>).id !== "string" ||
+          typeof (value as Record<string, unknown>).version !== "string" ||
+          typeof (value as Record<string, unknown>).kind !== "string"
         ) {
           throw new Error("invalid loose registry entry");
         }
@@ -230,9 +230,9 @@ function looseEntrySchema(): { parse(value: unknown): RegistryEntry & { kind: st
         typeof value !== "object" ||
         value === null ||
         Array.isArray(value) ||
-        typeof Reflect.get(value, "id") !== "string" ||
-        typeof Reflect.get(value, "version") !== "string" ||
-        typeof Reflect.get(value, "kind") !== "string"
+        typeof (value as Record<string, unknown>).id !== "string" ||
+        typeof (value as Record<string, unknown>).version !== "string" ||
+        typeof (value as Record<string, unknown>).kind !== "string"
       ) {
         throw new Error("invalid loose registry entry");
       }

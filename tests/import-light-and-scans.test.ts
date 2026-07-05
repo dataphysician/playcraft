@@ -191,6 +191,8 @@ describe("import-light boundaries and source scans", () => {
     expect(coreSource).toContain("function registrySelectionWarnings");
     expect(coreSource).toContain("matches.length === 1 ? matches[0] : null");
     expect(coreSource).toContain("has multiple versions for ${id}; pass version");
+    expect(coreSource).not.toContain("Reflect.get");
+    expect(registryTestSource).not.toContain("Reflect.get");
     expect(coreSource).not.toContain("selected: matches[0] ?? null");
     expect(coreSource).not.toContain("return this.all().find((entry) => entry.id === id)");
     expect(registryTestSource).toContain("does not select the first matching registry candidate when matches are ambiguous");

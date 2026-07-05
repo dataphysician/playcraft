@@ -619,7 +619,7 @@ function getStringArrayFromRecord(record: unknown, key: string): string[] {
     return [];
   }
 
-  const value = Reflect.get(record, key);
+  const value = (record as Record<string, unknown>)[key];
   return isStringArray(value) ? value : [];
 }
 
@@ -635,7 +635,7 @@ function contractCompatibilityForEntry(entry: RegistryEntry): ContractCompatibil
     return undefined;
   }
 
-  const compatibility = Reflect.get(entry, "compatibility");
+  const compatibility = entry.compatibility;
   if (!isContractCompatibilityFields(compatibility)) {
     return undefined;
   }

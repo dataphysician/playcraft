@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Direct Core Registry Field Reads
+
+Milestone:
+- Core registry selection now reads parsed contract record fields directly instead of using reflective property access.
+- Loose registry tests no longer model registry parsing around `Reflect.get`.
+
+Supportive changes:
+- Registry/source scan tests guard direct field reads in core compatibility selection.
+- Existing registry tests continue covering ambiguous matches, version requirements, and contract-kind compatibility checks.
+
+Validation:
+- `pnpm test packages/core/test/registries.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps registry selection local, typed, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or reflective field dispatch.
+
 ## 2026-07-05 - Exact Profile Validation Snapshot IDs
 
 Milestone:
