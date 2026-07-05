@@ -234,6 +234,18 @@ describe("import-light boundaries and source scans", () => {
     expect(packSource).not.toContain("items.slice(0, 2).flatMap");
   });
 
+  it("keeps pack manifest capabilities complete instead of capped", () => {
+    const packSource = readSource("packages/packs/src/index.ts");
+    const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
+
+    expect(packSource).toContain("function uniqueCapabilityTags");
+    expect(packSource).toContain("providedCapabilities: uniqueCapabilityTags(providedCapabilities)");
+    expect(packSource).not.toContain("providedCapabilities: [...new Set(providedCapabilities)].slice(0, 12)");
+    expect(packSource).not.toContain(".slice(0, 12)");
+    expect(packTestSource).toContain("keeps pack manifest capabilities complete instead of truncating advertised tags");
+    expect(packTestSource).toContain("expectedMechanicCapabilities.length).toBeGreaterThan(12)");
+  });
+
   it("keeps trusted component tool emission single-tool explicit", () => {
     const packSource = readSource("packages/packs/src/index.ts");
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");

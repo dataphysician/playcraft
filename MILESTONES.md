@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Complete Pack Manifest Capabilities
+
+Milestone:
+- Pack manifests now preserve every unique authored provided capability instead of silently capping advertised tags at 12.
+- The mechanics pack advertises the full capability surface needed by local agent tooling and future catalog retrieval.
+
+Supportive changes:
+- Pack tests compare the mechanics pack manifest to the complete unique capability set from authored mechanic definitions.
+- Source scans require `uniqueCapabilityTags` and block returning to the `.slice(0, 12)` manifest cap.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps local pack discovery explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or truncated capability advertisement.
+
 ## 2026-07-05 - Authored Helper Template Alias Summaries
 
 Milestone:

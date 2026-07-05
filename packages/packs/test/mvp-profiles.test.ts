@@ -8,6 +8,7 @@ import {
   DEFAULT_GAME_TEMPLATE_ID,
   gameTemplateDefinitions,
   mechanicDefinitions,
+  packManifests,
   mvpAssemblyRequests
 } from "@playcraft/packs";
 
@@ -287,5 +288,13 @@ describe("MVP profile pack", () => {
       "tool:repeat-sequence",
       "tool:move-item"
     ]);
+  });
+
+  it("keeps pack manifest capabilities complete instead of truncating advertised tags", () => {
+    const mechanicsPack = packManifests.find((manifest) => manifest.id === "pack.mechanics.mvp");
+    const expectedMechanicCapabilities = [...new Set(mechanicDefinitions.flatMap((definition) => definition.capabilityTags))];
+
+    expect(expectedMechanicCapabilities.length).toBeGreaterThan(12);
+    expect(mechanicsPack?.providedCapabilities).toEqual(expectedMechanicCapabilities);
   });
 });

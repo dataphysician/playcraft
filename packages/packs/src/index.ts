@@ -1529,7 +1529,7 @@ function packManifest(id: string, kind: "mechanic-pack" | "rule-pack" | "compone
     id,
     version: "1.0.0",
     kind,
-    providedCapabilities: [...new Set(providedCapabilities)].slice(0, 12),
+    providedCapabilities: uniqueCapabilityTags(providedCapabilities),
     requiredPeerCapabilities: [],
     compatibleDomainProfiles: [DEFAULT_DOMAIN_ID],
     compatibleSafetyPolicies: [DEFAULT_SAFETY_POLICY_ID],
@@ -1542,6 +1542,10 @@ function packManifest(id: string, kind: "mechanic-pack" | "rule-pack" | "compone
       native: false
     }
   };
+}
+
+function uniqueCapabilityTags(providedCapabilities: string[]): string[] {
+  return [...new Set(providedCapabilities)];
 }
 
 interface MvpProfileTemplate {
