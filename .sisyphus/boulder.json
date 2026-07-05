@@ -99,6 +99,15 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-07-05T22:10:15.131Z"
+    },
+    "todo:16": {
+      "task_key": "todo:16",
+      "task_label": "16",
+      "task_title": "Accessibility (keyboard, labels, contrast, focus, reduced-motion)",
+      "session_id": "ses_0cba5fa2bffe8TueiqhncrZdBI",
+      "agent": "Sisyphus-Junior",
+      "category": "visual-engineering",
+      "updated_at": "2026-07-05T22:45:54.158Z"
     }
   }
 }

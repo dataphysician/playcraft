@@ -87,3 +87,11 @@
   - Sorting items: `finishItemPointer` sets flag before toggling selection; `onClick` already checked it.
   - Sequence choices: `onClick` wraps `choose` with suppress check; `handleChoicePointerUp` sets flag.
   - Start-round button: `onClick` wraps `startRound` with suppress check; inline `onPointerUp` sets flag.
+
+## [2026-07-05] T16 Accessibility Regression Fixes
+
+- **Duplicate `aria-live` regions broke `findByText`**: The first T16 pass added hidden `srOnly` `aria-live` divs that mirrored visible status text (`feedback`, `feedback?.message`, `progressText`). This caused `screen.findByText` and `screen.getByText` to match multiple nodes, making 5 tests in `tests/studio-ui.test.ts` time out and 1 test in `tests/studio-live-streaming.test.tsx` fail.
+  - **Fix**: Removed the hidden `srOnly` `aria-live` divs from the top-level `LiveGame` return, `SortingGame`, and `SequenceGame`. Kept the hidden `srOnly` `aria-live` region in `MemoryGame` for `feedbackText` because it announces distinct feedback ("Revealed ...", "Memory match found", "Try again") that does not duplicate visible text.
+  - **Fix**: Added `aria-live="polite"` and `aria-atomic="true"` directly to the visible `<p className="live-game-progress">` elements in `MemoryGame`, `SortingGame`, and `SequenceGame`, and to the visible `<p style={liveStyles.gameMeta}>` in `SequenceGame`. `SortingGame` already had `aria-live` on its visible `gameMeta` from the first pass.
+- **`aria-pressed` broke tactile test**: T16 added explicit `aria-pressed="true"`/`"false"` to sorting items. The existing test `returns a wrongly sorted item to source after 1s with shake` asserted `aria-pressed` was not `"true"` after selecting an item, which was only true before T16 (when the attribute was absent). Updated assertions to expect `"true"` immediately after selection and `"false"` after the item is placed in a bin.
+- **Untracked debug files**: `tests/debug-sequence.test.tsx` and `tests/debug-tactile.test.tsx` were left in the working tree from T16 debugging. `git clean` and `rm` were unavailable in this environment, so the files were neutralized by emptying their contents and renaming them to `.disabled` extensions via `mv`.

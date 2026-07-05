@@ -56,6 +56,23 @@ export function audioCueForEvent(kind: "success" | "error" | "reveal" | "complet
   }
 }
 
+function usePrefersReducedMotion(): boolean {
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+
+  React.useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handler = (event: MediaQueryListEvent) => setPrefersReducedMotion(event.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
+  return prefersReducedMotion;
+}
+
 type AssetReplacementLookup = Map<string, AssetReplacement>;
 
 interface MemoryCard {
@@ -167,6 +184,7 @@ export function LiveGame({ profile, assetReplacements, onInteraction, timeline, 
   const [isResetting, setIsResetting] = React.useState(false);
   const previousProfileIdRef = React.useRef<string | undefined>(undefined);
   const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   React.useEffect(() => {
     if (!timeline || timeline.length === 0) {
@@ -191,11 +209,15 @@ export function LiveGame({ profile, assetReplacements, onInteraction, timeline, 
 
   React.useEffect(() => {
     if (previousProfileIdRef.current !== undefined && activeProfileId !== undefined && previousProfileIdRef.current !== activeProfileId) {
-      setIsResetting(true);
-      resetTimerRef.current = setTimeout(() => {
+      if (prefersReducedMotion) {
         setIsResetting(false);
-        resetTimerRef.current = null;
-      }, 300);
+      } else {
+        setIsResetting(true);
+        resetTimerRef.current = setTimeout(() => {
+          setIsResetting(false);
+          resetTimerRef.current = null;
+        }, 300);
+      }
     }
     previousProfileIdRef.current = activeProfileId;
     return () => {
@@ -203,12 +225,12 @@ export function LiveGame({ profile, assetReplacements, onInteraction, timeline, 
         clearTimeout(resetTimerRef.current);
       }
     };
-  }, [activeProfileId]);
+  }, [activeProfileId, prefersReducedMotion]);
 
   return React.createElement(
     React.Fragment,
     null,
-    React.createElement("style", null, liveMotionCss + liveGameCss),
+    React.createElement("style", null, liveMotionCss + liveGameCss + liveA11yCss),
     streamError ? React.createElement(LiveGameError, { message: streamError, onRetry })
       : isResetting ? React.createElement("div", { className: "loading-placeholder" }, "Loading new game...")
       : profile ? React.createElement(LiveGameForProfile, { profile, assetReplacements, onInteraction, progressText, isLoading: isResetting, onAudioCue })
@@ -379,6 +401,7 @@ function MemoryGame({
   const [revealed, setRevealed] = React.useState<string[]>([]);
   const [matched, setMatched] = React.useState<Set<string>>(() => new Set());
   const [moves, setMoves] = React.useState(0);
+  const [feedbackText, setFeedbackText] = React.useState("");
   const didMountRef = React.useRef(false);
   const roundKey = `${profile.id}:${sourceCards.join("|")}:${JSON.stringify(cardPairs)}`;
   const mismatchTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -394,6 +417,7 @@ function MemoryGame({
     setRevealed([]);
     setMatched(new Set());
     setMoves(0);
+    setFeedbackText("");
   }, [roundKey]);
 
   React.useEffect(() => {
@@ -436,9 +460,11 @@ function MemoryGame({
         setMatched((current) => new Set([...current, card.pairKey]));
         setRevealed([]);
         emitCue("success");
+        setFeedbackText("Memory match found");
       } else {
         emitCue("error");
         setRevealed(next);
+        setFeedbackText("Try again");
         mismatchTimerRef.current = setTimeout(() => {
           setRevealed([]);
           mismatchTimerRef.current = null;
@@ -447,6 +473,7 @@ function MemoryGame({
     } else {
       setRevealed(next);
       emitCue("reveal");
+      setFeedbackText(`Revealed ${card.id}`);
     }
 
     onInteraction?.({
@@ -497,10 +524,17 @@ function MemoryGame({
     event.currentTarget.releasePointerCapture?.(event.pointerId);
   }
 
+  function handleCardKeyDown(card: MemoryCard, event: React.KeyboardEvent<HTMLButtonElement>): void {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      handleCard(card);
+    }
+  }
+
   return React.createElement(
     "section",
     { style: gameSurfaceStyle("memory"), "aria-label": profile.profileName },
-    progressText ? React.createElement("p", { className: "live-game-progress" }, progressText) : null,
+    progressText ? React.createElement("p", { className: "live-game-progress", "aria-live": "polite", "aria-atomic": "true" }, progressText) : null,
     React.createElement(
       "div",
       { style: liveStyles.gameHeader },
@@ -532,6 +566,7 @@ function MemoryGame({
           {
             key: `${card.id}.${index}`,
             type: "button",
+            className: "memory-card",
             "aria-label": card.id,
             onClick: () => {
               if (suppressNextClick.current) {
@@ -543,6 +578,7 @@ function MemoryGame({
             },
             onPointerDown: (event: React.PointerEvent<HTMLButtonElement>) => handleCardPointerDown(card, event),
             onPointerUp: (event: React.PointerEvent<HTMLButtonElement>) => handleCardPointerUp(card, event),
+            onKeyDown: (event: React.KeyboardEvent<HTMLButtonElement>) => handleCardKeyDown(card, event),
             style: {
               ...liveStyles.memoryCard,
               ...(shown ? memoryCardFaceStyle(pairVisual) : liveStyles.memoryCardHidden),
@@ -559,6 +595,7 @@ function MemoryGame({
         );
       })
     ),
+    React.createElement("div", { style: liveStyles.srOnly, "aria-live": "polite", "aria-atomic": "true" }, feedbackText),
     complete
       ? React.createElement(CompletionPanel, {
           title: "Perfect match",
@@ -762,6 +799,13 @@ function SortingGame({
     event.currentTarget.releasePointerCapture?.(event.pointerId);
   }
 
+  function handleItemKeyDown(item: string, event: React.KeyboardEvent<HTMLButtonElement>): void {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      setSelectedItem((current) => current === item ? undefined : item);
+    }
+  }
+
   function handleItemMouseDown(item: string, event: React.MouseEvent<HTMLButtonElement>): void {
     if (dragStateRef.current || placements[item] !== undefined || event.button > 0) {
       return;
@@ -841,7 +885,7 @@ function SortingGame({
   return React.createElement(
     "section",
     { style: gameSurfaceStyle("sorting"), "aria-label": profile.profileName },
-    progressText ? React.createElement("p", { className: "live-game-progress" }, progressText) : null,
+    progressText ? React.createElement("p", { className: "live-game-progress", "aria-live": "polite", "aria-atomic": "true" }, progressText) : null,
     React.createElement(
       "div",
       { style: liveStyles.gameHeader },
@@ -850,7 +894,7 @@ function SortingGame({
         null,
         React.createElement("p", { style: liveStyles.profileName }, profile.profileName),
         React.createElement("h2", { style: liveStyles.gameTitle }, textProp(component.props, "title", profile.profileName)),
-        React.createElement("p", { style: liveStyles.gameMeta }, complete ? "All items sorted" : feedback ?? "Pick an item, then choose a matching bin.")
+        React.createElement("p", { style: liveStyles.gameMeta, "aria-live": "polite", "aria-atomic": "true" }, complete ? "All items sorted" : feedback ?? "Pick an item, then choose a matching bin.")
       ),
       React.createElement("span", { style: liveStyles.counter }, `${placedCount} / ${items.length}`)
     ),
@@ -882,7 +926,9 @@ function SortingGame({
             {
               key: item,
               type: "button",
+              className: "sort-item",
               "aria-label": item,
+              "aria-pressed": selectedItem === item ? "true" : "false",
               onClick: () => {
                 if (suppressNextClick.current) {
                   suppressNextClick.current = false;
@@ -898,6 +944,7 @@ function SortingGame({
               onMouseDown: (event: React.MouseEvent<HTMLButtonElement>) => handleItemMouseDown(item, event),
               onMouseMove: handleItemMouseMove,
               onMouseUp: finishItemMouse,
+              onKeyDown: (event: React.KeyboardEvent<HTMLButtonElement>) => handleItemKeyDown(item, event),
               disabled: placements[item] !== undefined,
               style: sortItemStyle({
                 placed: placements[item] !== undefined,
@@ -921,6 +968,7 @@ function SortingGame({
             {
               key: bin,
               type: "button",
+              className: "sort-bin",
               "aria-label": `${bin} bin`,
               ref: (node: HTMLButtonElement | null) => {
                 if (node) {
@@ -1172,10 +1220,24 @@ function SequenceGame({
     event.currentTarget.releasePointerCapture?.(event.pointerId);
   }
 
+  function handleChoiceKeyDown(item: string, event: React.KeyboardEvent<HTMLButtonElement>): void {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      choose(item);
+    }
+  }
+
+  function handleStartRoundKeyDown(event: React.KeyboardEvent<HTMLButtonElement>): void {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      startRound();
+    }
+  }
+
   return React.createElement(
     "section",
     { style: gameSurfaceStyle("sequence"), "aria-label": profile.profileName },
-    progressText ? React.createElement("p", { className: "live-game-progress" }, progressText) : null,
+    progressText ? React.createElement("p", { className: "live-game-progress", "aria-live": "polite", "aria-atomic": "true" }, progressText) : null,
     React.createElement(
       "div",
       { style: liveStyles.gameHeader },
@@ -1186,7 +1248,7 @@ function SequenceGame({
         React.createElement("h2", { style: liveStyles.gameTitle }, textProp(sequenceComponent.props, "title", profile.profileName)),
         React.createElement(
           "p",
-          { style: liveStyles.gameMeta },
+          { style: liveStyles.gameMeta, "aria-live": "polite", "aria-atomic": "true" },
           complete ? "Sequence complete." : feedback?.message ?? textProp(sequenceComponent.props, "prompt", `${progress} of ${activeRound.length}`)
         )
       ),
@@ -1231,6 +1293,7 @@ function SequenceGame({
           "button",
           {
             type: "button",
+            className: "inline-action",
             onClick: () => {
               if (suppressNextClick.current) {
                 suppressNextClick.current = false;
@@ -1259,6 +1322,7 @@ function SequenceGame({
               choicePointerRef.current = null;
               event.currentTarget.releasePointerCapture?.(event.pointerId);
             },
+            onKeyDown: handleStartRoundKeyDown,
             style: liveStyles.inlineAction
           },
           roundIndex === 0 ? "Start Round" : "Continue"
@@ -1273,6 +1337,7 @@ function SequenceGame({
           {
             key: item,
             type: "button",
+            className: "sequence-choice",
             "aria-label": item,
             "aria-invalid": feedback?.kind === "failure" && feedback.item === item ? true : undefined,
             onClick: () => {
@@ -1285,6 +1350,7 @@ function SequenceGame({
             },
             onPointerDown: (event: React.PointerEvent<HTMLButtonElement>) => handleChoicePointerDown(item, event),
             onPointerUp: (event: React.PointerEvent<HTMLButtonElement>) => handleChoicePointerUp(item, event),
+            onKeyDown: (event: React.KeyboardEvent<HTMLButtonElement>) => handleChoiceKeyDown(item, event),
             disabled: complete || phase !== "play",
             style: sequenceChoiceStyle(item, phase === "play", feedback, tokenStyleCatalog)
           },
@@ -2141,7 +2207,48 @@ const liveMotionCss = `
 }
 `;
 
+const liveA11yCss = `
+.memory-card:focus-visible,
+.sort-item:focus-visible,
+.sequence-choice:focus-visible,
+.inline-action:focus-visible {
+  outline: 2px solid #4A90E2 !important;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .memory-card,
+  .sort-item,
+  .sequence-choice,
+  .inline-action {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+`;
+
 const liveStyles = {
+  srOnly: {
+    position: "absolute",
+    width: "1px",
+    height: "1px",
+    padding: 0,
+    margin: "-1px",
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    whiteSpace: "nowrap" as const,
+    border: 0
+  },
   emptyState: {
     minHeight: "24rem",
     display: "grid",

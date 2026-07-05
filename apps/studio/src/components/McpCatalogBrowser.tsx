@@ -128,6 +128,7 @@ export function McpCatalogBrowser({
     "section",
     { "aria-label": "MCP catalog browser", className: "catalog-column", style: shellStyles.catalogPanel },
     React.createElement("h3", null, "MCP Catalog"),
+    React.createElement("style", null, mcpA11yCss),
     React.createElement("input", {
       type: "search",
       placeholder: "Search tools, templates, actions...",
@@ -154,6 +155,7 @@ export function McpCatalogBrowser({
                 "button",
                 {
                   type: "button",
+                  className: "mcp-catalog-button",
                   "aria-label": `Tool ${tool.name}`,
                   role: "button",
                   onClick: () => setExpandedTool(expandedTool === tool.name ? undefined : tool.name),
@@ -172,6 +174,7 @@ export function McpCatalogBrowser({
                       "button",
                       {
                         type: "button",
+                        className: "mcp-catalog-button",
                         onClick: () => handleRunWith(tool.name, tool.name.replace("tool:", ""), Object.fromEntries(Object.entries(tool.parameters).map(([k, v]) => [k, ""]))),
                         style: shellStyles.catalogItemButton
                       },
@@ -252,12 +255,12 @@ export function McpCatalogBrowser({
               { style: shellStyles.workflowActions },
               React.createElement(
                 "button",
-                { type: "submit", style: shellStyles.primaryButton },
+                { type: "submit", className: "mcp-catalog-button", style: shellStyles.primaryButton },
                 "Run workflow"
               ),
               React.createElement(
                 "button",
-                { type: "button", onClick: () => setWorkflowTool(undefined), style: shellStyles.secondaryButton },
+                { type: "button", className: "mcp-catalog-button", onClick: () => setWorkflowTool(undefined), style: shellStyles.secondaryButton },
                 "Cancel"
               )
             )
@@ -270,6 +273,20 @@ export function McpCatalogBrowser({
 function isRecord(value: unknown): value is Record<string, JsonValue> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+
+const mcpA11yCss = `
+.mcp-catalog-button:focus-visible,
+.mcp-catalog-input:focus-visible {
+  outline: 2px solid #4A90E2 !important;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mcp-catalog-button,
+  .mcp-catalog-input {
+    transition: none !important;
+  }
+}
+`;
 
 const shellStyles = {
   catalogPanel: {

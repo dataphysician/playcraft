@@ -1689,7 +1689,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `apps/mobile-shell/src/**`, `tests/mobile-shell.test.tsx`
   - Pre-commit: `pnpm exec vitest run tests/mobile-shell.test.tsx`
 
-- [ ] 16. Accessibility (keyboard, labels, contrast, focus, reduced-motion)
+- [x] 16. Accessibility (keyboard, labels, contrast, focus, reduced-motion)
 
   **What to do**:
   - In all Studio components (T11-T14 work):

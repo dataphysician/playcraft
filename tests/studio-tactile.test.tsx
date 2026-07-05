@@ -182,7 +182,7 @@ describe("studio tactile interactions", () => {
         fireEvent.click(firstItem);
       });
 
-      expect(firstItem.getAttribute("aria-pressed")).not.toBe("true");
+      expect(firstItem.getAttribute("aria-pressed")).toBe("true");
 
       await act(async () => {
         fireEvent.click(firstBin);
@@ -192,7 +192,7 @@ describe("studio tactile interactions", () => {
         vi.advanceTimersByTime(1000);
       });
 
-      expect(firstItem.getAttribute("aria-pressed")).not.toBe("true");
+      expect(firstItem.getAttribute("aria-pressed")).toBe("false");
     } finally {
       vi.useRealTimers();
     }

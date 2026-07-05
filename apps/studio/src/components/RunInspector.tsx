@@ -22,11 +22,13 @@ export function RunInspector({ frames, onStopRun, isRunning }: RunInspectorProps
     "section",
     { "aria-label": "Run inspector", className: "run-inspector-column", style: shellStyles.runInspectorPanel },
     React.createElement("h3", null, "Run Inspector"),
+    React.createElement("style", null, runInspectorA11yCss),
     isRunning
       ? React.createElement(
           "button",
           {
             type: "button",
+            className: "run-inspector-button",
             onClick: onStopRun,
             style: shellStyles.stopRunButton
           },
@@ -41,6 +43,7 @@ export function RunInspector({ frames, onStopRun, isRunning }: RunInspectorProps
           "button",
           {
             key: kind,
+            className: "run-inspector-button",
             onClick: () => setFilter(kind),
             style: filter === kind ? shellStyles.runInspectorFilterActive : shellStyles.runInspectorFilter
           },
@@ -65,6 +68,7 @@ export function RunInspector({ frames, onStopRun, isRunning }: RunInspectorProps
                 "button",
                 {
                   type: "button",
+                  className: "run-inspector-button",
                   onClick: () =>
                     setExpandedFrame(
                       expandedFrame === `${frame.kind}-${frame.sequence}`
@@ -86,6 +90,18 @@ export function RunInspector({ frames, onStopRun, isRunning }: RunInspectorProps
     )
   );
 }
+
+const runInspectorA11yCss = `
+.run-inspector-button:focus-visible {
+  outline: 2px solid #4A90E2 !important;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .run-inspector-button {
+    transition: none !important;
+  }
+}
+`;
 
 const shellStyles = {
   runInspectorPanel: {

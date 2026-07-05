@@ -337,6 +337,7 @@ export function StudioApp({ client, initialSession, onAudioCue }: StudioAppProps
   return React.createElement(
     "main",
     { style: shellStyles.app },
+    React.createElement("style", null, studioA11yCss),
     React.createElement(
       "header",
       { style: shellStyles.header },
@@ -349,6 +350,7 @@ export function StudioApp({ client, initialSession, onAudioCue }: StudioAppProps
           {
             type: "button",
             role: "tab",
+            className: "studio-tab",
             "aria-selected": activeTab === "live",
             onClick: () => setActiveTab("live"),
             style: activeTab === "live" ? shellStyles.tabActive : shellStyles.tab
@@ -360,6 +362,7 @@ export function StudioApp({ client, initialSession, onAudioCue }: StudioAppProps
           {
             type: "button",
             role: "tab",
+            className: "studio-tab",
             "aria-selected": activeTab === "developer",
             onClick: () => setActiveTab("developer"),
             style: activeTab === "developer" ? shellStyles.tabActive : shellStyles.tab
@@ -740,12 +743,12 @@ function CommandBar({
       ),
       React.createElement(
         "button",
-        { type: "submit", disabled: pending !== null, style: shellStyles.primaryButton },
+        { type: "submit", className: "command-bar-button", disabled: pending !== null, style: shellStyles.primaryButton },
         pending === "generate" ? "Generating..." : pending === "update" ? "Updating..." : buttonLabel
       ),
       React.createElement(
         "button",
-        { type: "button", onClick: onStartOver, disabled: pending !== null, style: shellStyles.secondaryButton },
+        { type: "button", className: "command-bar-button", onClick: onStartOver, disabled: pending !== null, style: shellStyles.secondaryButton },
         "Start Over"
       )
     ),
@@ -803,6 +806,7 @@ function InputSourceButton({
     "button",
     {
       type: "button",
+      className: "input-source-button",
       "aria-pressed": selected,
       onClick: () => onSelect(option.source),
       style: selected ? shellStyles.inputSourceButtonActive : shellStyles.inputSourceButton
@@ -1054,6 +1058,22 @@ function TimelinePanel({
         )
   );
 }
+
+const studioA11yCss = `
+[role="tab"]:focus-visible,
+.command-bar-button:focus-visible,
+.input-source-button:focus-visible {
+  outline: 2px solid #4A90E2 !important;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  [role="tab"],
+  .command-bar-button,
+  .input-source-button {
+    transition: none !important;
+  }
+}
+`;
 
 const shellStyles = {
   app: {
