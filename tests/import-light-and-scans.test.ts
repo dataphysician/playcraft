@@ -971,8 +971,11 @@ describe("import-light boundaries and source scans", () => {
     const studioTestSource = readSource("tests/studio-ui.test.ts");
 
     expect(tokenReaders).toContain('value.filter((entry): entry is string => typeof entry === "string")');
+    expect(tokenReaders).toContain('entry.filter((item): item is string => typeof item === "string")');
     expect(tokenReaders).not.toContain('typeof entry === "string" ? entry : JSON.stringify(entry)');
+    expect(tokenReaders).not.toContain('typeof item === "string" ? item : JSON.stringify(item)');
     expect(studioTestSource).toContain("ignores non-string live game token entries instead of stringifying JSON labels");
+    expect(readSource("packages/builder/test/session-service.test.ts")).toContain("json-round");
   });
 
   it("keeps trusted rendering component-id concrete without capability fallback dispatch", () => {

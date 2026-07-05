@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Strict Sequence Round Props
+
+Milestone:
+- Builder sequence asset-edit rewrites now ignore non-string nested round entries instead of stringifying JSON values into sequence tokens.
+- Empty malformed custom rounds are dropped before remapping sequence tokens.
+- Imported custom sequence profiles keep authored string rounds while malformed JSON-like entries are excluded from updated profiles.
+
+Supportive changes:
+- Builder tests cover malformed custom sequence rounds during an imported-profile asset edit.
+- Source scans guard nested matrix token readers against JSON-stringified token fallback.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps custom sequence profiles contract-shaped without hosted providers, generated runtime code, auth, database state, compatibility shims, or JSON-derived token heuristics.
+
 ## 2026-07-04 - Strict Live Token Props
 
 Milestone:

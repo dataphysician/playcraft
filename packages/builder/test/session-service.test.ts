@@ -291,7 +291,7 @@ describe("builder session service", () => {
             props: {
               ...component.props,
               sequence: ["moon"],
-              rounds: [["moon"], ["star", "moon"], ["moon", "star", "star"]]
+              rounds: [["moon"], [{ label: "json-round" }, "star", "moon"], [{ label: "json-only" }], ["moon", "star", "star"]]
             }
           };
         }
@@ -323,6 +323,7 @@ describe("builder session service", () => {
     expect(edited.result.profile?.id).toBe("profile.custom-sequence");
     expect(sequencePad?.props.sequence).toEqual(["gem-1"]);
     expect(sequencePad?.props.rounds).toEqual([["gem-1"], ["gem-2", "gem-1"], ["gem-1", "gem-2", "gem-2"]]);
+    expect(JSON.stringify(sequencePad?.props.rounds)).not.toContain("json-round");
     expect(edited.result.validation?.valid).toBe(true);
   });
 

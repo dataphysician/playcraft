@@ -951,7 +951,8 @@ function stringMatrixProp(props: Record<string, JsonValue>, key: string): string
 
   return value
     .filter((entry): entry is JsonValue[] => Array.isArray(entry))
-    .map((entry) => entry.map((item) => (typeof item === "string" ? item : JSON.stringify(item))));
+    .map((entry) => entry.filter((item): item is string => typeof item === "string"))
+    .filter((entry) => entry.length > 0);
 }
 
 function uniqueStrings(values: string[]): string[] {
