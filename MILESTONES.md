@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Builder Tool Schema Parity
+
+Milestone:
+- Builder tests now validate every published `BuilderToolDefinition.argumentsSchema` against `BuilderCommandSchema`.
+- The parity guard proves advertised required tool arguments are required by the command schema.
+- The parity guard also proves unadvertised command payload fields are rejected for each builder action.
+
+Supportive changes:
+- Test fixtures provide valid command samples for template, input, asset edit, profile, interaction, and session arguments.
+- Source scans pin the builder tool/schema parity test so tool descriptors cannot drift quietly from command validation.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps builder tool discovery executable against the command contract without hosted providers, generated runtime code, auth, database state, compatibility shims, or CLI/UI-local argument heuristics.
+
 ## 2026-07-04 - Catalog Request Schema Parity
 
 Milestone:

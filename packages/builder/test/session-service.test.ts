@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
+  BuilderCommandSchema,
   BuilderCommandResultSchema,
   JsonValueSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderCommand
 } from "@playcraft/contracts";
+import { assembleMvpProfiles } from "@playcraft/packs";
 import {
   BUILDER_SESSION_POLICY,
   BuilderPreviewPayloadSchema,
@@ -41,6 +43,42 @@ function command(overrides: Partial<BuilderCommand>): BuilderCommand {
     templateId: "template.memory-match",
     ...overrides
   };
+}
+
+const ALL_BUILDER_COMMAND_PAYLOAD_FIELDS = ["templateId", "input", "assetEdit", "profile", "interaction"] as const;
+
+const BUILDER_COMMAND_ARGUMENT_FIELD_SAMPLES: Pick<BuilderCommand, "sessionId" | (typeof ALL_BUILDER_COMMAND_PAYLOAD_FIELDS)[number]> = {
+  assetEdit: { theme: "dinosaurs" },
+  input: {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: "builder-input.test.tool-schema",
+    version: "1.0.0",
+    kind: "builder-input",
+    inputId: "builder-input.test.tool-schema",
+    source: "text",
+    text: "Memory game with dinosaurs",
+    receivedAt: "2026-07-04T00:00:00.000Z"
+  },
+  interaction: { action: "primary" },
+  profile: assembleMvpProfiles()[0],
+  sessionId: "session.test",
+  templateId: "template.memory-match"
+};
+
+function commandForToolSchema(tool: ReturnType<ReturnType<typeof createHandler>["listTools"]>[number]): BuilderCommand {
+  const payload: Partial<BuilderCommand> = {};
+  for (const [fieldName, field] of Object.entries(tool.argumentsSchema.fields)) {
+    payload[fieldName as keyof typeof payload] = BUILDER_COMMAND_ARGUMENT_FIELD_SAMPLES[fieldName as keyof typeof BUILDER_COMMAND_ARGUMENT_FIELD_SAMPLES] as never;
+  }
+  return {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: `builder-command.test.tool-schema.${tool.actionName}`,
+    version: "1.0.0",
+    kind: "builder-command",
+    sessionId: "session.test",
+    ...payload,
+    actionName: tool.actionName
+  } as BuilderCommand;
 }
 
 describe("builder session service", () => {
@@ -105,6 +143,35 @@ describe("builder session service", () => {
       type: "object",
       required: true
     });
+  });
+
+  it("keeps builder tool argument schemas aligned with the command schema", () => {
+    const tools = createHandler().listTools();
+
+    for (const tool of tools) {
+      const minimalCommand = commandForToolSchema(tool);
+      expect(BuilderCommandSchema.safeParse(minimalCommand).success, tool.actionName).toBe(true);
+
+      for (const [fieldName, field] of Object.entries(tool.argumentsSchema.fields)) {
+        if (!field.required) {
+          continue;
+        }
+        const withoutRequiredField = { ...minimalCommand };
+        delete withoutRequiredField[fieldName as keyof BuilderCommand];
+        expect(BuilderCommandSchema.safeParse(withoutRequiredField).success, `${tool.actionName} missing ${fieldName}`).toBe(false);
+      }
+
+      for (const fieldName of ALL_BUILDER_COMMAND_PAYLOAD_FIELDS) {
+        if (fieldName in tool.argumentsSchema.fields) {
+          continue;
+        }
+        const withUnadvertisedField = {
+          ...minimalCommand,
+          [fieldName]: BUILDER_COMMAND_ARGUMENT_FIELD_SAMPLES[fieldName]
+        };
+        expect(BuilderCommandSchema.safeParse(withUnadvertisedField).success, `${tool.actionName} unadvertised ${fieldName}`).toBe(false);
+      }
+    }
   });
 
   it("publishes builder-local CLI session policy for first-run commands", () => {

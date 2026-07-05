@@ -290,6 +290,7 @@ describe("import-light boundaries and source scans", () => {
   it("keeps builder CLI catalog summaries contract-shaped", () => {
     const builderCliSource = readSource("packages/builder/src/cli.ts");
     const builderSource = readSource("packages/builder/src/index.ts");
+    const builderTestSource = readSource("packages/builder/test/session-service.test.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");
 
     expect(contractSource).toContain("argumentSummary: z.string()");
@@ -300,6 +301,9 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain("BuilderToolPresentation");
     expect(builderSource).not.toContain("argumentsPrefix");
     expect(builderSource).not.toContain("noArgumentsLabel");
+    expect(builderTestSource).toContain("keeps builder tool argument schemas aligned with the command schema");
+    expect(builderTestSource).toContain("ALL_BUILDER_COMMAND_PAYLOAD_FIELDS");
+    expect(builderTestSource).toContain("BuilderCommandSchema.safeParse");
     expect(builderCliSource).toContain("writeCatalogSummary(handler.listTools(), handler.listTemplates(), io)");
     expect(builderCliSource).toContain("get-session|export-profile|import-profile");
     expect(builderCliSource).toContain('case "import-profile"');
