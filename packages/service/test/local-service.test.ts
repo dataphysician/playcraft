@@ -450,6 +450,31 @@ describe("local Playcraft service", () => {
     expect(updated.result.profile?.assetRequests[0]?.prompt).toContain("fruits sorting game illustrations");
   });
 
+  it("rejects updates for sessions without an active assembled game", () => {
+    const service = createLocalPlaycraftService();
+
+    expect(() =>
+      service.update({
+        sessionId: "session.no-active-game",
+        source: "text",
+        text: "make it more colorful"
+      })
+    ).toThrow(/update requires an active session session\.no-active-game/u);
+
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.update-empty-session",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "update",
+        sessionId: "session.no-active-game.envelope",
+        source: "text",
+        text: "make it more colorful"
+      })
+    ).toThrow(/update requires an active session session\.no-active-game\.envelope/u);
+  });
+
   it("normalizes explicit Moonshine Streaming CPU transcript records through service requests", () => {
     const service = createLocalPlaycraftService();
     const transcript = createMoonshineTranscriptRecord({

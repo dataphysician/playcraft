@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Session-Bound Service Updates
+
+Milestone:
+- Local service `update` now requires an existing active game session before resolving intent.
+- Service update intent resolution uses the active session template id instead of falling back to the catalog default template.
+- Empty-session update requests now fail with an explicit "assemble a game before updating" error.
+
+Supportive changes:
+- Service tests cover direct and envelope update requests against sessions without active games.
+- Source scans guard the service update boundary and block the removed empty-session default-template recovery expression.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Service update source scan confirmed `requireActiveSessionForUpdate` is used and the old `state?.activeTemplateId ?? catalog.defaultTemplateId` recovery is absent.
+
+Constraint notes:
+- Keeps user-facing service updates session-bound and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or default-template recovery for empty sessions.
+
 ## 2026-07-04 - Run-Owned AG-UI Custom Events
 
 Milestone:

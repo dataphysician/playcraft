@@ -703,6 +703,16 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("activeTemplateId: state?.activeTemplateId ?? snapshot.activeTemplateId");
   });
 
+  it("keeps service updates from defaulting empty sessions to the catalog template", () => {
+    const source = readSource("packages/service/src/index.ts");
+    const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
+
+    expect(source).toContain("private requireActiveSessionForUpdate");
+    expect(source).toContain("assemble a game before updating");
+    expect(serviceTestSource).toContain("rejects updates for sessions without an active assembled game");
+    expect(source).not.toContain("activeTemplateId: state?.activeTemplateId ?? catalog.defaultTemplateId");
+  });
+
   it("keeps service CLI preview/get/export free of hidden assemble seeding", () => {
     const source = readSource("packages/service/src/cli.ts");
 

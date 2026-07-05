@@ -298,13 +298,19 @@ export class LocalPlaycraftService {
 
   assemble(input: LocalBuilderInput): BuilderExecutionResult {
     const sessionId = input.sessionId ?? this.catalog().sessions.defaultAssembleSessionId;
-    const resolved = this.resolveInput(sessionId, input);
+    const state = this.sessionState.get(sessionId);
+    const resolved = this.resolveInput(sessionId, input, {
+      activeTemplateId: state?.activeTemplateId ?? this.catalog().defaultTemplateId
+    });
     this.updateSessionState(sessionId, resolved);
     return this.execute("assemble-game", sessionId, resolved);
   }
 
   update(input: LocalBuilderInput & { sessionId: string }): BuilderExecutionResult {
-    const resolved = this.resolveInput(input.sessionId, input);
+    const activeSession = this.requireActiveSessionForUpdate(input.sessionId);
+    const resolved = this.resolveInput(input.sessionId, input, {
+      activeTemplateId: activeSession.activeTemplateId
+    });
     this.updateSessionState(input.sessionId, resolved);
     return this.execute("update-game", input.sessionId, resolved);
   }
@@ -467,16 +473,19 @@ export class LocalPlaycraftService {
     return BuilderServiceRequestBatchSchema.parse(requestInputs).map((request) => this.handle(request));
   }
 
-  private resolveInput(sessionId: string, input: LocalBuilderInput): ResolvedBuilderInputCommand {
+  private resolveInput(
+    sessionId: string,
+    input: LocalBuilderInput,
+    active: { activeTemplateId: BuilderTemplateId }
+  ): ResolvedBuilderInputCommand {
     this.inputCounter += 1;
     const state = this.sessionState.get(sessionId);
-    const catalog = this.catalog();
     return resolveBuilderInputCommand({
       activeAssetEdit: state?.activeAssetEdit,
-      activeTemplateId: state?.activeTemplateId ?? catalog.defaultTemplateId,
+      activeTemplateId: active.activeTemplateId,
       assetEdit: input.assetEdit,
       sequence: this.inputCounter,
-      source: input.source ?? catalog.input.defaultSource,
+      source: input.source ?? this.catalog().input.defaultSource,
       moonshineTranscript: input.moonshineTranscript,
       templateId: input.templateId,
       text: input.text
@@ -517,6 +526,22 @@ export class LocalPlaycraftService {
       activeAssetEdit: existing?.activeAssetEdit,
       activeTemplateId: requireResultTemplateId(result)
     });
+  }
+
+  private requireActiveSessionForUpdate(sessionId: string): BuilderSessionSnapshot & {
+    activeTemplateId: BuilderTemplateId;
+    profile: GameAssemblyProfile;
+  } {
+    const snapshot = this.getSession(sessionId);
+    if (!snapshot.profile || !snapshot.activeTemplateId) {
+      throw new Error(`update requires an active session ${sessionId}; assemble a game before updating`);
+    }
+
+    return {
+      ...snapshot,
+      activeTemplateId: snapshot.activeTemplateId,
+      profile: snapshot.profile
+    };
   }
 }
 
