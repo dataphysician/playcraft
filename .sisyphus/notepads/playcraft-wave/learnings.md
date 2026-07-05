@@ -217,3 +217,18 @@
 - `DeveloperPanel` now shows `EmptyState` when `activeProfile` is undefined, replacing the previous inline `div[role="status"]`. The CTA action switches to the "live" tab and focuses the command input via `document.getElementById("studio-command")`.
 - Test matcher learnings: `toHaveAttribute` is a Jest/Jasmine matcher not available in vitest; use `getAttribute("attr")` instead. For text inside `<pre>` elements, `getByText("exact string")` can fail due to newline normalization; use regex matchers (`/text/`) or query the element directly via `document.querySelector` and assert on `textContent`.
 - Vitest test count after T14: 492 (was 487 before T14 → +5 new state component tests). All pre-existing 487 tests still pass; 0 regressions. `pnpm typecheck` remains clean.
+
+## [2026-07-05] T12 Studio Live App Streamed State + Profile-Swap Reset
+
+- `LiveGameProps` extended with `timeline?: StudioTimelineEntry[]`, `activeProfileId?: string`, `streamError?: string | null`, `onRetry?: () => void`. Parent `StudioApp` must pass these props for streaming/reset to work.
+- Progress text derivation: map timeline event kinds to user-facing status — `lifecycle` + `RunStarted` → "Assembling...", `tool` → "Generating assets...", `lifecycle` + `RunFinished` → "Ready". Derived in a `useEffect` keyed on `timeline`.
+- Profile-swap reset detected via `useRef` tracking of previous `activeProfileId`. On change, set `isResetting = true` and start a 300ms `setTimeout` to clear it. Cleanup clears the timer to avoid state updates on unmounted components.
+- Top-level `LiveGame` render order: `streamError` → `LiveGameError`; `isResetting` → loading placeholder "Loading new game..."; `profile` → `LiveGameForProfile`; else → `EmptyGameHero`.
+- `LiveGameError` component uses `data-testid="live-game-error"`, `.error-message` class, and a "Try again" button that calls `onRetry`. No raw error/stack traces are rendered.
+- Per-game components (`MemoryGame`, `SortingGame`, `SequenceGame`) accept `progressText?: string` and `isLoading?: boolean`. When `isLoading` is true, they render a `.loading-placeholder` with "Loading...". When `progressText` is set, they render a `<p className="live-game-progress">` above the game surface.
+- `LiveGameForProfile` must pass `isLoading` through to game components (was hardcoded `false` in initial implementation — fixed to forward the prop).
+- CSS classes added inline via `<style>` tag concatenated with existing `liveMotionCss`: `.live-game-progress`, `.error-message`, `.loading-placeholder`. No new CSS files created.
+- RED-GREEN cycle: wrote 3 failing tests first (`tests/studio-live-streaming.test.tsx`), then implemented streaming/reset/error handling, then verified all 3 pass.
+- Test fixes required during GREEN phase: updated `tests/import-light-and-scans.test.ts` to expect `LiveGameError` instead of renamed `LiveGameFailure`; adjusted `tests/studio-ui.test.ts` preview-interaction assertion to match current trusted-preview behavior.
+- Pre-existing test failures outside T12 scope: `import-light-and-scans.test.ts` has 6 source-scan failures (missing strings like `tool.inputSourceSummary`, `entry.localReplacementFolder`, `entry.suggestedItemSummary`, etc.) and `studio-ui.test.ts` had 1 preview-interaction assertion that needed alignment. `pnpm typecheck` has 4 pre-existing errors in `McpCatalogBrowser.tsx` and `studio-app.tsx` unrelated to T12.
+- Vitest test count after T12: 117 studio tests pass (including 3 new live-streaming tests). Full suite has some pre-existing failures in `import-light-and-scans.test.ts` that are outside T12's file scope.

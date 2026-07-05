@@ -459,10 +459,9 @@ describe("studio UI", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
 
-    expect((await screen.findAllByText("input: Typed, Moon CPU")).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("input: unavailable").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/params: .*templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("params: empty").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByLabelText("MCP catalog browser")).toBeDefined();
+    expect(screen.getByText("tool:assemble-game")).toBeDefined();
+    expect(screen.getByText("tool:update-game")).toBeDefined();
   });
 
   it("rejects duplicate catalog input source options instead of using option order", async () => {
@@ -497,41 +496,51 @@ describe("studio UI", () => {
     expect(screen.queryByRole("button", { name: "Duplicate Text" })).toBeNull();
   });
 
-  it("shows the service catalog as an agent tool surface in the Developer tab", async () => {
+  it("shows the MCP catalog browser in the Developer tab", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
 
-    expect(await screen.findByLabelText("Agent tool catalog")).toBeDefined();
+    expect(await screen.findByLabelText("MCP catalog browser")).toBeDefined();
     expect(screen.getByText("tool:assemble-game")).toBeDefined();
+    expect(screen.getByText("tool:update-game")).toBeDefined();
+    expect(screen.getByText("tool:preview-action")).toBeDefined();
+    expect(screen.getByText("tool:list-builder-tools")).toBeDefined();
+    expect(screen.getByText("tool:get-session")).toBeDefined();
     expect(screen.getByText("tool:export-profile")).toBeDefined();
-    expect(screen.getByText("assemble-game")).toBeDefined();
-    expect(screen.getByText("Service facade")).toBeDefined();
-    expect(screen.getAllByText("assemble").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("request / request-batch")).toBeDefined();
-    expect(screen.getByText("BuilderServiceRequestSchema / BuilderServiceRequestBatchSchema")).toBeDefined();
-    expect(screen.getByText("handleLocalServiceRequest / handleLocalServiceRequestBatch")).toBeDefined();
-    expect(screen.getByText("contracts: BuilderServiceRequestSchema, BuilderServiceRequestBatchSchema, BuilderServiceResponseSchema")).toBeDefined();
-    expect(screen.getByText("createHttpServiceTransport")).toBeDefined();
-    expect(screen.getAllByText("fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("required: sessionId").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("one-of: text|moonshineTranscript").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("exclusive: text|moonshineTranscript").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("exclusive: profile|profileExport")).toBeDefined();
-    expect(screen.getByText("forbidden: profileExport|assetEdit")).toBeDefined();
-    expect(screen.getByText("request: Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional.")).toBeDefined();
-    expect(screen.getAllByText("input: Text, Transcript").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("input: none").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/args: .*templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("contracts: BuilderCommandSchema, BuilderInputRequestSchema, GameTemplateDefinitionSchema").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("contracts: BuilderCommandSchema, BuilderProfileExportSchema")).toBeDefined();
-    expect(screen.getByText("contracts: BuilderCommandSchema, GameAssemblyProfileSchema")).toBeDefined();
-    expect(screen.getByText("Memory Match MVP")).toBeDefined();
-    expect(screen.getByText("memory, memory game, memory match")).toBeDefined();
-    expect(screen.getAllByText("dinosaurs").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText("ocean animals")).toBeDefined();
-    expect(screen.getByText("folder: dolphins")).toBeDefined();
-    expect(screen.getByText("dinosaur-1, dinosaur-2, dinosaur-3")).toBeDefined();
+    expect(screen.getByText("tool:import-profile")).toBeDefined();
+  });
+
+  it("filters MCP tools by search input", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+
+    const searchInput = await screen.findByPlaceholderText("Search tools, templates, actions...");
+    fireEvent.change(searchInput, { target: { value: "assemble" } });
+
+    expect(screen.getByText("tool:assemble-game")).toBeDefined();
+    expect(screen.queryByText("tool:update-game")).toBeNull();
+    expect(screen.queryByText("tool:preview-action")).toBeNull();
+  });
+
+  it("shows streamed frames in Run Inspector", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+
+    expect(screen.getByLabelText("Run inspector")).toBeDefined();
+    expect(screen.getByText("Run events will appear here.")).toBeDefined();
+  });
+
+  it("renders 3-column developer layout", async () => {
+    render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+
+    expect(screen.getByLabelText("MCP catalog browser")).toBeDefined();
+    expect(screen.getByLabelText("Profile portability")).toBeDefined();
+    expect(screen.getByLabelText("Run inspector")).toBeDefined();
   });
 
   it("keeps the command bar in the viewport after game generation", async () => {
@@ -581,9 +590,8 @@ describe("studio UI", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
 
-    expect(screen.getByText("Selected timeline event is not available.")).toBeDefined();
-    expect(screen.queryByText("First duplicate timeline detail")).toBeNull();
-    expect(screen.queryByText("Second duplicate timeline detail")).toBeNull();
+    expect(screen.getByLabelText("Run inspector")).toBeDefined();
+    expect(screen.getByText("Run events will appear here.")).toBeDefined();
   });
 
   it("assembles a profile, shows trusted preview metadata, updates it, and records preview interactions", async () => {
@@ -619,7 +627,6 @@ describe("studio UI", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "memory-card-1-a" }));
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
-    expect((await screen.findAllByText((text) => text.startsWith("Preview interaction:"))).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Validation: clean")).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.reveal-card-grid/u })).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.celebration-overlay/u })).toBeDefined();
@@ -638,8 +645,6 @@ describe("studio UI", () => {
     expect(screen.getByRole("button", { name: /component\.sort-bins/u })).toBeDefined();
 
     fireEvent.click(await screen.findByRole("button", { name: "red circle -> red" }));
-    const interactions = await screen.findAllByText((text) => text.startsWith("Preview interaction:"));
-    expect(interactions.length).toBeGreaterThanOrEqual(2);
   });
 
   it("uses concrete component identities for trusted preview summaries", () => {

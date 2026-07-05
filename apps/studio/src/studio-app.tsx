@@ -1,13 +1,19 @@
 import React from "react";
 import {
   BuilderProfileExportSchema,
+  type BuilderAssetEdit,
   type BuilderCatalog,
   type BuilderInputSource,
   type BuilderInputSourceOption,
   type BuilderPreviewInteraction,
   type BuilderProfileExport,
-  type GameAssemblyProfile
+  type GameAssemblyProfile,
+  type JsonValue,
+  type SseFrame,
+  type WorkflowGraph
 } from "@playcraft/contracts";
+import { executeWorkflowSse } from "@playcraft/service";
+import { createLocalPlaycraftService } from "@playcraft/service";
 import { LiveGame, type LiveGameInteraction } from "./live-game.js";
 import {
   TrustedPreview,
@@ -17,6 +23,8 @@ import {
 } from "./trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "./types.js";
 import { EmptyState, ErrorState, LoadingState } from "./states/index.js";
+import { McpCatalogBrowser, type McpCatalogBrowserProps } from "./components/McpCatalogBrowser.js";
+import { RunInspector, type RunInspectorProps } from "./components/RunInspector.js";
 
 export interface StudioAppProps {
   client: StudioClient;
@@ -50,6 +58,9 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const [profileExportText, setProfileExportText] = React.useState("");
   const [profileImportText, setProfileImportText] = React.useState("");
   const [profileTransferStatus, setProfileTransferStatus] = React.useState<string | null>(null);
+  const [runFrames, setRunFrames] = React.useState<SseFrame[]>([]);
+  const [isRunning, setIsRunning] = React.useState(false);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   const activeProfile = session?.activeProfile;
   const activeProfileId = activeProfile?.id;
@@ -262,6 +273,32 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     setCatalogRetryKey((key) => key + 1);
   }
 
+  async function handleRunWorkflow(graph: WorkflowGraph): Promise<void> {
+    setIsRunning(true);
+    setRunFrames([]);
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    try {
+      const service = createLocalPlaycraftService();
+      const transport = { send: (request: Parameters<typeof service.handle>[0]) => service.handle(request) };
+      const frames: SseFrame[] = [];
+
+      for await (const frame of executeWorkflowSse(graph, transport, "session.run-inspector")) {
+        frames.push(frame);
+        setRunFrames([...frames]);
+      }
+    } finally {
+      setIsRunning(false);
+      abortControllerRef.current = null;
+    }
+  }
+
+  function handleStopRun(): void {
+    abortControllerRef.current?.abort();
+    setIsRunning(false);
+  }
+
   function handleEmptyStateAction(): void {
     setActiveTab("live");
     setTimeout(() => {
@@ -352,14 +389,18 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
             selectedEntry,
             selectedTimelineId,
             session,
+            runFrames,
+            isRunning,
             onCatalogRetry: handleCatalogRetry,
             onEmptyStateAction: handleEmptyStateAction,
             onExportProfile: handleExportProfile,
             onImportProfile: handleImportProfile,
             onProfileImportTextChange: setProfileImportText,
+            onRunWorkflow: handleRunWorkflow,
             onServicePreview: handleServicePreview,
             onSelectComponent: setSelectedComponentKey,
             onSelectTimeline: setSelectedTimelineId,
+            onStopRun: handleStopRun,
             onInteraction: handleInteraction
           })
     ),
@@ -395,14 +436,18 @@ function DeveloperPanel({
   selectedEntry,
   selectedTimelineId,
   session,
+  runFrames,
+  isRunning,
   onCatalogRetry,
   onEmptyStateAction,
   onExportProfile,
   onImportProfile,
   onProfileImportTextChange,
+  onRunWorkflow,
   onServicePreview,
   onSelectComponent,
   onSelectTimeline,
+  onStopRun,
   onInteraction
 }: {
   activeProfile: GameAssemblyProfile | undefined;
@@ -421,14 +466,18 @@ function DeveloperPanel({
   selectedEntry: StudioTimelineEntry | undefined;
   selectedTimelineId: string | undefined;
   session: StudioSessionSnapshot | undefined;
+  runFrames: SseFrame[];
+  isRunning: boolean;
   onCatalogRetry: () => void;
   onEmptyStateAction: () => void;
   onExportProfile: () => void;
   onImportProfile: () => void;
   onProfileImportTextChange: (value: string) => void;
+  onRunWorkflow: (graph: WorkflowGraph) => void;
   onServicePreview: () => void;
   onSelectComponent: (componentKey: string) => void;
   onSelectTimeline: (timelineId: string) => void;
+  onStopRun: () => void;
   onInteraction: (interaction: TrustedPreviewInteraction) => void;
 }): React.ReactElement {
   return React.createElement(
@@ -436,10 +485,20 @@ function DeveloperPanel({
     { style: shellStyles.developerGrid },
     React.createElement(
       "section",
-      { style: shellStyles.centerPanel },
+      { className: "catalog-column", style: shellStyles.catalogColumn },
+      React.createElement(McpCatalogBrowser, {
+        catalog,
+        catalogError,
+        onRetry: onCatalogRetry,
+        client: {} as StudioClient,
+        onRunWorkflow
+      })
+    ),
+    React.createElement(
+      "section",
+      { className: "profile-column", style: shellStyles.profileColumn },
       React.createElement("h2", null, activeProfile ? activeProfile.profileName : "Developer"),
       messages.length > 0 ? React.createElement(ChatHistoryPanel, { messages }) : null,
-      React.createElement(AgentToolCatalogPanel, { catalog, catalogError, onRetry: onCatalogRetry }),
       React.createElement(ProfilePortabilityPanel, {
         canExportProfile,
         canImportProfile,
@@ -461,6 +520,11 @@ function DeveloperPanel({
             onSelect: onSelectComponent
           })
         : null,
+      React.createElement(TimelinePanel, {
+        session,
+        selectedTimelineId,
+        onSelectTimeline: onSelectTimeline
+      }),
       activeProfile
         ? React.createElement(TrustedPreview, {
             profile: activeProfile,
@@ -473,149 +537,13 @@ function DeveloperPanel({
             description: "Assemble your first game to inspect the trusted preview and timeline.",
             action: { label: "Assemble your first game", onClick: onEmptyStateAction }
           }),
-      activeProfile ? React.createElement(ProfileSummaryPanel, { profile: activeProfile }) : null
+      activeProfile ? React.createElement(ProfileSummaryPanel, { profile: activeProfile, activeAssetEdit: session?.activeAssetEdit }) : null
     ),
-    React.createElement(TimelinePanel, {
-      session,
-      selectedEntry,
-      selectedTimelineId,
-      onSelectTimeline
+    React.createElement(RunInspector, {
+      frames: runFrames,
+      onStopRun,
+      isRunning
     })
-  );
-}
-
-function AgentToolCatalogPanel({ catalog, catalogError, onRetry }: {
-  catalog: BuilderCatalog | undefined;
-  catalogError: string | null;
-  onRetry: () => void;
-}): React.ReactElement {
-  if (catalogError) {
-    return React.createElement(
-      "section",
-      { "aria-label": "Agent tool catalog", style: shellStyles.catalogPanel },
-      React.createElement("h3", null, "Agent tools"),
-      React.createElement(ErrorState, { message: catalogError, retry: onRetry })
-    );
-  }
-
-  if (!catalog) {
-    return React.createElement(
-      "section",
-      { "aria-label": "Agent tool catalog", style: shellStyles.catalogPanel },
-      React.createElement("h3", null, "Agent tools"),
-      React.createElement(LoadingState, { label: "Loading catalog." })
-    );
-  }
-
-  return React.createElement(
-    "section",
-    { "aria-label": "Agent tool catalog", style: shellStyles.catalogPanel },
-    React.createElement("h3", null, "Agent tools"),
-    React.createElement(
-      "div",
-      { style: shellStyles.catalogGrid },
-      React.createElement(
-        "section",
-        { style: shellStyles.catalogColumn },
-        React.createElement("h4", { style: shellStyles.catalogHeading }, "Callable actions"),
-        React.createElement(
-          "ol",
-          { style: shellStyles.catalogList },
-          ...catalog.tools.map((tool) =>
-            React.createElement(
-              "li",
-              { key: tool.id, style: shellStyles.catalogItem },
-              React.createElement("strong", null, tool.toolName),
-              React.createElement("span", { style: shellStyles.catalogMeta }, tool.actionName),
-              React.createElement("span", { style: shellStyles.catalogMeta }, tool.inputSourceSummary),
-              React.createElement("span", { style: shellStyles.catalogMeta }, tool.argumentSummary),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `contracts: ${tool.requiredContracts.join(", ")}`)
-            )
-          )
-        )
-      ),
-      React.createElement(
-        "section",
-        { style: shellStyles.catalogColumn },
-        React.createElement("h4", { style: shellStyles.catalogHeading }, "Service facade"),
-        React.createElement(
-          "ol",
-          { style: shellStyles.catalogList },
-          ...catalog.service.actions.map((action) =>
-            React.createElement(
-              "li",
-              { key: action.actionName, style: shellStyles.catalogItem },
-              React.createElement("strong", null, action.displayName),
-              React.createElement("span", { style: shellStyles.catalogMeta }, action.actionName),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `input: ${action.acceptsInput ? "yes" : "no"}`),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `session: ${action.requiresSession ? "required" : "optional"}`),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `fields: ${formatCatalogList(action.request.acceptedFields)}`),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `required: ${formatCatalogList(action.request.requiredFields)}`),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `one-of: ${formatCatalogAnyOf(action.request.requiredAnyOf)}`),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `exclusive: ${formatCatalogAnyOf(action.request.exclusiveAnyOf)}`),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `forbidden: ${formatCatalogAnyOf(action.request.forbiddenTogether)}`),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `request: ${action.request.summary}`),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `response: ${action.responsePayload}`)
-            )
-          ),
-          React.createElement(
-            "li",
-            { style: shellStyles.catalogItem },
-            React.createElement("strong", null, "Exact envelopes"),
-            React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.singleCommand} / ${catalog.service.exactEnvelope.batchCommand}`),
-            React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.requestSchema} / ${catalog.service.exactEnvelope.batchSchema}`),
-            React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.directHandler} / ${catalog.service.exactEnvelope.directBatchHandler}`),
-            React.createElement("span", { style: shellStyles.catalogMeta }, `contracts: ${catalog.service.exactEnvelope.requiredContracts.join(", ")}`)
-          ),
-          React.createElement(
-            "li",
-            { style: shellStyles.catalogItem },
-            React.createElement("strong", null, "Transports"),
-            React.createElement("span", { style: shellStyles.catalogMeta }, catalog.service.transports.local),
-            React.createElement("span", { style: shellStyles.catalogMeta }, catalog.service.transports.httpClient),
-            React.createElement("span", { style: shellStyles.catalogMeta }, catalog.service.transports.httpBody)
-          )
-        )
-      ),
-      React.createElement(
-        "section",
-        { style: shellStyles.catalogColumn },
-        React.createElement("h4", { style: shellStyles.catalogHeading }, "Templates"),
-        React.createElement(
-          "ol",
-          { style: shellStyles.catalogList },
-          ...catalog.templates.map((template) =>
-            React.createElement(
-              "li",
-              { key: template.id, style: shellStyles.catalogItem },
-              React.createElement("strong", null, template.displayName),
-              React.createElement("span", { style: shellStyles.catalogMeta }, template.id),
-              React.createElement("span", { style: shellStyles.catalogMeta }, template.requestAliasSummary)
-            )
-          )
-        )
-      ),
-      React.createElement(
-        "section",
-        { style: shellStyles.catalogColumn },
-        React.createElement("h4", { style: shellStyles.catalogHeading }, "Asset levers"),
-        React.createElement(
-          "ol",
-          { style: shellStyles.catalogList },
-          ...catalog.assetEdit.availableThemes.map((entry) =>
-            React.createElement(
-              "li",
-              { key: entry.theme, style: shellStyles.catalogItem },
-              React.createElement("strong", null, entry.displayLabel),
-              React.createElement("span", { style: shellStyles.catalogMeta }, entry.theme),
-              React.createElement("span", { style: shellStyles.catalogMeta }, `folder: ${entry.localReplacementFolder}`),
-              React.createElement("span", { style: shellStyles.catalogMeta }, entry.aliasSummary),
-              React.createElement("span", { style: shellStyles.catalogMeta }, entry.suggestedItemSummary)
-            )
-          )
-        )
-      )
-    )
   );
 }
 
@@ -902,58 +830,7 @@ function ChatHistoryPanel({ messages }: { messages: ChatMessage[] }): React.Reac
   );
 }
 
-function TimelinePanel({
-  session,
-  selectedEntry,
-  selectedTimelineId,
-  onSelectTimeline
-}: {
-  session: StudioSessionSnapshot | undefined;
-  selectedEntry: StudioTimelineEntry | undefined;
-  selectedTimelineId: string | undefined;
-  onSelectTimeline: (timelineId: string) => void;
-}): React.ReactElement {
-  const hasTimelineEvents = Boolean(session?.timeline.length);
 
-  return React.createElement(
-    "aside",
-    { style: shellStyles.rightRail },
-    React.createElement("h2", null, "Interaction timeline"),
-    React.createElement(
-      "ol",
-      { style: shellStyles.timelineList },
-      ...(session?.timeline.map((entry, index) =>
-        React.createElement(
-          "li",
-          { key: timelineEntryRenderKey(entry, index) },
-          React.createElement(
-            "button",
-            {
-              type: "button",
-              onClick: () => onSelectTimeline(entry.id),
-              style: entry.id === selectedEntry?.id ? shellStyles.timelineButtonActive : shellStyles.timelineButton
-            },
-            React.createElement("strong", null, entry.title),
-            React.createElement("span", { style: shellStyles.timelineMeta }, `${entry.kind} · ${entry.profileId ?? "session"}`)
-          )
-        )
-      ) ?? [])
-    ),
-    selectedEntry
-      ? React.createElement(
-          "section",
-          { style: shellStyles.detailPanel },
-          React.createElement("h3", null, selectedEntry.title),
-          React.createElement("p", null, selectedEntry.timestamp),
-          React.createElement("pre", { style: shellStyles.detailPre }, selectedEntry.detail)
-        )
-      : React.createElement(
-          "div",
-          { role: "status", style: shellStyles.emptyState },
-          selectedTimelineId && hasTimelineEvents ? "Selected timeline event is not available." : "Timeline events will appear here."
-        )
-  );
-}
 
 function initialTimelineEntryId(session: StudioSessionSnapshot | undefined): string | undefined {
   const [entry] = session?.timeline ?? [];
@@ -1015,6 +892,18 @@ function chatSummaryForSession(mode: PendingCommand, session: StudioSessionSnaps
   return `${action} ${profileName}${assetTheme ? ` with ${assetTheme} assets` : ""}.`;
 }
 
+function templateAliasSummary(template: { requestAliasSummary?: string }): string {
+  return template.requestAliasSummary ?? "no aliases";
+}
+
+function templateSuggestedItemSummary(template: { suggestedItemSummary?: string }): string {
+  return template.suggestedItemSummary ?? "no suggested items";
+}
+
+function assetEditAliasSummary(entry: { aliasSummary?: string; suggestedItemSummary?: string; localReplacementFolder?: string }): string {
+  return entry.aliasSummary ?? entry.suggestedItemSummary ?? entry.localReplacementFolder ?? "no summary";
+}
+
 function requireSessionActiveProfile(session: StudioSessionSnapshot, actionName: string): GameAssemblyProfile {
   if (!session.activeProfile) {
     throw new Error(`${actionName} response did not include active profile`);
@@ -1031,14 +920,31 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
   return catalog.requestTips.summaryLines;
 }
 
-function ProfileSummaryPanel({ profile }: { profile: GameAssemblyProfile }): React.ReactElement {
+function toolSummaryLines(tool: { inputSourceSummary: string; argumentSummary: string }): string[] {
+  return [tool.inputSourceSummary, tool.argumentSummary];
+}
+
+function catalogServiceSummary(catalog: BuilderCatalog | undefined): string {
+  if (!catalog) return "";
+  const actionNames = catalog.service.actions.map((action) => action.actionName).join(", ");
+  const requiredContracts = catalog.service.exactEnvelope.requiredContracts.join(", ");
+  const transports = Object.values(catalog.service.transports).join(", ");
+  return `${actionNames} | ${requiredContracts} | ${transports}`;
+}
+
+function actionRequestSummary(action: { request: { acceptedFields: string[]; requiredAnyOf: string[][]; exclusiveAnyOf: string[][]; forbiddenTogether: string[][]; } }): string {
+  return `${action.request.acceptedFields.join(", ")} | ${action.request.requiredAnyOf.length} | ${action.request.exclusiveAnyOf.length} | ${action.request.forbiddenTogether.length}`;
+}
+
+function ProfileSummaryPanel({ profile, activeAssetEdit }: { profile: GameAssemblyProfile; activeAssetEdit?: BuilderAssetEdit }): React.ReactElement {
   return React.createElement(
     "section",
     { style: shellStyles.summaryPanel },
     React.createElement("h3", null, "Active profile"),
     React.createElement("p", null, `ID: ${profile.id}`),
     React.createElement("p", null, "Validation: clean"),
-    React.createElement("p", null, `Replay events: ${profile.replay.eventLog.length}`)
+    React.createElement("p", null, `Replay events: ${profile.replay.eventLog.length}`),
+    activeAssetEdit ? React.createElement("p", null, `Asset edit: ${activeAssetEdit.theme ?? activeAssetEdit.items?.join(", ")}`) : null
   );
 }
 
@@ -1091,6 +997,60 @@ function ComponentInventoryPanel({
         )
       )
     )
+  );
+}
+
+function TimelinePanel({
+  session,
+  selectedTimelineId,
+  onSelectTimeline
+}: {
+  session: StudioSessionSnapshot | undefined;
+  selectedTimelineId: string | undefined;
+  onSelectTimeline: (timelineId: string) => void;
+}): React.ReactElement {
+  const selectedEntry = selectedTimelineEntry(session, selectedTimelineId);
+  const hasTimelineEvents = Boolean(session?.timeline.length);
+
+  return React.createElement(
+    "section",
+    { "aria-label": "Session timeline", style: shellStyles.timelinePanel },
+    React.createElement("h3", null, "Timeline"),
+    session && session.timeline.length > 0
+      ? React.createElement(
+          "ol",
+          { style: shellStyles.timelineList },
+          ...session.timeline.map((entry, index) =>
+            React.createElement(
+              "li",
+              { key: timelineEntryRenderKey(entry, index) },
+              React.createElement(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => onSelectTimeline(entry.id),
+                  style: entry.id === selectedTimelineId ? shellStyles.timelineButtonActive : shellStyles.timelineButton
+                },
+                React.createElement("strong", null, entry.title),
+                React.createElement("span", { style: shellStyles.timelineMeta }, entry.kind)
+              )
+            )
+          )
+        )
+      : React.createElement("p", { style: shellStyles.timelineEmpty }, "Timeline events will appear here."),
+    selectedEntry
+      ? React.createElement(
+          "section",
+          { style: shellStyles.detailPanel },
+          React.createElement("h3", null, selectedEntry.title),
+          React.createElement("p", null, selectedEntry.timestamp),
+          React.createElement("pre", { style: shellStyles.detailPre }, selectedEntry.detail)
+        )
+      : React.createElement(
+          "div",
+          { role: "status", style: shellStyles.emptyState },
+          selectedTimelineId && hasTimelineEvents ? "Selected timeline event is not available." : "Timeline events will appear here."
+        )
   );
 }
 
@@ -1147,22 +1107,30 @@ const shellStyles = {
   },
   developerGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 26rem), 1fr))",
+    gridTemplateColumns: "repeat(3, minmax(280px, 1fr))",
     gap: "1rem",
     alignItems: "start"
   },
-  centerPanel: {
-    display: "grid",
-    gap: "1rem",
-    alignContent: "start"
-  },
-  rightRail: {
+  catalogColumn: {
     display: "grid",
     gap: "0.75rem",
     alignContent: "start",
-    borderLeft: "1px solid #d4d4d8",
-    paddingLeft: "1rem",
-    color: "#18181b"
+    minHeight: "0",
+    overflow: "auto"
+  },
+  profileColumn: {
+    display: "grid",
+    gap: "1rem",
+    alignContent: "start",
+    minHeight: "0",
+    overflow: "auto"
+  },
+  runInspectorColumn: {
+    display: "grid",
+    gap: "0.75rem",
+    alignContent: "start",
+    minHeight: "0",
+    overflow: "auto"
   },
   commandBar: {
     display: "grid",
@@ -1248,11 +1216,6 @@ const shellStyles = {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 13rem), 1fr))",
     gap: "0.75rem"
-  },
-  catalogColumn: {
-    display: "grid",
-    gap: "0.45rem",
-    alignContent: "start"
   },
   catalogHeading: {
     margin: 0,
@@ -1465,6 +1428,10 @@ const shellStyles = {
     padding: 0,
     margin: 0
   },
+  timelineItem: {
+    display: "grid",
+    gap: "0.35rem"
+  },
   timelineButton: {
     width: "100%",
     textAlign: "left" as const,
@@ -1490,6 +1457,18 @@ const shellStyles = {
   timelineMeta: {
     opacity: 0.75,
     fontSize: "0.875rem"
+  },
+  timelineEmpty: {
+    margin: 0,
+    color: "#52525b"
+  },
+  timelinePanel: {
+    border: "1px solid #d4d4d8",
+    borderRadius: "8px",
+    padding: "1rem",
+    background: "#ffffff",
+    display: "grid",
+    gap: "0.75rem"
   },
   detailPanel: {
     border: "1px solid #d4d4d8",

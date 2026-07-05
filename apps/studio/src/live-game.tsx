@@ -11,6 +11,7 @@ import type {
 } from "@playcraft/contracts";
 import { createProfileLibraryAssetReplacements, playcraftUiAssets, sortingBinAssetFor } from "./asset-library.js";
 import emptyGameHeroUrl from "./assets/empty-game-hero.png";
+import type { StudioTimelineEntry } from "./types.js";
 
 export interface LiveGameInteraction {
   eventName: string;
@@ -29,6 +30,10 @@ export interface LiveGameProps {
   profile?: GameAssemblyProfile;
   assetReplacements?: AssetReplacementInput;
   onInteraction?: (interaction: LiveGameInteraction) => void;
+  timeline?: StudioTimelineEntry[];
+  activeProfileId?: string;
+  streamError?: string | null;
+  onRetry?: () => void;
 }
 
 type AssetReplacementLookup = Map<string, AssetReplacement>;
@@ -111,13 +116,82 @@ export function useProfileAssetReplacements(
   return React.useMemo(() => createProfileAssetReplacementLookup(profile, replacements), [profile, replacements]);
 }
 
-export function LiveGame({ profile, assetReplacements, onInteraction }: LiveGameProps): React.ReactElement {
+const liveGameCss = `
+  .live-game-progress {
+    margin: 0 0 0.35rem;
+    color: #0f766e;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  .error-message {
+    margin: 0;
+    color: #7f1d1d;
+    font-weight: 700;
+  }
+  .loading-placeholder {
+    min-height: 10rem;
+    border: 1px dashed #a1a1aa;
+    border-radius: 8px;
+    padding: 1rem;
+    display: grid;
+    place-items: center;
+    background: #ffffff;
+    color: #52525b;
+    font-size: 0.9rem;
+  }
+`;
+
+export function LiveGame({ profile, assetReplacements, onInteraction, timeline, activeProfileId, streamError, onRetry }: LiveGameProps): React.ReactElement {
+  const [progressText, setProgressText] = React.useState("");
+  const [isResetting, setIsResetting] = React.useState(false);
+  const previousProfileIdRef = React.useRef<string | undefined>(undefined);
+  const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    if (!timeline || timeline.length === 0) {
+      setProgressText("");
+      return;
+    }
+    const lastEntry = timeline[timeline.length - 1]!;
+    if (lastEntry.kind === "lifecycle") {
+      if (lastEntry.title === "RunStarted") {
+        setProgressText("Assembling...");
+      } else if (lastEntry.title === "RunFinished") {
+        setProgressText("Ready");
+      } else {
+        setProgressText("");
+      }
+    } else if (lastEntry.kind === "tool") {
+      setProgressText("Generating assets...");
+    } else {
+      setProgressText("");
+    }
+  }, [timeline]);
+
+  React.useEffect(() => {
+    if (previousProfileIdRef.current !== undefined && activeProfileId !== undefined && previousProfileIdRef.current !== activeProfileId) {
+      setIsResetting(true);
+      resetTimerRef.current = setTimeout(() => {
+        setIsResetting(false);
+        resetTimerRef.current = null;
+      }, 300);
+    }
+    previousProfileIdRef.current = activeProfileId;
+    return () => {
+      if (resetTimerRef.current) {
+        clearTimeout(resetTimerRef.current);
+      }
+    };
+  }, [activeProfileId]);
+
   return React.createElement(
     React.Fragment,
     null,
-    React.createElement("style", null, liveMotionCss),
-    profile
-      ? React.createElement(LiveGameForProfile, { profile, assetReplacements, onInteraction })
+    React.createElement("style", null, liveMotionCss + liveGameCss),
+    streamError ? React.createElement(LiveGameError, { message: streamError, onRetry })
+      : isResetting ? React.createElement("div", { className: "loading-placeholder" }, "Loading new game...")
+      : profile ? React.createElement(LiveGameForProfile, { profile, assetReplacements, onInteraction, progressText, isLoading: isResetting })
       : React.createElement(EmptyGameHero)
   );
 }
@@ -137,15 +211,19 @@ function EmptyGameHero(): React.ReactElement {
 function LiveGameForProfile({
   profile,
   assetReplacements,
-  onInteraction
+  onInteraction,
+  progressText,
+  isLoading
 }: {
   profile: GameAssemblyProfile;
   assetReplacements?: AssetReplacementInput;
   onInteraction?: (interaction: LiveGameInteraction) => void;
+  progressText?: string;
+  isLoading?: boolean;
 }): React.ReactElement {
   const parsedProfile = GameAssemblyProfileSchema.safeParse(profile);
   if (!parsedProfile.success) {
-    return React.createElement(LiveGameFailure, { message: `saved profile failed schema validation: ${parsedProfile.error.message}` });
+    return React.createElement(LiveGameError, { message: `saved profile failed schema validation: ${parsedProfile.error.message}` });
   }
 
   const profileParsed = parsedProfile.data;
@@ -167,7 +245,7 @@ function LiveGameForProfile({
   const replacements = useProfileAssetReplacements(profileParsed, mergedAssetReplacements);
 
   if (!libraryAssetReplacementResult.ok) {
-    return React.createElement(LiveGameFailure, { message: libraryAssetReplacementResult.message });
+    return React.createElement(LiveGameError, { message: libraryAssetReplacementResult.message });
   }
 
   try {
@@ -181,7 +259,9 @@ function LiveGameForProfile({
           component,
           replacements,
           tokenStyleCatalog,
-          onInteraction
+          onInteraction,
+          progressText,
+          isLoading
         });
       }
       case "sorting": {
@@ -193,7 +273,9 @@ function LiveGameForProfile({
           component,
           replacements,
           tokenStyleCatalog,
-          onInteraction
+          onInteraction,
+          progressText,
+          isLoading
         });
       }
       case "sequence": {
@@ -207,12 +289,14 @@ function LiveGameForProfile({
           choiceComponent,
           replacements,
           tokenStyleCatalog,
-          onInteraction
+          onInteraction,
+          progressText,
+          isLoading
         });
       }
     }
   } catch (cause) {
-    return React.createElement(LiveGameFailure, { message: errorMessage(cause, "live game surface selection failed") });
+    return React.createElement(LiveGameError, { message: errorMessage(cause, "live game surface selection failed") });
   }
 
   return React.createElement(
@@ -222,13 +306,18 @@ function LiveGameForProfile({
   );
 }
 
-function LiveGameFailure({ message }: { message: string }): React.ReactElement {
+function LiveGameError({ message, onRetry }: { message: string; onRetry?: () => void }): React.ReactElement {
   return React.createElement(
     "section",
     { role: "alert", "data-testid": "live-game-error", style: liveStyles.failureState },
     React.createElement("strong", null, "Live game blocked"),
-    React.createElement("pre", { style: liveStyles.failureDetail }, message)
+    React.createElement("p", { className: "error-message" }, message),
+    onRetry ? React.createElement("button", { type: "button", onClick: onRetry, style: liveStyles.inlineAction }, "Try again") : null
   );
+}
+
+function LiveGameFailure({ message, onRetry }: { message: string; onRetry?: () => void }): React.ReactElement {
+  return LiveGameError({ message, onRetry });
 }
 
 function errorMessage(cause: unknown, fallback: string): string {
@@ -240,14 +329,22 @@ function MemoryGame({
   component,
   replacements,
   tokenStyleCatalog,
-  onInteraction
+  onInteraction,
+  progressText,
+  isLoading
 }: {
   profile: GameAssemblyProfile;
   component: ComponentBinding;
   replacements: AssetReplacementLookup;
   tokenStyleCatalog: TokenStyleCatalog;
   onInteraction?: (interaction: LiveGameInteraction) => void;
+  progressText?: string;
+  isLoading?: boolean;
 }): React.ReactElement {
+  if (isLoading) {
+    return React.createElement("div", { className: "loading-placeholder" }, "Loading...");
+  }
+
   const sourceCards = stringArrayProp(component.props, "cards");
   const cardPairs = stringRecordProp(component.props, "pairs");
   const deck = React.useMemo(() => shuffleMemoryCards(sourceCards, cardPairs, profile.id), [sourceCards.join("|"), JSON.stringify(cardPairs), profile.id]);
@@ -314,6 +411,7 @@ function MemoryGame({
   return React.createElement(
     "section",
     { style: gameSurfaceStyle("memory"), "aria-label": profile.profileName },
+    progressText ? React.createElement("p", { className: "live-game-progress" }, progressText) : null,
     React.createElement(
       "div",
       { style: liveStyles.gameHeader },
@@ -383,14 +481,22 @@ function SortingGame({
   component,
   replacements,
   tokenStyleCatalog,
-  onInteraction
+  onInteraction,
+  progressText,
+  isLoading
 }: {
   profile: GameAssemblyProfile;
   component: ComponentBinding;
   replacements: AssetReplacementLookup;
   tokenStyleCatalog: TokenStyleCatalog;
   onInteraction?: (interaction: LiveGameInteraction) => void;
+  progressText?: string;
+  isLoading?: boolean;
 }): React.ReactElement {
+  if (isLoading) {
+    return React.createElement("div", { className: "loading-placeholder" }, "Loading...");
+  }
+
   const items = stringArrayProp(component.props, "items");
   const bins = stringArrayProp(component.props, "bins");
   const targets = stringRecordProp(component.props, "targets");
@@ -593,6 +699,7 @@ function SortingGame({
   return React.createElement(
     "section",
     { style: gameSurfaceStyle("sorting"), "aria-label": profile.profileName },
+    progressText ? React.createElement("p", { className: "live-game-progress" }, progressText) : null,
     React.createElement(
       "div",
       { style: liveStyles.gameHeader },
@@ -750,7 +857,9 @@ function SequenceGame({
   choiceComponent,
   replacements,
   tokenStyleCatalog,
-  onInteraction
+  onInteraction,
+  progressText,
+  isLoading
 }: {
   profile: GameAssemblyProfile;
   sequenceComponent: ComponentBinding;
@@ -758,7 +867,13 @@ function SequenceGame({
   replacements: AssetReplacementLookup;
   tokenStyleCatalog: TokenStyleCatalog;
   onInteraction?: (interaction: LiveGameInteraction) => void;
+  progressText?: string;
+  isLoading?: boolean;
 }): React.ReactElement {
+  if (isLoading) {
+    return React.createElement("div", { className: "loading-placeholder" }, "Loading...");
+  }
+
   const sequence = stringArrayProp(sequenceComponent.props, "sequence");
   const configuredRounds = stringMatrixProp(sequenceComponent.props, "rounds");
   const choices = stringArrayProp(choiceComponent.props, "items");
@@ -861,6 +976,7 @@ function SequenceGame({
   return React.createElement(
     "section",
     { style: gameSurfaceStyle("sequence"), "aria-label": profile.profileName },
+    progressText ? React.createElement("p", { className: "live-game-progress" }, progressText) : null,
     React.createElement(
       "div",
       { style: liveStyles.gameHeader },

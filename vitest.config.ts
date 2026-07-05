@@ -18,6 +18,7 @@ export default defineConfig({
       "@playcraft/renderer": fileURLToPath(new URL("packages/renderer/src/index.tsx", import.meta.url)),
       "@playcraft/packs": fileURLToPath(new URL("packages/packs/src/index.ts", import.meta.url)),
       "@playcraft/builder": fileURLToPath(new URL("packages/builder/src/index.ts", import.meta.url)),
+      "@playcraft/mcp": fileURLToPath(new URL("packages/mcp/src/index.ts", import.meta.url)),
       "@playcraft/service": fileURLToPath(new URL("packages/service/src/index.ts", import.meta.url)),
       "@playcraft/studio": fileURLToPath(new URL("apps/studio/src/index.ts", import.meta.url)),
       "@playcraft/mobile-shell": fileURLToPath(new URL("apps/mobile-shell/src/App.tsx", import.meta.url))

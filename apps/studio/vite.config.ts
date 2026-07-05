@@ -17,6 +17,7 @@ export default defineConfig({
       "@playcraft/renderer": fileURLToPath(new URL("../../packages/renderer/src/index.tsx", import.meta.url)),
       "@playcraft/packs": fileURLToPath(new URL("../../packages/packs/src/index.ts", import.meta.url)),
       "@playcraft/builder": fileURLToPath(new URL("../../packages/builder/src/index.ts", import.meta.url)),
+      "@playcraft/mcp": fileURLToPath(new URL("../../packages/mcp/src/index.ts", import.meta.url)),
       "@playcraft/service": fileURLToPath(new URL("../../packages/service/src/index.ts", import.meta.url))
     },
     dedupe: ["react", "react-dom"]

@@ -1189,7 +1189,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
 
 ### Wave 3 — Studio/Mobile UX (MAX PARALLEL, 6 tasks)
 
-- [ ] 11. Studio Developer panel — catalog browser + run inspector
+- [x] 11. Studio Developer panel — catalog browser + run inspector
 
   **What to do**:
   - In `apps/studio/src/studio-app.tsx`:
@@ -1294,7 +1294,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `apps/studio/src/studio-app.tsx`, `tests/studio-ui.test.tsx`
   - Pre-commit: `pnpm exec vitest run tests/studio-ui.test.tsx`
 
-- [ ] 12. Studio Live App — streamed state updates + profile-swap reset
+- [x] 12. Studio Live App — streamed state updates + profile-swap reset
 
   **What to do**:
   - In `apps/studio/src/live-game.tsx`:
