@@ -779,6 +779,12 @@ describe("builder session service", () => {
     expect(stderr.pop()).toMatch(/import-profile requires --profile-json/u);
     expect(runBuilderCli(["preview", "--session", "session.cli", "--profile-json", "{}"], io)).toBe(1);
     expect(stderr.pop()).toMatch(/preview does not accept --profile-json/u);
+    expect(runBuilderCli(["preview", "--session", "session.cli"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/preview requires --interaction primary/u);
+    expect(runBuilderCli(["update", "--session", "session.cli", "--interaction", "primary"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/update does not accept interaction flags/u);
+    expect(runBuilderCli(["preview", "--session", "session.cli", "--interaction"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/--interaction requires a value/u);
     expect(stdout).toEqual([]);
   });
 

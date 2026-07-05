@@ -560,12 +560,17 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps builder preview actions free of interaction defaulting", () => {
     const builderSource = readSource("packages/builder/src/index.ts");
+    const builderCliSource = readSource("packages/builder/src/cli.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");
 
     expect(builderSource).toContain("preview-action requires an interaction action");
     expect(builderSource).not.toContain('command.interaction?.action ?? "primary"');
     expect(builderSource).toContain("const previewInteraction");
     expect(builderSource).toContain("interaction: previewInteraction");
+    expect(builderCliSource).toContain("--interaction <primary>");
+    expect(builderCliSource).toContain("preview requires --interaction primary");
+    expect(builderCliSource).toContain("BuilderPreviewInteractionSchema.parse");
+    expect(builderCliSource).not.toContain('mappedName === "preview-action" ? { action: "primary" } : undefined');
     expect(builderSource).toContain('allowedValues: ["primary"]');
     expect(contractSource).toContain('action: z.enum(["primary"])');
     expect(contractSource).not.toContain('action: z.enum(["primary"]).default("primary")');

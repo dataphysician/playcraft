@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Builder CLI Preview Interaction
+
+Milestone:
+- Builder CLI preview commands now require caller-provided `--interaction primary`.
+- Builder CLI command construction no longer creates a preview interaction payload internally.
+
+Supportive changes:
+- Builder CLI tests reject missing preview interaction, interaction flags on non-preview commands, and missing interaction flag values.
+- Source scans pin the builder CLI interaction flag and block the removed preview-action interaction default.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Builder CLI interaction source scan confirmed the explicit flag/schema path and removed preview-action interaction default.
+
+Constraint notes:
+- Keeps builder preview interactions caller-owned and contract-shaped without hosted providers, generated runtime code, auth, database state, compatibility shims, or CLI-owned interaction defaults.
+
 ## 2026-07-04 - Catalog-Owned Freeform Asset Item Suffixes
 
 Milestone:

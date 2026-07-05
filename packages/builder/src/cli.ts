@@ -1,11 +1,13 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
 import {
+  BuilderPreviewInteractionSchema,
   BuilderTemplateIdSchema,
   GameAssemblyProfileSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderCommand,
   type BuilderCommandResult,
+  type BuilderPreviewInteraction,
   type BuilderTemplateId,
   type BuilderToolDefinition,
   type GameAssemblyProfile,
@@ -26,7 +28,7 @@ const defaultIo: BuilderCliIo = {
 export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-builder <assemble|update|preview|get-session|export-profile|import-profile|catalog|batch> [--template <template.id>] [--session <id>] [--profile-json <json>] [--json]");
+    io.stderr("usage: playcraft-builder <assemble|update|preview|get-session|export-profile|import-profile|catalog|batch> [--template <template.id>] [--session <id>] [--interaction <primary>] [--profile-json <json>] [--json]");
     return 1;
   }
 
@@ -70,10 +72,16 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
     if (args.profileJson && mappedName !== "import-profile") {
       throw new Error(`${commandName} does not accept --profile-json`);
     }
-
     const sessionId = mappedName === "assemble-game"
       ? args.sessionId ?? BUILDER_SESSION_POLICY.defaultAssembleSessionId
       : requiredSessionId(args, commandName);
+    if (mappedName !== "preview-action" && args.interaction) {
+      throw new Error(`${commandName} does not accept interaction flags; call preview with --interaction primary`);
+    }
+    if (mappedName === "preview-action" && !args.interaction) {
+      throw new Error("preview requires --interaction primary");
+    }
+
     const profile = mappedName === "import-profile" ? requiredProfileJson(args.profileJson) : undefined;
     const result = handler.execute({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -84,7 +92,7 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
       actionName: mappedName,
       templateId: args.template,
       profile,
-      interaction: mappedName === "preview-action" ? { action: "primary" } : undefined
+      interaction: args.interaction
     });
 
     writeResult(result, Boolean(args.json), io);
@@ -96,6 +104,7 @@ export function runBuilderCli(argv: string[], io: BuilderCliIo = defaultIo): num
 }
 
 interface BuilderCliArgs {
+  interaction?: BuilderPreviewInteraction;
   template?: BuilderTemplateId;
   sessionId?: string;
   profileJson?: string;
@@ -112,6 +121,11 @@ function parseArgs(argv: string[]): BuilderCliArgs {
       index += 1;
     } else if (entry === "--session") {
       output.sessionId = requiredFlagValue(argv, index, entry);
+      index += 1;
+    } else if (entry === "--interaction") {
+      output.interaction = BuilderPreviewInteractionSchema.parse({
+        action: requiredFlagValue(argv, index, entry)
+      });
       index += 1;
     } else if (entry === "--profile-json") {
       output.profileJson = requiredFlagValue(argv, index, entry);
