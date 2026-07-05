@@ -831,6 +831,10 @@ describe("public contract schemas", () => {
 
   it("keeps profile exports self-describing and active-profile consistent", () => {
     const profile = assembleMvpProfiles()[0];
+    const profileWithoutTemplate = {
+      ...profile,
+      template: undefined
+    };
     const baseExport = {
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: "builder-profile-export.profile-consistency",
@@ -862,6 +866,32 @@ describe("public contract schemas", () => {
     expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
       ...baseExport,
       validation: undefined
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      templateId: undefined
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      profile: profileWithoutTemplate
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      templateId: "template.sorting"
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      preview: {
+        ...baseExport.preview,
+        activeTemplateId: undefined
+      }
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      preview: {
+        ...baseExport.preview,
+        activeTemplateId: "template.sorting"
+      }
     }).success).toBe(false);
     expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
       ...baseExport,

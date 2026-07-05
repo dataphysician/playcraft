@@ -375,6 +375,10 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("command result profile id must match preview activeProfileId");
     expect(contractSource).toContain("profile exports require preview activeProfileId");
     expect(contractSource).toContain("profile export profile id must match preview activeProfileId");
+    expect(contractSource).toContain("profile exports require profile template snapshot");
+    expect(contractSource).toContain("profile export templateId must match profile template id");
+    expect(contractSource).toContain("profile exports require preview activeTemplateId");
+    expect(contractSource).toContain("profile export templateId must match preview activeTemplateId");
     expect(source).toContain("response did not include session snapshot");
     expect(source).toContain("response.session.activeProfileId");
     expect(source).toContain("function activeProfileFromResponse(response: BuilderServiceResponse): GameAssemblyProfile");
@@ -589,10 +593,13 @@ describe("import-light boundaries and source scans", () => {
   it("keeps service profile imports free of payload precedence fallbacks", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const serviceSource = readSource("packages/service/src/index.ts");
+    const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
 
     expect(contractSource).toContain("profileExport imports carry asset edits in the export");
     expect(contractSource).toContain("requests require sessionId");
     expect(serviceSource).toContain("function serviceRequestSessionId");
+    expect(serviceTestSource).toContain("rejects stale profile export template metadata before import");
+    expect(serviceTestSource).toContain("profile export templateId must match");
     expect(serviceSource).not.toContain("request.profile ?? profileExport?.profile");
     expect(serviceSource).not.toContain("request.assetEdit ?? profileExport?.assetEdit");
     expect(serviceSource).not.toContain("request.templateId ?? profileExport?.templateId");

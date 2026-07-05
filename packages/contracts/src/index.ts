@@ -1032,7 +1032,7 @@ export type BuilderSessionSnapshot = z.infer<typeof BuilderSessionSnapshotSchema
 export const BuilderProfileExportSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-profile-export"),
   sessionId: StableIdSchema,
-  templateId: BuilderTemplateIdSchema.optional(),
+  templateId: BuilderTemplateIdSchema,
   assetEdit: BuilderAssetEditSchema.optional(),
   profile: GameAssemblyProfileSchema,
   preview: BuilderPreviewStateSchema,
@@ -1053,6 +1053,22 @@ export const BuilderProfileExportSchema = PublicContractBaseSchema.extend({
   .refine((value) => !value.preview.activeProfileId || value.profile.id === value.preview.activeProfileId, {
     message: "profile export profile id must match preview activeProfileId",
     path: ["profile"]
+  })
+  .refine((value) => Boolean(value.profile.template), {
+    message: "profile exports require profile template snapshot",
+    path: ["profile", "template"]
+  })
+  .refine((value) => !value.profile.template || value.profile.template.id === value.templateId, {
+    message: "profile export templateId must match profile template id",
+    path: ["templateId"]
+  })
+  .refine((value) => Boolean(value.preview.activeTemplateId), {
+    message: "profile exports require preview activeTemplateId",
+    path: ["preview", "activeTemplateId"]
+  })
+  .refine((value) => !value.preview.activeTemplateId || value.preview.activeTemplateId === value.templateId, {
+    message: "profile export templateId must match preview activeTemplateId",
+    path: ["templateId"]
   });
 export type BuilderProfileExport = z.infer<typeof BuilderProfileExportSchema>;
 

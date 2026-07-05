@@ -1,5 +1,32 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Profile Export Template Ownership Contract
+
+Milestone:
+- `BuilderProfileExportSchema` now requires `templateId` for every portable profile export.
+- Profile exports require a profile-carried template snapshot and preview `activeTemplateId`.
+- Export `templateId`, `profile.template.id`, and `preview.activeTemplateId` must agree before import.
+
+Supportive changes:
+- Contract tests cover missing export template IDs, missing profile template snapshots, missing preview active template IDs, and mismatched template IDs.
+- Service tests now reject stale profile export template metadata before import instead of deriving around it.
+- Source scans pin profile export template ownership and stale export rejection.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps imported/exported game profiles template-owned and self-describing without hosted providers, generated runtime code, auth, database state, compatibility shims, stale metadata recovery, or importer-side template inference.
+
 ## 2026-07-04 - Self-Describing Profile Export Contract
 
 Milestone:

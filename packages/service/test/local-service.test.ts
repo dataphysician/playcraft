@@ -1443,7 +1443,7 @@ describe("local Playcraft service", () => {
     expect(exportErr.join("\n")).toMatch(/export-profile does not accept input flags/u);
   });
 
-  it("derives imported active template state from the profile instead of stale export metadata", () => {
+  it("rejects stale profile export template metadata before import", () => {
     const service = createLocalPlaycraftService();
     service.handle({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -1464,21 +1464,20 @@ describe("local Playcraft service", () => {
     });
 
     expect(exported.profileExport).toBeDefined();
-    const imported = service.handle({
-      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-      id: "builder-service-request.test.stale-import",
-      version: "1.0.0",
-      kind: "builder-service-request",
-      actionName: "import-profile",
-      sessionId: "session.stale-import-target",
-      profileExport: {
-        ...exported.profileExport!,
-        templateId: "template.memory-match"
-      }
-    });
-
-    expect(imported.execution?.result.preview.activeTemplateId).toBe("template.sequence-repeat");
-    expect(imported.session?.activeTemplateId).toBe("template.sequence-repeat");
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.stale-import",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "import-profile",
+        sessionId: "session.stale-import-target",
+        profileExport: {
+          ...exported.profileExport!,
+          templateId: "template.memory-match"
+        }
+      })
+    ).toThrow(/profile export templateId must match/u);
 
     expect(() =>
       service.handle({
