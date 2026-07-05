@@ -472,6 +472,11 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
     errors.push(schemaIssue(["assets"], "duplicate_asset_id", `profile ${profile.id} has duplicate generated asset ids: ${duplicateAssetIds.join(", ")}`, "error"));
   }
 
+  const duplicateMechanicBindingIds = duplicateStrings(profile.mechanics.map((mechanic) => mechanic.bindingId));
+  if (duplicateMechanicBindingIds.length > 0) {
+    errors.push(schemaIssue(["mechanics"], "duplicate_mechanic_binding_id", `profile ${profile.id} has duplicate mechanic binding ids: ${duplicateMechanicBindingIds.join(", ")}`, "error"));
+  }
+
   const mechanicBindingIds = new Set(profile.mechanics.map((mechanic) => mechanic.bindingId));
   const assetIds = new Set(profile.assets.map((asset) => asset.assetId));
 

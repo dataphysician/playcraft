@@ -293,6 +293,8 @@ describe("import-light boundaries and source scans", () => {
     expect(coreSource).toContain("mechanicBindingId: component.renderMechanicBindingId");
     expect(coreSource).not.toContain("mechanicBindingId: component.mechanicBindingIds[0]");
     expect(coreSource).toContain("render mechanic binding");
+    expect(coreSource).toContain("duplicate_mechanic_binding_id");
+    expect(coreSource).toContain("const duplicateMechanicBindingIds = duplicateStrings(profile.mechanics.map((mechanic) => mechanic.bindingId));");
     expect(packSource).toContain("componentMechanicCapabilities");
     expect(packSource).toContain("componentRenderMechanicCapabilities");
     expect(packSource).toContain("requiredComponentMechanicBindingIds");
@@ -302,6 +304,7 @@ describe("import-light boundaries and source scans", () => {
     expect(packSource).not.toContain(".slice(0, 2);");
     expect(packTestSource).toContain("renderMechanicBindingId");
     expect(packTestSource).toContain("mechanicBindingIds");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile mechanics contain duplicate binding ids");
   });
 
   it("keeps play input modalities separate from audio asset content", () => {

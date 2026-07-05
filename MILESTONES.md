@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Mechanic Binding IDs
+
+Milestone:
+- Core profile validation now rejects duplicate mechanic binding ids before saved profile replay.
+- Component render request construction no longer relies on a set that can hide duplicate mechanic binding identity.
+
+Supportive changes:
+- Core replay tests cover duplicate saved profile mechanic binding ids.
+- Source scans guard duplicate mechanic binding validation beside explicit render mechanic binding checks.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps mechanic binding identity profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or set-masked mechanic bindings.
+
 ## 2026-07-05 - Exact Core Generated Asset IDs
 
 Milestone:

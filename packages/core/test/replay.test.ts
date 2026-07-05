@@ -95,4 +95,22 @@ describe("saved profile replay", () => {
       new RegExp(`profile profile\\.memory-match\\.mvp has duplicate generated asset ids: ${saved.assets[0]!.assetId.replace(/\./gu, "\\.")}`, "u")
     );
   });
+
+  it("fails closed when saved profile mechanics contain duplicate binding ids", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const duplicateMechanicProfile = {
+      ...saved,
+      mechanics: [
+        ...saved.mechanics,
+        {
+          ...saved.mechanics[0]!
+        }
+      ]
+    };
+
+    expect(() => replayProfile(duplicateMechanicProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate mechanic binding ids: ${saved.mechanics[0]!.bindingId.replace(/\./gu, "\\.")}`, "u")
+    );
+  });
 });
