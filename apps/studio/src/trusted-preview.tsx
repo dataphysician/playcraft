@@ -22,6 +22,7 @@ export interface TrustedPreviewComponentSummary {
   componentId: string;
   componentCapability: string;
   mechanicBindingId: string;
+  isPrimaryPreviewSurface: boolean;
   emittedToolNames: string[];
   interactionSummary: string;
   expectedEmittedEvents: string[];
@@ -33,6 +34,7 @@ const manifests = registry.manifests();
 
 export function getTrustedPreviewComponents(profile: GameAssemblyProfile): TrustedPreviewComponentSummary[] {
   const replay = replayProfile(profile, registries);
+  const primaryCapability = profile.template.liveSurface.componentCapabilities.primary;
 
   return replay.renderRequests.map((request, index) => {
     const manifest = manifestForRenderRequest(request);
@@ -44,6 +46,7 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
       componentId,
       componentCapability,
       mechanicBindingId: request.mechanicBindingId,
+      isPrimaryPreviewSurface: componentCapability === primaryCapability,
       emittedToolNames: manifest?.emittedTools.map((tool) => tool.toolName) ?? [],
       interactionSummary: interactionSummaryFor(manifest?.emittedTools.map((tool) => tool.toolName) ?? [], request.expectedEmittedEvents),
       expectedEmittedEvents: [...request.expectedEmittedEvents]
@@ -71,7 +74,7 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
   }
 
   const request = selectedComponentKey === undefined
-    ? replay.renderRequests[0]
+    ? renderRequestForTemplatePrimary(profile, replay.renderRequests)
     : replay.renderRequests.find((candidate, index) => renderRequestKey(candidate, index) === selectedComponentKey);
 
   if (!request) {
@@ -84,7 +87,12 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
       });
     }
 
-    return React.createElement("div", { role: "status" }, "No trusted preview request is available.");
+    return React.createElement(PreviewFailure, {
+      failure: {
+        code: "invalid-request",
+        message: `profile ${profile.id} does not include live-surface primary component ${profile.template.liveSurface.componentCapabilities.primary}`
+      }
+    });
   }
 
   const rendered = registry.render(request, profile.assets, (eventName, payload) => {
@@ -114,6 +122,14 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
 
 function renderRequestKey(request: ComponentRenderRequest, index: number): string {
   return `${request.componentId}.${index}`;
+}
+
+function renderRequestForTemplatePrimary(
+  profile: GameAssemblyProfile,
+  renderRequests: ComponentRenderRequest[]
+): ComponentRenderRequest | undefined {
+  const primaryCapability = profile.template.liveSurface.componentCapabilities.primary;
+  return renderRequests.find((request) => request.componentCapability === primaryCapability);
 }
 
 function manifestForRenderRequest(request: ComponentRenderRequest) {

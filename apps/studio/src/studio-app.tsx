@@ -49,6 +49,8 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const [profileTransferStatus, setProfileTransferStatus] = React.useState<string | null>(null);
 
   const activeProfile = session?.activeProfile;
+  const activeProfileId = activeProfile?.id;
+  const selectedComponentProfileIdRef = React.useRef<string | undefined>(activeProfileId);
   const selectedEntry = session?.timeline.find((entry) => entry.id === selectedTimelineId) ?? session?.timeline.at(-1);
   const componentSummaries = React.useMemo(() => {
     if (!activeProfile) {
@@ -63,14 +65,17 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   }, [activeProfile]);
 
   React.useEffect(() => {
+    const profileChanged = selectedComponentProfileIdRef.current !== activeProfileId;
+    selectedComponentProfileIdRef.current = activeProfileId;
+
     setSelectedComponentKey((current) => {
-      if (componentSummaries.some((component) => component.componentKey === current)) {
+      if (!profileChanged && componentSummaries.some((component) => component.componentKey === current)) {
         return current;
       }
 
-      return componentSummaries[0]?.componentKey;
+      return componentSummaries.find((component) => component.isPrimaryPreviewSurface)?.componentKey;
     });
-  }, [componentSummaries]);
+  }, [activeProfileId, componentSummaries]);
 
   React.useEffect(() => {
     let active = true;
@@ -928,6 +933,9 @@ function ComponentInventoryPanel({
             },
             React.createElement("strong", { style: shellStyles.componentName }, component.componentId),
             React.createElement("span", { style: shellStyles.componentMeta }, component.componentCapability),
+            component.isPrimaryPreviewSurface
+              ? React.createElement("span", { style: shellStyles.componentToolLine }, "Primary preview surface")
+              : null,
             React.createElement(
               "span",
               { style: shellStyles.componentToolLine },

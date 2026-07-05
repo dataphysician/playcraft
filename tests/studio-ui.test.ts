@@ -561,7 +561,7 @@ describe("studio UI", () => {
     expect(await screen.findByText(profileB.profileName)).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.sort-bins/u })).toBeDefined();
 
-    fireEvent.click(await screen.findByRole("button", { name: "red circle" }));
+    fireEvent.click(await screen.findByRole("button", { name: "red circle -> red" }));
     const interactions = await screen.findAllByText((text) => text.startsWith("Preview interaction:"));
     expect(interactions.length).toBeGreaterThanOrEqual(2);
   });
@@ -573,11 +573,24 @@ describe("studio UI", () => {
       expect.objectContaining({
         componentId: "component.reveal-card-grid",
         componentCapability: "component:reveal-card-grid",
+        isPrimaryPreviewSurface: true,
         interactionSummary: "tools: tool:reveal-card"
       })
     ]));
     expect(summaries.map((summary) => summary.componentId)).not.toContain("component.unresolved");
     expect(summaries.map((summary) => summary.componentCapability)).not.toContain("component:unresolved");
+  });
+
+  it("renders the trusted preview from the template primary surface when visual components render first", () => {
+    const visualFirstProfile = {
+      ...profileA,
+      components: [...profileA.components].reverse()
+    };
+
+    render(React.createElement(TrustedPreview, { profile: visualFirstProfile }));
+
+    expect(screen.getByRole("button", { name: "memory-card-1-a" })).toBeDefined();
+    expect(screen.queryByText("You found every pair.")).toBeNull();
   });
 
   it("keeps the memory game selected while swapping requested card assets", async () => {

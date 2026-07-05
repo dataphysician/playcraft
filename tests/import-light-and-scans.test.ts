@@ -580,8 +580,14 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps trusted preview selected component misses fail-closed", () => {
     const source = readSource("apps/studio/src/trusted-preview.tsx");
+    const studioSource = readSource("apps/studio/src/studio-app.tsx");
 
     expect(source).toContain("selected trusted preview component");
+    expect(source).toContain("function renderRequestForTemplatePrimary");
+    expect(source).toContain("profile.template.liveSurface.componentCapabilities.primary");
+    expect(source).not.toContain("replay.renderRequests[0]");
+    expect(studioSource).toContain("component.isPrimaryPreviewSurface");
+    expect(studioSource).not.toContain("componentSummaries[0]");
     expect(source).not.toContain("??\n        replay.renderRequests[0]");
     expect(source).not.toContain("?? replay.renderRequests[0]");
   });

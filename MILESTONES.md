@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Studio Trusted Preview Primary Surface
+
+Milestone:
+- Studio trusted preview now defaults to `profile.template.liveSurface.componentCapabilities.primary` instead of `replay.renderRequests[0]`.
+- Developer tab component selection now resets to the new profile's primary preview surface when the active profile changes.
+
+Supportive changes:
+- Trusted preview summaries mark the primary preview surface for UI selection and inspection.
+- Studio UI tests cover visual-first component ordering and primary-surface summaries.
+- Source scans block render-request and component-summary order fallbacks from returning in the Studio preview path.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Studio preview source scan confirmed template-primary selection and no active `renderRequests[0]` or `componentSummaries[0]` fallback.
+
+Constraint notes:
+- Keeps Developer-tab trusted previews template-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or render-request/component-order heuristics.
+
 ## 2026-07-04 - Template-Primary Builder Preview Surface
 
 Milestone:
