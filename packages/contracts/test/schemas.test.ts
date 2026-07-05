@@ -208,6 +208,37 @@ describe("public contract schemas", () => {
             "Try: Memory game with dinosaurs."
           ]
         },
+        service: {
+          actions: [
+            {
+              actionName: "assemble",
+              displayName: "Assemble",
+              requiresSession: false,
+              acceptsInput: true,
+              responsePayload: "execution"
+            },
+            {
+              actionName: "export-profile",
+              displayName: "Export Profile",
+              requiresSession: true,
+              acceptsInput: false,
+              responsePayload: "profileExport"
+            }
+          ],
+          exactEnvelope: {
+            singleCommand: "request",
+            batchCommand: "request-batch",
+            requestSchema: "BuilderServiceRequestSchema",
+            batchSchema: "BuilderServiceRequestBatchSchema",
+            directHandler: "handleLocalServiceRequest",
+            directBatchHandler: "handleLocalServiceRequestBatch"
+          },
+          transports: {
+            local: "createLocalServiceTransport",
+            httpClient: "createHttpServiceTransport",
+            httpBody: "handleServiceHttpRequestBody"
+          }
+        },
         sessions: {
           defaultAssembleSessionId: "service.session",
           sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]

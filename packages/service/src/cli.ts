@@ -359,6 +359,15 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
     );
   }
 
+  io.stdout("service actions:");
+  for (const action of catalog.service.actions) {
+    io.stdout(
+      `- ${action.displayName} [${action.actionName}] input: ${action.acceptsInput ? "yes" : "no"}; session: ${action.requiresSession ? "required" : "optional"}; response: ${action.responsePayload}`
+    );
+  }
+  io.stdout(`exact envelopes: ${catalog.service.exactEnvelope.singleCommand}/${catalog.service.exactEnvelope.batchCommand} via ${catalog.service.exactEnvelope.requestSchema}/${catalog.service.exactEnvelope.batchSchema}`);
+  io.stdout(`service helpers: ${catalog.service.exactEnvelope.directHandler}/${catalog.service.exactEnvelope.directBatchHandler}`);
+  io.stdout(`service transports: ${catalog.service.transports.local}, ${catalog.service.transports.httpClient}, ${catalog.service.transports.httpBody}`);
   io.stdout(`asset edits: ${catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel).join(", ")}`);
   io.stdout("request tips:");
   for (const line of catalog.requestTips.summaryLines) {

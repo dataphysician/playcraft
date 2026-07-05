@@ -15,6 +15,7 @@ import {
   type BuilderAssetEdit,
   type BuilderAssetEditCatalogEntry,
   type BuilderCatalog,
+  type BuilderServiceCatalog,
   type BuilderCommand,
   type BuilderInputRequest,
   type BuilderInputSource,
@@ -72,6 +73,32 @@ export const LOCAL_SERVICE_INPUT_POLICY = {
     }
   ]
 } as const;
+
+export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
+  actions: [
+    { actionName: "catalog", displayName: "Catalog", requiresSession: false, acceptsInput: false, responsePayload: "catalog" },
+    { actionName: "assemble", displayName: "Assemble", requiresSession: false, acceptsInput: true, responsePayload: "execution" },
+    { actionName: "update", displayName: "Update", requiresSession: true, acceptsInput: true, responsePayload: "execution" },
+    { actionName: "preview", displayName: "Preview", requiresSession: true, acceptsInput: false, responsePayload: "execution" },
+    { actionName: "get-session", displayName: "Get Session", requiresSession: true, acceptsInput: false, responsePayload: "session" },
+    { actionName: "export-profile", displayName: "Export Profile", requiresSession: true, acceptsInput: false, responsePayload: "profileExport" },
+    { actionName: "import-profile", displayName: "Import Profile", requiresSession: true, acceptsInput: false, responsePayload: "execution" },
+    { actionName: "reset", displayName: "Reset", requiresSession: false, acceptsInput: false, responsePayload: "reset" }
+  ],
+  exactEnvelope: {
+    singleCommand: "request",
+    batchCommand: "request-batch",
+    requestSchema: "BuilderServiceRequestSchema",
+    batchSchema: "BuilderServiceRequestBatchSchema",
+    directHandler: "handleLocalServiceRequest",
+    directBatchHandler: "handleLocalServiceRequestBatch"
+  },
+  transports: {
+    local: "createLocalServiceTransport",
+    httpClient: "createHttpServiceTransport",
+    httpBody: "handleServiceHttpRequestBody"
+  }
+};
 
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
@@ -136,6 +163,7 @@ export class LocalPlaycraftService {
       acceptedInputSources: ["text", "moonshine-transcript"],
       input: LOCAL_SERVICE_INPUT_POLICY,
       requestTips: requestTipsForCatalog(this.handler.listTemplates(), localAssetEditCatalog),
+      service: LOCAL_SERVICE_CATALOG,
       sessions: LOCAL_SERVICE_SESSION_POLICY,
       assetEdit: {
         supported: true,

@@ -64,6 +64,31 @@ describe("local Playcraft service", () => {
       defaultAssembleSessionId: "service.session",
       sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
     });
+    expect(catalog.service).toEqual({
+      actions: [
+        { actionName: "catalog", displayName: "Catalog", requiresSession: false, acceptsInput: false, responsePayload: "catalog" },
+        { actionName: "assemble", displayName: "Assemble", requiresSession: false, acceptsInput: true, responsePayload: "execution" },
+        { actionName: "update", displayName: "Update", requiresSession: true, acceptsInput: true, responsePayload: "execution" },
+        { actionName: "preview", displayName: "Preview", requiresSession: true, acceptsInput: false, responsePayload: "execution" },
+        { actionName: "get-session", displayName: "Get Session", requiresSession: true, acceptsInput: false, responsePayload: "session" },
+        { actionName: "export-profile", displayName: "Export Profile", requiresSession: true, acceptsInput: false, responsePayload: "profileExport" },
+        { actionName: "import-profile", displayName: "Import Profile", requiresSession: true, acceptsInput: false, responsePayload: "execution" },
+        { actionName: "reset", displayName: "Reset", requiresSession: false, acceptsInput: false, responsePayload: "reset" }
+      ],
+      exactEnvelope: {
+        singleCommand: "request",
+        batchCommand: "request-batch",
+        requestSchema: "BuilderServiceRequestSchema",
+        batchSchema: "BuilderServiceRequestBatchSchema",
+        directHandler: "handleLocalServiceRequest",
+        directBatchHandler: "handleLocalServiceRequestBatch"
+      },
+      transports: {
+        local: "createLocalServiceTransport",
+        httpClient: "createHttpServiceTransport",
+        httpBody: "handleServiceHttpRequestBody"
+      }
+    });
     expect(catalog.assetEdit).toMatchObject({
       supported: true,
       acceptedKeys: ["theme", "items"],
@@ -801,6 +826,8 @@ describe("local Playcraft service", () => {
         "Try: Memory game with dinosaurs; Sorting game with toys; Sequence repeat with ocean animals."
       ]
     });
+    expect(catalog.service.exactEnvelope.batchCommand).toBe("request-batch");
+    expect(catalog.service.exactEnvelope.directBatchHandler).toBe("handleLocalServiceRequestBatch");
 
     expect(runLocalServiceCli(["catalog"], io)).toBe(0);
     expect(out).toEqual(expect.arrayContaining([
@@ -809,6 +836,11 @@ describe("local Playcraft service", () => {
       "tools:",
       "- Assemble Game [tool:assemble-game -> assemble-game] input: Text, Transcript; args: assetEdit:object, input:object, sessionId:string, templateId*:string",
       "- Preview Action [tool:preview-action -> preview-action] input: none; args: interaction*:object, sessionId*:string",
+      "service actions:",
+      "- Assemble [assemble] input: yes; session: optional; response: execution",
+      "exact envelopes: request/request-batch via BuilderServiceRequestSchema/BuilderServiceRequestBatchSchema",
+      "service helpers: handleLocalServiceRequest/handleLocalServiceRequestBatch",
+      "service transports: createLocalServiceTransport, createHttpServiceTransport, handleServiceHttpRequestBody",
       "asset edits: dinosaurs, toys, ocean animals, fruit",
       "request tips:",
       "- Available games: Memory Match, Sorting, Sequence Repeat, Shape Memory, Color Memory, plus 19 more.",

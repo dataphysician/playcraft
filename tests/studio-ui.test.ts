@@ -409,6 +409,12 @@ describe("studio UI", () => {
     expect(screen.getByText("tool:assemble-game")).toBeDefined();
     expect(screen.getByText("tool:export-profile")).toBeDefined();
     expect(screen.getByText("assemble-game")).toBeDefined();
+    expect(screen.getByText("Service facade")).toBeDefined();
+    expect(screen.getAllByText("assemble").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("request / request-batch")).toBeDefined();
+    expect(screen.getByText("BuilderServiceRequestSchema / BuilderServiceRequestBatchSchema")).toBeDefined();
+    expect(screen.getByText("handleLocalServiceRequest / handleLocalServiceRequestBatch")).toBeDefined();
+    expect(screen.getByText("createHttpServiceTransport")).toBeDefined();
     expect(screen.getAllByText("input: Text, Transcript").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("input: none").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/args: .*templateId\*:string/u).length).toBeGreaterThanOrEqual(1);

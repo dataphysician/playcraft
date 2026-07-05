@@ -472,6 +472,42 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
       React.createElement(
         "section",
         { style: shellStyles.catalogColumn },
+        React.createElement("h4", { style: shellStyles.catalogHeading }, "Service facade"),
+        React.createElement(
+          "ol",
+          { style: shellStyles.catalogList },
+          ...catalog.service.actions.map((action) =>
+            React.createElement(
+              "li",
+              { key: action.actionName, style: shellStyles.catalogItem },
+              React.createElement("strong", null, action.displayName),
+              React.createElement("span", { style: shellStyles.catalogMeta }, action.actionName),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `input: ${action.acceptsInput ? "yes" : "no"}`),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `session: ${action.requiresSession ? "required" : "optional"}`),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `response: ${action.responsePayload}`)
+            )
+          ),
+          React.createElement(
+            "li",
+            { style: shellStyles.catalogItem },
+            React.createElement("strong", null, "Exact envelopes"),
+            React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.singleCommand} / ${catalog.service.exactEnvelope.batchCommand}`),
+            React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.requestSchema} / ${catalog.service.exactEnvelope.batchSchema}`),
+            React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.directHandler} / ${catalog.service.exactEnvelope.directBatchHandler}`)
+          ),
+          React.createElement(
+            "li",
+            { style: shellStyles.catalogItem },
+            React.createElement("strong", null, "Transports"),
+            React.createElement("span", { style: shellStyles.catalogMeta }, catalog.service.transports.local),
+            React.createElement("span", { style: shellStyles.catalogMeta }, catalog.service.transports.httpClient),
+            React.createElement("span", { style: shellStyles.catalogMeta }, catalog.service.transports.httpBody)
+          )
+        )
+      ),
+      React.createElement(
+        "section",
+        { style: shellStyles.catalogColumn },
         React.createElement("h4", { style: shellStyles.catalogHeading }, "Templates"),
         React.createElement(
           "ol",

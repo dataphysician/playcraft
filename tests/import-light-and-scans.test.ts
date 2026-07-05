@@ -636,9 +636,15 @@ describe("import-light boundaries and source scans", () => {
     const frameworkReadme = readSource("playcraft-agentic-framework/README.md");
     const prd = readSource("playcraft-agentic-framework/PRD.md");
     const serviceSource = readSource("packages/service/src/index.ts");
+    const studioSource = readSource("apps/studio/src/studio-app.tsx");
 
+    expect(contractSource).toContain("BuilderServiceCatalogSchema");
+    expect(contractSource).toContain("service: BuilderServiceCatalogSchema");
+    expect(contractSource).toContain("exactEnvelope");
     expect(contractSource).toContain("BuilderServiceRequestBatchSchema");
     expect(contractSource).toContain("z.array(BuilderServiceRequestSchema).min(1)");
+    expect(serviceSource).toContain("LOCAL_SERVICE_CATALOG");
+    expect(serviceSource).toContain("service: LOCAL_SERVICE_CATALOG");
     expect(serviceSource).toContain("handleLocalServiceRequestBatch");
     expect(serviceSource).toContain("BuilderServiceRequestBatchSchema.parse");
     expect(cliSource).toContain("request-batch");
@@ -646,12 +652,21 @@ describe("import-light boundaries and source scans", () => {
     expect(cliSource).toContain("rejectNonEnvelopeFlags");
     expect(cliSource).toContain("only accepts --request-json and --json");
     expect(cliSource).toContain("BuilderServiceRequestBatchSchema.parse");
+    expect(cliSource).toContain("catalog.service.actions");
+    expect(cliSource).toContain("catalog.service.exactEnvelope");
+    expect(studioSource).toContain("catalog.service.actions");
+    expect(studioSource).toContain("catalog.service.exactEnvelope");
+    expect(studioSource).toContain("catalog.service.transports");
     expect(cliSource).not.toContain("BuilderServiceRequestSchema.array().min(1)");
     expect(rootReadme).toContain("playcraft-service request-batch");
     expect(rootReadme).toContain("handleLocalServiceRequestBatch");
     expect(devGuide).toContain("playcraft-service request-batch");
     expect(devGuide).toContain("BuilderServiceRequestBatchSchema");
     expect(devGuide).toContain("handleLocalServiceRequestBatch");
+    expect(devGuide).toContain("exact-envelope service helpers");
+    expect(rootReadme).toContain("service facade actions");
+    expect(architecture).toContain("service facade action summaries");
+    expect(frameworkReadme).toContain("service facade summaries");
     expect(frameworkReadme).toContain("request batches");
     expect(architecture).toContain("same-process `BuilderServiceRequestBatchSchema` request batches");
     expect(architecture).toContain("BuilderServiceRequestBatchSchema");

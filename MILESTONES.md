@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog Service Facade Discovery
+
+Milestone:
+- `BuilderCatalog` now advertises the service facade actions, exact-envelope commands, direct request helpers, and transport helpers alongside builder tools.
+- Service CLI catalog output and the Studio Developer catalog view now render service actions from `catalog.service`.
+- Agent clients can discover `request`, `request-batch`, `handleLocalServiceRequest`, and `handleLocalServiceRequestBatch` through the same local catalog surface used by the app.
+
+Supportive changes:
+- Contract fixtures cover the nested service catalog shape.
+- Service and Studio UI tests verify service facade discovery in JSON catalog, CLI summary, and Developer tab.
+- Source scans pin catalog-owned service action and helper rendering across contracts, service, CLI, Studio, and canonical docs.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps agent-facing service discovery contract-owned and local without hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Move Live Token Defaults Into Templates
 
 Milestone:

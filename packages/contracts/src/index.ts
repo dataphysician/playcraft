@@ -716,6 +716,53 @@ export const BuilderSessionBoundServiceActionNameSchema = z.enum([
 ]);
 export type BuilderSessionBoundServiceActionName = z.infer<typeof BuilderSessionBoundServiceActionNameSchema>;
 
+export const BuilderServiceActionNameSchema = z.enum([
+  "catalog",
+  "assemble",
+  "update",
+  "preview",
+  "reset",
+  "get-session",
+  "export-profile",
+  "import-profile"
+]);
+export type BuilderServiceActionName = z.infer<typeof BuilderServiceActionNameSchema>;
+
+export const BuilderServiceCatalogActionSchema = z
+  .object({
+    actionName: BuilderServiceActionNameSchema,
+    displayName: z.string().min(1).max(80),
+    requiresSession: z.boolean(),
+    acceptsInput: z.boolean(),
+    responsePayload: z.enum(["catalog", "execution", "session", "profileExport", "reset"])
+  })
+  .strict();
+export type BuilderServiceCatalogAction = z.infer<typeof BuilderServiceCatalogActionSchema>;
+
+export const BuilderServiceCatalogSchema = z
+  .object({
+    actions: z.array(BuilderServiceCatalogActionSchema).min(1),
+    exactEnvelope: z
+      .object({
+        singleCommand: z.literal("request"),
+        batchCommand: z.literal("request-batch"),
+        requestSchema: z.literal("BuilderServiceRequestSchema"),
+        batchSchema: z.literal("BuilderServiceRequestBatchSchema"),
+        directHandler: z.literal("handleLocalServiceRequest"),
+        directBatchHandler: z.literal("handleLocalServiceRequestBatch")
+      })
+      .strict(),
+    transports: z
+      .object({
+        local: z.literal("createLocalServiceTransport"),
+        httpClient: z.literal("createHttpServiceTransport"),
+        httpBody: z.literal("handleServiceHttpRequestBody")
+      })
+      .strict()
+  })
+  .strict();
+export type BuilderServiceCatalog = z.infer<typeof BuilderServiceCatalogSchema>;
+
 export const BuilderCatalogRequestTipsSchema = z
   .object({
     availableGames: z.array(z.string().min(1).max(80)).min(1),
@@ -741,6 +788,7 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
     })
     .strict(),
   requestTips: BuilderCatalogRequestTipsSchema,
+  service: BuilderServiceCatalogSchema,
   sessions: z
     .object({
       defaultAssembleSessionId: StableIdSchema,
@@ -913,18 +961,6 @@ export const BuilderProfileExportSchema = PublicContractBaseSchema.extend({
     .strict()
 }).strict();
 export type BuilderProfileExport = z.infer<typeof BuilderProfileExportSchema>;
-
-export const BuilderServiceActionNameSchema = z.enum([
-  "catalog",
-  "assemble",
-  "update",
-  "preview",
-  "reset",
-  "get-session",
-  "export-profile",
-  "import-profile"
-]);
-export type BuilderServiceActionName = z.infer<typeof BuilderServiceActionNameSchema>;
 
 export const BuilderServiceExecutionSchema = z
   .object({
