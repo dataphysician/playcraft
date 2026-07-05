@@ -16,6 +16,7 @@ import {
   type TrustedPreviewInteraction
 } from "./trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "./types.js";
+import { EmptyState, ErrorState, LoadingState } from "./states/index.js";
 
 export interface StudioAppProps {
   client: StudioClient;
@@ -44,6 +45,8 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const [error, setError] = React.useState<string | null>(null);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [catalog, setCatalog] = React.useState<BuilderCatalog | undefined>(() => synchronousCatalog(client));
+  const [catalogError, setCatalogError] = React.useState<string | null>(null);
+  const [catalogRetryKey, setCatalogRetryKey] = React.useState(0);
   const [profileExportText, setProfileExportText] = React.useState("");
   const [profileImportText, setProfileImportText] = React.useState("");
   const [profileTransferStatus, setProfileTransferStatus] = React.useState<string | null>(null);
@@ -80,6 +83,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   React.useEffect(() => {
     let active = true;
     setCatalog(undefined);
+    setCatalogError(null);
 
     if (client.catalog) {
       const nextCatalog = client.catalog();
@@ -88,9 +92,10 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
           if (active) {
             setCatalog(loadedCatalog);
           }
-        }).catch(() => {
+        }).catch((cause) => {
           if (active) {
             setCatalog(undefined);
+            setCatalogError(cause instanceof Error ? cause.message : "Catalog failed to load.");
           }
         });
       } else {
@@ -101,7 +106,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     return () => {
       active = false;
     };
-  }, [client]);
+  }, [client, catalogRetryKey]);
 
   async function runStudioCommand(text: string, source: BuilderInputSource = inputSource): Promise<void> {
     if (!text) {
@@ -249,6 +254,22 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     setProfileImportText("");
     setProfileTransferStatus(null);
     setActiveTab("live");
+    setCatalogError(null);
+    setCatalogRetryKey((key) => key + 1);
+  }
+
+  function handleCatalogRetry(): void {
+    setCatalogRetryKey((key) => key + 1);
+  }
+
+  function handleEmptyStateAction(): void {
+    setActiveTab("live");
+    setTimeout(() => {
+      const input = document.getElementById("studio-command");
+      if (input) {
+        input.focus();
+      }
+    }, 0);
   }
 
   function handleInteraction(interaction: TrustedPreviewInteraction | LiveGameInteraction): void {
@@ -320,6 +341,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
             canImportProfile: Boolean(client.importProfile),
             canRunServicePreview: Boolean(client.previewAction),
             catalog,
+            catalogError,
             componentSummaries,
             messages,
             pending,
@@ -330,6 +352,8 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
             selectedEntry,
             selectedTimelineId,
             session,
+            onCatalogRetry: handleCatalogRetry,
+            onEmptyStateAction: handleEmptyStateAction,
             onExportProfile: handleExportProfile,
             onImportProfile: handleImportProfile,
             onProfileImportTextChange: setProfileImportText,
@@ -360,6 +384,7 @@ function DeveloperPanel({
   canImportProfile,
   canRunServicePreview,
   catalog,
+  catalogError,
   componentSummaries,
   messages,
   pending,
@@ -370,6 +395,8 @@ function DeveloperPanel({
   selectedEntry,
   selectedTimelineId,
   session,
+  onCatalogRetry,
+  onEmptyStateAction,
   onExportProfile,
   onImportProfile,
   onProfileImportTextChange,
@@ -383,6 +410,7 @@ function DeveloperPanel({
   canImportProfile: boolean;
   canRunServicePreview: boolean;
   catalog: BuilderCatalog | undefined;
+  catalogError: string | null;
   componentSummaries: TrustedPreviewComponentSummary[];
   messages: ChatMessage[];
   pending: PendingCommand | null;
@@ -393,6 +421,8 @@ function DeveloperPanel({
   selectedEntry: StudioTimelineEntry | undefined;
   selectedTimelineId: string | undefined;
   session: StudioSessionSnapshot | undefined;
+  onCatalogRetry: () => void;
+  onEmptyStateAction: () => void;
   onExportProfile: () => void;
   onImportProfile: () => void;
   onProfileImportTextChange: (value: string) => void;
@@ -409,7 +439,7 @@ function DeveloperPanel({
       { style: shellStyles.centerPanel },
       React.createElement("h2", null, activeProfile ? activeProfile.profileName : "Developer"),
       messages.length > 0 ? React.createElement(ChatHistoryPanel, { messages }) : null,
-      React.createElement(AgentToolCatalogPanel, { catalog }),
+      React.createElement(AgentToolCatalogPanel, { catalog, catalogError, onRetry: onCatalogRetry }),
       React.createElement(ProfilePortabilityPanel, {
         canExportProfile,
         canImportProfile,
@@ -437,7 +467,12 @@ function DeveloperPanel({
             selectedComponentKey,
             onInteraction
           })
-        : React.createElement("div", { role: "status", style: shellStyles.emptyState }, "Generate a game to inspect the trusted preview."),
+        : React.createElement(EmptyState, {
+            icon: "🎮",
+            title: "No game assembled yet",
+            description: "Assemble your first game to inspect the trusted preview and timeline.",
+            action: { label: "Assemble your first game", onClick: onEmptyStateAction }
+          }),
       activeProfile ? React.createElement(ProfileSummaryPanel, { profile: activeProfile }) : null
     ),
     React.createElement(TimelinePanel, {
@@ -449,13 +484,26 @@ function DeveloperPanel({
   );
 }
 
-function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefined }): React.ReactElement {
+function AgentToolCatalogPanel({ catalog, catalogError, onRetry }: {
+  catalog: BuilderCatalog | undefined;
+  catalogError: string | null;
+  onRetry: () => void;
+}): React.ReactElement {
+  if (catalogError) {
+    return React.createElement(
+      "section",
+      { "aria-label": "Agent tool catalog", style: shellStyles.catalogPanel },
+      React.createElement("h3", null, "Agent tools"),
+      React.createElement(ErrorState, { message: catalogError, retry: onRetry })
+    );
+  }
+
   if (!catalog) {
     return React.createElement(
       "section",
       { "aria-label": "Agent tool catalog", style: shellStyles.catalogPanel },
       React.createElement("h3", null, "Agent tools"),
-      React.createElement("p", { role: "status", style: shellStyles.catalogEmpty }, "Loading catalog.")
+      React.createElement(LoadingState, { label: "Loading catalog." })
     );
   }
 

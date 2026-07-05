@@ -1483,7 +1483,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `apps/studio/src/live-game.tsx`, `tests/studio-tactile.test.tsx`
   - Pre-commit: `pnpm exec vitest run tests/studio-tactile.test.tsx`
 
-- [ ] 14. Studio empty/edge states (loading, error, empty)
+- [x] 14. Studio empty/edge states (loading, error, empty)
 
   **What to do**:
   - Create new component `apps/studio/src/states/EmptyState.tsx`:

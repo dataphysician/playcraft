@@ -205,3 +205,15 @@
 - Refinement pattern: the new `BuilderServiceErrorSchema` includes `ownerId?: StableIdSchema.optional()` because `ownership-mismatch` errors reference the caller's attempted ownerId (which may not match any registered owner). For `session-expired` errors, both `sessionId` and `ownerId` are populated from the session ownership record.
 - TDD cycle: 4 new RED tests (3 service, 1 builder) → contracts extension → service implementation → builder implementation → GREEN. The contract schema fix (hasOnlyServiceResponsePayloads bug) was caught immediately by the first failing test response validation.
 - Vitest test count after T10: 487 (was 483 before T10 → +4 new tests: 3 service ownership/expiry/mismatch + 1 builder session-expired typed result). All pre-existing 483 tests still pass; 0 regressions.
+
+## [2026-07-05] T14 Studio Empty/Edge States
+
+- Studio app previously used inline `style` objects for all styling; T14 introduces CSS classes (`.empty-state`, `.loading-state`, `.error-state`) via a new `apps/studio/src/states/studio-states.css` file. Vite's `@vitejs/plugin-react` handles CSS imports from TypeScript entry points without extra config.
+- State components follow the existing `React.createElement` pattern (not JSX) to match `studio-app.tsx`, `live-game.tsx`, and `trusted-preview.tsx`.
+- `LoadingState` uses `useEffect` + `setTimeout` with cleanup for the 10s timeout. The component manages its own internal `timedOut` state and renders an error message when the timer fires. Tests use `vi.useFakeTimers()` + `act()` to advance time without waiting real milliseconds.
+- `ErrorState` uses `useState` for the expandable details toggle. Details are collapsed by default (`detailsOpen = false`). The toggle button uses `aria-expanded` with a stringified boolean.
+- Catalog error tracking in `studio-app.tsx` required adding two new state variables: `catalogError: string | null` and `catalogRetryKey: number`. The retry key is incremented to re-trigger the catalog loading `useEffect`. This avoids mutating the client or adding complex retry logic.
+- `AgentToolCatalogPanel` was updated from a simple `if (!catalog)` check to a three-state render: error (`ErrorState` with retry), loading (`LoadingState`), or loaded (existing catalog grid).
+- `DeveloperPanel` now shows `EmptyState` when `activeProfile` is undefined, replacing the previous inline `div[role="status"]`. The CTA action switches to the "live" tab and focuses the command input via `document.getElementById("studio-command")`.
+- Test matcher learnings: `toHaveAttribute` is a Jest/Jasmine matcher not available in vitest; use `getAttribute("attr")` instead. For text inside `<pre>` elements, `getByText("exact string")` can fail due to newline normalization; use regex matchers (`/text/`) or query the element directly via `document.querySelector` and assert on `textContent`.
+- Vitest test count after T14: 492 (was 487 before T14 → +5 new state component tests). All pre-existing 487 tests still pass; 0 regressions. `pnpm typecheck` remains clean.
