@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog-Owned Freeform Asset Item Suffixes
+
+Milestone:
+- Builder catalog now publishes `freeformItemSuffixes` for local freeform asset-folder item naming.
+- Builder freeform asset edits now use the shared assets package suffix policy instead of builder-owned hard-coded fallback item IDs.
+
+Supportive changes:
+- Contract and service catalog tests validate the published `freeformItemSuffixes` metadata.
+- Source scans pin the shared suffix policy and block the removed builder-local generated item fallback.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Freeform suffix source scan confirmed the shared policy and removed builder-local generated item fallback.
+
+Constraint notes:
+- Keeps freeform local replacement folders discoverable and contract-shaped without hosted providers, generated runtime code, auth, database state, compatibility shims, or builder-local item suffix heuristics.
+
 ## 2026-07-04 - Moonshine Streaming CPU Config Schema
 
 Milestone:

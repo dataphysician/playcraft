@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DeterministicLocalAssetSource, localAssetEditCatalog } from "@playcraft/assets";
+import { DeterministicLocalAssetSource, localAssetEditCatalog, localAssetEditFreeformItemSuffixes } from "@playcraft/assets";
 import {
   activity,
   createPlaycraftEnvelope,
@@ -777,7 +777,7 @@ function normalizeAssetEdit(assetEdit: BuilderAssetEdit | undefined): Normalized
   return {
     theme: normalizedTheme,
     singularTheme,
-    items: items.length > 0 ? items : catalogEntry?.suggestedItems ?? generatedItemsForTheme(singularTheme)
+    items: items.length > 0 ? items : catalogEntry?.suggestedItems ?? freeformItemsForTheme(singularTheme)
   };
 }
 
@@ -887,9 +887,9 @@ function assetEditCatalogEntryFor(theme: string): typeof localAssetEditCatalog[n
   );
 }
 
-function generatedItemsForTheme(singularTheme: string): string[] {
+function freeformItemsForTheme(singularTheme: string): string[] {
   const base = slugLabel(singularTheme);
-  return [`${base}-1`, `${base}-2`, `${base}-3`];
+  return localAssetEditFreeformItemSuffixes.map((suffix) => `${base}-${suffix}`);
 }
 
 function remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>): string[] {

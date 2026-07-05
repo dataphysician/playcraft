@@ -257,6 +257,7 @@ describe("local Playcraft service", () => {
       acceptedKeys: ["theme", "items"],
       maxItems: 12,
       localReplacementFolders: true,
+      freeformItemSuffixes: ["1", "2", "3"],
       availableThemes: expect.arrayContaining([
         expect.objectContaining({
           theme: "dinosaurs",
@@ -1133,6 +1134,7 @@ describe("local Playcraft service", () => {
     const catalog = BuilderCatalogSchema.parse(JSON.parse(out.pop() ?? "{}"));
     expect(catalog.kind).toBe("builder-catalog");
     expect(catalog.assetEdit.genericThemeTokens).toEqual(expect.arrayContaining(["asset", "assets", "card images", "theme"]));
+    expect(catalog.assetEdit.freeformItemSuffixes).toEqual(["1", "2", "3"]);
     expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId.required).toBe(true);
     expect(catalog.tools.find((tool) => tool.actionName === "export-profile")?.argumentsSchema.fields.sessionId.required).toBe(true);
     expect(catalog.templates).toHaveLength(24);

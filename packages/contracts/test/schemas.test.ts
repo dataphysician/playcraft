@@ -266,6 +266,7 @@ describe("public contract schemas", () => {
           acceptedKeys: ["theme", "items"],
           maxItems: 12,
           localReplacementFolders: true,
+          freeformItemSuffixes: ["1", "2", "3"],
           genericThemeTokens: ["asset", "assets", "card images", "theme"],
           availableThemes: [
             {

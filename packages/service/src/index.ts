@@ -36,6 +36,7 @@ import {
 } from "@playcraft/contracts";
 import {
   localAssetEditCatalog,
+  localAssetEditFreeformItemSuffixes,
   localAssetEditGenericThemeTokens,
   localAssetEditIntentPatterns,
   type LocalAssetEditIntentPattern
@@ -284,6 +285,7 @@ export class LocalPlaycraftService {
         acceptedKeys: ["theme", "items"],
         maxItems: 12,
         localReplacementFolders: true,
+        freeformItemSuffixes: localAssetEditFreeformItemSuffixes,
         genericThemeTokens: localAssetEditGenericThemeTokens,
         availableThemes: localAssetEditCatalog
       },

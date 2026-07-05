@@ -39,6 +39,7 @@ export const localAssetEditGenericThemeTokens = [
   "art",
   "theme"
 ];
+export const localAssetEditFreeformItemSuffixes = ["1", "2", "3"];
 export const localAssetEditIntentPatterns: LocalAssetEditIntentPattern[] = [
   {
     pattern: /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u,

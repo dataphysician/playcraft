@@ -866,6 +866,7 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
       acceptedKeys: z.array(z.enum(["theme", "items"])).min(1),
       maxItems: z.number().int().positive(),
       localReplacementFolders: z.boolean(),
+      freeformItemSuffixes: z.array(z.string().min(1).max(12)).min(1),
       genericThemeTokens: z.array(z.string().min(1).max(40)).default([]),
       availableThemes: z.array(BuilderAssetEditCatalogEntrySchema).default([])
     })

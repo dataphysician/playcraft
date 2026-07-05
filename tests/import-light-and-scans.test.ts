@@ -938,10 +938,16 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("ambiguous asset request matched");
     expect(serviceTestSource).toContain("rejects ambiguous asset edit text instead of selecting the first match");
     expect(contractSource).toContain("genericThemeTokens");
+    expect(contractSource).toContain("freeformItemSuffixes");
     expect(assetCatalogSource).toContain("localAssetEditGenericThemeTokens");
+    expect(assetCatalogSource).toContain("localAssetEditFreeformItemSuffixes");
     expect(assetCatalogSource).toContain("localAssetEditIntentPatterns");
     expect(source).toContain("localAssetEditGenericThemeTokens");
+    expect(source).toContain("localAssetEditFreeformItemSuffixes");
     expect(source).toContain("localAssetEditIntentPatterns");
+    expect(readSource("packages/builder/src/index.ts")).toContain("localAssetEditFreeformItemSuffixes.map");
+    expect(readSource("packages/builder/src/index.ts")).not.toContain("function generatedItemsForTheme");
+    expect(readSource("packages/builder/src/index.ts")).not.toContain('`${base}-1`, `${base}-2`, `${base}-3`');
     expect(source).not.toContain(".find((entry): entry is { source: TextAssetEdit[\"source\"]; theme: string } => Boolean(entry))");
     expect(source).not.toContain("GENERIC_ASSET_THEME_TOKENS");
     expect(source).not.toContain('new Set(["asset", "assets"');
