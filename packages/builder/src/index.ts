@@ -808,8 +808,7 @@ function editComponentProps(
         items: edit.items
       };
     case "sorting-items": {
-      const bins = stringArrayProp(props, "bins");
-      const activeBins = bins.length > 0 ? bins : ["red", "blue"];
+      const activeBins = requireStringArrayProp(props, "bins", "sorting-items");
       const items = activeBins.map((bin) => `${bin} ${edit.singularTheme}`);
       return {
         ...props,
@@ -820,17 +819,17 @@ function editComponentProps(
       };
     }
     case "sequence-items":
-      const sourceSequence = stringArrayProp(props, "sequence");
-      const sourceRounds = stringMatrixProp(props, "rounds");
+      const sourceSequence = requireStringArrayProp(props, "sequence", "sequence-items");
+      const sourceRounds = requireStringMatrixProp(props, "rounds", "sequence-items");
       const sequenceTokenMap = tokenMapForSequence([...sourceSequence, ...sourceRounds.flat()], edit.items);
-      const sequence = remapSequenceTokens(sourceSequence, sequenceTokenMap, edit.items[0] ?? "item");
+      const sequence = remapSequenceTokens(sourceSequence, sequenceTokenMap);
       const rounds = remapSequenceRounds(sourceRounds, sequenceTokenMap);
       return {
         ...props,
         title: `Repeat the ${edit.singularTheme} pattern`,
         prompt: `Tap the ${edit.singularTheme} buttons in the same order.`,
         sequence,
-        rounds: rounds.length > 0 ? rounds : [sequence]
+        rounds
       };
     case "completion-message":
       return {
@@ -897,11 +896,7 @@ function generatedItemsForTheme(singularTheme: string): string[] {
   return [`${base}-1`, `${base}-2`, `${base}-3`];
 }
 
-function remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>, fallback: string): string[] {
-  if (tokens.length === 0) {
-    return [fallback];
-  }
-
+function remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>): string[] {
   return tokens.map((token) => tokenMap.get(token) ?? token);
 }
 
@@ -939,6 +934,19 @@ function stringArrayProp(props: Record<string, JsonValue>, key: string): string[
   return value.filter((entry): entry is string => typeof entry === "string");
 }
 
+function requireStringArrayProp(
+  props: Record<string, JsonValue>,
+  key: string,
+  operation: GameTemplateAssetEditOperation["operation"]
+): string[] {
+  const values = stringArrayProp(props, key);
+  if (values.length === 0) {
+    throw new Error(`asset edit operation ${operation} requires non-empty string array prop ${key}`);
+  }
+
+  return values;
+}
+
 function stringMatrixProp(props: Record<string, JsonValue>, key: string): string[][] {
   const value = props[key];
   if (!Array.isArray(value)) {
@@ -949,6 +957,19 @@ function stringMatrixProp(props: Record<string, JsonValue>, key: string): string
     .filter((entry): entry is JsonValue[] => Array.isArray(entry))
     .map((entry) => entry.filter((item): item is string => typeof item === "string"))
     .filter((entry) => entry.length > 0);
+}
+
+function requireStringMatrixProp(
+  props: Record<string, JsonValue>,
+  key: string,
+  operation: GameTemplateAssetEditOperation["operation"]
+): string[][] {
+  const values = stringMatrixProp(props, key);
+  if (values.length === 0) {
+    throw new Error(`asset edit operation ${operation} requires non-empty string matrix prop ${key}`);
+  }
+
+  return values;
 }
 
 function uniqueStrings(values: string[]): string[] {

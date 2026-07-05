@@ -915,6 +915,20 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain('case "component:hint-bubble"');
   });
 
+  it("keeps builder asset edit operations from inventing missing authored props", () => {
+    const builderSource = readSource("packages/builder/src/index.ts");
+
+    expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string array prop ${key}");
+    expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string matrix prop ${key}");
+    expect(builderSource).toContain('requireStringArrayProp(props, "bins", "sorting-items")');
+    expect(builderSource).toContain('requireStringArrayProp(props, "sequence", "sequence-items")');
+    expect(builderSource).toContain('requireStringMatrixProp(props, "rounds", "sequence-items")');
+    expect(builderSource).not.toContain('bins.length > 0 ? bins : ["red", "blue"]');
+    expect(builderSource).not.toContain("remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>, fallback");
+    expect(builderSource).not.toContain("return [fallback]");
+    expect(builderSource).not.toContain("rounds.length > 0 ? rounds : [sequence]");
+  });
+
   it("publishes concrete preview interaction tool arguments", () => {
     const builderSource = readSource("packages/builder/src/index.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");

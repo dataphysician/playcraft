@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Authored Asset Edit Props
+
+Milestone:
+- Builder sorting asset edits now require authored `bins` props instead of inventing red/blue bins.
+- Builder sequence asset edits now require authored `sequence` and `rounds` props instead of fabricating a token or round.
+- Imported/custom profiles with incomplete editable props fail explicitly before asset rewrites.
+
+Supportive changes:
+- Builder tests cover missing sorting bins, missing sequence tokens, and missing sequence rounds.
+- Source scans block the removed red/blue bin fallback and generated sequence fallback shapes.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps profile-specific asset edit operations authored and contract-driven without hosted providers, generated runtime code, auth, database state, compatibility shims, or profile-shape synthesis.
+
 ## 2026-07-04 - Schema-Backed Asset Edit Normalization
 
 Milestone:

@@ -263,6 +263,37 @@ describe("builder session service", () => {
     expect(edited.result.validation?.valid).toBe(true);
   });
 
+  it("rejects sorting asset edits when imported profiles do not author bins", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.sorting" })).result.profile;
+    expect(exported).toBeDefined();
+    const custom = {
+      ...exported!,
+      id: "profile.custom-sorting-without-bins",
+      components: exported!.components.map((component) =>
+        component.renderCapability === "component:sort-bins"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                bins: []
+              }
+            }
+          : component
+      )
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.custom-sorting-without-bins", custom);
+
+    expect(() => target.execute(command({
+      actionName: "update-game",
+      assetEdit: { theme: "toys" },
+      sessionId: "session.custom-sorting-without-bins",
+      templateId: "template.sorting"
+    }))).toThrow(/sorting-items requires non-empty string array prop bins/u);
+  });
+
   it("keeps sequence rounds in sync when asset edits rename tokens", () => {
     const service = new PlaycraftBuilderSessionService();
     const edited = service.execute(command({ templateId: "template.sequence-repeat", assetEdit: { theme: "gems" } }));
@@ -275,6 +306,70 @@ describe("builder session service", () => {
       ["gem-2", "gem-1", "gem-3", "gem-1", "gem-2"]
     ]);
     expect(edited.result.validation?.valid).toBe(true);
+  });
+
+  it("rejects sequence asset edits when imported profiles do not author sequence props", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.sequence-repeat" })).result.profile;
+    expect(exported).toBeDefined();
+    const custom = {
+      ...exported!,
+      id: "profile.custom-sequence-without-pattern",
+      components: exported!.components.map((component) =>
+        component.renderCapability === "component:sequence-pad"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                rounds: [],
+                sequence: []
+              }
+            }
+          : component
+      )
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.custom-sequence-without-pattern", custom);
+
+    expect(() => target.execute(command({
+      actionName: "update-game",
+      assetEdit: { theme: "gems" },
+      sessionId: "session.custom-sequence-without-pattern",
+      templateId: "template.sequence-repeat"
+    }))).toThrow(/sequence-items requires non-empty string array prop sequence/u);
+  });
+
+  it("rejects sequence asset edits when imported profiles do not author rounds", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.sequence-repeat" })).result.profile;
+    expect(exported).toBeDefined();
+    const custom = {
+      ...exported!,
+      id: "profile.custom-sequence-without-rounds",
+      components: exported!.components.map((component) =>
+        component.renderCapability === "component:sequence-pad"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                rounds: [],
+                sequence: ["moon"]
+              }
+            }
+          : component
+      )
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.custom-sequence-without-rounds", custom);
+
+    expect(() => target.execute(command({
+      actionName: "update-game",
+      assetEdit: { theme: "gems" },
+      sessionId: "session.custom-sequence-without-rounds",
+      templateId: "template.sequence-repeat"
+    }))).toThrow(/sequence-items requires non-empty string matrix prop rounds/u);
   });
 
   it("rejects empty asset edits instead of inventing custom asset defaults", () => {
