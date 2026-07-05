@@ -45,6 +45,15 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-07-05T18:41:46.073Z"
+    },
+    "todo:6": {
+      "task_key": "todo:6",
+      "task_label": "6",
+      "task_title": "SSE client transport + state reconciliation (Studio + Mobile)",
+      "session_id": "ses_0cc5ef7a3ffekxNzZ4sfvRB9uz",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-07-05T19:08:43.366Z"
     }
   }
 }

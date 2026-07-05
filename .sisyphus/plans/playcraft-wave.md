@@ -517,7 +517,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
 
 ### Wave 2 — Core Implementation (MAX PARALLEL, 7 tasks)
 
-- [ ] 4. MCP tool discovery adapter (over builder/service tools)
+- [x] 4. MCP tool discovery adapter (over builder/service tools)
 
   **What to do**:
   - Create new package `packages/mcp/` with:
@@ -603,7 +603,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `packages/mcp/**`, `pnpm-workspace.yaml`, root `package.json`
   - Pre-commit: `pnpm exec vitest run packages/mcp/test/`
 
-- [ ] 5. SSE frame codec + HTTP server route
+- [x] 5. SSE frame codec + HTTP server route
 
   **What to do**:
   - Extend `packages/service/src/http-server.ts`:
@@ -692,7 +692,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `packages/service/src/sse.ts`, `packages/service/src/http-server.ts`, `packages/service/test/sse.test.ts`
   - Pre-commit: `pnpm exec vitest run packages/service/test/`
 
-- [ ] 6. SSE client transport + state reconciliation (Studio + Mobile)
+- [x] 6. SSE client transport + state reconciliation (Studio + Mobile)
 
   **What to do**:
   - Add `createSseClientTransport(url): StudioClient`-compatible interface to `apps/studio/src/local-client.ts`
@@ -884,7 +884,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `packages/service/src/workflow/**`, `packages/service/src/index.ts`, `packages/service/test/workflow.test.ts`
   - Pre-commit: `pnpm exec vitest run packages/service/test/`
 
-- [ ] 8. Custom template round-trip + `template.custom.*` namespace + conflict detection
+- [x] 8. Custom template round-trip + `template.custom.*` namespace + conflict detection
 
   **What to do**:
   - In `packages/builder/src/index.ts`:
@@ -982,7 +982,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `packages/builder/src/index.ts`, `packages/packs/src/index.ts`, `packages/core/src/index.ts`, test files
   - Pre-commit: `pnpm exec vitest run`
 
-- [ ] 9. Asset catalog manifest schema + folder discovery + bundled-merge
+- [x] 9. Asset catalog manifest schema + folder discovery + bundled-merge
 
   **What to do**:
   - In `packages/assets/src/index.ts`:
