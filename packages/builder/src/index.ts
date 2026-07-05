@@ -992,9 +992,9 @@ function requireMemoryPairCount(props: Record<string, JsonValue>): number {
   for (const pairId of pairIds) {
     cardsPerPair.set(pairId, (cardsPerPair.get(pairId) ?? 0) + 1);
   }
-  const invalidPair = [...cardsPerPair.entries()].find(([, count]) => count !== 2);
-  if (invalidPair) {
-    throw new Error(`memory-pairs authored pair ${invalidPair[0]} must contain exactly two cards`);
+  const invalidPairs = [...cardsPerPair.entries()].filter(([, count]) => count !== 2);
+  if (invalidPairs.length > 0) {
+    throw new Error(`memory-pairs authored pairs must contain exactly two cards: ${invalidPairs.map(([pairId]) => pairId).join(", ")}`);
   }
 
   return uniquePairIds.length;

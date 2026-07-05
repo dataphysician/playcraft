@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Complete Builder Memory Pair Validation
+
+Milestone:
+- Builder memory asset-edit validation now reports every authored memory pair with an invalid card count instead of stopping at the first invalid pair.
+- Imported/custom memory profiles get complete pair-count diagnostics before asset replacement rewrites card ids.
+
+Supportive changes:
+- Source scans guard set-based invalid memory pair validation and block the old first-invalid-pair `.find` path.
+- Builder session tests cover a custom imported memory profile with two invalid authored pairs.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps builder asset-edit validation local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-invalid-pair diagnostics.
+
 ## 2026-07-05 - Exact Studio Timeline Selection
 
 Milestone:

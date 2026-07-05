@@ -395,6 +395,50 @@ describe("builder session service", () => {
     }))).toThrow(/memory-pairs explicit asset edit items require exactly 2 items for authored pairs/u);
   });
 
+  it("reports every invalid authored memory pair instead of the first one", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const custom = {
+      ...exported!,
+      id: "profile.custom-memory-invalid-pairs",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-memory-invalid-pairs"
+      },
+      components: exported!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["moon-a", "moon-b", "moon-c", "comet-a"],
+                pairs: {
+                  "moon-a": "pair-1",
+                  "moon-b": "pair-1",
+                  "moon-c": "pair-1",
+                  "comet-a": "pair-2"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.custom-memory-invalid-pairs", custom);
+
+    expect(() => target.execute(command({
+      actionName: "update-game",
+      assetEdit: {
+        theme: "space",
+        items: ["rocket", "moon"]
+      },
+      sessionId: "session.custom-memory-invalid-pairs",
+      templateId: "template.memory-match"
+    }))).toThrow(/memory-pairs authored pairs must contain exactly two cards: pair-1, pair-2/u);
+  });
+
   it("keeps sorting targets in sync when asset edits rename items", () => {
     const service = new PlaycraftBuilderSessionService();
     const edited = service.execute(command({ templateId: "template.sorting", assetEdit: { theme: "toys" } }));

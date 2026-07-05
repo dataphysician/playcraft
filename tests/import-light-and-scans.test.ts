@@ -1349,6 +1349,8 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain("has multiple components for ${operation.componentCapability} ${operationKind} asset requests");
     expect(builderSource).not.toContain("const component = profile.components.find((entry) => entry.renderCapability === operation.componentCapability)");
     expect(builderSource).toContain("function requireMemoryPairCount");
+    expect(builderSource).toContain("const invalidPairs = [...cardsPerPair.entries()].filter(([, count]) => count !== 2);");
+    expect(builderSource).toContain("memory-pairs authored pairs must contain exactly two cards");
     expect(builderSource).toContain("memory-pairs requires at least ${pairCount} asset edit items");
     expect(builderSource).toContain('itemsSource: "explicit" | "catalog" | "freeform"');
     expect(builderSource).toContain('itemsSource === "explicit" && edit.items.length !== pairCount');
@@ -1356,6 +1358,7 @@ describe("import-light boundaries and source scans", () => {
     expect(builderTestSource).toContain("updates imported memory profiles from authored pair counts instead of the bundled pair count");
     expect(builderTestSource).toContain("rejects memory asset edits that do not cover every authored pair");
     expect(builderTestSource).toContain("rejects explicit memory asset edits with unused extra items instead of dropping them");
+    expect(builderTestSource).toContain("reports every invalid authored memory pair instead of the first one");
     expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string matrix prop ${key}");
     expect(builderSource).toContain('requireStringArrayProp(props, "bins", "sorting-items")');
     expect(builderSource).toContain("function requireAssetEditItemsForBins");
@@ -1376,6 +1379,7 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain("columns: props.columns ?? 2");
     expect(builderSource).not.toContain("pairedCardIds(edit)");
     expect(builderSource).not.toContain("items[index % items.length]");
+    expect(builderSource).not.toContain("const invalidPair = [...cardsPerPair.entries()].find");
     expect(builderSource).not.toContain("remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>, fallback");
     expect(builderSource).not.toContain("return [fallback]");
     expect(builderSource).not.toContain("rounds.length > 0 ? rounds : [sequence]");
