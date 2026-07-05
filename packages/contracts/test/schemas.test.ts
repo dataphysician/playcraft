@@ -680,6 +680,7 @@ describe("public contract schemas", () => {
       kind: "component-render-request",
       profileId: "profile.fail-closed.fixture",
       componentId: "component.fail-closed.fixture",
+      componentVersion: "1.0.0",
       componentCapability: "component:fixture",
       mechanicBindingId: "mechanic.binding.fixture",
       props: {},

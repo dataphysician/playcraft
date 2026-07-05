@@ -143,7 +143,7 @@ function renderRequestForTemplatePrimary(
 }
 
 function manifestForRenderRequest(request: ComponentRenderRequest) {
-  return manifests.find((candidate) => candidate.id === request.componentId);
+  return manifests.find((candidate) => candidate.id === request.componentId && candidate.version === request.componentVersion);
 }
 
 function PreviewFailure({ failure }: { failure: TrustedRenderFailure["error"] }): React.ReactElement {

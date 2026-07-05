@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Versioned Trusted Render Requests
+
+Milestone:
+- Component render requests now carry the exact component manifest version selected by profile replay.
+- Trusted renderer and Studio preview manifest lookup now resolve by component id plus version, matching the registry key used for trusted component registration.
+
+Supportive changes:
+- Renderer tests cover same-id multi-version registration and reject unregistered component versions.
+- Contract/source scans require `componentVersion` and block returning to id-only trusted component dispatch.
+
+Validation:
+- `pnpm --filter @playcraft/renderer test`
+- `pnpm --filter @playcraft/contracts test`
+- `pnpm test -- tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps trusted preview dispatch deterministic and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-registered component version fallback.
+
 ## 2026-07-05 - Explicit Service Request Tip Examples
 
 Milestone:

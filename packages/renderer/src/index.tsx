@@ -109,7 +109,7 @@ export class TrustedComponentRegistry {
   }
 
   private findEntry(request: ComponentRenderRequest): { manifest: ComponentManifest; component: TrustedReactComponent } | undefined {
-    return [...this.components.values()].find((entry) => entry.manifest.id === request.componentId);
+    return this.components.get(keyFor(request.componentId, request.componentVersion));
   }
 }
 

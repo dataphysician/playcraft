@@ -406,6 +406,7 @@ export function replayProfile(profileInput: unknown, registries: PlaycraftRegist
         kind: "component-render-request",
         profileId: profile.id,
         componentId: component.componentId,
+        componentVersion: component.version,
         componentCapability: component.renderCapability,
         mechanicBindingId: component.renderMechanicBindingId,
         props: component.props,

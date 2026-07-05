@@ -1,3 +1,4 @@
+import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -7,9 +8,11 @@ import {
 import { replayProfile } from "@playcraft/core";
 import {
   assembleMvpProfiles,
+  componentManifests,
   createDefaultRegistries,
   registerPlaycraftTrustedComponents
 } from "@playcraft/packs";
+import { TrustedComponentRegistry } from "../src/index";
 
 function firstRenderRequest(): { request: ComponentRenderRequest; assets: ReturnType<typeof assembleMvpProfiles>[number]["assets"] } {
   const profile = assembleMvpProfiles()[0];
@@ -101,6 +104,36 @@ describe("trusted renderer", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe("invalid-request");
+    }
+  });
+
+  it("uses the requested component id and version when multiple component versions are registered", () => {
+    const { request, assets } = firstRenderRequest();
+    const manifest = componentManifests.find((entry) => entry.id === request.componentId);
+    expect(manifest).toBeTruthy();
+    if (!manifest) {
+      return;
+    }
+
+    const registry = new TrustedComponentRegistry()
+      .register({ ...manifest, version: "0.9.0" }, () => React.createElement("div", null, "stale component"))
+      .register(manifest, () => React.createElement("div", null, "current component"));
+    const result = registry.render(request, assets);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(renderToStaticMarkup(result.element)).toContain("current component");
+    }
+  });
+
+  it("rejects requests for unregistered component versions", () => {
+    const registry = registerPlaycraftTrustedComponents();
+    const { request, assets } = firstRenderRequest();
+    const result = registry.render({ ...request, componentVersion: "9.9.9" }, assets);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("unknown-component");
     }
   });
 
