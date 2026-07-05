@@ -278,9 +278,13 @@ describe("import-light boundaries and source scans", () => {
 
     expect(packSource).toContain("function emitSingleTrustedTool");
     expect(packSource).toContain("must declare exactly one emitted tool");
+    expect(packSource).toContain('const revealCardTool = tool("tool.reveal-card", "tool:reveal-card", ["frontend:revealed"]');
+    expect(packSource).toContain("emittedEvents");
     expect(packSource).not.toContain("function emitFirstTool");
     expect(packSource).not.toContain("manifest.emittedTools[0]");
+    expect(packSource).not.toContain('toolName.split(":")');
     expect(packTestSource).toContain("keeps trusted component interaction tools single-emitter");
+    expect(packTestSource).toContain('["frontend:revealed"]');
   });
 
   it("keeps generated profile assets bound by request id instead of generation order", () => {

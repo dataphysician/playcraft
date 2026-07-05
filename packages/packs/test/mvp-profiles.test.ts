@@ -341,6 +341,17 @@ describe("MVP profile pack", () => {
       "tool:repeat-sequence",
       "tool:move-item"
     ]);
+    expect(emittingComponents.map((manifest) => {
+      const [tool] = manifest.emittedTools;
+      return tool.emittedEvents;
+    })).toEqual([
+      ["frontend:selected"],
+      ["frontend:revealed"],
+      ["frontend:selected"],
+      ["frontend:selected"],
+      ["frontend:selected"],
+      ["frontend:selected"]
+    ]);
   });
 
   it("keeps pack manifest capabilities complete instead of truncating advertised tags", () => {

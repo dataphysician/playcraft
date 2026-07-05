@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Authored Pack Tool Events
+
+Milestone:
+- Pack frontend tool definitions now declare emitted frontend event tags explicitly instead of deriving them from `toolName` string splitting.
+- Trusted component tool/event contracts can evolve independently from display or transport naming conventions.
+
+Supportive changes:
+- Source scans guard authored emitted event declarations and block `toolName.split(":")`.
+- Pack tests assert both single-emitter tool names and their emitted event tag arrays.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden removed-provider exact scan
+
+Constraint notes:
+- Keeps pack component interaction contracts local, explicit, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or tool-name parsing heuristics.
+
 ## 2026-07-05 - Literal Dotted Asset Folder Names
 
 Milestone:

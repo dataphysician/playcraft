@@ -130,17 +130,17 @@ const numberField = { type: "number", required: true } as const;
 const arrayField = { type: "array", required: true, minItems: 1 } as const;
 const recordField = { type: "record", required: true } as const;
 
-const selectItemTool = tool("tool.select-item", "tool:select-item", {
+const selectItemTool = tool("tool.select-item", "tool:select-item", ["frontend:selected"], {
   itemId: textField
 });
-const revealCardTool = tool("tool.reveal-card", "tool:reveal-card", {
+const revealCardTool = tool("tool.reveal-card", "tool:reveal-card", ["frontend:revealed"], {
   cardId: textField
 });
-const moveItemTool = tool("tool.move-item", "tool:move-item", {
+const moveItemTool = tool("tool.move-item", "tool:move-item", ["frontend:selected"], {
   itemId: textField,
   targetId: textField
 });
-const repeatSequenceTool = tool("tool.repeat-sequence", "tool:repeat-sequence", {
+const repeatSequenceTool = tool("tool.repeat-sequence", "tool:repeat-sequence", ["frontend:selected"], {
   sequence: arrayField
 });
 
@@ -1414,7 +1414,12 @@ function component(
   };
 }
 
-function tool(id: string, toolName: string, fields: Record<string, { type: "string" | "number" | "boolean" | "object" | "array" | "record"; required: boolean; minItems?: number }>): FrontendToolDefinition {
+function tool(
+  id: string,
+  toolName: string,
+  emittedEvents: string[],
+  fields: Record<string, { type: "string" | "number" | "boolean" | "object" | "array" | "record"; required: boolean; minItems?: number }>
+): FrontendToolDefinition {
   return FrontendToolDefinitionSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
     id,
@@ -1428,7 +1433,7 @@ function tool(id: string, toolName: string, fields: Record<string, { type: "stri
       fields,
       allowUnknown: false
     },
-    emittedEvents: [`frontend:${toolName.split(":")[1]}`]
+    emittedEvents
   });
 }
 
