@@ -636,6 +636,7 @@ describe("import-light boundaries and source scans", () => {
     const frameworkReadme = readSource("playcraft-agentic-framework/README.md");
     const prd = readSource("playcraft-agentic-framework/PRD.md");
     const serviceSource = readSource("packages/service/src/index.ts");
+    const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
 
     expect(contractSource).toContain("BuilderServiceCatalogSchema");
@@ -655,6 +656,9 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).toContain('forbiddenTogether: [["profileExport", "assetEdit"]]');
     expect(serviceSource).toContain("handleLocalServiceRequestBatch");
     expect(serviceSource).toContain("BuilderServiceRequestBatchSchema.parse");
+    expect(serviceTestSource).toContain("keeps service catalog request metadata aligned with the request schema");
+    expect(serviceTestSource).toContain("ALL_SERVICE_REQUEST_FIELDS");
+    expect(serviceTestSource).toContain("BuilderServiceRequestSchema.safeParse");
     expect(cliSource).toContain("request-batch");
     expect(cliSource).toContain("parseServiceRequestBatchJson");
     expect(cliSource).toContain("rejectNonEnvelopeFlags");

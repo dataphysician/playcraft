@@ -1014,6 +1014,10 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
     message: "update, preview, get-session, export-profile, and import-profile requests require sessionId",
     path: ["sessionId"]
   })
+  .refine((value) => ["assemble", "update", "preview", "get-session", "export-profile", "import-profile"].includes(value.actionName) || !value.sessionId, {
+    message: "sessionId is only accepted by assemble, update, preview, get-session, export-profile, and import-profile requests",
+    path: ["sessionId"]
+  })
   .refine((value) => value.actionName !== "assemble" || Boolean(value.text || value.moonshineTranscript), {
     message: "assemble requests require text or a Moonshine transcript record",
     path: ["text"]

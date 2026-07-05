@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog Request Schema Parity
+
+Milestone:
+- `BuilderServiceRequestSchema` now rejects `sessionId` on no-payload `catalog` and `reset` actions, matching their catalog-owned accepted field metadata.
+- Service tests now generate minimal requests from every `catalog.service.actions[].request` shape and validate them against the exact request schema.
+- The parity guard checks required fields, required one-of groups, exclusive groups, forbidden combinations, and unaccepted fields for every service action.
+
+Supportive changes:
+- Contract tests pin `catalog` and `reset` session payload rejection.
+- Source scans guard the catalog/schema parity test so service request metadata cannot drift quietly from request validation.
+- The change keeps the already-published service catalog metadata executable against the schema rather than prose-only.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps service request discovery and validation aligned without hosted providers, generated runtime code, auth, database state, compatibility shims, or permissive no-payload action fallbacks.
+
 ## 2026-07-04 - Catalog Service Constraint Discovery
 
 Milestone:

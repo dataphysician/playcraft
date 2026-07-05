@@ -837,6 +837,28 @@ describe("public contract schemas", () => {
     expect(
       BuilderServiceRequestSchema.safeParse({
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.catalog-with-session",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "catalog",
+        sessionId: "session.catalog"
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.reset-with-session",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "reset",
+        sessionId: "session.reset"
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-service-request.test.import-with-text",
         version: "1.0.0",
         kind: "builder-service-request",

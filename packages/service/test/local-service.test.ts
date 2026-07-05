@@ -3,8 +3,13 @@ import {
   BuilderCatalogSchema,
   BuilderProfileExportSchema,
   BuilderServiceExecutionSchema,
+  BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
-  PLAYCRAFT_SCHEMA_VERSION
+  PLAYCRAFT_SCHEMA_VERSION,
+  type BuilderProfileExport,
+  type BuilderServiceActionName,
+  type BuilderServiceRequest,
+  type BuilderServiceRequestFieldName
 } from "@playcraft/contracts";
 import {
   createBuilderCommandHandler,
@@ -28,6 +33,49 @@ import {
   createPlaycraftHttpServer,
   parsePlaycraftHttpServerCliArgs
 } from "../src/http-server.js";
+
+const ALL_SERVICE_REQUEST_FIELDS: BuilderServiceRequestFieldName[] = [
+  "sessionId",
+  "text",
+  "source",
+  "moonshineTranscript",
+  "templateId",
+  "assetEdit",
+  "profile",
+  "profileExport"
+];
+
+type ServiceRequestFixture = BuilderServiceRequest & Partial<Record<BuilderServiceRequestFieldName, unknown>>;
+
+function serviceRequestFixture(actionName: BuilderServiceActionName, input: Partial<BuilderServiceRequest>): ServiceRequestFixture {
+  return {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: `builder-service-request.test.catalog-schema.${actionName}`,
+    version: "1.0.0",
+    kind: "builder-service-request",
+    actionName,
+    ...input
+  } as ServiceRequestFixture;
+}
+
+function serviceRequestFieldSamples(input: {
+  profile: BuilderProfileExport["profile"];
+  profileExport: BuilderProfileExport;
+}): Record<BuilderServiceRequestFieldName, unknown> {
+  return {
+    assetEdit: { theme: "dinosaurs" },
+    moonshineTranscript: createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.catalog-schema",
+      text: "Memory game with dinosaurs"
+    }),
+    profile: input.profile,
+    profileExport: input.profileExport,
+    sessionId: "session.catalog-schema.sample",
+    source: "text",
+    templateId: "template.memory-match",
+    text: "Memory game with dinosaurs"
+  };
+}
 
 describe("local Playcraft service", () => {
   it("publishes local tools and bundled templates for shells", () => {
@@ -284,6 +332,89 @@ describe("local Playcraft service", () => {
       "Shape Memory",
       "Color Memory"
     ]);
+  });
+
+  it("keeps service catalog request metadata aligned with the request schema", () => {
+    const service = createLocalPlaycraftService();
+    const assembled = service.assemble({
+      sessionId: "session.catalog-schema",
+      source: "text",
+      text: "Memory game with dinosaurs"
+    });
+    const profileExport = service.exportProfile(assembled.result.sessionId);
+    const profile = profileExport.profile;
+    const catalog = service.catalog();
+    const minimalRequests: Record<BuilderServiceActionName, BuilderServiceRequest> = {
+      assemble: serviceRequestFixture("assemble", {
+        text: "Memory game with dinosaurs"
+      }),
+      catalog: serviceRequestFixture("catalog", {}),
+      "export-profile": serviceRequestFixture("export-profile", {
+        sessionId: "session.catalog-schema"
+      }),
+      "get-session": serviceRequestFixture("get-session", {
+        sessionId: "session.catalog-schema"
+      }),
+      "import-profile": serviceRequestFixture("import-profile", {
+        profileExport,
+        sessionId: "session.catalog-schema.import"
+      }),
+      preview: serviceRequestFixture("preview", {
+        sessionId: "session.catalog-schema"
+      }),
+      reset: serviceRequestFixture("reset", {}),
+      update: serviceRequestFixture("update", {
+        sessionId: "session.catalog-schema",
+        text: "Change the cards to toys"
+      })
+    };
+    const sampleFields = serviceRequestFieldSamples({ profile, profileExport });
+
+    for (const action of catalog.service.actions) {
+      const minimalRequest = minimalRequests[action.actionName];
+      expect(BuilderServiceRequestSchema.safeParse(minimalRequest).success, action.actionName).toBe(true);
+
+      for (const field of action.request.requiredFields) {
+        const withoutRequiredField = { ...minimalRequest };
+        delete withoutRequiredField[field];
+        expect(BuilderServiceRequestSchema.safeParse(withoutRequiredField).success, `${action.actionName} missing ${field}`).toBe(false);
+      }
+
+      for (const group of action.request.requiredAnyOf) {
+        const withoutRequiredGroup = { ...minimalRequest };
+        for (const field of group) {
+          delete withoutRequiredGroup[field];
+        }
+        expect(BuilderServiceRequestSchema.safeParse(withoutRequiredGroup).success, `${action.actionName} missing ${group.join("|")}`).toBe(false);
+      }
+
+      for (const group of action.request.exclusiveAnyOf) {
+        const withExclusiveGroup = serviceRequestFixture(action.actionName, {});
+        for (const field of action.request.requiredFields) {
+          withExclusiveGroup[field] = sampleFields[field];
+        }
+        for (const field of group) {
+          withExclusiveGroup[field] = sampleFields[field];
+        }
+        expect(BuilderServiceRequestSchema.safeParse(withExclusiveGroup).success, `${action.actionName} exclusive ${group.join("|")}`).toBe(false);
+      }
+
+      for (const group of action.request.forbiddenTogether) {
+        const withForbiddenGroup = { ...minimalRequest };
+        for (const field of group) {
+          withForbiddenGroup[field] = sampleFields[field];
+        }
+        expect(BuilderServiceRequestSchema.safeParse(withForbiddenGroup).success, `${action.actionName} forbidden ${group.join("|")}`).toBe(false);
+      }
+
+      for (const field of ALL_SERVICE_REQUEST_FIELDS) {
+        if (action.request.acceptedFields.includes(field)) {
+          continue;
+        }
+        const withUnacceptedField = { ...minimalRequest, [field]: sampleFields[field] };
+        expect(BuilderServiceRequestSchema.safeParse(withUnacceptedField).success, `${action.actionName} unaccepted ${field}`).toBe(false);
+      }
+    }
   });
 
   it("assembles and updates games through text or local Moonshine transcripts", () => {
