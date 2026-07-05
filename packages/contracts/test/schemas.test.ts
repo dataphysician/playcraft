@@ -782,6 +782,53 @@ describe("public contract schemas", () => {
     }).success).toBe(false);
   });
 
+  it("keeps command result profiles aligned with preview active profile ids", () => {
+    const profile = assembleMvpProfiles()[0];
+    const baseResult = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-result.profile-consistency",
+      version: "1.0.0",
+      kind: "builder-command-result",
+      commandId: "builder-command.profile-consistency",
+      sessionId: "session.profile-consistency",
+      profile,
+      preview: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        sessionId: "session.profile-consistency",
+        activeProfileId: profile.id,
+        activeTemplateId: "template.memory-match",
+        interactionCount: 0
+      },
+      validation: profile.validation
+    };
+
+    expect(PublicContractSchemas.BuilderCommandResultSchema.safeParse(baseResult).success).toBe(true);
+    expect(PublicContractSchemas.BuilderCommandResultSchema.safeParse({
+      ...baseResult,
+      profile: undefined,
+      preview: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        sessionId: "session.profile-consistency",
+        interactionCount: 0
+      },
+      validation: undefined
+    }).success).toBe(true);
+    expect(PublicContractSchemas.BuilderCommandResultSchema.safeParse({
+      ...baseResult,
+      preview: {
+        ...baseResult.preview,
+        activeProfileId: undefined
+      }
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderCommandResultSchema.safeParse({
+      ...baseResult,
+      preview: {
+        ...baseResult.preview,
+        activeProfileId: "profile.other"
+      }
+    }).success).toBe(false);
+  });
+
   it("keeps builder command payload fields scoped to their actions", () => {
     const baseCommand = {
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

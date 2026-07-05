@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Command Result Active Profile Contract
+
+Milestone:
+- `BuilderCommandResultSchema` now requires preview `activeProfileId` when a result carries a profile payload.
+- Command result profile IDs must match `preview.activeProfileId`.
+- Empty/profileless command results remain valid for non-profile service states.
+
+Supportive changes:
+- Contract tests cover valid profile results, valid profileless results, missing preview active IDs, and mismatched IDs.
+- Source scans pin the command result invariant alongside session snapshot active profile checks.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps execution results coherent with validated profile ownership without hosted providers, generated runtime code, auth, database state, compatibility shims, or consumer-side profile recovery.
+
 ## 2026-07-04 - Session Snapshot Active Profile Contract
 
 Milestone:

@@ -989,7 +989,16 @@ export const BuilderCommandResultSchema = PublicContractBaseSchema.extend({
   profile: GameAssemblyProfileSchema.optional(),
   preview: BuilderPreviewStateSchema,
   validation: AssemblyValidationResultSchema.optional()
-}).strict();
+})
+  .strict()
+  .refine((value) => !value.profile || Boolean(value.preview.activeProfileId), {
+    message: "command results with profile payloads require preview activeProfileId",
+    path: ["preview", "activeProfileId"]
+  })
+  .refine((value) => !value.profile || !value.preview.activeProfileId || value.profile.id === value.preview.activeProfileId, {
+    message: "command result profile id must match preview activeProfileId",
+    path: ["profile"]
+  });
 export type BuilderCommandResult = z.infer<typeof BuilderCommandResultSchema>;
 
 export const BuilderSessionSnapshotSchema = z
