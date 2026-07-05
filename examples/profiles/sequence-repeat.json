@@ -181,6 +181,7 @@
         "profile.sequence-repeat.mvp.mechanic.1",
         "profile.sequence-repeat.mvp.mechanic.2"
       ],
+      "renderMechanicBindingId": "profile.sequence-repeat.mvp.mechanic.1",
       "props": {
         "title": "Repeat the lights",
         "prompt": "Tap the buttons in the same order.",
@@ -222,6 +223,7 @@
       "mechanicBindingIds": [
         "profile.sequence-repeat.mvp.mechanic.2"
       ],
+      "renderMechanicBindingId": "profile.sequence-repeat.mvp.mechanic.2",
       "props": {
         "title": "Light buttons",
         "prompt": "Choose the next light.",
@@ -243,6 +245,7 @@
       "mechanicBindingIds": [
         "profile.sequence-repeat.mvp.mechanic.3"
       ],
+      "renderMechanicBindingId": "profile.sequence-repeat.mvp.mechanic.3",
       "props": {
         "message": "Sequence complete."
       },

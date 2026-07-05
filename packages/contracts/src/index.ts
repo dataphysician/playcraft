@@ -413,6 +413,7 @@ export const ComponentBindingSchema = z
     version: VersionSchema,
     renderCapability: CapabilityTagSchema,
     mechanicBindingIds: z.array(StableIdSchema).min(1),
+    renderMechanicBindingId: StableIdSchema,
     props: z.record(JsonValueSchema),
     assetBindings: z.record(StableIdSchema).default({})
   })

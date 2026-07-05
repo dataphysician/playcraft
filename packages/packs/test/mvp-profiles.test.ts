@@ -94,6 +94,20 @@ describe("MVP profile pack", () => {
       { primary: "frontend:selected" },
       { primary: "frontend:celebrated" }
     ]);
+    expect(profileA.components.map((component) => component.renderMechanicBindingId)).toEqual([
+      "profile.memory-match.mvp.mechanic.1",
+      "profile.memory-match.mvp.mechanic.3"
+    ]);
+    expect(profileB.components.map((component) => component.renderMechanicBindingId)).toEqual([
+      "profile.sorting.mvp.mechanic.1",
+      "profile.sorting.mvp.mechanic.2",
+      "profile.sorting.mvp.mechanic.4"
+    ]);
+    expect(profileC.components.map((component) => component.renderMechanicBindingId)).toEqual([
+      "profile.sequence-repeat.mvp.mechanic.1",
+      "profile.sequence-repeat.mvp.mechanic.2",
+      "profile.sequence-repeat.mvp.mechanic.3"
+    ]);
   });
 
   it("publishes bundled game templates for the builder catalog", () => {

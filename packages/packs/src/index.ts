@@ -294,6 +294,10 @@ const mvpTemplates: MvpProfileTemplate[] = [
     assetPrompt: "friendly starter card illustrations for a child-safe memory match game",
     mechanicCapabilities: ["mechanic:tap-to-reveal", "mechanic:match-pairs", "feedback:celebration"],
     mechanicEventBindings: memoryMechanicEventBindings,
+    componentRenderMechanicCapabilities: {
+      "component:reveal-card-grid": "mechanic:tap-to-reveal",
+      "component:celebration-overlay": "feedback:celebration"
+    },
     ruleCategories: ["pair-matching", "retry", "hint", "completion"],
     componentCapabilities: ["component:reveal-card-grid", "component:celebration-overlay"],
     propsByCapability: {
@@ -340,6 +344,11 @@ const mvpTemplates: MvpProfileTemplate[] = [
     assetPrompt: "simple colorful shapes for a child-safe sorting game",
     mechanicCapabilities: ["mechanic:tap-to-select", "mechanic:sort-into-bins", "support:retry", "support:hint"],
     mechanicEventBindings: sortingMechanicEventBindings,
+    componentRenderMechanicCapabilities: {
+      "component:choice-grid": "mechanic:tap-to-select",
+      "component:sort-bins": "mechanic:sort-into-bins",
+      "component:hint-bubble": "support:hint"
+    },
     ruleCategories: ["category-validation", "retry", "completion"],
     componentCapabilities: ["component:choice-grid", "component:sort-bins", "component:hint-bubble"],
     propsByCapability: {
@@ -396,6 +405,11 @@ const mvpTemplates: MvpProfileTemplate[] = [
     assetPrompt: "soft glowing buttons for a child-safe sequence repeat game",
     mechanicCapabilities: ["mechanic:sequence-repeat", "mechanic:tap-to-select", "feedback:celebration"],
     mechanicEventBindings: sequenceMechanicEventBindings,
+    componentRenderMechanicCapabilities: {
+      "component:sequence-pad": "mechanic:sequence-repeat",
+      "component:choice-grid": "mechanic:tap-to-select",
+      "component:celebration-overlay": "feedback:celebration"
+    },
     ruleCategories: ["progression", "attempt-feedback", "hint"],
     componentCapabilities: ["component:sequence-pad", "component:choice-grid", "component:celebration-overlay"],
     propsByCapability: {
@@ -814,6 +828,9 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
   });
 
   const mechanicIds = mechanics.map((binding) => binding.mechanicId);
+  const mechanicBindingIdByCapability = new Map(
+    mechanics.map((binding) => [String(binding.parameters.capability), binding.bindingId])
+  );
   const rules = template.ruleCategories.map((category, index) => {
     const selected = requireSelected(context.registries.rules.select({
       ruleCategory: category,
@@ -867,15 +884,23 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
     }));
     const props = template.propsByCapability[capability];
     const hasRequiredAsset = selected.requiredAssets.some((requirement) => requirement.required);
+    const mechanicBindingIds = mechanics
+      .filter((binding) => selected.supportedMechanicIds.includes(binding.mechanicId))
+      .map((binding) => binding.bindingId)
+      .slice(0, 2);
+    const renderMechanicBindingId = requiredComponentRenderMechanicBindingId(
+      template,
+      capability,
+      mechanicBindingIds,
+      mechanicBindingIdByCapability
+    );
     return {
       bindingId: `${template.profileId}.component.${index + 1}`,
       componentId: selected.id,
       version: selected.version,
       renderCapability: selected.renderCapability,
-      mechanicBindingIds: mechanics
-        .filter((binding) => selected.supportedMechanicIds.includes(binding.mechanicId))
-        .map((binding) => binding.bindingId)
-        .slice(0, 2),
+      mechanicBindingIds,
+      renderMechanicBindingId,
       props,
       assetBindings: hasRequiredAsset ? { illustration } : {}
     };
@@ -1363,6 +1388,29 @@ function requiredMechanicEventBindings(template: MvpProfileTemplate, capability:
   return eventBindings;
 }
 
+function requiredComponentRenderMechanicBindingId(
+  template: MvpProfileTemplate,
+  componentCapability: string,
+  mechanicBindingIds: string[],
+  mechanicBindingIdByCapability: Map<string, string>
+): string {
+  const mechanicCapability = template.componentRenderMechanicCapabilities[componentCapability];
+  if (!mechanicCapability) {
+    throw new Error(`${template.id} is missing a render mechanic capability for ${componentCapability}`);
+  }
+
+  const bindingId = mechanicBindingIdByCapability.get(mechanicCapability);
+  if (!bindingId) {
+    throw new Error(`${template.id} component ${componentCapability} references missing mechanic capability ${mechanicCapability}`);
+  }
+
+  if (!mechanicBindingIds.includes(bindingId)) {
+    throw new Error(`${template.id} component ${componentCapability} render mechanic ${mechanicCapability} is not attached to the selected component`);
+  }
+
+  return bindingId;
+}
+
 function validAssemblyResult(profileId: string) {
   return AssemblyValidationResultSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -1416,6 +1464,7 @@ interface MvpProfileTemplate {
   assetPrompt: string;
   mechanicCapabilities: string[];
   mechanicEventBindings: Record<string, Record<string, string>>;
+  componentRenderMechanicCapabilities: Record<string, string>;
   ruleCategories: string[];
   componentCapabilities: string[];
   propsByCapability: Record<string, Record<string, JsonValue>>;
@@ -1464,6 +1513,10 @@ function memoryTemplate(input: {
     assetPrompt: input.prompt,
     mechanicCapabilities: ["mechanic:tap-to-reveal", "mechanic:match-pairs", "feedback:celebration"],
     mechanicEventBindings: memoryMechanicEventBindings,
+    componentRenderMechanicCapabilities: {
+      "component:reveal-card-grid": "mechanic:tap-to-reveal",
+      "component:celebration-overlay": "feedback:celebration"
+    },
     ruleCategories: ["pair-matching", "retry", "hint", "completion"],
     componentCapabilities: ["component:reveal-card-grid", "component:celebration-overlay"],
     propsByCapability: {
@@ -1523,6 +1576,11 @@ function sortingTemplate(input: {
     assetPrompt: input.prompt,
     mechanicCapabilities: ["mechanic:tap-to-select", "mechanic:sort-into-bins", "support:retry", "support:hint"],
     mechanicEventBindings: sortingMechanicEventBindings,
+    componentRenderMechanicCapabilities: {
+      "component:choice-grid": "mechanic:tap-to-select",
+      "component:sort-bins": "mechanic:sort-into-bins",
+      "component:hint-bubble": "support:hint"
+    },
     ruleCategories: ["category-validation", "retry", "completion"],
     componentCapabilities: ["component:choice-grid", "component:sort-bins", "component:hint-bubble"],
     propsByCapability: {
@@ -1592,6 +1650,11 @@ function sequenceTemplate(input: {
     assetPrompt: input.prompt,
     mechanicCapabilities: ["mechanic:sequence-repeat", "mechanic:tap-to-select", "feedback:celebration"],
     mechanicEventBindings: sequenceMechanicEventBindings,
+    componentRenderMechanicCapabilities: {
+      "component:sequence-pad": "mechanic:sequence-repeat",
+      "component:choice-grid": "mechanic:tap-to-select",
+      "component:celebration-overlay": "feedback:celebration"
+    },
     ruleCategories: ["progression", "attempt-feedback", "hint"],
     componentCapabilities: ["component:sequence-pad", "component:choice-grid", "component:celebration-overlay"],
     propsByCapability: {

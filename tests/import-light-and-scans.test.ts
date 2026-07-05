@@ -194,6 +194,21 @@ describe("import-light boundaries and source scans", () => {
     expect(packTestSource).toContain('primary: "rule:sequence-progressed"');
   });
 
+  it("keeps component render mechanic bindings explicit instead of list-order inferred", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const coreSource = readSource("packages/core/src/index.ts");
+    const packSource = readSource("packages/packs/src/index.ts");
+    const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
+
+    expect(contractSource).toContain("renderMechanicBindingId: StableIdSchema");
+    expect(coreSource).toContain("mechanicBindingId: component.renderMechanicBindingId");
+    expect(coreSource).not.toContain("mechanicBindingId: component.mechanicBindingIds[0]");
+    expect(coreSource).toContain("render mechanic binding");
+    expect(packSource).toContain("componentRenderMechanicCapabilities");
+    expect(packSource).toContain("requiredComponentRenderMechanicBindingId");
+    expect(packTestSource).toContain("renderMechanicBindingId");
+  });
+
   it("keeps play input modalities separate from audio asset content", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");

@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Component Render Mechanic Bindings
+
+Milestone:
+- Component bindings now carry a required `renderMechanicBindingId`.
+- Replay render requests now use the explicit render mechanic binding instead of reading the first component mechanic binding.
+- MVP template assembly now authors component render mechanic capabilities and validates them against selected component mechanics.
+
+Supportive changes:
+- Saved profile fixtures were refreshed with explicit render mechanic bindings.
+- Pack tests assert the explicit render bindings for memory, sorting, and sequence profiles.
+- Source scans block list-order render mechanic inference.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/core/test/replay.test.ts packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Render mechanic binding source scan confirmed explicit component render bindings and removed list-order replay inference.
+
+Constraint notes:
+- Keeps replay and template assembly contract-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or component mechanic binding order heuristics.
+
 ## 2026-07-04 - Single-Tool Preview Interaction Contract
 
 Milestone:

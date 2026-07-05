@@ -181,6 +181,7 @@
         "profile.memory-match.mvp.mechanic.1",
         "profile.memory-match.mvp.mechanic.2"
       ],
+      "renderMechanicBindingId": "profile.memory-match.mvp.mechanic.1",
       "props": {
         "title": "Memory pairs",
         "cards": [
@@ -209,6 +210,7 @@
       "mechanicBindingIds": [
         "profile.memory-match.mvp.mechanic.3"
       ],
+      "renderMechanicBindingId": "profile.memory-match.mvp.mechanic.3",
       "props": {
         "message": "You found every pair."
       },

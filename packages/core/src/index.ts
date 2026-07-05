@@ -387,7 +387,7 @@ export function replayProfile(profileInput: unknown, registries: PlaycraftRegist
         profileId: profile.id,
         componentId: component.componentId,
         componentCapability: component.renderCapability,
-        mechanicBindingId: component.mechanicBindingIds[0],
+        mechanicBindingId: component.renderMechanicBindingId,
         props: component.props,
         assetBindings: component.assetBindings,
         expectedEmittedEvents: manifest?.emittedTools.map((toolDefinition) => toolDefinition.toolName) ?? [],
@@ -446,6 +446,12 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
       if (!mechanicBindingIds.has(bindingId)) {
         errors.push(schemaIssue(["components", index, "mechanicBindingIds"], "missing_mechanic_binding", `mechanic binding ${bindingId} does not exist`, "error"));
       }
+    }
+    if (!mechanicBindingIds.has(component.renderMechanicBindingId)) {
+      errors.push(schemaIssue(["components", index, "renderMechanicBindingId"], "missing_mechanic_binding", `render mechanic binding ${component.renderMechanicBindingId} does not exist`, "error"));
+    }
+    if (!component.mechanicBindingIds.includes(component.renderMechanicBindingId)) {
+      errors.push(schemaIssue(["components", index, "renderMechanicBindingId"], "unsupported_mechanic_binding", `render mechanic binding ${component.renderMechanicBindingId} is not attached to component ${component.bindingId}`, "error"));
     }
 
     if (manifest.renderCapability !== component.renderCapability) {

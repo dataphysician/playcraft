@@ -185,6 +185,7 @@
       "mechanicBindingIds": [
         "profile.sorting.mvp.mechanic.1"
       ],
+      "renderMechanicBindingId": "profile.sorting.mvp.mechanic.1",
       "props": {
         "title": "Choose a shape",
         "prompt": "Pick one shape to sort.",
@@ -206,6 +207,7 @@
       "mechanicBindingIds": [
         "profile.sorting.mvp.mechanic.2"
       ],
+      "renderMechanicBindingId": "profile.sorting.mvp.mechanic.2",
       "props": {
         "title": "Color bins",
         "items": [
@@ -235,6 +237,7 @@
       "mechanicBindingIds": [
         "profile.sorting.mvp.mechanic.4"
       ],
+      "renderMechanicBindingId": "profile.sorting.mvp.mechanic.4",
       "props": {
         "hint": "Look at the color first."
       },
