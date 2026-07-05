@@ -76,7 +76,7 @@ export function createStudioClientFromServiceTransport(options: {
     }
 
     const activeProfile = activeProfileFromResponse(response);
-    const entries = response.execution.events.map((event, index) => timelineEntry(event, timeline.length + index + 1, timelineIdPrefix));
+    const entries = response.execution.events.map((event: JsonValue, index: number) => timelineEntry(event, timeline.length + index + 1, timelineIdPrefix));
     timeline.push(...entries);
 
     return {
