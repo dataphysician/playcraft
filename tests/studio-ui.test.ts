@@ -349,7 +349,10 @@ describe("studio UI", () => {
       idea: "Memory game with dinosaurs",
       source: "text"
     });
-    const previewed = await Promise.resolve(client.previewAction?.(assembled.sessionId));
+    const previewed = await Promise.resolve(client.previewAction?.({
+      interaction: { action: "primary" },
+      sessionId: assembled.sessionId
+    }));
 
     expect(requestedActions).toEqual(["assemble", "preview"]);
     expect(previewed?.activeProfileId).toBe("profile.memory-match.mvp");

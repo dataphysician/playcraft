@@ -20,6 +20,7 @@ import {
   type BuilderInputRequest,
   type BuilderInputSource,
   type BuilderIntentResolution,
+  type BuilderPreviewInteraction,
   type BuilderProfileExport,
   type BuilderServiceExecution,
   type BuilderServiceRequest,
@@ -127,12 +128,12 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
       requiresSession: true,
       acceptsInput: false,
       request: {
-        acceptedFields: ["sessionId"],
-        requiredFields: ["sessionId"],
+        acceptedFields: ["sessionId", "interaction"],
+        requiredFields: ["sessionId", "interaction"],
         requiredAnyOf: [],
         exclusiveAnyOf: [],
         forbiddenTogether: [],
-        summary: "Requires sessionId and accepts no input, template, asset, or profile payloads."
+        summary: "Requires sessionId and an explicit preview interaction payload; accepts no input, template, asset, or profile payloads."
       },
       responsePayload: "execution"
     },
@@ -306,7 +307,7 @@ export class LocalPlaycraftService {
     return this.execute("update-game", input.sessionId, resolved);
   }
 
-  preview(sessionId: string): BuilderExecutionResult {
+  preview(sessionId: string, interaction: BuilderPreviewInteraction): BuilderExecutionResult {
     this.commandCounter += 1;
     const output = this.handler.execute({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -315,7 +316,7 @@ export class LocalPlaycraftService {
       kind: "builder-command",
       sessionId,
       actionName: "preview-action",
-      interaction: { action: "primary" }
+      interaction
     });
     this.refreshSessionStateFromResult(sessionId, output.result);
     return output;
@@ -420,8 +421,11 @@ export class LocalPlaycraftService {
 
     if (request.actionName === "preview") {
       const sessionId = serviceRequestSessionId(request);
+      if (!request.interaction) {
+        throw new Error("preview requires interaction");
+      }
       return serviceResponse(request, {
-        execution: serializeExecution(this.preview(sessionId)),
+        execution: serializeExecution(this.preview(sessionId, request.interaction)),
         session: this.getSession(sessionId)
       });
     }

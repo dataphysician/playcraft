@@ -145,10 +145,13 @@ export function createStudioClientFromServiceTransport(options: {
         (response) => snapshotFromResponse(input.sessionId, response)
       );
     },
-    previewAction(sessionId) {
+    previewAction(input) {
       return mapTransportResponse(
-        options.transport.send(nextRequest("preview", { sessionId })),
-        (response) => snapshotFromResponse(sessionId, response)
+        options.transport.send(nextRequest("preview", {
+          interaction: input.interaction,
+          sessionId: input.sessionId
+        })),
+        (response) => snapshotFromResponse(input.sessionId, response)
       );
     },
     requestChange(input) {

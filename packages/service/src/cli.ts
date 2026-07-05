@@ -1,6 +1,7 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
 import {
+  BuilderPreviewInteractionSchema,
   BuilderProfileExportSchema,
   BuilderServiceRequestBatchSchema,
   BuilderServiceRequestSchema,
@@ -10,6 +11,7 @@ import {
   type BuilderAssetEdit,
   type BuilderCatalog,
   type BuilderInputSource,
+  type BuilderPreviewInteraction,
   type BuilderProfileExport,
   type BuilderServiceExecution,
   type BuilderServiceRequest,
@@ -26,6 +28,7 @@ export interface LocalServiceCliIo {
 
 interface ParsedArgs {
   assetEdit?: BuilderAssetEdit;
+  interaction?: BuilderPreviewInteraction;
   json?: boolean;
   profileExportJson?: string;
   profileJson?: string;
@@ -45,7 +48,7 @@ const defaultIo: LocalServiceCliIo = {
 export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request|request-batch> [--text <request>] [--transcript <moonshine transcript>] [--source <text|moonshine-transcript>] [--session <id>] [--template <template-id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
+    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request|request-batch> [--text <request>] [--transcript <moonshine transcript>] [--source <text|moonshine-transcript>] [--session <id>] [--interaction <primary>] [--template <template-id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
     return 1;
   }
 
@@ -101,6 +104,11 @@ function parseArgs(argv: string[]): ParsedArgs {
       index += 1;
     } else if (entry === "--session") {
       output.sessionId = requiredFlagValue(argv, index, entry);
+      index += 1;
+    } else if (entry === "--interaction") {
+      output.interaction = BuilderPreviewInteractionSchema.parse({
+        action: requiredFlagValue(argv, index, entry)
+      });
       index += 1;
     } else if (entry === "--template") {
       output.templateId = BuilderTemplateIdSchema.parse(requiredFlagValue(argv, index, entry));
@@ -184,6 +192,12 @@ function serviceRequest(
   if (!inputCommand && (text || transcriptText || args.source)) {
     throw new Error(`${commandName} does not accept input flags; call assemble or update first, then pass --session`);
   }
+  if (commandName !== "preview" && args.interaction) {
+    throw new Error(`${commandName} does not accept interaction flags; call preview with --interaction primary`);
+  }
+  if (commandName === "preview" && !args.interaction) {
+    throw new Error("preview requires --interaction primary");
+  }
   if (!inputCommand && commandName !== "import-profile" && args.assetEdit) {
     throw new Error(`${commandName} does not accept asset edit flags; call assemble, update, or import-profile`);
   }
@@ -235,6 +249,10 @@ function serviceRequest(
     request.profileExport = profileExport;
   }
 
+  if (commandName === "preview") {
+    request.interaction = args.interaction;
+  }
+
   return request;
 }
 
@@ -265,6 +283,7 @@ function parseServiceRequestBatchJson(value: string | undefined): BuilderService
 function rejectNonEnvelopeFlags(args: ParsedArgs, commandName: "request" | "request-batch"): void {
   if (
     args.assetEdit ||
+    args.interaction ||
     args.profileExportJson ||
     args.profileJson ||
     args.sessionId ||

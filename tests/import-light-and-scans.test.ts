@@ -544,6 +544,8 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("profile payloads are only accepted by import-profile actions");
     expect(source).toContain("preview actions require an interaction payload");
     expect(source).toContain("interaction payloads are only accepted by preview actions");
+    expect(source).toContain("preview requests require an interaction payload");
+    expect(source).toContain("interaction payloads are only accepted by preview requests");
   });
 
   it("keeps builder preview actions free of interaction defaulting", () => {
@@ -557,6 +559,19 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain('allowedValues: ["primary"]');
     expect(contractSource).toContain('action: z.enum(["primary"])');
     expect(contractSource).not.toContain('action: z.enum(["primary"]).default("primary")');
+  });
+
+  it("keeps service preview actions caller-owned", () => {
+    const serviceSource = readSource("packages/service/src/index.ts");
+    const cliSource = readSource("packages/service/src/cli.ts");
+    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+
+    expect(serviceSource).toContain("preview(sessionId: string, interaction: BuilderPreviewInteraction)");
+    expect(serviceSource).toContain("this.preview(sessionId, request.interaction)");
+    expect(serviceSource).not.toContain('interaction: { action: "primary" }');
+    expect(cliSource).toContain("--interaction <primary>");
+    expect(cliSource).toContain("preview requires --interaction primary");
+    expect(studioSource).toContain("SERVICE_PREVIEW_INTERACTION");
   });
 
   it("keeps service event serialization schema-first and non-coercive", () => {
@@ -624,7 +639,7 @@ describe("import-light boundaries and source scans", () => {
   it("keeps session-bound service methods free of default service sessions", () => {
     const serviceSource = readSource("packages/service/src/index.ts");
 
-    expect(serviceSource).toContain("preview(sessionId: string)");
+    expect(serviceSource).toContain("preview(sessionId: string, interaction: BuilderPreviewInteraction)");
     expect(serviceSource).toContain("getSession(sessionId: string)");
     expect(serviceSource).toContain("exportProfile(sessionId: string)");
     expect(serviceSource).toContain("sessionId: string }): BuilderExecutionResult");

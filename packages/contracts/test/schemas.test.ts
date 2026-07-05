@@ -1072,7 +1072,19 @@ describe("public contract schemas", () => {
         kind: "builder-service-request",
         actionName: "preview",
         sessionId: "session.preview",
+        interaction: { action: "primary" },
         text: "memory game with dinosaurs"
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.preview-without-interaction",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "preview",
+        sessionId: "session.preview"
       }).success
     ).toBe(false);
 
@@ -1083,6 +1095,17 @@ describe("public contract schemas", () => {
         version: "1.0.0",
         kind: "builder-service-request",
         actionName: "preview"
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.catalog-with-interaction",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "catalog",
+        interaction: { action: "primary" }
       }).success
     ).toBe(false);
 

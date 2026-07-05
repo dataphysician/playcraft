@@ -4,6 +4,7 @@ import {
   type BuilderCatalog,
   type BuilderInputSource,
   type BuilderInputSourceOption,
+  type BuilderPreviewInteraction,
   type BuilderProfileExport,
   type GameAssemblyProfile
 } from "@playcraft/contracts";
@@ -23,6 +24,8 @@ export interface StudioAppProps {
 
 type StudioTab = "live" | "developer";
 type PendingCommand = "export" | "generate" | "import" | "preview" | "update";
+
+const SERVICE_PREVIEW_INTERACTION: BuilderPreviewInteraction = { action: "primary" };
 
 interface ChatMessage {
   id: string;
@@ -206,7 +209,10 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     setPending("preview");
     setError(null);
     try {
-      const nextSession = await Promise.resolve(client.previewAction(session.sessionId));
+      const nextSession = await Promise.resolve(client.previewAction({
+        interaction: SERVICE_PREVIEW_INTERACTION,
+        sessionId: session.sessionId
+      }));
       setSession(nextSession);
       setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
       setActiveTab("developer");

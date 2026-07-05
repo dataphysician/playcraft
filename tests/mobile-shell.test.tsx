@@ -119,7 +119,10 @@ describe("Tauri mobile shell", () => {
       profileExport: exported!,
       sessionId: "mobile.session.imported"
     }));
-    const previewed = await Promise.resolve(client.previewAction?.("mobile.session.imported"));
+    const previewed = await Promise.resolve(client.previewAction?.({
+      interaction: { action: "primary" },
+      sessionId: "mobile.session.imported"
+    }));
 
     expect(imported?.sessionId).toBe("mobile.session.imported");
     expect(imported?.activeProfileId).toBe("profile.memory-match.mvp");

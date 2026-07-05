@@ -41,6 +41,7 @@ const ALL_SERVICE_REQUEST_FIELDS: BuilderServiceRequestFieldName[] = [
   "moonshineTranscript",
   "templateId",
   "assetEdit",
+  "interaction",
   "profile",
   "profileExport"
 ];
@@ -70,6 +71,7 @@ function serviceRequestFieldSamples(input: {
     }),
     profile: input.profile,
     profileExport: input.profileExport,
+    interaction: { action: "primary" },
     sessionId: "session.catalog-schema.sample",
     source: "text",
     templateId: "template.memory-match",
@@ -165,12 +167,12 @@ describe("local Playcraft service", () => {
           requiresSession: true,
           acceptsInput: false,
           request: {
-            acceptedFields: ["sessionId"],
-            requiredFields: ["sessionId"],
+            acceptedFields: ["sessionId", "interaction"],
+            requiredFields: ["sessionId", "interaction"],
             requiredAnyOf: [],
             exclusiveAnyOf: [],
             forbiddenTogether: [],
-            summary: "Requires sessionId and accepts no input, template, asset, or profile payloads."
+            summary: "Requires sessionId and an explicit preview interaction payload; accepts no input, template, asset, or profile payloads."
           },
           responsePayload: "execution"
         },
@@ -366,6 +368,7 @@ describe("local Playcraft service", () => {
         sessionId: "session.catalog-schema.import"
       }),
       preview: serviceRequestFixture("preview", {
+        interaction: { action: "primary" },
         sessionId: "session.catalog-schema"
       }),
       reset: serviceRequestFixture("reset", {}),
@@ -653,6 +656,7 @@ describe("local Playcraft service", () => {
         kind: "builder-service-request",
         actionName: "preview",
         sessionId: "session.preview-input",
+        interaction: { action: "primary" },
         text: "Memory game with dinosaurs"
       })
     ).toThrow(/only assemble and update/u);
@@ -1214,6 +1218,14 @@ describe("local Playcraft service", () => {
       forbiddenTogether: [["profileExport", "assetEdit"]],
       summary: "Requires sessionId plus exactly one profile or profileExport; top-level assetEdit is only accepted with profile imports."
     });
+    expect(catalog.service.actions.find((action) => action.actionName === "preview")?.request).toEqual({
+      acceptedFields: ["sessionId", "interaction"],
+      requiredFields: ["sessionId", "interaction"],
+      requiredAnyOf: [],
+      exclusiveAnyOf: [],
+      forbiddenTogether: [],
+      summary: "Requires sessionId and an explicit preview interaction payload; accepts no input, template, asset, or profile payloads."
+    });
 
     expect(runLocalServiceCli(["catalog"], io)).toBe(0);
     expect(out).toEqual(expect.arrayContaining([
@@ -1225,6 +1237,8 @@ describe("local Playcraft service", () => {
       "service actions:",
       "- Assemble [assemble] input: yes; session: optional; response: execution; fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit; required: none; one-of: text|moonshineTranscript; exclusive: text|moonshineTranscript; forbidden: none",
       "  request: Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional.",
+      "- Preview [preview] input: no; session: required; response: execution; fields: sessionId, interaction; required: sessionId, interaction; one-of: none; exclusive: none; forbidden: none",
+      "  request: Requires sessionId and an explicit preview interaction payload; accepts no input, template, asset, or profile payloads.",
       "- Import Profile [import-profile] input: no; session: required; response: execution; fields: sessionId, profile, profileExport, assetEdit; required: sessionId; one-of: profile|profileExport; exclusive: profile|profileExport; forbidden: profileExport|assetEdit",
       "exact envelopes: request/request-batch via BuilderServiceRequestSchema/BuilderServiceRequestBatchSchema; contracts: BuilderServiceRequestSchema, BuilderServiceRequestBatchSchema, BuilderServiceResponseSchema",
       "service helpers: handleLocalServiceRequest/handleLocalServiceRequestBatch",
@@ -1288,7 +1302,13 @@ describe("local Playcraft service", () => {
     expect(runLocalServiceCli(["export-profile", "--asset-theme", "toys"], io)).toBe(1);
     expect(err.pop()).toMatch(/export-profile does not accept asset edit flags/u);
 
-    expect(runLocalServiceCli(["preview", "--json"], io)).toBe(1);
+    expect(runLocalServiceCli(["preview", "--session", "session.cli-preview"], io)).toBe(1);
+    expect(err.pop()).toMatch(/preview requires --interaction primary/u);
+
+    expect(runLocalServiceCli(["preview", "--session", "session.cli-preview", "--interaction", "secondary"], io)).toBe(1);
+    expect(err.pop()).toMatch(/Invalid enum value/u);
+
+    expect(runLocalServiceCli(["preview", "--interaction", "primary", "--json"], io)).toBe(1);
     expect(err.pop()).toMatch(/requests require sessionId/u);
 
     expect(runLocalServiceCli(["get-session", "--json"], io)).toBe(1);
@@ -1361,7 +1381,8 @@ describe("local Playcraft service", () => {
       version: "1.0.0",
       kind: "builder-service-request",
       actionName: "preview",
-      sessionId: "session.import-target"
+      sessionId: "session.import-target",
+      interaction: { action: "primary" }
     });
 
     expect(assembled.session?.activeAssetEdit?.theme).toBe("ocean animals");

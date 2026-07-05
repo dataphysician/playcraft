@@ -2,6 +2,7 @@ import type {
   BuilderAssetEdit,
   BuilderCatalog,
   BuilderInputSource,
+  BuilderPreviewInteraction,
   BuilderProfileExport,
   GameAssemblyProfile,
   MoonshineTranscriptRecord
@@ -46,7 +47,7 @@ export interface StudioClient {
   assembleFromIntent(input: StudioAssembleInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   exportProfile?(sessionId: string): BuilderProfileExport | Promise<BuilderProfileExport>;
   importProfile?(input: { profileExport: BuilderProfileExport; sessionId: string }): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
-  previewAction?(sessionId: string): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
+  previewAction?(input: { interaction: BuilderPreviewInteraction; sessionId: string }): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   requestChange(input: StudioChangeInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   reset?(): void;
 }

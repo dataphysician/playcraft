@@ -773,6 +773,7 @@ export const BuilderServiceRequestFieldNameSchema = z.enum([
   "moonshineTranscript",
   "templateId",
   "assetEdit",
+  "interaction",
   "profile",
   "profileExport"
 ]);
@@ -926,6 +927,13 @@ export const BuilderIntentResolutionSchema = PublicContractBaseSchema.extend({
   });
 export type BuilderIntentResolution = z.infer<typeof BuilderIntentResolutionSchema>;
 
+export const BuilderPreviewInteractionSchema = z
+  .object({
+    action: z.enum(["primary"])
+  })
+  .strict();
+export type BuilderPreviewInteraction = z.infer<typeof BuilderPreviewInteractionSchema>;
+
 export const BuilderCommandSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-command"),
   sessionId: StableIdSchema,
@@ -934,12 +942,7 @@ export const BuilderCommandSchema = PublicContractBaseSchema.extend({
   input: BuilderInputRequestSchema.optional(),
   assetEdit: BuilderAssetEditSchema.optional(),
   profile: GameAssemblyProfileSchema.optional(),
-  interaction: z
-    .object({
-      action: z.enum(["primary"])
-    })
-    .strict()
-    .optional()
+  interaction: BuilderPreviewInteractionSchema.optional()
 }).strict()
   .refine((value) => !["assemble-game", "update-game"].includes(value.actionName) || Boolean(value.templateId), {
     message: "assemble and update actions require a templateId",
@@ -1092,6 +1095,7 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   moonshineTranscript: MoonshineTranscriptRecordSchema.optional(),
   templateId: BuilderTemplateIdSchema.optional(),
   assetEdit: BuilderAssetEditSchema.optional(),
+  interaction: BuilderPreviewInteractionSchema.optional(),
   profile: GameAssemblyProfileSchema.optional(),
   profileExport: BuilderProfileExportSchema.optional()
 }).strict()
@@ -1118,6 +1122,14 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   .refine((value) => ["assemble", "update"].includes(value.actionName) || !value.templateId, {
     message: "template IDs are only accepted by assemble and update requests",
     path: ["templateId"]
+  })
+  .refine((value) => value.actionName !== "preview" || Boolean(value.interaction), {
+    message: "preview requests require an interaction payload",
+    path: ["interaction"]
+  })
+  .refine((value) => value.actionName === "preview" || !value.interaction, {
+    message: "interaction payloads are only accepted by preview requests",
+    path: ["interaction"]
   })
   .refine((value) => ["assemble", "update", "import-profile"].includes(value.actionName) || !value.assetEdit, {
     message: "asset edits are only accepted by assemble, update, or import-profile requests",

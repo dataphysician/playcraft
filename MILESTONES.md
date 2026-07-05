@@ -1,5 +1,32 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Service Preview Interactions
+
+Milestone:
+- `BuilderServiceRequestSchema` now carries an explicit preview interaction payload.
+- Local service preview no longer injects `{ action: "primary" }` internally.
+- Studio and CLI preview paths send explicit preview interaction payloads through the service envelope.
+
+Supportive changes:
+- Contract tests reject preview requests without interaction and non-preview requests with interaction.
+- Service catalog and CLI tests expose `interaction` as a required preview request field.
+- Source scans block service-side preview interaction injection while preserving Studio-owned replay intent.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-ui.test.ts tests/mobile-shell.test.tsx`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps preview tooling callable and contract-shaped without hosted providers, generated runtime code, auth, database state, compatibility shims, or service-side interaction defaults.
+
 ## 2026-07-04 - Ambiguous Asset Requests Fail Closed
 
 Milestone:
