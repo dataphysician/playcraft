@@ -39,6 +39,8 @@ import {
   localAssetEditFreeformItemSuffixes,
   localAssetEditGenericThemeTokens,
   localAssetEditIntentPatterns,
+  localAssetEditMaxItems,
+  localAssetEditMaxThemeLength,
   type LocalAssetEditIntentPattern
 } from "@playcraft/assets";
 import {
@@ -75,9 +77,6 @@ export const LOCAL_SERVICE_INPUT_POLICY = {
     }
   ]
 } as const;
-
-const LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS = 12;
-const LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_THEME_LENGTH = 80;
 
 export const LOCAL_SERVICE_REQUEST_TIP_EXAMPLES = [
   {
@@ -307,7 +306,7 @@ export class LocalPlaycraftService {
       assetEdit: {
         supported: true,
         acceptedKeys: ["theme", "items"],
-        maxItems: 12,
+        maxItems: localAssetEditMaxItems,
         localReplacementFolders: true,
         freeformItemSuffixes: localAssetEditFreeformItemSuffixes,
         genericThemeTokens: localAssetEditGenericThemeTokens,
@@ -997,8 +996,8 @@ function assetEditForText(text: string): TextAssetEdit | undefined {
     .split(/\s*(?:,| and )\s*/u)
     .map((entry) => cleanAssetTheme(entry))
     .filter((entry) => entry.length > 0);
-  if (items.length > LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS) {
-    throw new Error(`text asset requests accept at most ${LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS} explicit items; use explicit assetEdit`);
+  if (items.length > localAssetEditMaxItems) {
+    throw new Error(`text asset requests accept at most ${localAssetEditMaxItems} explicit items; use explicit assetEdit`);
   }
 
   return {
@@ -1093,8 +1092,8 @@ function cleanAssetTheme(value: string): string {
 }
 
 function requireTextAssetThemeWithinContract(theme: string): void {
-  if (theme.length > LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_THEME_LENGTH) {
-    throw new Error(`text asset requests accept asset themes up to ${LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_THEME_LENGTH} characters; use explicit assetEdit`);
+  if (theme.length > localAssetEditMaxThemeLength) {
+    throw new Error(`text asset requests accept asset themes up to ${localAssetEditMaxThemeLength} characters; use explicit assetEdit`);
   }
 }
 

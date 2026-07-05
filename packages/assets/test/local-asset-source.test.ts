@@ -4,7 +4,9 @@ import {
   createLocalAssetSourceManifest,
   localAssetEditGenericThemeTokens,
   localAssetEditIntentPatterns,
-  localAssetEditCatalog
+  localAssetEditCatalog,
+  localAssetEditMaxItems,
+  localAssetEditMaxThemeLength
 } from "@playcraft/assets";
 import {
   PLAYCRAFT_SCHEMA_VERSION,
@@ -38,6 +40,8 @@ describe("deterministic local asset source", () => {
     expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.aliasSummary).toBe("dolphin, dolphins, ocean animals, ocean animal, sea animals, sea animal");
     expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.suggestedItemSummary).toBe("dolphin-1, dolphin-2, dolphin-3");
     expect(localAssetEditCatalog.every((entry) => entry.suggestedItems.length > 0)).toBe(true);
+    expect(localAssetEditMaxItems).toBe(12);
+    expect(localAssetEditMaxThemeLength).toBe(80);
     expect(localAssetEditGenericThemeTokens).toEqual(expect.arrayContaining(["asset", "assets", "card images", "theme"]));
     expect(localAssetEditIntentPatterns.map((entry) => entry.source)).toEqual([
       "freeform-asset-request",

@@ -15,6 +15,7 @@ import {
   createBuilderCommandHandler,
   type BuilderCommandHandler
 } from "@playcraft/builder";
+import { localAssetEditMaxItems } from "@playcraft/assets";
 import { DEFAULT_GAME_TEMPLATE_ID } from "@playcraft/packs";
 import {
   PLAYCRAFT_SERVICE_PACKAGE,
@@ -255,7 +256,7 @@ describe("local Playcraft service", () => {
     expect(catalog.assetEdit).toMatchObject({
       supported: true,
       acceptedKeys: ["theme", "items"],
-      maxItems: 12,
+      maxItems: localAssetEditMaxItems,
       localReplacementFolders: true,
       freeformItemSuffixes: ["1", "2", "3"],
       availableThemes: expect.arrayContaining([

@@ -27,6 +27,8 @@ export interface LocalAssetEditIntentPattern {
 
 export const LOCAL_ASSET_SOURCE_ID = "asset-source.local-deterministic";
 export const LOCAL_ASSET_SOURCE_VERSION = "1.0.0";
+export const localAssetEditMaxItems = 12;
+export const localAssetEditMaxThemeLength = 80;
 export const localAssetEditGenericThemeTokens = [
   "asset",
   "assets",

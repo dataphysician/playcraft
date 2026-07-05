@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Asset Edit Text Limits Are Asset-Owned
+
+Milestone:
+- Local asset edit text limits now live in `@playcraft/assets` with the rest of the asset edit catalog, intent patterns, generic tokens, and freeform suffixes.
+- The service publishes catalog `assetEdit.maxItems` and validates freeform text asset requests from those shared local asset limits instead of service-local constants.
+
+Supportive changes:
+- Asset tests cover the shared max item and max theme length exports.
+- Service catalog tests use the shared max item limit, and source scans reject service-local text asset limit constants.
+
+Validation:
+- `pnpm test packages/assets/test/local-asset-source.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden stale removed-provider exact scan
+- full ignored-path legacy transcript/provider scan
+
+Constraint notes:
+- Keeps asset replacement controls local, explicit, and catalog-owned for agent-driven toddler mini-game assembly without hidden service-only parsing limits or truncation heuristics.
+
 ## 2026-07-05 - App Build Metadata Cleans With Outputs
 
 Milestone:

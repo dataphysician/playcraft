@@ -1300,11 +1300,13 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("function matchAssetThemes");
     expect(source).toContain("function uniqueAssetThemeMatches");
     expect(source).toContain("ambiguous asset request matched");
-    expect(source).toContain("LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS");
-    expect(source).toContain("text asset requests accept at most ${LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS} explicit items");
-    expect(source).toContain("LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_THEME_LENGTH");
+    expect(source).toContain("localAssetEditMaxItems");
+    expect(source).toContain("text asset requests accept at most ${localAssetEditMaxItems} explicit items");
+    expect(source).toContain("localAssetEditMaxThemeLength");
     expect(source).toContain("function requireTextAssetThemeWithinContract");
-    expect(source).toContain("text asset requests accept asset themes up to ${LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_THEME_LENGTH} characters");
+    expect(source).toContain("text asset requests accept asset themes up to ${localAssetEditMaxThemeLength} characters");
+    expect(source).not.toContain("LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS");
+    expect(source).not.toContain("LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_THEME_LENGTH");
     expect(source).not.toContain(".slice(0, 12)");
     expect(source).not.toContain(".slice(0, 80)");
     expect(serviceTestSource).toContain("rejects text asset edits with too many explicit items instead of truncating them");
@@ -1315,6 +1317,8 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("freeformItemSuffixes");
     expect(assetCatalogSource).toContain("localAssetEditGenericThemeTokens");
     expect(assetCatalogSource).toContain("localAssetEditFreeformItemSuffixes");
+    expect(assetCatalogSource).toContain("localAssetEditMaxItems");
+    expect(assetCatalogSource).toContain("localAssetEditMaxThemeLength");
     expect(assetCatalogSource).toContain("localAssetEditIntentPatterns");
     expect(assetCatalogSource).not.toContain("[a-z0-9 ,.-]{1,80}");
     expect(source).toContain("localAssetEditGenericThemeTokens");
