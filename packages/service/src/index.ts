@@ -722,7 +722,7 @@ export function createBuilderInputRequest(input: {
     inputId: `builder-input.local.${input.sequence}`,
     source: input.source,
     text,
-    moonshineConfig: input.source === "moonshine-transcript" ? MOONSHINE_STREAMING_CPU_TRANSCRIPTION : undefined,
+    moonshineConfig: input.source === "moonshine-transcript" ? MOONSHINE_STREAMING_CPU_CONFIG : undefined,
     moonshineTranscript,
     receivedAt: PLAYCRAFT_LOCAL_TIMESTAMP,
     metadata: {
@@ -756,7 +756,7 @@ function textForBuilderInputSource(input: {
   return input.text.trim();
 }
 
-export const MOONSHINE_STREAMING_CPU_TRANSCRIPTION = {
+export const MOONSHINE_STREAMING_CPU_CONFIG = {
   engine: "moonshine-streaming",
   runtime: "cpu",
   localOnly: true
@@ -778,9 +778,9 @@ export function createMoonshineTranscriptRecord(input: {
     version: "1.0.0",
     kind: "moonshine-transcript",
     transcriptId: input.transcriptId ?? id,
-    engine: MOONSHINE_STREAMING_CPU_TRANSCRIPTION.engine,
-    runtime: MOONSHINE_STREAMING_CPU_TRANSCRIPTION.runtime,
-    localOnly: MOONSHINE_STREAMING_CPU_TRANSCRIPTION.localOnly,
+    engine: MOONSHINE_STREAMING_CPU_CONFIG.engine,
+    runtime: MOONSHINE_STREAMING_CPU_CONFIG.runtime,
+    localOnly: MOONSHINE_STREAMING_CPU_CONFIG.localOnly,
     finalized: true,
     text: input.text.trim(),
     receivedAt: input.receivedAt ?? PLAYCRAFT_LOCAL_TIMESTAMP,

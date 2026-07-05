@@ -637,14 +637,14 @@ export const BuilderInputSourceOptionSchema = z
   .strict();
 export type BuilderInputSourceOption = z.infer<typeof BuilderInputSourceOptionSchema>;
 
-export const MoonshineTranscriptionConfigSchema = z
+export const MoonshineStreamingCpuConfigSchema = z
   .object({
     engine: z.literal("moonshine-streaming"),
     runtime: z.literal("cpu"),
     localOnly: z.literal(true)
   })
   .strict();
-export type MoonshineTranscriptionConfig = z.infer<typeof MoonshineTranscriptionConfigSchema>;
+export type MoonshineStreamingCpuConfig = z.infer<typeof MoonshineStreamingCpuConfigSchema>;
 
 export const MoonshineTranscriptSegmentSchema = z
   .object({
@@ -678,7 +678,7 @@ export const BuilderInputRequestSchema = PublicContractBaseSchema.extend({
   inputId: StableIdSchema,
   source: BuilderInputSourceSchema,
   text: z.string().min(1).max(500),
-  moonshineConfig: MoonshineTranscriptionConfigSchema.optional(),
+  moonshineConfig: MoonshineStreamingCpuConfigSchema.optional(),
   moonshineTranscript: MoonshineTranscriptRecordSchema.optional(),
   receivedAt: z.string().datetime(),
   metadata: z.record(JsonValueSchema).default({})

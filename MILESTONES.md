@@ -1,14 +1,36 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Moonshine Streaming CPU Config Schema
+
+Milestone:
+- `BuilderInputRequestSchema` now uses `MoonshineStreamingCpuConfigSchema` for `moonshineConfig`.
+- Local service input records now use `MOONSHINE_STREAMING_CPU_CONFIG` when creating Moonshine transcript-backed builder inputs.
+
+Supportive changes:
+- Source scans block the removed generic config schema and service constant names.
+- Older milestone text now references the current Moonshine Streaming CPU config schema name.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-name scan returned only guard assertions; removed-provider/key scan returned only guard/planning references.
+
+Constraint notes:
+- Keeps the input config contract Moonshine Streaming CPU-specific without hosted providers, generated runtime code, auth, database state, compatibility shims, or generic audio config aliases.
+
 ## 2026-07-04 - Moonshine-Named Builder Input Config
 
 Milestone:
-- `BuilderInputRequestSchema` now exposes `moonshineConfig` instead of a generic `transcription` field.
+- `BuilderInputRequestSchema` now uses `moonshineConfig` with `MoonshineStreamingCpuConfigSchema`.
 - Local service builder input construction now emits the Moonshine-named config when the input source is `moonshine-transcript`.
 
 Supportive changes:
 - Contract fixtures and Studio UI assertions now validate `moonshineConfig`.
-- Source scans pin the Moonshine-named field and block the removed generic builder-input transcription field.
+- Source scans pin the Moonshine-named field and block the removed generic builder-input config field.
 
 Validation:
 - `pnpm test packages/contracts/test/schemas.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
@@ -18,10 +40,10 @@ Validation:
 - `pnpm --filter @playcraft/studio build`
 - `pnpm --filter @playcraft/mobile-shell build`
 - `git diff --check`
-- Exact Tavus source scan returned no matches; removed-provider/key scan returned only guard/planning references.
+- Exact removed-vendor source scan returned no matches; removed-provider/key scan returned only guard/planning references.
 
 Constraint notes:
-- Keeps the input contract Moonshine Streaming CPU-specific without hosted providers, generated runtime code, auth, database state, compatibility shims, or generic speech/transcription abstractions.
+- Keeps the input contract Moonshine Streaming CPU-specific without hosted providers, generated runtime code, auth, database state, compatibility shims, or generic audio-input config abstractions.
 
 ## 2026-07-04 - Moonshine Terminology In UI Tests
 
@@ -1994,7 +2016,7 @@ Milestone:
 - Service, CLI, Studio, Mobile shell, and tests now use the `moonshineTranscript` payload field for transcript records.
 
 Supportive changes:
-- Contract schema names now use `MoonshineTranscriptionConfig` for the local CPU transcript config.
+- Contract schema names now use `MoonshineStreamingCpuConfig` for the local CPU transcript config.
 - Source scans now block the retired generic transcript source/property/config labels from product and docs sources.
 - Public docs now describe transcript input as local Moonshine Streaming CPU transcript records without generic speech-input API names.
 
