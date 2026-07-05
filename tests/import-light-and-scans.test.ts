@@ -82,7 +82,7 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/Ta[v]us|ta[v]us|re[p]lica|C[V]I/u);
   });
 
-  it("keeps repository source free of the removed hosted conversation stack", () => {
+  it("keeps repository source free of removed hosted-provider markers", () => {
     const blockedTerms = ["Ta" + "vus", "ta" + "vus", "re" + "plica", "C" + "VI", "Geo" + "rgina"];
     const violations = repoSourceFiles().flatMap((path) => {
       const source = readSource(path);
@@ -127,7 +127,7 @@ describe("import-light boundaries and source scans", () => {
       "hosted " + "hosted",
       "SDK " + "SDK",
       "hosted-stack-" + "specific",
-      "video-" + "avatar",
+      "video-" + "a" + "vatar",
       "hosted " + "SDK",
       "Hosted " + "SDK",
       "hosted " + "provider",
@@ -139,7 +139,7 @@ describe("import-light boundaries and source scans", () => {
       "conversation " + "runtime",
       "conversation " + "state",
       "conversation " + "stack",
-      "avatar",
+      "a" + "vatar",
       "Open" + "AI",
       "Post" + "gres",
       "Prisma",
@@ -150,6 +150,27 @@ describe("import-light boundaries and source scans", () => {
     ];
     const docs = repoSourceFiles()
       .filter((path) => path === "README.md" || path.startsWith("playcraft-agentic-framework/"));
+    const violations = docs.flatMap((path) => {
+      const source = readSource(path);
+      return blockedTerms.some((term) => source.includes(term)) ? [path] : [];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it("keeps maintained docs free of removed conversation and remote-persona phrasing", () => {
+    const blockedTerms = [
+      "hosted " + "conversation",
+      "vendor " + "conversation",
+      "live " + "conversation",
+      "conversation " + "runtime",
+      "conversation " + "state",
+      "conversation " + "stack",
+      "video-" + "a" + "vatar",
+      "a" + "vatar"
+    ];
+    const docs = repoSourceFiles()
+      .filter((path) => path === "MILESTONES.md" || path === "README.md" || path.startsWith("playcraft-agentic-framework/"));
     const violations = docs.flatMap((path) => {
       const source = readSource(path);
       return blockedTerms.some((term) => source.includes(term)) ? [path] : [];

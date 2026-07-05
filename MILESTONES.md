@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Maintained Docs Remove Legacy Conversation Vocabulary
+
+Milestone:
+- Maintained docs and milestone notes no longer preserve stale remote-session or remote-persona phrasing from the removed provider stack.
+- The repository now has a maintained-docs source guard covering `MILESTONES.md`, the root README, and framework docs for those removed terms.
+
+Supportive changes:
+- Historical milestone constraint notes now describe legacy provider assumptions and remote-session boundaries without reintroducing the removed stack vocabulary.
+- Existing public-doc scans keep blocking strict provider/runtime terms while the new maintained-doc scan focuses on stale conversation/persona wording.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- stale hosted-conversation and remote-persona exact scan
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps documentation aligned with local text and Moonshine Streaming CPU transcript input without hosted providers, generated runtime code, auth, database state, compatibility shims, or legacy conversation vocabulary.
+
 ## 2026-07-05 - Split Render Tool Names From Events
 
 Milestone:
@@ -3720,7 +3740,7 @@ Validation:
 - Refined provider/key literal scan returned no matches.
 
 Constraint notes:
-- Keeps app-shell service endpoint resolution explicit and forward-only without hosted providers, generated runtime code, auth, database state, native shell work, or removed hosted conversation stack instances.
+- Keeps app-shell service endpoint resolution explicit and forward-only without hosted providers, generated runtime code, auth, database state, native shell work, or removed legacy provider assumptions.
 
 ## 2026-07-04 - Mobile Shell Client Policy
 
@@ -3743,7 +3763,7 @@ Validation:
 - Refined provider/key literal scan returned no matches.
 
 Constraint notes:
-- Keeps Mobile shell client defaults explicit and forward-only without hosted providers, generated runtime code, auth, database state, native shell work, or removed hosted conversation stack instances.
+- Keeps Mobile shell client defaults explicit and forward-only without hosted providers, generated runtime code, auth, database state, native shell work, or removed legacy provider assumptions.
 
 ## 2026-07-04 - Studio Client Policy
 
@@ -3766,7 +3786,7 @@ Validation:
 - Refined provider/key literal scan returned no matches.
 
 Constraint notes:
-- Keeps Studio client defaults explicit and forward-only without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+- Keeps Studio client defaults explicit and forward-only without hosted providers, generated runtime code, auth, database state, or removed legacy provider assumptions.
 
 ## 2026-07-04 - Service HTTP Policy
 
@@ -3789,7 +3809,7 @@ Validation:
 - Refined provider/key literal scan returned no matches.
 
 Constraint notes:
-- Keeps local/server transport setup explicit and forward-only without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+- Keeps local/server transport setup explicit and forward-only without hosted providers, generated runtime code, auth, database state, or removed legacy provider assumptions.
 
 ## 2026-07-04 - Contract-Owned Local Timestamp
 
@@ -3811,7 +3831,7 @@ Validation:
 - Refined provider/key literal scan returned no matches.
 
 Constraint notes:
-- Keeps local-only deterministic records contract-owned and forward-only without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+- Keeps local-only deterministic records contract-owned and forward-only without hosted providers, generated runtime code, auth, database state, or removed legacy provider assumptions.
 
 ## 2026-07-04 - Builder CLI Session Policy
 
@@ -3834,7 +3854,7 @@ Validation:
 - Refined provider/key literal scan returned no matches.
 
 Constraint notes:
-- Keeps lower-level builder CLI defaults explicit and forward-only without hidden session targeting for session-bound commands, hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+- Keeps lower-level builder CLI defaults explicit and forward-only without hidden session targeting for session-bound commands, hosted providers, generated runtime code, auth, database state, or removed legacy provider assumptions.
 
 ## 2026-07-04 - Studio Delegates Input Source Policy
 
@@ -3857,7 +3877,7 @@ Validation:
 - Refined provider/key literal scan returned no matches.
 
 Constraint notes:
-- Keeps Studio input routing service-owned and forward-only without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+- Keeps Studio input routing service-owned and forward-only without hosted providers, generated runtime code, auth, database state, or removed legacy provider assumptions.
 
 ## 2026-07-04 - Catalog-Owned Input Source Policy
 
@@ -3881,7 +3901,7 @@ Validation:
 - Refined provider/key literal scan returned no matches.
 
 Constraint notes:
-- Keeps text/Moonshine-only input behavior forward-only and catalog-discoverable without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+- Keeps text/Moonshine-only input behavior forward-only and catalog-discoverable without hosted providers, generated runtime code, auth, database state, or removed legacy provider assumptions.
 
 ## 2026-07-04 - Catalog-Owned Session Policy
 
@@ -3904,7 +3924,7 @@ Validation:
 - Refined provider/key literal scan returned no matches.
 
 Constraint notes:
-- Keeps session behavior forward-only and catalog-discoverable without hosted providers, generated runtime code, auth, database state, or removed hosted conversation stack instances.
+- Keeps session behavior forward-only and catalog-discoverable without hosted providers, generated runtime code, auth, database state, or removed legacy provider assumptions.
 
 ## 2026-07-04 - Pack-Owned Default Template
 
@@ -4028,11 +4048,11 @@ Constraint notes:
 ## 2026-07-04 - Conversation-Free Active Docs
 
 Milestone:
-- Active docs now describe text and local Moonshine transcript input without live/vendor conversation, avatar, or conversation-state vocabulary.
+- Active docs now describe text and local Moonshine transcript input without legacy provider or remote-session vocabulary.
 - The input boundary now points to local transcript records and excludes real-time call/session state without referencing the removed stack shape.
 
 Supportive changes:
-- Public doc scans now block avatar and conversation-runtime/state/stack phrases.
+- Public doc scans now block remote-session runtime/state/stack phrases.
 
 Validation:
 - `pnpm test tests/import-light-and-scans.test.ts`
@@ -4044,13 +4064,13 @@ Validation:
 - Refined provider/key literal scan.
 
 Constraint notes:
-- Keeps active docs aligned with local text/Moonshine-only input without live conversation abstractions, hosted providers, generated runtime code, auth, or database state.
+- Keeps active docs aligned with local text/Moonshine-only input without remote-session abstractions, hosted providers, generated runtime code, auth, or database state.
 
 ## 2026-07-04 - Third-Party Runtime Doc Boundary
 
 Milestone:
 - Public docs now describe old hosted SDK/provider/conversation exclusions as third-party runtime exclusions and local/server catalog boundaries.
-- Root and framework docs no longer preserve hosted SDK, hosted provider, or hosted conversation phrasing in the active product direction.
+- Root and framework docs no longer preserve hosted SDK or hosted-provider phrasing in the active product direction.
 
 Supportive changes:
 - Public doc scans now block hosted SDK/provider/conversation phrases.
@@ -4066,7 +4086,7 @@ Validation:
 - Refined provider/key literal scan.
 
 Constraint notes:
-- Keeps active documentation aligned with local text/Moonshine-only assembly without hosted provider vocabulary, generated runtime code, auth, database state, or live conversation stack assumptions.
+- Keeps active documentation aligned with local text/Moonshine-only assembly without hosted-provider vocabulary, generated runtime code, auth, database state, or remote-session assumptions.
 
 ## 2026-07-04 - Provider-Neutral Framework Docs
 
@@ -5219,7 +5239,7 @@ Constraint notes:
 ## 2026-07-04 - Public Docs Hosted-Stack Phrase Cleanup
 
 Milestone:
-- Public framework docs now describe local text and Moonshine transcript input without removed video/avatar phrasing.
+- Public framework docs now describe local text and Moonshine transcript input without removed remote-persona phrasing.
 - Duplicate hosted SDK wording in framework README, architecture, and roadmap docs was collapsed into clear adapter rejection language.
 - Source scans now guard public framework docs against removed hosted-stack phrasing regressions.
 
@@ -5229,7 +5249,7 @@ Supportive changes:
 Validation:
 - `pnpm test tests/import-light-and-scans.test.ts`
 - Public docs removed hosted-stack phrase scan.
-- Hidden-file removed vendor/avatar marker scan.
+- Hidden-file removed vendor marker scan.
 - `pnpm build`
 - `pnpm test`
 - `pnpm --filter @playcraft/studio build`
@@ -5263,7 +5283,7 @@ Constraint notes:
 ## 2026-07-04 - Operational Resume Prompt De-Hosted
 
 Milestone:
-- The repo-local OMX resume helper no longer preserves the removed hosted avatar vendor name in its scheduled prompt text.
+- The repo-local OMX resume helper no longer preserves the removed hosted vendor name in its scheduled prompt text.
 - Operational goal resumption now describes the forward-only local audio/text direction without stale vendor terminology.
 
 Supportive changes:
@@ -5272,7 +5292,7 @@ Supportive changes:
 Validation:
 - `pnpm test tests/import-light-and-scans.test.ts`
 - Hidden-file removed vendor-name scan across repo-local text files.
-- Hidden-file removed avatar/persona marker scan across repo-local text files.
+- Hidden-file removed vendor marker scan across repo-local text files.
 - `pnpm build`
 - `pnpm test`
 - `pnpm --filter @playcraft/studio build`
@@ -5900,7 +5920,7 @@ Validation:
 
 Constraint notes:
 - Keeps input limited to text and local Moonshine Streaming CPU transcript records.
-- Does not add microphone capture, hosted conversation services, generated runtime code, auth, database state, or migration compatibility.
+- Does not add microphone capture, hosted-provider services, generated runtime code, auth, database state, or migration compatibility.
 
 ## 2026-07-04 - Asset Intent Resolution Hardening
 
@@ -5939,7 +5959,7 @@ Validation:
 
 Constraint notes:
 - Keeps Moonshine Streaming CPU transcripts as local text-bearing records.
-- Does not add microphone capture, hosted conversation services, generated runtime code, auth, database state, or migration compatibility.
+- Does not add microphone capture, hosted-provider services, generated runtime code, auth, database state, or migration compatibility.
 
 ## 2026-07-04 - Asset Source Contract Rename
 
