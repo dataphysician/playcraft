@@ -1,0 +1,8 @@
+{
+  "kind": "sse-run-started",
+  "runId": "run.fixture.1",
+  "sequence": 0,
+  "payload": {
+    "runId": "run.fixture.1"
+  }
+}

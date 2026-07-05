@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "workflow-graph.fixture.cycle",
+  "version": "1.0.0",
+  "kind": "workflow-graph",
+  "nodes": [
+    {
+      "id": "node-a",
+      "actionName": "catalog",
+      "payload": {},
+      "dependsOn": []
+    },
+    {
+      "id": "node-b",
+      "actionName": "assemble",
+      "payload": {},
+      "dependsOn": ["node-a"]
+    }
+  ],
+  "edges": [
+    {
+      "from": "node-a",
+      "to": "node-b"
+    },
+    {
+      "from": "node-b",
+      "to": "node-a"
+    }
+  ],
+  "startNodeId": "node-a"
+}

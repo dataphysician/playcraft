@@ -1,0 +1,11 @@
+{
+  "kind": "sse-tool-call",
+  "runId": "run.fixture.1",
+  "sequence": 1,
+  "payload": {
+    "toolName": "tool:assemble-game",
+    "args": {
+      "templateId": "template.memory-match"
+    }
+  }
+}

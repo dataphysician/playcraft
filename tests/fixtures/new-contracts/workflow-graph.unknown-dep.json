@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "workflow-graph.fixture.unknown-dep",
+  "version": "1.0.0",
+  "kind": "workflow-graph",
+  "nodes": [
+    {
+      "id": "node-a",
+      "actionName": "catalog",
+      "payload": {},
+      "dependsOn": []
+    }
+  ],
+  "edges": [
+    {
+      "from": "node-a",
+      "to": "node-missing"
+    }
+  ],
+  "startNodeId": "node-a"
+}

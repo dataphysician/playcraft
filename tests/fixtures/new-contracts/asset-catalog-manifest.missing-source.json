@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "asset-catalog-manifest.fixture.missing-source",
+  "version": "1.0.0",
+  "kind": "asset-catalog-manifest",
+  "theme": "dinosaurs",
+  "displayLabel": "Dinosaurs",
+  "aliases": ["dinosaur"],
+  "suggestedItems": ["dinosaur-1", "dinosaur-2"],
+  "spriteNaming": {
+    "kind": "ordinal",
+    "rules": {}
+  }
+}

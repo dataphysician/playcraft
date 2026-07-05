@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "mcp-manifest.fixture.valid",
+  "version": "1.0.0",
+  "kind": "mcp-manifest",
+  "name": "test-manifest",
+  "tools": [
+    {
+      "name": "tool:assemble-game",
+      "description": "Assemble a game from a registered template.",
+      "parameters": {
+        "templateId": {
+          "name": "templateId",
+          "type": "string",
+          "description": "Template ID to assemble.",
+          "required": true
+        }
+      }
+    }
+  ]
+}

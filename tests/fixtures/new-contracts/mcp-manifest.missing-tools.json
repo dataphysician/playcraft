@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "mcp-manifest.fixture.invalid",
+  "version": "1.0.0",
+  "kind": "mcp-manifest",
+  "name": "test-manifest"
+}

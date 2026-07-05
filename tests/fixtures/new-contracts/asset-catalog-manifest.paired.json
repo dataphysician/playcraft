@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "asset-catalog-manifest.fixture.paired",
+  "version": "1.0.0",
+  "kind": "asset-catalog-manifest",
+  "source": "catalog.json",
+  "theme": "memory-cards",
+  "displayLabel": "Memory Cards",
+  "aliases": ["memory", "cards"],
+  "suggestedItems": ["card-1", "card-2", "card-3", "card-4"],
+  "spriteNaming": {
+    "kind": "paired",
+    "rules": {
+      "pairMapProp": "pairs"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "kind": "sse-tool-result",
+  "runId": "run.fixture.1",
+  "sequence": 2,
+  "payload": {
+    "toolName": "tool:assemble-game",
+    "result": {
+      "profileId": "profile.fixture.1"
+    }
+  }
+}

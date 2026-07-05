@@ -2255,66 +2255,6 @@ export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
 export const BuilderServiceRequestBatchSchema = z.array(BuilderServiceRequestSchema).min(1);
 export type BuilderServiceRequestBatch = z.infer<typeof BuilderServiceRequestBatchSchema>;
 
-function createBuilderServiceResponseSchema() {
-  return PublicContractBaseSchema.extend({
-    kind: z.literal("builder-service-response"),
-    requestId: StableIdSchema,
-    actionName: BuilderServiceActionNameSchema,
-    catalog: BuilderCatalogSchema.optional(),
-    execution: BuilderServiceExecutionSchema.optional(),
-    session: BuilderSessionSnapshotSchema.optional(),
-    profileExport: BuilderProfileExportSchema.optional(),
-    reset: z.literal(true).optional()
-  }).strict()
-    .refine((value) => value.actionName !== "catalog" || Boolean(value.catalog), {
-      message: "catalog responses require a catalog",
-      path: ["catalog"]
-    })
-    .refine((value) => value.actionName !== "catalog" || hasOnlyServiceResponsePayloads(value, ["catalog"]), {
-      message: "catalog responses only include catalog output",
-      path: ["catalog"]
-    })
-    .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || Boolean(value.execution && value.session), {
-      message: "assemble, update, and preview responses require execution output and a session snapshot",
-      path: ["execution"]
-    })
-    .refine((value) => !["assemble", "update", "preview"].includes(value.actionName) || hasOnlyServiceResponsePayloads(value, ["execution", "session"]), {
-      message: "assemble, update, and preview responses only include execution output and a session snapshot",
-      path: ["execution"]
-    })
-    .refine((value) => value.actionName !== "get-session" || Boolean(value.session), {
-      message: "get-session responses require a session snapshot",
-      path: ["session"]
-    })
-    .refine((value) => value.actionName !== "get-session" || hasOnlyServiceResponsePayloads(value, ["session"]), {
-      message: "get-session responses only include a session snapshot",
-      path: ["session"]
-    })
-    .refine((value) => value.actionName !== "export-profile" || Boolean(value.profileExport), {
-      message: "export-profile responses require a profile export",
-      path: ["profileExport"]
-    })
-    .refine((value) => value.actionName !== "export-profile" || hasOnlyServiceResponsePayloads(value, ["profileExport"]), {
-      message: "export-profile responses only include a profile export",
-      path: ["profileExport"]
-    })
-    .refine((value) => value.actionName !== "import-profile" || Boolean(value.execution && value.session), {
-      message: "import-profile responses require execution output and a session snapshot",
-      path: ["execution"]
-    })
-    .refine((value) => value.actionName !== "import-profile" || hasOnlyServiceResponsePayloads(value, ["execution", "session"]), {
-      message: "import-profile responses only include execution output and a session snapshot",
-      path: ["execution"]
-    })
-    .refine((value) => value.actionName !== "reset" || value.reset === true, {
-      message: "reset responses require reset acknowledgement",
-      path: ["reset"]
-    })
-    .refine((value) => value.actionName !== "reset" || hasOnlyServiceResponsePayloads(value, ["reset"]), {
-      message: "reset responses only include reset acknowledgement",
-      path: ["reset"]
-    });
-}
 export type BuilderServiceResponse = z.infer<typeof PublicContractBaseSchema> & {
   kind: "builder-service-response";
   requestId: string;

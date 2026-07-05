@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "asset-catalog-manifest.fixture.ordinal",
+  "version": "1.0.0",
+  "kind": "asset-catalog-manifest",
+  "source": "catalog.json",
+  "theme": "dinosaurs",
+  "displayLabel": "Dinosaurs",
+  "aliases": ["dinosaur"],
+  "suggestedItems": ["dinosaur-1", "dinosaur-2"],
+  "spriteNaming": {
+    "kind": "ordinal",
+    "rules": {}
+  }
+}
