@@ -933,10 +933,14 @@ function propsForAssetEditOperation(
   }
 
   const [operation] = operations;
-  const component = profile.components.find((entry) => entry.renderCapability === operation.componentCapability);
-  if (!component) {
+  const components = profile.components.filter((entry) => entry.renderCapability === operation.componentCapability);
+  if (components.length === 0) {
     throw new Error(`${profile.id} is missing component ${operation.componentCapability} for ${operationKind} asset requests`);
   }
+  if (components.length > 1) {
+    throw new Error(`${profile.id} has multiple components for ${operation.componentCapability} ${operationKind} asset requests`);
+  }
+  const [component] = components;
 
   return component.props;
 }

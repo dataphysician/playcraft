@@ -1248,6 +1248,9 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string array prop ${key}");
     expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string record prop ${key}");
     expect(builderSource).toContain("asset edit operation ${operation} requires numeric prop ${key}");
+    expect(builderSource).toContain("const components = profile.components.filter((entry) => entry.renderCapability === operation.componentCapability);");
+    expect(builderSource).toContain("has multiple components for ${operation.componentCapability} ${operationKind} asset requests");
+    expect(builderSource).not.toContain("const component = profile.components.find((entry) => entry.renderCapability === operation.componentCapability)");
     expect(builderSource).toContain("function requireMemoryPairCount");
     expect(builderSource).toContain("memory-pairs requires at least ${pairCount} asset edit items");
     expect(builderSource).toContain('itemsSource: "explicit" | "catalog" | "freeform"');
@@ -1263,6 +1266,7 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain('itemsSource === "explicit" && edit.items.length !== bins.length');
     expect(builderSource).toContain("sorting-items explicit asset edit items require exactly ${bins.length} items");
     expect(builderTestSource).toContain("rejects explicit sorting asset edits with unused extra items instead of dropping them");
+    expect(builderTestSource).toContain("rejects asset edit requests when imported profiles have duplicate operation components");
     expect(builderSource).toContain('requireStringArrayProp(props, "sequence", "sequence-items")');
     expect(builderSource).toContain('requireStringMatrixProp(props, "rounds", "sequence-items")');
     expect(builderSource).toContain("sequence-items requires at least ${uniqueTokens.length} asset edit items");

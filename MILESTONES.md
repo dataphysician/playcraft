@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Asset Edit Operation Components
+
+Milestone:
+- Builder asset request metadata now requires exactly one profile component for each authored asset edit operation.
+- Imported/custom profiles with duplicate operation components fail closed instead of editing whichever matching component appears first.
+
+Supportive changes:
+- Builder tests cover duplicate sorting operation components during asset edits.
+- Source scans block returning to first matching component lookup for asset edit request props.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps imported profile asset edits explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match component inference.
+
 ## 2026-07-05 - Authored Template Input Modality
 
 Milestone:

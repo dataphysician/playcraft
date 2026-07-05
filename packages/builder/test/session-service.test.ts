@@ -412,6 +412,44 @@ describe("builder session service", () => {
     }))).toThrow(/sorting-items requires non-empty string array prop bins/u);
   });
 
+  it("rejects asset edit requests when imported profiles have duplicate operation components", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.sorting" })).result.profile;
+    expect(exported).toBeDefined();
+    const sortBins = exported!.components.find((component) => component.renderCapability === "component:sort-bins");
+    expect(sortBins).toBeDefined();
+    const custom = {
+      ...exported!,
+      id: "profile.custom-sorting-duplicate-bins",
+      template: {
+        ...exported!.template,
+        liveSurface: {
+          ...exported!.template.liveSurface,
+          componentCapabilities: {
+            primary: "component:choice-grid"
+          }
+        }
+      },
+      components: [
+        ...exported!.components,
+        {
+          ...sortBins!,
+          bindingId: `${sortBins!.bindingId}.duplicate`
+        }
+      ]
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.custom-sorting-duplicate-bins", custom);
+
+    expect(() => target.execute(command({
+      actionName: "update-game",
+      assetEdit: { theme: "toys" },
+      sessionId: "session.custom-sorting-duplicate-bins",
+      templateId: "template.sorting"
+    }))).toThrow(/profile\.custom-sorting-duplicate-bins has multiple components for component:sort-bins sorting-items asset requests/u);
+  });
+
   it("rejects explicit sorting asset edits with unused extra items instead of dropping them", () => {
     const service = new PlaycraftBuilderSessionService();
 
