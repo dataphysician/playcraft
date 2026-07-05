@@ -1983,7 +1983,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `packages/service/src/index.ts`, `packages/service/src/cli.ts`, `packages/service/test/workflow-integration.test.ts`
   - Pre-commit: `pnpm exec vitest run packages/service/test/`
 
-- [ ] 19. Custom template assembly recipes
+- [x] 19. Custom template assembly recipes
 
   **What to do**:
   - In `packages/packs/src/index.ts`:

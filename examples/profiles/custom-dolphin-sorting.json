@@ -1,0 +1,321 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.custom.dolphin-sorting",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Dolphin Sorting Custom",
+  "assemblyRequestId": "request.dolphin-sorting.custom",
+  "template": {
+    "schemaVersion": "playcraft.v1",
+    "id": "template.custom.dolphin-sorting",
+    "version": "1.0.0",
+    "kind": "game-template-snapshot",
+    "displayName": "Dolphin Sorting Custom",
+    "displayLabel": "Dolphin Sorting",
+    "assetPromptKind": "sorting-game",
+    "assetEditOperations": [
+      {
+        "componentCapability": "component:choice-grid",
+        "operation": "choice-items"
+      },
+      {
+        "componentCapability": "component:sort-bins",
+        "operation": "sorting-items"
+      },
+      {
+        "componentCapability": "component:hint-bubble",
+        "operation": "hint-message"
+      }
+    ],
+    "liveSurface": {
+      "kind": "sorting",
+      "componentCapabilities": {
+        "primary": "component:sort-bins"
+      },
+      "assetReplacementSources": [
+        {
+          "componentRole": "primary",
+          "prop": "items",
+          "namespace": "item"
+        }
+      ],
+      "tokenStyles": [
+        {
+          "tokens": [
+            "blue"
+          ],
+          "background": "#dbeafe",
+          "border": "#2563eb",
+          "foreground": "#1e3a8a",
+          "accent": "#bfdbfe"
+        },
+        {
+          "tokens": [
+            "green"
+          ],
+          "background": "#dcfce7",
+          "border": "#16a34a",
+          "foreground": "#14532d",
+          "accent": "#bbf7d0"
+        }
+      ],
+      "defaultTokenStyle": {
+        "tokens": [
+          "default"
+        ],
+        "background": "#dbeafe",
+        "border": "#2563eb",
+        "foreground": "#1e3a8a",
+        "accent": "#bfdbfe"
+      }
+    },
+    "assemblyRequestId": "request.dolphin-sorting.custom"
+  },
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.custom.dolphin-sorting.mechanic.1",
+      "mechanicId": "mechanic.tap-to-select",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-select"
+      },
+      "eventBindings": {
+        "primary": "frontend:selected"
+      }
+    },
+    {
+      "bindingId": "profile.custom.dolphin-sorting.mechanic.2",
+      "mechanicId": "mechanic.sort-into-bins",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:sort-into-bins"
+      },
+      "eventBindings": {
+        "primary": "rule:item-sorted"
+      }
+    },
+    {
+      "bindingId": "profile.custom.dolphin-sorting.mechanic.3",
+      "mechanicId": "mechanic.retry-loop",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "support:retry"
+      },
+      "eventBindings": {
+        "primary": "rule:retry-ready"
+      }
+    },
+    {
+      "bindingId": "profile.custom.dolphin-sorting.mechanic.4",
+      "mechanicId": "mechanic.hint-prompt",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "support:hint"
+      },
+      "eventBindings": {
+        "primary": "frontend:hint-shown"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.custom.dolphin-sorting.rule.1",
+      "ruleId": "rule.category-validation",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "category-validation"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.custom.dolphin-sorting.rule.2",
+      "ruleId": "rule.guided-retry",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "retry"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.custom.dolphin-sorting.rule.3",
+      "ruleId": "rule.completion",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "completion"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.custom.dolphin-sorting.component.1",
+      "componentId": "component.choice-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:choice-grid",
+      "mechanicBindingIds": [
+        "profile.custom.dolphin-sorting.mechanic.1"
+      ],
+      "renderMechanicBindingId": "profile.custom.dolphin-sorting.mechanic.1",
+      "props": {
+        "title": "Choose an ocean animal",
+        "prompt": "Pick one animal to sort.",
+        "items": [
+          "blue dolphin",
+          "green turtle",
+          "blue whale"
+        ]
+      },
+      "assetBindings": {
+        "illustration": "asset.806ac91d"
+      }
+    },
+    {
+      "bindingId": "profile.custom.dolphin-sorting.component.2",
+      "componentId": "component.sort-bins",
+      "version": "1.0.0",
+      "renderCapability": "component:sort-bins",
+      "mechanicBindingIds": [
+        "profile.custom.dolphin-sorting.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.custom.dolphin-sorting.mechanic.2",
+      "props": {
+        "title": "Color bins",
+        "items": [
+          "blue dolphin",
+          "green turtle",
+          "blue whale"
+        ],
+        "bins": [
+          "blue",
+          "green"
+        ],
+        "targets": {
+          "blue dolphin": "blue",
+          "green turtle": "green",
+          "blue whale": "blue"
+        }
+      },
+      "assetBindings": {
+        "illustration": "asset.806ac91d"
+      }
+    },
+    {
+      "bindingId": "profile.custom.dolphin-sorting.component.3",
+      "componentId": "component.hint-bubble",
+      "version": "1.0.0",
+      "renderCapability": "component:hint-bubble",
+      "mechanicBindingIds": [
+        "profile.custom.dolphin-sorting.mechanic.4"
+      ],
+      "renderMechanicBindingId": "profile.custom.dolphin-sorting.mechanic.4",
+      "props": {
+        "hint": "Match the color first."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.custom.dolphin-sorting",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.custom.dolphin-sorting",
+      "profileId": "profile.custom.dolphin-sorting",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "svg",
+      "prompt": "friendly dolphin and ocean animal illustrations for a child-safe sorting game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-custom-dolphin-sorting"
+      },
+      "metadata": {
+        "profileTemplate": "template.custom.dolphin-sorting"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.806ac91d",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.custom.dolphin-sorting",
+      "assetId": "asset.806ac91d",
+      "sourceId": "asset-source.local-deterministic",
+      "contentType": "image",
+      "format": "svg",
+      "uri": "local-asset://image/806ac91d.svg",
+      "altText": "Deterministic image asset for friendly dolphin and ocean animal illustrations for a child-safe sorting game",
+      "metadata": {
+        "promptDigest": "806ac91d",
+        "source": "deterministic-local"
+      },
+      "provenance": {
+        "sourceManifestId": "asset-source.local-deterministic",
+        "sourceManifestVersion": "1.0.0",
+        "deterministic": true,
+        "seed": "seed-custom-dolphin-sorting",
+        "seedSupported": true,
+        "seedStatus": "used",
+        "generatedAt": "2026-06-27T00:00:00.000Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-custom-dolphin-sorting",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.custom.dolphin-sorting.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.custom.dolphin-sorting",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.custom.dolphin-sorting",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.custom.dolphin-sorting",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.custom.dolphin-sorting",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}

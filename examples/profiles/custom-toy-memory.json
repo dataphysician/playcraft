@@ -1,0 +1,307 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.custom.toy-memory",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Toy Memory Custom",
+  "assemblyRequestId": "request.toy-memory.custom",
+  "template": {
+    "schemaVersion": "playcraft.v1",
+    "id": "template.custom.toy-memory",
+    "version": "1.0.0",
+    "kind": "game-template-snapshot",
+    "displayName": "Toy Memory Custom",
+    "displayLabel": "Toy Memory",
+    "assetPromptKind": "memory-cards",
+    "assetEditOperations": [
+      {
+        "componentCapability": "component:reveal-card-grid",
+        "operation": "memory-pairs"
+      },
+      {
+        "componentCapability": "component:celebration-overlay",
+        "operation": "completion-message"
+      }
+    ],
+    "liveSurface": {
+      "kind": "memory",
+      "componentCapabilities": {
+        "primary": "component:reveal-card-grid"
+      },
+      "assetReplacementSources": [
+        {
+          "componentRole": "primary",
+          "prop": "cards",
+          "namespace": "card",
+          "pairMapProp": "pairs"
+        }
+      ],
+      "tokenStyles": [
+        {
+          "tokens": [
+            "pair-1"
+          ],
+          "background": "#fde68a",
+          "border": "#d97706",
+          "foreground": "#78350f",
+          "accent": "#fef3c7"
+        },
+        {
+          "tokens": [
+            "pair-2"
+          ],
+          "background": "#bae6fd",
+          "border": "#0284c7",
+          "foreground": "#0c4a6e",
+          "accent": "#e0f2fe"
+        },
+        {
+          "tokens": [
+            "pair-3"
+          ],
+          "background": "#fbcfe8",
+          "border": "#db2777",
+          "foreground": "#831843",
+          "accent": "#fce7f3"
+        }
+      ],
+      "defaultTokenStyle": {
+        "tokens": [
+          "default"
+        ],
+        "background": "#fef3c7",
+        "border": "#d97706",
+        "foreground": "#78350f",
+        "accent": "#fde68a"
+      }
+    },
+    "assemblyRequestId": "request.toy-memory.custom"
+  },
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.custom.toy-memory.mechanic.1",
+      "mechanicId": "mechanic.tap-to-reveal",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-reveal"
+      },
+      "eventBindings": {
+        "primary": "frontend:revealed"
+      }
+    },
+    {
+      "bindingId": "profile.custom.toy-memory.mechanic.2",
+      "mechanicId": "mechanic.match-pairs",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:match-pairs"
+      },
+      "eventBindings": {
+        "primary": "rule:pair-matched"
+      }
+    },
+    {
+      "bindingId": "profile.custom.toy-memory.mechanic.3",
+      "mechanicId": "mechanic.timed-celebration",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "feedback:celebration"
+      },
+      "eventBindings": {
+        "primary": "frontend:celebrated"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.custom.toy-memory.rule.1",
+      "ruleId": "rule.pair-match",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "pair-matching"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.custom.toy-memory.rule.2",
+      "ruleId": "rule.guided-retry",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "retry"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.custom.toy-memory.rule.3",
+      "ruleId": "rule.hint-timing",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "hint"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.custom.toy-memory.rule.4",
+      "ruleId": "rule.completion",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "completion"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.custom.toy-memory.component.1",
+      "componentId": "component.reveal-card-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:reveal-card-grid",
+      "mechanicBindingIds": [
+        "profile.custom.toy-memory.mechanic.1",
+        "profile.custom.toy-memory.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.custom.toy-memory.mechanic.1",
+      "props": {
+        "title": "Toy pairs",
+        "cards": [
+          "teddy-a",
+          "teddy-b",
+          "ball-a",
+          "ball-b",
+          "block-a",
+          "block-b"
+        ],
+        "pairs": {
+          "teddy-a": "pair-1",
+          "teddy-b": "pair-1",
+          "ball-a": "pair-2",
+          "ball-b": "pair-2",
+          "block-a": "pair-3",
+          "block-b": "pair-3"
+        },
+        "columns": 3
+      },
+      "assetBindings": {
+        "illustration": "asset.c850f5b4"
+      }
+    },
+    {
+      "bindingId": "profile.custom.toy-memory.component.2",
+      "componentId": "component.celebration-overlay",
+      "version": "1.0.0",
+      "renderCapability": "component:celebration-overlay",
+      "mechanicBindingIds": [
+        "profile.custom.toy-memory.mechanic.3"
+      ],
+      "renderMechanicBindingId": "profile.custom.toy-memory.mechanic.3",
+      "props": {
+        "message": "You found every toy pair."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.custom.toy-memory",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.custom.toy-memory",
+      "profileId": "profile.custom.toy-memory",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "svg",
+      "prompt": "friendly toy card illustrations for a child-safe toy memory game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-custom-toy-memory"
+      },
+      "metadata": {
+        "profileTemplate": "template.custom.toy-memory"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.c850f5b4",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.custom.toy-memory",
+      "assetId": "asset.c850f5b4",
+      "sourceId": "asset-source.local-deterministic",
+      "contentType": "image",
+      "format": "svg",
+      "uri": "local-asset://image/c850f5b4.svg",
+      "altText": "Deterministic image asset for friendly toy card illustrations for a child-safe toy memory game",
+      "metadata": {
+        "promptDigest": "c850f5b4",
+        "source": "deterministic-local"
+      },
+      "provenance": {
+        "sourceManifestId": "asset-source.local-deterministic",
+        "sourceManifestVersion": "1.0.0",
+        "deterministic": true,
+        "seed": "seed-custom-toy-memory",
+        "seedSupported": true,
+        "seedStatus": "used",
+        "generatedAt": "2026-06-27T00:00:00.000Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-custom-toy-memory",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.custom.toy-memory.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.custom.toy-memory",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.custom.toy-memory",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.custom.toy-memory",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.custom.toy-memory",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}

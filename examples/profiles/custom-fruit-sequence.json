@@ -1,0 +1,336 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.custom.fruit-sequence",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Fruit Sequence Custom",
+  "assemblyRequestId": "request.fruit-sequence.custom",
+  "template": {
+    "schemaVersion": "playcraft.v1",
+    "id": "template.custom.fruit-sequence",
+    "version": "1.0.0",
+    "kind": "game-template-snapshot",
+    "displayName": "Fruit Sequence Custom",
+    "displayLabel": "Fruit Sequence",
+    "assetPromptKind": "sequence-buttons",
+    "assetEditOperations": [
+      {
+        "componentCapability": "component:sequence-pad",
+        "operation": "sequence-items"
+      },
+      {
+        "componentCapability": "component:choice-grid",
+        "operation": "choice-items"
+      },
+      {
+        "componentCapability": "component:celebration-overlay",
+        "operation": "completion-message"
+      }
+    ],
+    "liveSurface": {
+      "kind": "sequence",
+      "componentCapabilities": {
+        "primary": "component:sequence-pad",
+        "choice": "component:choice-grid"
+      },
+      "assetReplacementSources": [
+        {
+          "componentRole": "primary",
+          "prop": "sequence",
+          "namespace": "choice"
+        },
+        {
+          "componentRole": "choice",
+          "prop": "items",
+          "namespace": "choice"
+        }
+      ],
+      "tokenStyles": [
+        {
+          "tokens": [
+            "apple"
+          ],
+          "background": "#fee2e2",
+          "border": "#ef4444",
+          "foreground": "#7f1d1d",
+          "accent": "#fecaca"
+        },
+        {
+          "tokens": [
+            "banana"
+          ],
+          "background": "#fef3c7",
+          "border": "#d97706",
+          "foreground": "#713f12",
+          "accent": "#fde68a"
+        },
+        {
+          "tokens": [
+            "grape"
+          ],
+          "background": "#ede9fe",
+          "border": "#7c3aed",
+          "foreground": "#4c1d95",
+          "accent": "#ddd6fe"
+        }
+      ],
+      "defaultTokenStyle": {
+        "tokens": [
+          "default"
+        ],
+        "background": "#fce7f3",
+        "border": "#db2777",
+        "foreground": "#831843",
+        "accent": "#fbcfe8"
+      }
+    },
+    "assemblyRequestId": "request.fruit-sequence.custom"
+  },
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.custom.fruit-sequence.mechanic.1",
+      "mechanicId": "mechanic.sequence-repeat",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:sequence-repeat"
+      },
+      "eventBindings": {
+        "primary": "rule:sequence-progressed"
+      }
+    },
+    {
+      "bindingId": "profile.custom.fruit-sequence.mechanic.2",
+      "mechanicId": "mechanic.tap-to-select",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-select"
+      },
+      "eventBindings": {
+        "primary": "frontend:selected"
+      }
+    },
+    {
+      "bindingId": "profile.custom.fruit-sequence.mechanic.3",
+      "mechanicId": "mechanic.timed-celebration",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "feedback:celebration"
+      },
+      "eventBindings": {
+        "primary": "frontend:celebrated"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.custom.fruit-sequence.rule.1",
+      "ruleId": "rule.sequence-progression",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "progression"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.custom.fruit-sequence.rule.2",
+      "ruleId": "rule.attempt-feedback",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "attempt-feedback"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.custom.fruit-sequence.rule.3",
+      "ruleId": "rule.hint-timing",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "hint"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.custom.fruit-sequence.component.1",
+      "componentId": "component.sequence-pad",
+      "version": "1.0.0",
+      "renderCapability": "component:sequence-pad",
+      "mechanicBindingIds": [
+        "profile.custom.fruit-sequence.mechanic.1",
+        "profile.custom.fruit-sequence.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.custom.fruit-sequence.mechanic.1",
+      "props": {
+        "title": "Repeat the fruits",
+        "prompt": "Tap the fruits in the same order.",
+        "sequence": [
+          "apple",
+          "banana",
+          "apple"
+        ],
+        "rounds": [
+          [
+            "apple",
+            "banana",
+            "apple"
+          ],
+          [
+            "grape",
+            "apple",
+            "banana"
+          ],
+          [
+            "banana",
+            "apple",
+            "grape",
+            "banana"
+          ]
+        ]
+      },
+      "assetBindings": {
+        "illustration": "asset.835342ae"
+      }
+    },
+    {
+      "bindingId": "profile.custom.fruit-sequence.component.2",
+      "componentId": "component.choice-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:choice-grid",
+      "mechanicBindingIds": [
+        "profile.custom.fruit-sequence.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.custom.fruit-sequence.mechanic.2",
+      "props": {
+        "title": "Fruit buttons",
+        "prompt": "Choose the next fruit.",
+        "items": [
+          "apple",
+          "banana",
+          "grape"
+        ]
+      },
+      "assetBindings": {
+        "illustration": "asset.835342ae"
+      }
+    },
+    {
+      "bindingId": "profile.custom.fruit-sequence.component.3",
+      "componentId": "component.celebration-overlay",
+      "version": "1.0.0",
+      "renderCapability": "component:celebration-overlay",
+      "mechanicBindingIds": [
+        "profile.custom.fruit-sequence.mechanic.3"
+      ],
+      "renderMechanicBindingId": "profile.custom.fruit-sequence.mechanic.3",
+      "props": {
+        "message": "Fruit sequence complete."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.custom.fruit-sequence",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.custom.fruit-sequence",
+      "profileId": "profile.custom.fruit-sequence",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "svg",
+      "prompt": "friendly fruit icons for a child-safe sequence repeat game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-custom-fruit-sequence"
+      },
+      "metadata": {
+        "profileTemplate": "template.custom.fruit-sequence"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.835342ae",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.custom.fruit-sequence",
+      "assetId": "asset.835342ae",
+      "sourceId": "asset-source.local-deterministic",
+      "contentType": "image",
+      "format": "svg",
+      "uri": "local-asset://image/835342ae.svg",
+      "altText": "Deterministic image asset for friendly fruit icons for a child-safe sequence repeat game",
+      "metadata": {
+        "promptDigest": "835342ae",
+        "source": "deterministic-local"
+      },
+      "provenance": {
+        "sourceManifestId": "asset-source.local-deterministic",
+        "sourceManifestVersion": "1.0.0",
+        "deterministic": true,
+        "seed": "seed-custom-fruit-sequence",
+        "seedSupported": true,
+        "seedStatus": "used",
+        "generatedAt": "2026-06-27T00:00:00.000Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-custom-fruit-sequence",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.custom.fruit-sequence.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.custom.fruit-sequence",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.custom.fruit-sequence",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.custom.fruit-sequence",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.custom.fruit-sequence",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}
