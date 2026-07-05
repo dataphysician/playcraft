@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Single-Tool Trusted Component Emission
+
+Milestone:
+- Trusted component interaction emission now requires exactly one declared emitted tool before emitting.
+- Pack trusted components no longer select emitted tools through first-item array indexing.
+
+Supportive changes:
+- Pack tests assert every emitting component manifest has exactly one emitted tool.
+- Source scans pin the single-tool emission helper and block the removed first-tool helper.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts packages/renderer/test/trusted-renderer.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Trusted component emission source scan confirmed the single-tool helper and removed first-tool selection.
+
+Constraint notes:
+- Keeps trusted component interactions contract-shaped and fail-closed without hosted providers, generated runtime code, auth, database state, compatibility shims, or emitted-tool order heuristics.
+
 ## 2026-07-04 - Explicit Component Render Mechanic Bindings
 
 Milestone:

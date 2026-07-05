@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   assembleMvpProfiles,
+  componentManifests,
   createDefaultPlanner,
   DEFAULT_GAME_TEMPLATE_ID,
   gameTemplateDefinitions,
@@ -215,5 +216,23 @@ describe("MVP profile pack", () => {
     expect(mechanicDefinitions.flatMap((mechanic) => mechanic.supportedModalities)).not.toContain(removedModality);
     expect(gameTemplateDefinitions.flatMap((template) => template.supportedModalities)).not.toContain("audio");
     expect(gameTemplateDefinitions.flatMap((template) => template.supportedModalities)).not.toContain(removedModality);
+  });
+
+  it("keeps trusted component interaction tools single-emitter", () => {
+    const emittingComponents = componentManifests.filter((manifest) => manifest.emittedTools.length > 0);
+
+    expect(emittingComponents).toHaveLength(6);
+    expect(emittingComponents.every((manifest) => manifest.emittedTools.length === 1)).toBe(true);
+    expect(emittingComponents.map((manifest) => {
+      const [tool] = manifest.emittedTools;
+      return tool.toolName;
+    })).toEqual([
+      "tool:select-item",
+      "tool:reveal-card",
+      "tool:select-item",
+      "tool:move-item",
+      "tool:repeat-sequence",
+      "tool:move-item"
+    ]);
   });
 });

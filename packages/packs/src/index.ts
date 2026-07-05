@@ -1040,7 +1040,7 @@ function renderTrustedControls(
   if (props.cards.length > 0) {
     return renderButtonGrid(
       props.cards,
-      (cardId) => emitFirstTool(manifest, emit, { cardId }),
+      (cardId) => emitSingleTrustedTool(manifest, emit, { cardId }),
       `${manifest.id}.cards`
     );
   }
@@ -1048,7 +1048,7 @@ function renderTrustedControls(
   if (props.pairs.length > 0) {
     return renderButtonGrid(
       props.pairs,
-      (itemId) => emitFirstTool(manifest, emit, { itemId }),
+      (itemId) => emitSingleTrustedTool(manifest, emit, { itemId }),
       `${manifest.id}.pairs`
     );
   }
@@ -1064,7 +1064,7 @@ function renderTrustedControls(
             {
               key: `${itemId}.${targetId}`,
               type: "button",
-              onClick: () => emitFirstTool(manifest, emit, { itemId, targetId }),
+              onClick: () => emitSingleTrustedTool(manifest, emit, { itemId, targetId }),
               style: trustedComponentStyles.button
             },
             `${itemId} -> ${targetId}`
@@ -1077,7 +1077,7 @@ function renderTrustedControls(
   if (props.items.length > 0) {
     return renderButtonGrid(
       props.items,
-      (itemId) => emitFirstTool(manifest, emit, { itemId }),
+      (itemId) => emitSingleTrustedTool(manifest, emit, { itemId }),
       `${manifest.id}.items`
     );
   }
@@ -1097,7 +1097,7 @@ function renderTrustedControls(
         "button",
         {
           type: "button",
-          onClick: () => emitFirstTool(manifest, emit, { sequence: props.sequence }),
+          onClick: () => emitSingleTrustedTool(manifest, emit, { sequence: props.sequence }),
           style: trustedComponentStyles.button
         },
         "Submit sequence"
@@ -1110,7 +1110,7 @@ function renderTrustedControls(
       "button",
       {
         type: "button",
-        onClick: () => emitFirstTool(manifest, emit, { itemId: "path", targetId: props.path.join(" ") }),
+        onClick: () => emitSingleTrustedTool(manifest, emit, { itemId: "path", targetId: props.path.join(" ") }),
         style: trustedComponentStyles.button
       },
       "Trace path"
@@ -1148,16 +1148,16 @@ function stringArrayProp(props: Record<string, JsonValue>, key: string): string[
   return value.filter((entry): entry is string => typeof entry === "string");
 }
 
-function emitFirstTool(
+function emitSingleTrustedTool(
   manifest: ComponentManifest,
   emit: TrustedComponentRuntimeProps["emit"],
   payload: Record<string, JsonValue>
 ): void {
-  const tool = manifest.emittedTools[0];
-  if (!tool) {
-    return;
+  if (manifest.emittedTools.length !== 1) {
+    throw new Error(`trusted component ${manifest.id} must declare exactly one emitted tool before it can emit interactions`);
   }
 
+  const tool = manifest.emittedTools.at(0)!;
   emit(tool.toolName, {
     componentId: manifest.id,
     ...payload

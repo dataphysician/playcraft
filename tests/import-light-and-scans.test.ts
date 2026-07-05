@@ -194,6 +194,17 @@ describe("import-light boundaries and source scans", () => {
     expect(packTestSource).toContain('primary: "rule:sequence-progressed"');
   });
 
+  it("keeps trusted component tool emission single-tool explicit", () => {
+    const packSource = readSource("packages/packs/src/index.ts");
+    const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
+
+    expect(packSource).toContain("function emitSingleTrustedTool");
+    expect(packSource).toContain("must declare exactly one emitted tool");
+    expect(packSource).not.toContain("function emitFirstTool");
+    expect(packSource).not.toContain("manifest.emittedTools[0]");
+    expect(packTestSource).toContain("keeps trusted component interaction tools single-emitter");
+  });
+
   it("keeps component render mechanic bindings explicit instead of list-order inferred", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const coreSource = readSource("packages/core/src/index.ts");
