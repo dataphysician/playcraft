@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Ambiguous Asset Requests Fail Closed
+
+Milestone:
+- Asset request parsing now collects all matching asset directives instead of selecting the first match.
+- Multiple distinct asset targets in one request fail explicitly and direct callers can use structured `assetEdit`.
+- Asset intent parsing is clause-based so repeated directives such as multiple `Use assets with ...` clauses are visible.
+
+Supportive changes:
+- Service tests reject ambiguous asset edit text instead of selecting the first match.
+- Source scans pin clause-based asset parsing and block the removed first-match parser.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps asset replacement requests explicit and source-owned without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match asset inference.
+
 ## 2026-07-04 - Ambiguous Template Requests Fail Closed
 
 Milestone:

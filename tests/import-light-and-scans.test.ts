@@ -904,13 +904,20 @@ describe("import-light boundaries and source scans", () => {
     const source = readSource("packages/service/src/index.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");
     const assetCatalogSource = readSource("packages/assets/src/index.ts");
+    const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
 
     expect(source).toContain("isGenericAssetTheme");
+    expect(source).toContain("function assetIntentClauses");
+    expect(source).toContain("function matchAssetThemes");
+    expect(source).toContain("function uniqueAssetThemeMatches");
+    expect(source).toContain("ambiguous asset request matched");
+    expect(serviceTestSource).toContain("rejects ambiguous asset edit text instead of selecting the first match");
     expect(contractSource).toContain("genericThemeTokens");
     expect(assetCatalogSource).toContain("localAssetEditGenericThemeTokens");
     expect(assetCatalogSource).toContain("localAssetEditIntentPatterns");
     expect(source).toContain("localAssetEditGenericThemeTokens");
     expect(source).toContain("localAssetEditIntentPatterns");
+    expect(source).not.toContain(".find((entry): entry is { source: TextAssetEdit[\"source\"]; theme: string } => Boolean(entry))");
     expect(source).not.toContain("GENERIC_ASSET_THEME_TOKENS");
     expect(source).not.toContain('new Set(["asset", "assets"');
     expect(source).not.toContain("matchCatalogAssetTheme");

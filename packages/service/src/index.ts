@@ -914,14 +914,22 @@ function assetDecisionFor(input: {
 
 function assetEditForText(text: string): TextAssetEdit | undefined {
   const normalized = text.toLowerCase();
-  const match = localAssetEditIntentPatterns
-    .map((pattern) => matchAssetTheme(normalized, pattern))
-    .find((entry): entry is { source: TextAssetEdit["source"]; theme: string } => Boolean(entry));
+  const clauses = assetIntentClauses(normalized);
+  const matches = uniqueAssetThemeMatches(
+    clauses.flatMap((clause) =>
+      localAssetEditIntentPatterns.flatMap((pattern) => matchAssetThemes(clause, pattern))
+    )
+  );
 
-  if (!match) {
+  if (matches.length === 0) {
     return undefined;
   }
 
+  if (matches.length > 1) {
+    throw new Error(`ambiguous asset request matched ${matches.map((entry) => entry.theme).join(", ")}; use explicit assetEdit`);
+  }
+
+  const match = matches[0];
   const items = match.theme
     .split(/\s*(?:,| and )\s*/u)
     .map((entry) => cleanAssetTheme(entry))
@@ -935,27 +943,47 @@ function assetEditForText(text: string): TextAssetEdit | undefined {
   };
 }
 
-function matchAssetTheme(
+function assetIntentClauses(text: string): string[] {
+  return text
+    .split(/[;.!?]+/u)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function matchAssetThemes(
   text: string,
   pattern: LocalAssetEditIntentPattern
-): { source: TextAssetEdit["source"]; theme: string } | undefined {
-  const match = pattern.pattern.exec(text);
-  if (!match) {
-    return undefined;
-  }
+): Array<{ source: TextAssetEdit["source"]; theme: string }> {
+  const matcher = new RegExp(pattern.pattern.source, pattern.pattern.flags.includes("g") ? pattern.pattern.flags : `${pattern.pattern.flags}g`);
+  return Array.from(text.matchAll(matcher)).flatMap((match) => {
+    const candidate = cleanAssetTheme(match[1]);
+    if (
+      candidate.length === 0 ||
+      isGenericAssetTheme(candidate) ||
+      isTemplateOnlyTheme(candidate) ||
+      (pattern.source === "catalog-asset-alias" && !isKnownAssetTheme(candidate))
+    ) {
+      return [];
+    }
 
-  const candidate = cleanAssetTheme(match[1]);
-  if (
-    candidate.length === 0 ||
-    isGenericAssetTheme(candidate) ||
-    isTemplateOnlyTheme(candidate) ||
-    (pattern.source === "catalog-asset-alias" && !isKnownAssetTheme(candidate))
-  ) {
-    return undefined;
-  }
+    const matchedSource = isKnownAssetTheme(candidate) ? "catalog-asset-alias" : pattern.source;
+    return [{ source: matchedSource, theme: candidate }];
+  });
+}
 
-  const matchedSource = isKnownAssetTheme(candidate) ? "catalog-asset-alias" : pattern.source;
-  return { source: matchedSource, theme: candidate };
+function uniqueAssetThemeMatches(
+  matches: Array<{ source: TextAssetEdit["source"]; theme: string }>
+): Array<{ source: TextAssetEdit["source"]; theme: string }> {
+  const seen = new Set<string>();
+  return matches.filter((match) => {
+    const key = `${match.source}:${normalizedTokens(match.theme).join(" ")}`;
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
 }
 
 function isKnownAssetTheme(value: string): boolean {

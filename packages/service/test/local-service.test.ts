@@ -1004,6 +1004,17 @@ describe("local Playcraft service", () => {
     });
   });
 
+  it("rejects ambiguous asset edit text instead of selecting the first match", () => {
+    expect(() =>
+      resolveBuilderInputCommand({
+        activeTemplateId: "template.memory-match",
+        sequence: 1,
+        source: "text",
+        text: "Use assets with toys. Use assets with fruits."
+      })
+    ).toThrow(/ambiguous asset request matched toys, fruits; use explicit assetEdit/u);
+  });
+
   it("keeps freeform asset folder names literal instead of stripping generic nouns", () => {
     const resolved = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",
