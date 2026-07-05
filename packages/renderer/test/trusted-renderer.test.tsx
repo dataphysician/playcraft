@@ -76,6 +76,18 @@ describe("trusted renderer", () => {
     }
   });
 
+  it("rejects duplicate generated asset ids instead of binding asset order", () => {
+    const registry = registerPlaycraftTrustedComponents();
+    const { request, assets } = firstRenderRequest();
+    const result = registry.render(request, [...assets, assets[0]!]);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("invalid-request");
+      expect(result.error.message).toContain(`duplicate generated asset ids: ${assets[0]!.assetId}`);
+    }
+  });
+
   it("rejects generated or executable code-shaped input", () => {
     const registry = registerPlaycraftTrustedComponents();
     const { request, assets } = firstRenderRequest();

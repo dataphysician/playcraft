@@ -1496,6 +1496,10 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).not.toContain("componentId or componentCapability is required");
     expect(rendererSource).toContain("keyFor(request.componentId, request.componentVersion)");
     expect(rendererSource).toContain("entry.manifest.renderCapability !== request.componentCapability");
+    expect(rendererSource).toContain("function duplicateGeneratedAssetIds");
+    expect(rendererSource).toContain("duplicate generated asset ids");
+    expect(rendererSource).toContain("const duplicateAssetIds = duplicateGeneratedAssetIds(assetsParsed);");
+    expect(readSource("packages/renderer/test/trusted-renderer.test.tsx")).toContain("rejects duplicate generated asset ids instead of binding asset order");
     expect(rendererSource).not.toContain("entry.manifest.id === request.componentId");
     expect(rendererSource).not.toContain("entry.manifest.renderCapability === request.componentCapability");
     expect(previewSource).toContain("candidate.id === request.componentId && candidate.version === request.componentVersion");

@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Trusted Renderer Asset IDs
+
+Milestone:
+- Trusted component rendering now rejects duplicate generated asset ids before binding component assets.
+- Shared preview rendering no longer lets asset-id map construction choose whichever duplicate saved asset record wins.
+
+Supportive changes:
+- Renderer tests cover duplicate generated asset ids during trusted component rendering.
+- Source scans guard the duplicate asset-id check in the trusted renderer.
+
+Validation:
+- `pnpm test packages/renderer/test/trusted-renderer.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps trusted rendering profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or asset map overwrite inference.
+
 ## 2026-07-05 - Exact Live App Sequence Choices
 
 Milestone:

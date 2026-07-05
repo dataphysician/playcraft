@@ -83,6 +83,11 @@ export class TrustedComponentRegistry {
     }
 
     const assetsParsed = assetRecords.map((asset) => GeneratedAssetRecordSchema.parse(asset));
+    const duplicateAssetIds = duplicateGeneratedAssetIds(assetsParsed);
+    if (duplicateAssetIds.length > 0) {
+      return failure("invalid-request", `duplicate generated asset ids: ${duplicateAssetIds.join(", ")}`);
+    }
+
     const boundAssets = bindAssets(entry.manifest, request, assetsParsed);
     if (!boundAssets.ok) {
       return boundAssets;
@@ -196,6 +201,22 @@ function bindAssets(
   }
 
   return { ok: true, assets };
+}
+
+function duplicateGeneratedAssetIds(assetRecords: GeneratedAssetRecord[]): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const asset of assetRecords) {
+    if (seen.has(asset.assetId)) {
+      duplicates.add(asset.assetId);
+      continue;
+    }
+
+    seen.add(asset.assetId);
+  }
+
+  return [...duplicates];
 }
 
 function findUnsafeInput(value: JsonValue): string | null {
