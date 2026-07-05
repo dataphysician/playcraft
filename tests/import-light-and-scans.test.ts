@@ -214,7 +214,9 @@ describe("import-light boundaries and source scans", () => {
       "playcraft-agentic-framework/README.md",
       "playcraft-agentic-framework/PRD.md",
       "playcraft-agentic-framework/ARCHITECTURE.md",
-      "playcraft-agentic-framework/DEV_GUIDE.md"
+      "playcraft-agentic-framework/DEV_GUIDE.md",
+      "tests/studio-ui.test.ts",
+      "tests/mobile-shell.test.tsx"
     ];
     const violations = checkedFiles.flatMap((path) => {
       const source = readSource(path);

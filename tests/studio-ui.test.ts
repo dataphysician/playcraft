@@ -96,7 +96,7 @@ describe("studio UI", () => {
       source: "text",
       text: "Sort shapes by color"
     });
-    const speech = resolveBuilderInputCommand({
+    const moonshine = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",
       sequence: 2,
       source: "moonshine-transcript",
@@ -107,10 +107,10 @@ describe("studio UI", () => {
     expect(text.resolution.templateDecision.matchedRequestAliases).toContain("sort");
     expect(text.input.source).toBe("text");
     expect(text.input.transcription).toBeUndefined();
-    expect(speech.templateId).toBe("template.sequence-repeat");
-    expect(speech.resolution.templateDecision.matchedRequestAliases).toContain("pattern");
-    expect(speech.assetEdit?.theme).toBe("gems");
-    expect(speech.input.transcription).toEqual({
+    expect(moonshine.templateId).toBe("template.sequence-repeat");
+    expect(moonshine.resolution.templateDecision.matchedRequestAliases).toContain("pattern");
+    expect(moonshine.assetEdit?.theme).toBe("gems");
+    expect(moonshine.input.transcription).toEqual({
       engine: "moonshine-streaming",
       runtime: "cpu",
       localOnly: true

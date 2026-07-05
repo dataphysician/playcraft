@@ -1,5 +1,23 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Moonshine Terminology In UI Tests
+
+Milestone:
+- Studio UI tests now name transcript command fixtures after Moonshine instead of the removed speech abstraction.
+- The Moonshine-explicit transcript source scan now covers Studio and Mobile UI tests in addition to source and framework docs.
+
+Supportive changes:
+- Source scan coverage blocks legacy `speech-transcript`, `speechTranscript`, and `SpeechTranscriptionConfig` markers from UI tests.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test tests/studio-ui.test.ts tests/mobile-shell.test.tsx`
+- `pnpm build`
+- `pnpm test`
+
+Constraint notes:
+- Keeps text/Moonshine-only input vocabulary forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or stale speech abstractions.
+
 ## 2026-07-04 - Explicit Service Preview Interactions
 
 Milestone:
