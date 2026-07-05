@@ -1022,15 +1022,22 @@ describe("import-light boundaries and source scans", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");
+    const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
     const serviceSource = readSource("packages/service/src/index.ts");
 
     expect(contractSource).toContain("BuilderCatalogRequestTipsSchema");
     expect(contractSource).toContain("exampleRequest");
     expect(contractSource).toContain("featuredGames: z.array");
     expect(packSource).toContain("exampleRequest: input.exampleRequest");
+    expect(packSource).toContain("requestAliasSummary: input.requestAliasSummary");
     expect(packSource).not.toContain("exampleRequest?: string");
     expect(packSource).not.toContain("sentenceCase");
     expect(packSource).not.toContain("input.aliases[0]");
+    expect(packSource).not.toContain("function requestAliasSummary");
+    expect(packSource).not.toContain("requestAliasSummary(input.aliases)");
+    expect(packSource).not.toContain("aliases.slice(0, 3)");
+    expect(packTestSource).toContain("template.shape-memory");
+    expect(packTestSource).toContain("shape memory, shape match cards, matching shapes");
     expect(serviceSource).toContain("requestTipsForCatalog");
     expect(serviceSource).toContain("requestTips: requestTipsForCatalog");
     expect(serviceSource).toContain("LOCAL_SERVICE_REQUEST_TIP_EXAMPLES");

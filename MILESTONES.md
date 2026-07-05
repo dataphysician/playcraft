@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Authored Helper Template Alias Summaries
+
+Milestone:
+- Helper-created memory, sorting, and sequence templates now require authored `requestAliasSummary` copy.
+- Pack catalog summaries no longer derive user-facing game tips from the first three request aliases.
+
+Supportive changes:
+- Pack tests assert authored summaries for helper-created templates such as Shape Memory and Color Sorting.
+- Source scans block `requestAliasSummary(input.aliases)`, the removed helper function, and `aliases.slice(0, 3)` in pack source.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps agent-facing catalog text authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or alias-order summary heuristics.
+
 ## 2026-07-05 - Authored Component Mechanic Bindings
 
 Milestone:

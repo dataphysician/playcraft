@@ -229,6 +229,12 @@ describe("MVP profile pack", () => {
     );
     expect(gameTemplateDefinitions.find((template) => template.id === "template.memory-match")?.requestAliasSummary).toBe("memory, memory game, memory match");
     expect(gameTemplateDefinitions.find((template) => template.id === "template.sorting")?.requestAliasSummary).toBe("sort, sorting, sorting game");
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.shape-memory")?.requestAliasSummary).toBe(
+      "shape memory, shape match cards, matching shapes"
+    );
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.color-sorting")?.requestAliasSummary).toBe(
+      "color sorting, sort by color, put colors in bins"
+    );
   });
 
   it("keeps memory template card counts authored by pair items instead of truncating to two pairs", () => {
