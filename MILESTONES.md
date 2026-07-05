@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Sorting Targets
+
+Milestone:
+- Live App sorting games now require every target-map key to correspond to an authored visible sorting item.
+- Sorting profiles no longer carry hidden target entries that the playable surface silently ignores.
+
+Supportive changes:
+- Studio asset-library tests cover target keys for missing sorting items.
+- Source scans guard the exact target-map validation path.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps sorting interactions profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or hidden target-map inference.
+
 ## 2026-07-05 - Exact Live App Memory Pairs
 
 Milestone:

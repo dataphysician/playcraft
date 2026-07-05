@@ -1225,6 +1225,12 @@ function validateSortingSurfaceProps(
     throw new Error(`profile ${profileId} sorting bins contain duplicate bin ids: ${duplicateBins.join(", ")}`);
   }
 
+  const itemIds = new Set(items);
+  const unknownTargetItems = Object.keys(targets).filter((item) => !itemIds.has(item));
+  if (unknownTargetItems.length > 0) {
+    throw new Error(`profile ${profileId} sorting targets reference missing items: ${unknownTargetItems.join(", ")}`);
+  }
+
   for (const item of items) {
     const target = targets[item];
     if (!target) {

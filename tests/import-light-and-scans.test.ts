@@ -1396,6 +1396,7 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("memory pair ${pairKey} must contain exactly 2 cards");
     expect(liveGameSource).toContain("function validateSortingSurfaceProps");
     expect(liveGameSource).toContain("sorting items contain duplicate item ids");
+    expect(liveGameSource).toContain("sorting targets reference missing items");
     expect(liveGameSource).toContain("function validateSequenceSurfaceProps");
     expect(liveGameSource).toContain("sequence tokens are missing authored choices");
     expect(liveGameSource).toContain("function requiredSequenceChoiceComponent");
@@ -1409,6 +1410,7 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects memory cards missing authored pairs instead of dropping deck cards");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects incomplete Live App memory pairs instead of making unwinnable decks");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App sorting item ids instead of using placement keys");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects sorting target keys for missing items instead of ignoring hidden targets");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects sequence tokens missing from authored choices instead of inferring buttons");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects sequence surfaces without an authored choice component capability");
     expect(liveGameSource).not.toContain("tokenColorCatalog");

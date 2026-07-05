@@ -427,6 +427,39 @@ describe("studio asset library", () => {
     expect(screen.queryByRole("button", { name: "toy-1" })).toBeNull();
   });
 
+  it("rejects sorting target keys for missing items instead of ignoring hidden targets", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Sorting game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const hiddenTargetProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:sort-bins"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                items: ["toy-1", "toy-2"],
+                bins: ["red", "blue"],
+                targets: {
+                  "toy-1": "red",
+                  "toy-2": "blue",
+                  "toy-3": "red"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile: hiddenTargetProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("sorting targets reference missing items: toy-3");
+    expect(screen.queryByRole("button", { name: "toy-1" })).toBeNull();
+  });
+
   it("rejects sequence tokens missing from authored choices instead of inferring buttons", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Repeat a pattern with gems" });
