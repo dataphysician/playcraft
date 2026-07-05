@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Studio Asset Replacement Matches
+
+Milestone:
+- Studio local asset replacement lookup now extracts matched components, sprites, catalog entries, and bin assets through explicit single-value helpers.
+- Asset replacement matching keeps existing duplicate fail-closed checks while removing first-entry return shortcuts.
+
+Supportive changes:
+- Source scans guard the asset-library single-value helpers and block indexed match returns.
+- Existing Studio asset library tests continue covering duplicate replacement components, ambiguous sprites, token styles, generated assets, and sorting bin aliases.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps local asset replacement exact and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match sprite selection.
+
 ## 2026-07-05 - Exact Service Intent Single Matches
 
 Milestone:

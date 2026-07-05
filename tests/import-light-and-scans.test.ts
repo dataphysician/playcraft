@@ -1494,6 +1494,8 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).toContain("template.liveSurface.assetReplacementSources");
     expect(assetLibrarySource).toContain("componentForReplacementSource");
     expect(assetLibrarySource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");
+    expect(assetLibrarySource).toContain("function singleValue");
+    expect(assetLibrarySource).toContain("function requireSingleValue");
     expect(assetLibrarySource).toContain("asset replacement source ${source.componentRole}:${source.prop} is missing a live surface component capability");
     expect(assetLibrarySource).toContain("is missing asset replacement component for ${capability}");
     expect(assetLibrarySource).toContain("has multiple asset replacement components");
@@ -1523,6 +1525,8 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).toContain("maps to multiple ordinal local sprites");
     expect(assetLibrarySource).not.toContain("const exact = candidates.find((sprite) => normalized === sprite.id)");
     expect(assetLibrarySource).not.toContain("const ordinalMatch = candidates.find((sprite) => ordinal !== undefined && ordinalForIdentifier(sprite.id) === ordinal)");
+    expect(assetLibrarySource).not.toContain("return matches[0]");
+    expect(assetLibrarySource).not.toContain("return uniqueSprites[0]");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects item replacements that resolve to multiple ordinal local sprites");
     expect(liveGameSource).toContain("replacements.get(`card:${card.id}`)");
     expect(liveGameSource).toContain("return replacements?.get(`${namespace}:${token}`);");

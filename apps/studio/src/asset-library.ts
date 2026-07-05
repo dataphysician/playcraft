@@ -147,7 +147,7 @@ function componentForReplacementSource(
   if (matches.length > 1) {
     throw new Error(`profile ${profile.id} has multiple asset replacement components for ${capability}`);
   }
-  return matches[0];
+  return requireSingleValue(matches, `asset replacement component for ${capability}`);
 }
 
 export function sortingBinAssetFor(bin: string): LibraryAssetReplacement | undefined {
@@ -158,7 +158,7 @@ export function sortingBinAssetFor(bin: string): LibraryAssetReplacement | undef
   if (matches.length > 1) {
     throw new Error(`sorting bin ${bin} maps to multiple local bin assets: ${matches.map((entry) => entry.id).join(", ")}`);
   }
-  const [asset] = matches;
+  const asset = singleValue(matches);
   return asset ? { altText: asset.altText, uri: asset.uri } : undefined;
 }
 
@@ -226,7 +226,7 @@ function singlePairedCardSpriteForPair(
     throw new Error(`asset replacement pair ${pairKey} maps to multiple local sprites: ${uniqueSprites.map((sprite) => sprite.id).join(", ")}`);
   }
 
-  return uniqueSprites[0];
+  return requireSingleValue(uniqueSprites, `asset replacement pair ${pairKey}`);
 }
 
 function uniqueReplacementSprites(sprites: ReplacementSprite[]): ReplacementSprite[] {
@@ -304,7 +304,7 @@ function catalogEntryForReplacementTheme(theme: string): BuilderAssetEditCatalog
     throw new Error(`local asset replacement theme ${theme} maps to multiple catalog entries: ${matches.map((entry) => entry.theme).join(", ")}`);
   }
 
-  return matches[0];
+  return singleValue(matches);
 }
 
 function spriteForIdentifier(identifier: string, themeFolders: string[]): ReplacementSprite | undefined {
@@ -319,7 +319,7 @@ function spriteForIdentifier(identifier: string, themeFolders: string[]): Replac
   if (exactMatches.length > 1) {
     throw new Error(`asset replacement token ${identifier} maps to multiple local sprites: ${exactMatches.map((sprite) => `${sprite.theme}/${sprite.id}`).join(", ")}`);
   }
-  const [exact] = exactMatches;
+  const exact = singleValue(exactMatches);
   if (exact) {
     return exact;
   }
@@ -329,7 +329,7 @@ function spriteForIdentifier(identifier: string, themeFolders: string[]): Replac
   if (ordinalMatches.length > 1) {
     throw new Error(`asset replacement token ${identifier} maps to multiple ordinal local sprites: ${ordinalMatches.map((sprite) => `${sprite.theme}/${sprite.id}`).join(", ")}`);
   }
-  const [ordinalMatch] = ordinalMatches;
+  const ordinalMatch = singleValue(ordinalMatches);
   if (ordinalMatch) {
     return ordinalMatch;
   }
@@ -348,7 +348,20 @@ function spriteForPairedCardIdentifier(identifier: string, themeFolders: string[
     throw new Error(`asset replacement token ${identifier} maps to multiple paired local sprites: ${matches.map((sprite) => `${sprite.theme}/${sprite.id}`).join(", ")}`);
   }
 
-  return matches[0];
+  return singleValue(matches);
+}
+
+function singleValue<TValue>(values: TValue[]): TValue | undefined {
+  return values.length === 1 ? values[0] : undefined;
+}
+
+function requireSingleValue<TValue>(values: TValue[], label: string): TValue {
+  const value = singleValue(values);
+  if (value === undefined) {
+    throw new Error(`${label} requires exactly one value`);
+  }
+
+  return value;
 }
 
 function pairedCardSpriteIdentifier(identifier: string): string | undefined {
