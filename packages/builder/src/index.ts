@@ -360,10 +360,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       throw new Error("preview-action requires an existing built session");
     }
 
-    const renderRequest = interactiveRenderRequestForReplay(session.replay);
-    if (!renderRequest) {
-      throw new Error("session has no interactive render requests to preview");
-    }
+    const renderRequest = renderRequestForTemplatePrimary(session.profile, session.replay);
 
     const componentId = requireRenderRequestComponentId(renderRequest);
     const toolName = requireSinglePreviewToolName(renderRequest);
@@ -507,16 +504,14 @@ function previewForReplay(
   replay: ReplayResult,
   previousPreview: BuilderPreviewState
 ): BuilderPreviewState {
-  const interactiveRequest = interactiveRenderRequestForReplay(replay);
+  const primaryRequest = renderRequestForTemplatePrimary(profile, replay);
 
   return BuilderPreviewStateSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
     sessionId,
     activeProfileId: profile.id,
     activeTemplateId: templateId,
-    activeComponentId: interactiveRequest
-      ? requireRenderRequestComponentId(interactiveRequest)
-      : requireRenderRequestComponentId(replay.renderRequests[0]),
+    activeComponentId: requireRenderRequestComponentId(primaryRequest),
     renderedComponentIds: replay.renderRequests.map(requireRenderRequestComponentId),
     interactionCount: previousPreview.interactionCount,
     lastToolName: previousPreview.lastToolName,
@@ -540,16 +535,22 @@ function requireRenderRequestComponentId(renderRequest: ReplayResult["renderRequ
   return renderRequest.componentId;
 }
 
+function renderRequestForTemplatePrimary(profile: GameAssemblyProfile, replay: ReplayResult): ReplayResult["renderRequests"][number] {
+  const primaryCapability = profile.template.liveSurface.componentCapabilities.primary;
+  const renderRequest = replay.renderRequests.find((request) => request.componentCapability === primaryCapability);
+  if (!renderRequest) {
+    throw new Error(`profile ${profile.id} does not include live-surface primary component ${primaryCapability}`);
+  }
+
+  return renderRequest;
+}
+
 function requireSinglePreviewToolName(renderRequest: ReplayResult["renderRequests"][number]): string {
   if (renderRequest.expectedEmittedEvents.length !== 1) {
     throw new Error(`interactive render request ${renderRequest.id} must declare exactly one emitted tool`);
   }
 
   return renderRequest.expectedEmittedEvents.at(0)!;
-}
-
-function interactiveRenderRequestForReplay(replay: ReplayResult): ReplayResult["renderRequests"][number] | undefined {
-  return replay.renderRequests.find((request) => request.expectedEmittedEvents.length > 0);
 }
 
 export function createBuilderCommandHandler(): BuilderCommandHandler {

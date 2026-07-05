@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template-Primary Builder Preview Surface
+
+Milestone:
+- Builder preview state now selects the active preview component from `profile.template.liveSurface.componentCapabilities.primary`.
+- Builder preview interactions now target the template live-surface primary render request instead of the first interactive render request.
+
+Supportive changes:
+- Builder tests cover visual-first component ordering while preserving live-surface primary preview behavior.
+- Source scans block render-request order fallback and the removed first-interactive helper.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Preview surface source scan confirmed live-surface primary selection and no render-request order fallback.
+
+Constraint notes:
+- Keeps preview surface selection template-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or render-request order heuristics.
+
 ## 2026-07-04 - Request-Owned Generated Asset Binding
 
 Milestone:

@@ -653,7 +653,7 @@ describe("builder session service", () => {
     expect(updated.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("request.custom-template-memory"))).toBe(true);
   });
 
-  it("previews the first interactive component when visual components render first", () => {
+  it("previews the template live-surface primary component when visual components render first", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
     expect(exported).toBeDefined();

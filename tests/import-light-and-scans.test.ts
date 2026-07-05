@@ -616,6 +616,10 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain("function requireSinglePreviewToolName");
     expect(builderSource).toContain("must declare exactly one emitted tool");
     expect(builderSource).not.toContain("renderRequest.expectedEmittedEvents[0]");
+    expect(builderSource).toContain("function renderRequestForTemplatePrimary");
+    expect(builderSource).toContain("profile.template.liveSurface.componentCapabilities.primary");
+    expect(builderSource).not.toContain("interactiveRenderRequestForReplay");
+    expect(builderSource).not.toContain("replay.renderRequests[0]");
     expect(builderSource).toContain("const previewInteraction");
     expect(builderSource).toContain("interaction: previewInteraction");
     expect(builderCliSource).toContain("--interaction <primary>");
