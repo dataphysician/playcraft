@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Authored Component Mechanic Bindings
+
+Milestone:
+- MVP pack profile assembly now uses template-authored component mechanic capability lists for every component binding.
+- Component `mechanicBindingIds` no longer come from selected component manifest support order capped to the first two matches.
+
+Supportive changes:
+- Pack tests assert exact component mechanic binding IDs for memory, sorting, and sequence profiles.
+- Source scans require `componentMechanicCapabilities` and `requiredComponentMechanicBindingIds`, and block the old supported-mechanic filter plus `.slice(0, 2)` cap.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps bundled template assembly explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or list-order component mechanic inference.
+
 ## 2026-07-05 - Exact Text Asset Item Limits
 
 Milestone:

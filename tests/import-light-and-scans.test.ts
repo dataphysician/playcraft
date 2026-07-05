@@ -265,9 +265,15 @@ describe("import-light boundaries and source scans", () => {
     expect(coreSource).toContain("mechanicBindingId: component.renderMechanicBindingId");
     expect(coreSource).not.toContain("mechanicBindingId: component.mechanicBindingIds[0]");
     expect(coreSource).toContain("render mechanic binding");
+    expect(packSource).toContain("componentMechanicCapabilities");
     expect(packSource).toContain("componentRenderMechanicCapabilities");
+    expect(packSource).toContain("requiredComponentMechanicBindingIds");
     expect(packSource).toContain("requiredComponentRenderMechanicBindingId");
+    expect(packSource).toContain("missing authored component mechanic capabilities");
+    expect(packSource).not.toContain(".filter((binding) => selected.supportedMechanicIds.includes(binding.mechanicId))");
+    expect(packSource).not.toContain(".slice(0, 2);");
     expect(packTestSource).toContain("renderMechanicBindingId");
+    expect(packTestSource).toContain("mechanicBindingIds");
   });
 
   it("keeps play input modalities separate from audio asset content", () => {

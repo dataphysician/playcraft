@@ -294,6 +294,10 @@ const mvpTemplates: MvpProfileTemplate[] = [
     assetPrompt: "friendly starter card illustrations for a child-safe memory match game",
     mechanicCapabilities: ["mechanic:tap-to-reveal", "mechanic:match-pairs", "feedback:celebration"],
     mechanicEventBindings: memoryMechanicEventBindings,
+    componentMechanicCapabilities: {
+      "component:reveal-card-grid": ["mechanic:tap-to-reveal", "mechanic:match-pairs"],
+      "component:celebration-overlay": ["feedback:celebration"]
+    },
     componentRenderMechanicCapabilities: {
       "component:reveal-card-grid": "mechanic:tap-to-reveal",
       "component:celebration-overlay": "feedback:celebration"
@@ -344,6 +348,11 @@ const mvpTemplates: MvpProfileTemplate[] = [
     assetPrompt: "simple colorful shapes for a child-safe sorting game",
     mechanicCapabilities: ["mechanic:tap-to-select", "mechanic:sort-into-bins", "support:retry", "support:hint"],
     mechanicEventBindings: sortingMechanicEventBindings,
+    componentMechanicCapabilities: {
+      "component:choice-grid": ["mechanic:tap-to-select"],
+      "component:sort-bins": ["mechanic:sort-into-bins"],
+      "component:hint-bubble": ["support:hint"]
+    },
     componentRenderMechanicCapabilities: {
       "component:choice-grid": "mechanic:tap-to-select",
       "component:sort-bins": "mechanic:sort-into-bins",
@@ -405,6 +414,11 @@ const mvpTemplates: MvpProfileTemplate[] = [
     assetPrompt: "soft glowing buttons for a child-safe sequence repeat game",
     mechanicCapabilities: ["mechanic:sequence-repeat", "mechanic:tap-to-select", "feedback:celebration"],
     mechanicEventBindings: sequenceMechanicEventBindings,
+    componentMechanicCapabilities: {
+      "component:sequence-pad": ["mechanic:sequence-repeat", "mechanic:tap-to-select"],
+      "component:choice-grid": ["mechanic:tap-to-select"],
+      "component:celebration-overlay": ["feedback:celebration"]
+    },
     componentRenderMechanicCapabilities: {
       "component:sequence-pad": "mechanic:sequence-repeat",
       "component:choice-grid": "mechanic:tap-to-select",
@@ -849,8 +863,11 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
   });
 
   const mechanicIds = mechanics.map((binding) => binding.mechanicId);
-  const mechanicBindingIdByCapability = new Map(
-    mechanics.map((binding) => [String(binding.parameters.capability), binding.bindingId])
+  const mechanicBindingByCapability = new Map(
+    mechanics.map((binding) => [String(binding.parameters.capability), {
+      bindingId: binding.bindingId,
+      mechanicId: binding.mechanicId
+    }])
   );
   const rules = template.ruleCategories.map((category, index) => {
     const selected = requireSelected(context.registries.rules.select({
@@ -906,15 +923,17 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
     }));
     const props = template.propsByCapability[capability];
     const hasRequiredAsset = selected.requiredAssets.some((requirement) => requirement.required);
-    const mechanicBindingIds = mechanics
-      .filter((binding) => selected.supportedMechanicIds.includes(binding.mechanicId))
-      .map((binding) => binding.bindingId)
-      .slice(0, 2);
+    const mechanicBindingIds = requiredComponentMechanicBindingIds(
+      template,
+      capability,
+      selected.supportedMechanicIds,
+      mechanicBindingByCapability
+    );
     const renderMechanicBindingId = requiredComponentRenderMechanicBindingId(
       template,
       capability,
       mechanicBindingIds,
-      mechanicBindingIdByCapability
+      mechanicBindingByCapability
     );
     return {
       bindingId: `${template.profileId}.component.${index + 1}`,
@@ -1414,23 +1433,47 @@ function requiredComponentRenderMechanicBindingId(
   template: MvpProfileTemplate,
   componentCapability: string,
   mechanicBindingIds: string[],
-  mechanicBindingIdByCapability: Map<string, string>
+  mechanicBindingByCapability: Map<string, { bindingId: string; mechanicId: string }>
 ): string {
   const mechanicCapability = template.componentRenderMechanicCapabilities[componentCapability];
   if (!mechanicCapability) {
     throw new Error(`${template.id} is missing a render mechanic capability for ${componentCapability}`);
   }
 
-  const bindingId = mechanicBindingIdByCapability.get(mechanicCapability);
-  if (!bindingId) {
+  const binding = mechanicBindingByCapability.get(mechanicCapability);
+  if (!binding) {
     throw new Error(`${template.id} component ${componentCapability} references missing mechanic capability ${mechanicCapability}`);
   }
 
-  if (!mechanicBindingIds.includes(bindingId)) {
+  if (!mechanicBindingIds.includes(binding.bindingId)) {
     throw new Error(`${template.id} component ${componentCapability} render mechanic ${mechanicCapability} is not attached to the selected component`);
   }
 
-  return bindingId;
+  return binding.bindingId;
+}
+
+function requiredComponentMechanicBindingIds(
+  template: MvpProfileTemplate,
+  componentCapability: string,
+  selectedSupportedMechanicIds: string[],
+  mechanicBindingByCapability: Map<string, { bindingId: string; mechanicId: string }>
+): string[] {
+  const mechanicCapabilities = template.componentMechanicCapabilities[componentCapability];
+  if (!mechanicCapabilities || mechanicCapabilities.length === 0) {
+    throw new Error(`${template.id} is missing authored component mechanic capabilities for ${componentCapability}`);
+  }
+
+  return mechanicCapabilities.map((mechanicCapability) => {
+    const binding = mechanicBindingByCapability.get(mechanicCapability);
+    if (!binding) {
+      throw new Error(`${template.id} component ${componentCapability} references missing mechanic capability ${mechanicCapability}`);
+    }
+    if (!selectedSupportedMechanicIds.includes(binding.mechanicId)) {
+      throw new Error(`${template.id} component ${componentCapability} mechanic ${mechanicCapability} is not supported by the selected component`);
+    }
+
+    return binding.bindingId;
+  });
 }
 
 function requiredGeneratedAssetForRequestId(
@@ -1499,6 +1542,7 @@ interface MvpProfileTemplate {
   assetPrompt: string;
   mechanicCapabilities: string[];
   mechanicEventBindings: Record<string, Record<string, string>>;
+  componentMechanicCapabilities: Record<string, string[]>;
   componentRenderMechanicCapabilities: Record<string, string>;
   ruleCategories: string[];
   componentCapabilities: string[];
@@ -1548,6 +1592,10 @@ function memoryTemplate(input: {
     assetPrompt: input.prompt,
     mechanicCapabilities: ["mechanic:tap-to-reveal", "mechanic:match-pairs", "feedback:celebration"],
     mechanicEventBindings: memoryMechanicEventBindings,
+    componentMechanicCapabilities: {
+      "component:reveal-card-grid": ["mechanic:tap-to-reveal", "mechanic:match-pairs"],
+      "component:celebration-overlay": ["feedback:celebration"]
+    },
     componentRenderMechanicCapabilities: {
       "component:reveal-card-grid": "mechanic:tap-to-reveal",
       "component:celebration-overlay": "feedback:celebration"
@@ -1611,6 +1659,11 @@ function sortingTemplate(input: {
     assetPrompt: input.prompt,
     mechanicCapabilities: ["mechanic:tap-to-select", "mechanic:sort-into-bins", "support:retry", "support:hint"],
     mechanicEventBindings: sortingMechanicEventBindings,
+    componentMechanicCapabilities: {
+      "component:choice-grid": ["mechanic:tap-to-select"],
+      "component:sort-bins": ["mechanic:sort-into-bins"],
+      "component:hint-bubble": ["support:hint"]
+    },
     componentRenderMechanicCapabilities: {
       "component:choice-grid": "mechanic:tap-to-select",
       "component:sort-bins": "mechanic:sort-into-bins",
@@ -1685,6 +1738,11 @@ function sequenceTemplate(input: {
     assetPrompt: input.prompt,
     mechanicCapabilities: ["mechanic:sequence-repeat", "mechanic:tap-to-select", "feedback:celebration"],
     mechanicEventBindings: sequenceMechanicEventBindings,
+    componentMechanicCapabilities: {
+      "component:sequence-pad": ["mechanic:sequence-repeat", "mechanic:tap-to-select"],
+      "component:choice-grid": ["mechanic:tap-to-select"],
+      "component:celebration-overlay": ["feedback:celebration"]
+    },
     componentRenderMechanicCapabilities: {
       "component:sequence-pad": "mechanic:sequence-repeat",
       "component:choice-grid": "mechanic:tap-to-select",

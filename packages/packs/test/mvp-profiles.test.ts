@@ -99,15 +99,29 @@ describe("MVP profile pack", () => {
       "profile.memory-match.mvp.mechanic.1",
       "profile.memory-match.mvp.mechanic.3"
     ]);
+    expect(profileA.components.map((component) => component.mechanicBindingIds)).toEqual([
+      ["profile.memory-match.mvp.mechanic.1", "profile.memory-match.mvp.mechanic.2"],
+      ["profile.memory-match.mvp.mechanic.3"]
+    ]);
     expect(profileB.components.map((component) => component.renderMechanicBindingId)).toEqual([
       "profile.sorting.mvp.mechanic.1",
       "profile.sorting.mvp.mechanic.2",
       "profile.sorting.mvp.mechanic.4"
     ]);
+    expect(profileB.components.map((component) => component.mechanicBindingIds)).toEqual([
+      ["profile.sorting.mvp.mechanic.1"],
+      ["profile.sorting.mvp.mechanic.2"],
+      ["profile.sorting.mvp.mechanic.4"]
+    ]);
     expect(profileC.components.map((component) => component.renderMechanicBindingId)).toEqual([
       "profile.sequence-repeat.mvp.mechanic.1",
       "profile.sequence-repeat.mvp.mechanic.2",
       "profile.sequence-repeat.mvp.mechanic.3"
+    ]);
+    expect(profileC.components.map((component) => component.mechanicBindingIds)).toEqual([
+      ["profile.sequence-repeat.mvp.mechanic.1", "profile.sequence-repeat.mvp.mechanic.2"],
+      ["profile.sequence-repeat.mvp.mechanic.2"],
+      ["profile.sequence-repeat.mvp.mechanic.3"]
     ]);
     expect(profileA.components.find((component) => component.renderCapability === "component:reveal-card-grid")?.assetBindings.illustration).toBe(
       profileA.assets.find((asset) => asset.requestId === "asset-request.profile.memory-match.mvp")?.assetId
