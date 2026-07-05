@@ -1154,23 +1154,15 @@ describe("local Playcraft service", () => {
     });
   });
 
-  it("records ambiguous template text without silently reporting a normal active-template decision", () => {
-    const resolved = resolveBuilderInputCommand({
-      activeTemplateId: "template.sorting",
-      sequence: 1,
-      source: "text",
-      text: "Memory game or repeat pattern with toys"
-    });
-
-    expect(resolved.templateId).toBe("template.sorting");
-    expect(resolved.resolution.templateDecision).toMatchObject({
-      source: "ambiguous-template-match",
-      matchedTemplateIds: ["template.memory-match", "template.sequence-repeat"]
-    });
-    expect(resolved.resolution.assetDecision).toMatchObject({
-      source: "catalog-asset-alias",
-      matchedText: "toys"
-    });
+  it("rejects ambiguous active-session template text instead of staying on the active template", () => {
+    expect(() =>
+      resolveBuilderInputCommand({
+        activeTemplateId: "template.sorting",
+        sequence: 1,
+        source: "text",
+        text: "Memory game or repeat pattern with toys"
+      })
+    ).toThrow(/ambiguous template request matched template.memory-match, template.sequence-repeat; use explicit templateId/u);
   });
 
   it("rejects ambiguous first-time template text instead of defaulting", () => {
@@ -1180,7 +1172,27 @@ describe("local Playcraft service", () => {
         source: "text",
         text: "Sort or memory game"
       })
-    ).toThrow(/ambiguous template request matched template.memory-match, template.sorting without an active template/u);
+    ).toThrow(/ambiguous template request matched template.memory-match, template.sorting; use explicit templateId/u);
+  });
+
+  it("rejects ambiguous Moonshine transcript template text through the service envelope", () => {
+    const service = createLocalPlaycraftService();
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.ambiguous-template",
+      text: "Memory game or repeat pattern with toys"
+    });
+
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.ambiguous-template-transcript",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        source: "moonshine-transcript",
+        moonshineTranscript: transcript
+      })
+    ).toThrow(/ambiguous template request matched template.memory-match, template.sequence-repeat; use explicit templateId/u);
   });
 
   it("records explicit template and asset-edit decisions without text guessing", () => {

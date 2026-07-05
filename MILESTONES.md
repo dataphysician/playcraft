@@ -1,5 +1,23 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Ambiguous Template Requests
+
+Milestone:
+- Text and Moonshine transcript requests that match multiple game templates now fail closed with an explicit `templateId` instruction instead of staying on the active game.
+- `BuilderIntentResolution` no longer exposes `ambiguous-template-match` as a successful template decision source.
+
+Supportive changes:
+- Local service tests cover ambiguous active-session update text and first-run ambiguous text.
+- Source scans assert ambiguous template errors require explicit template IDs and block the retired intent-resolution enum value.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+
+Constraint notes:
+- Keeps game switching explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, default-template fallback, or active-session ambiguity inheritance.
+
 ## 2026-07-04 - Explicit Sorting Asset Item Tokens
 
 Milestone:

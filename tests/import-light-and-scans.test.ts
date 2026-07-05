@@ -1112,10 +1112,13 @@ describe("import-light boundaries and source scans", () => {
     expect(packSource).toContain("DEFAULT_GAME_TEMPLATE_ID");
     expect(serviceSource).toContain("DEFAULT_GAME_TEMPLATE_ID");
     expect(serviceSource).toContain("ambiguous template request matched");
+    expect(serviceSource).toContain("use explicit templateId");
     expect(serviceSource).toContain("assemble requests require a game template id or a recognizable game request");
+    expect(serviceTestSource).toContain("rejects ambiguous active-session template text instead of staying on the active template");
     expect(serviceTestSource).toContain("rejects ambiguous first-time template text instead of defaulting");
     expect(serviceTestSource).toContain("rejects vague first-run assemble requests instead of using the catalog default template");
     expect(contractSource).not.toContain('"default-template"');
+    expect(contractSource).not.toContain('"ambiguous-template-match"');
     expect(serviceSource).not.toContain('source: "default-template"');
     expect(serviceSource).not.toContain("DEFAULT_TEMPLATE_ID");
     expect(serviceSource).not.toContain('BuilderTemplateIdSchema.parse("template.memory-match")');
