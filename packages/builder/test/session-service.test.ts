@@ -677,6 +677,7 @@ describe("builder session service", () => {
     expect(preview.result.preview.lastToolPayload).toEqual(expect.objectContaining({
       componentId: "component.reveal-card-grid"
     }));
+    expect(preview.events.every((event) => event.runId === "session.visual-first.template.memory-match")).toBe(true);
     expect(preview.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("tool:preview-interaction"))).toBe(false);
   });
 

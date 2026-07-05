@@ -639,8 +639,10 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain("renderRequest.expectedEmittedEvents[0]");
     expect(builderSource).toContain("function renderRequestForTemplatePrimary");
     expect(builderSource).toContain("profile.template.liveSurface.componentCapabilities.primary");
+    expect(builderSource).toContain("function requireSessionTemplateId");
     expect(builderSource).not.toContain("interactiveRenderRequestForReplay");
     expect(builderSource).not.toContain("replay.renderRequests[0]");
+    expect(builderSource).not.toContain('session.templateId ?? "preview"');
     expect(builderSource).toContain("const previewInteraction");
     expect(builderSource).toContain("interaction: previewInteraction");
     expect(builderCliSource).toContain("--interaction <primary>");

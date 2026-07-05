@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template-Owned Builder Preview Run IDs
+
+Milestone:
+- Builder preview-action events now derive their run id from the active session template id.
+- The previous `"preview"` placeholder run-id branch was removed from the builder preview path.
+
+Supportive changes:
+- Builder preview code now fails closed when a preview session lacks an active template id.
+- Builder tests verify preview events use the concrete template run id for imported visual-first profiles.
+- Source scans block the removed `session.templateId ?? "preview"` expression.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Builder preview run-id source scan confirmed explicit `requireSessionTemplateId` usage and no preview placeholder recovery.
+
+Constraint notes:
+- Keeps builder preview AG-UI events template-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or placeholder run provenance.
+
 ## 2026-07-04 - Session-Bound Service Updates
 
 Milestone:

@@ -397,7 +397,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       validation: session.profile.validation
     });
 
-    const runId = `${command.sessionId}.${session.templateId ?? "preview"}`;
+    const runId = `${command.sessionId}.${requireSessionTemplateId(session)}`;
     const replayEvent = session.profile.replay.eventLog[0];
     const events: BuilderAgUiEvent[] = [
       toolCall(runId, interaction.toolName, { action }, 0),
@@ -525,6 +525,14 @@ function requirePreviewComponentId(preview: BuilderPreviewState): string {
   }
 
   return preview.activeComponentId;
+}
+
+function requireSessionTemplateId(session: BuilderSessionRecord): BuilderTemplateId {
+  if (!session.templateId) {
+    throw new Error(`session ${session.sessionId} does not include an active template id`);
+  }
+
+  return session.templateId;
 }
 
 function requireRenderRequestComponentId(renderRequest: ReplayResult["renderRequests"][number] | undefined): string {
