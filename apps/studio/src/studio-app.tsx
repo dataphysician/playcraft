@@ -698,9 +698,11 @@ function CommandBar({
   const buttonLabel = hasSession ? "Update Game" : "Generate Game";
   const [tipsOpen, setTipsOpen] = React.useState(false);
   const tips = React.useMemo(() => requestTipLines(catalog), [catalog]);
-  const inputOptions = catalog?.input.sourceOptions ?? [];
-  const selectedInputOption = inputOptions.find((option) => option.source === inputSource);
+  const inputOptionsResult = React.useMemo(() => inputSourceOptionsForCatalog(catalog), [catalog]);
+  const inputOptions = inputOptionsResult.ok ? inputOptionsResult.value : [];
+  const selectedInputOption = selectedInputSourceOption(inputOptions, inputSource);
   const placeholder = hasSession ? selectedInputOption?.updatePlaceholder : selectedInputOption?.generatePlaceholder;
+  const commandError = error ?? (inputOptionsResult.ok ? null : inputOptionsResult.message);
 
   return React.createElement(
     "footer",
@@ -770,8 +772,45 @@ function CommandBar({
         "Start Over"
       )
     ),
-    error ? React.createElement("div", { role: "alert", style: shellStyles.error }, error) : null
+    commandError ? React.createElement("div", { role: "alert", style: shellStyles.error }, commandError) : null
   );
+}
+
+function inputSourceOptionsForCatalog(catalog: BuilderCatalog | undefined): { ok: true; value: BuilderInputSourceOption[] } | { ok: false; message: string } {
+  const options = catalog?.input.sourceOptions ?? [];
+  const seen = new Set<BuilderInputSource>();
+  const duplicates = new Set<BuilderInputSource>();
+
+  for (const option of options) {
+    if (seen.has(option.source)) {
+      duplicates.add(option.source);
+      continue;
+    }
+
+    seen.add(option.source);
+  }
+
+  if (duplicates.size > 0) {
+    return {
+      ok: false,
+      message: `Studio catalog has duplicate input source options: ${[...duplicates].join(", ")}`
+    };
+  }
+
+  return { ok: true, value: options };
+}
+
+function selectedInputSourceOption(
+  options: BuilderInputSourceOption[],
+  inputSource: BuilderInputSource
+): BuilderInputSourceOption | undefined {
+  for (const option of options) {
+    if (option.source === inputSource) {
+      return option;
+    }
+  }
+
+  return undefined;
 }
 
 function InputSourceButton({

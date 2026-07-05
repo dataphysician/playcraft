@@ -465,6 +465,38 @@ describe("studio UI", () => {
     expect(screen.getAllByText("params: empty").length).toBeGreaterThanOrEqual(1);
   });
 
+  it("rejects duplicate catalog input source options instead of using option order", async () => {
+    const catalog = createLocalPlaycraftService().catalog();
+    const client: StudioClient = {
+      catalog: () => ({
+        ...catalog,
+        input: {
+          ...catalog.input,
+          sourceOptions: [
+            ...catalog.input.sourceOptions,
+            {
+              source: "text",
+              displayLabel: "Duplicate Text",
+              generatePlaceholder: "Duplicate text request",
+              updatePlaceholder: "Duplicate text update"
+            }
+          ]
+        }
+      }),
+      assembleFromIntent() {
+        throw new Error("not used");
+      },
+      requestChange() {
+        throw new Error("not used");
+      }
+    };
+
+    render(React.createElement(StudioApp, { client }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("Studio catalog has duplicate input source options: text");
+    expect(screen.queryByRole("button", { name: "Duplicate Text" })).toBeNull();
+  });
+
   it("shows the service catalog as an agent tool surface in the Developer tab", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 

@@ -404,8 +404,12 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).toContain("tool.inputSourceSummary");
     expect(studioSource).toContain("tool.argumentSummary");
     expect(studioSource).toContain("option.displayLabel");
+    expect(studioSource).toContain("function inputSourceOptionsForCatalog");
+    expect(studioSource).toContain("Studio catalog has duplicate input source options");
     expect(studioSource).toContain("selectedInputOption?.generatePlaceholder");
     expect(studioSource).toContain("selectedInputOption?.updatePlaceholder");
+    expect(studioSource).not.toContain("const selectedInputOption = inputOptions.find((option) => option.source === inputSource);");
+    expect(readSource("tests/studio-ui.test.ts")).toContain("rejects duplicate catalog input source options instead of using option order");
     expect(studioSource).not.toContain("requiredInputSourceOption");
     expect(studioSource).not.toContain("toolInputSourceSummary");
     expect(studioSource).not.toContain("toolArgumentsSummary");

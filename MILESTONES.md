@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Studio Input Source Options
+
+Milestone:
+- Studio command bar catalog input source options now reject duplicate sources before rendering controls or placeholders.
+- Duplicate text/Moonshine catalog source options no longer let the UI use whichever placeholder appears first.
+
+Supportive changes:
+- Studio UI tests cover duplicate catalog input source options.
+- Source scans block direct first-match input option selection from returning.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps user-facing text and Moonshine input controls catalog-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or input option order inference.
+
 ## 2026-07-05 - Exact Live App Generated Assets
 
 Milestone:
