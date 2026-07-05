@@ -609,6 +609,10 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("renderRequests.find((request) => request.componentCapability === primaryCapability)");
     expect(source).not.toContain("replay.renderRequests[0]");
     expect(studioSource).toContain("component.isPrimaryPreviewSurface");
+    expect(studioSource).toContain("function primaryPreviewComponentKey");
+    expect(studioSource).toContain("const primarySummaries = componentSummaries.filter((component) => component.isPrimaryPreviewSurface);");
+    expect(studioSource).toContain("primarySummaries.length === 1 ? primarySummaries[0].componentKey : undefined");
+    expect(studioSource).not.toContain("componentSummaries.find((component) => component.isPrimaryPreviewSurface)?.componentKey");
     expect(studioSource).not.toContain("componentSummaries[0]");
     expect(source).not.toContain("??\n        replay.renderRequests[0]");
     expect(source).not.toContain("?? replay.renderRequests[0]");
@@ -1139,6 +1143,8 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("liveSurface.componentCapabilities.choice");
     expect(liveGameSource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");
     expect(liveGameSource).toContain("has multiple live surface components");
+    expect(liveGameSource).toContain("function LiveGameFailure");
+    expect(liveGameSource).toContain('"data-testid": "live-game-error"');
     expect(liveGameSource).not.toContain("profile.components.find((component) => component.renderCapability === capability)");
     expect(contractSource).not.toContain("liveSurfaceKind");
     expect(packSource).not.toContain("liveSurfaceKind");

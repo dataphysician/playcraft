@@ -1,5 +1,32 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Studio Primary Preview Auto-Selection
+
+Milestone:
+- Studio Developer tab now auto-selects a trusted preview primary surface only when exactly one primary preview component summary exists.
+- Duplicate primary preview surfaces now flow to the trusted preview fail-closed error instead of being hidden by first-primary UI auto-selection.
+- Live App profile contract failures now render a visible fail-closed app error instead of crashing the Studio shell.
+
+Supportive changes:
+- Studio UI tests cover duplicate primary profiles through the full Developer tab path.
+- Studio asset-library tests cover visible Live App failures for ambiguous live-surface components.
+- Source scans require exact-one primary preview auto-selection and block first-match primary summary selection from returning.
+- Source scans require the Live App failure boundary for ambiguous live-surface component resolution.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Studio primary preview auto-selection source scan confirmed exact-one filtering and no first-match summary lookup path.
+- Live App failure-boundary source scan confirmed ambiguous profile errors are surfaced in UI.
+
+Constraint notes:
+- Keeps Studio trusted preview selection and Live App profile handling explicit and fail-closed without hosted providers, generated runtime code, auth, database state, compatibility shims, or component-summary order heuristics.
+
 ## 2026-07-04 - Fail-Closed Studio Trusted Preview Primary Requests
 
 Milestone:

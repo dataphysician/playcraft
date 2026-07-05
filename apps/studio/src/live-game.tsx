@@ -145,39 +145,54 @@ function LiveGameForProfile({
   const template = liveTemplateForProfile(profile);
   const liveSurface = template.liveSurface;
   const tokenStyleCatalog = tokenStyleCatalogForSurface(liveSurface);
-  const libraryAssetReplacements = React.useMemo(() => createProfileLibraryAssetReplacements(profile), [profile]);
+  const libraryAssetReplacementResult = React.useMemo(() => {
+    try {
+      return { ok: true as const, value: createProfileLibraryAssetReplacements(profile) };
+    } catch (cause) {
+      return { ok: false as const, message: errorMessage(cause, "live game asset replacement lookup failed") };
+    }
+  }, [profile]);
+  const libraryAssetReplacements = libraryAssetReplacementResult.ok ? libraryAssetReplacementResult.value : {};
   const mergedAssetReplacements = React.useMemo(
     () => ({ ...libraryAssetReplacements, ...assetReplacements }),
     [assetReplacements, libraryAssetReplacements]
   );
   const replacements = useProfileAssetReplacements(profile, mergedAssetReplacements);
 
-  switch (liveSurface.kind) {
-    case "memory":
-      return React.createElement(MemoryGame, {
-        profile,
-        component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
-        replacements,
-        tokenStyleCatalog,
-        onInteraction
-      });
-    case "sorting":
-      return React.createElement(SortingGame, {
-        profile,
-        component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
-        replacements,
-        tokenStyleCatalog,
-        onInteraction
-      });
-    case "sequence":
-      return React.createElement(SequenceGame, {
-        profile,
-        sequenceComponent: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
-        choiceComponent: optionalComponentByCapability(profile, liveSurface.componentCapabilities.choice),
-        replacements,
-        tokenStyleCatalog,
-        onInteraction
-      });
+  if (!libraryAssetReplacementResult.ok) {
+    return React.createElement(LiveGameFailure, { message: libraryAssetReplacementResult.message });
+  }
+
+  try {
+    switch (liveSurface.kind) {
+      case "memory":
+        return React.createElement(MemoryGame, {
+          profile,
+          component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
+          replacements,
+          tokenStyleCatalog,
+          onInteraction
+        });
+      case "sorting":
+        return React.createElement(SortingGame, {
+          profile,
+          component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
+          replacements,
+          tokenStyleCatalog,
+          onInteraction
+        });
+      case "sequence":
+        return React.createElement(SequenceGame, {
+          profile,
+          sequenceComponent: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
+          choiceComponent: optionalComponentByCapability(profile, liveSurface.componentCapabilities.choice),
+          replacements,
+          tokenStyleCatalog,
+          onInteraction
+        });
+    }
+  } catch (cause) {
+    return React.createElement(LiveGameFailure, { message: errorMessage(cause, "live game surface selection failed") });
   }
 
   return React.createElement(
@@ -185,6 +200,19 @@ function LiveGameForProfile({
     { role: "status", style: liveStyles.emptyState },
     `${profile.profileName} does not have a live game surface yet.`
   );
+}
+
+function LiveGameFailure({ message }: { message: string }): React.ReactElement {
+  return React.createElement(
+    "section",
+    { role: "alert", "data-testid": "live-game-error", style: liveStyles.failureState },
+    React.createElement("strong", null, "Live game blocked"),
+    React.createElement("pre", { style: liveStyles.failureDetail }, message)
+  );
+}
+
+function errorMessage(cause: unknown, fallback: string): string {
+  return cause instanceof Error ? cause.message : fallback;
 }
 
 function MemoryGame({
@@ -1468,6 +1496,25 @@ const liveStyles = {
     height: "100%",
     minHeight: "24rem",
     objectFit: "cover" as const
+  },
+  failureState: {
+    minHeight: "24rem",
+    display: "grid",
+    alignContent: "center",
+    gap: "0.75rem",
+    border: "1px solid #b91c1c",
+    borderRadius: "8px",
+    background: "#fef2f2",
+    color: "#7f1d1d",
+    padding: "1rem",
+    boxShadow: "0 20px 60px rgba(24, 24, 27, 0.12)"
+  },
+  failureDetail: {
+    margin: 0,
+    whiteSpace: "pre-wrap" as const,
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+    fontSize: "0.8rem",
+    lineHeight: 1.5
   },
   liveSurface: {
     minHeight: "100%",

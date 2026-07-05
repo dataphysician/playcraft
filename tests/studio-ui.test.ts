@@ -596,6 +596,16 @@ describe("studio UI", () => {
   it("fails closed when trusted preview has duplicate primary render requests", () => {
     const duplicatePrimaryProfile = {
       ...profileA,
+      template: {
+        ...profileA.template,
+        liveSurface: {
+          ...profileA.template.liveSurface,
+          assetReplacementSources: profileA.template.liveSurface.assetReplacementSources.map((source) => ({
+            ...source,
+            componentRole: "choice" as const
+          }))
+        }
+      },
       components: [
         ...profileA.components,
         {
@@ -606,6 +616,44 @@ describe("studio UI", () => {
     };
 
     render(React.createElement(TrustedPreview, { profile: duplicatePrimaryProfile }));
+
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("multiple trusted preview primary render requests");
+    expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
+  });
+
+  it("does not auto-select the first duplicate primary trusted preview surface", () => {
+    const duplicatePrimaryProfile = {
+      ...profileA,
+      template: {
+        ...profileA.template,
+        liveSurface: {
+          ...profileA.template.liveSurface,
+          assetReplacementSources: profileA.template.liveSurface.assetReplacementSources.map((source) => ({
+            ...source,
+            componentRole: "choice" as const
+          }))
+        }
+      },
+      components: [
+        ...profileA.components,
+        {
+          ...profileA.components[0],
+          bindingId: `${profileA.components[0].bindingId}.duplicate`
+        }
+      ]
+    };
+
+    render(React.createElement(StudioApp, {
+      client: createLocalStudioClient(),
+      initialSession: {
+        sessionId: "session.duplicate-primary",
+        activeProfileId: duplicatePrimaryProfile.id,
+        activeProfile: duplicatePrimaryProfile,
+        timeline: [timelineEntry("timeline.duplicate-primary", "Duplicate primary profile", "activity", duplicatePrimaryProfile.id)]
+      }
+    }));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
 
     expect(screen.getByTestId("trusted-preview-error").textContent).toContain("multiple trusted preview primary render requests");
     expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();

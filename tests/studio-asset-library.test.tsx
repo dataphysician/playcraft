@@ -136,7 +136,9 @@ describe("studio asset library", () => {
       ]
     };
 
-    expect(() => render(React.createElement(LiveGame, { profile: duplicateProfile }))).toThrow(/multiple live surface components/u);
+    render(React.createElement(LiveGame, { profile: duplicateProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("multiple live surface components");
   });
 
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {

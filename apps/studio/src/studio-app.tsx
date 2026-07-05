@@ -73,7 +73,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
         return current;
       }
 
-      return componentSummaries.find((component) => component.isPrimaryPreviewSurface)?.componentKey;
+      return primaryPreviewComponentKey(componentSummaries);
     });
   }, [activeProfileId, componentSummaries]);
 
@@ -854,6 +854,11 @@ function TimelinePanel({
         )
       : React.createElement("div", { role: "status", style: shellStyles.emptyState }, "Timeline events will appear here.")
   );
+}
+
+function primaryPreviewComponentKey(componentSummaries: TrustedPreviewComponentSummary[]): string | undefined {
+  const primarySummaries = componentSummaries.filter((component) => component.isPrimaryPreviewSurface);
+  return primarySummaries.length === 1 ? primarySummaries[0].componentKey : undefined;
 }
 
 function synchronousCatalog(client: StudioClient): BuilderCatalog | undefined {
