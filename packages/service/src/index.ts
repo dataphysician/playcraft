@@ -779,7 +779,15 @@ function sourceForServiceRequest(
 }
 
 function textForServiceRequest(request: BuilderServiceRequest): string {
-  return request.moonshineTranscript?.text ?? request.text ?? "";
+  if (request.moonshineTranscript) {
+    return request.moonshineTranscript.text;
+  }
+
+  if (request.text) {
+    return request.text;
+  }
+
+  throw new Error(`${request.actionName} requests require text or a Moonshine transcript record`);
 }
 
 interface TemplateTextMatch {

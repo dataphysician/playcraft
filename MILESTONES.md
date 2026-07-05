@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Strict Service Input Text
+
+Milestone:
+- Service request text normalization now returns Moonshine transcript text or explicit request text only.
+- Missing assemble/update input now throws at the helper boundary instead of falling through to an empty string.
+- The implementation now mirrors `BuilderServiceRequestSchema` input requirements after parse.
+
+Supportive changes:
+- Source scans guard `textForServiceRequest` against the old empty-string fallback.
+- Focused service/source tests verify the service boundary remains schema-owned.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps local text/Moonshine input handling strict without hosted providers, generated runtime code, auth, database state, compatibility shims, or silent empty-request coercion.
+
 ## 2026-07-04 - Strict Sequence Round Props
 
 Milestone:

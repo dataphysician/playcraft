@@ -526,6 +526,14 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("JSON.parse(JSON.stringify");
   });
 
+  it("keeps service input text normalization free of empty-string fallback", () => {
+    const source = readSource("packages/service/src/index.ts");
+
+    expect(source).toContain("function textForServiceRequest(request: BuilderServiceRequest): string");
+    expect(source).toContain("throw new Error(`${request.actionName} requests require text or a Moonshine transcript record`)");
+    expect(source).not.toContain("request.moonshineTranscript?.text ?? request.text ?? \"\"");
+  });
+
   it("keeps service CLI preview/get/export free of hidden assemble seeding", () => {
     const source = readSource("packages/service/src/cli.ts");
 
