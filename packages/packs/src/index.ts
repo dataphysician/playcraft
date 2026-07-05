@@ -239,6 +239,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     description: "A toddler-safe card reveal game that asks the player to find visual pairs.",
     capabilityTags: ["game:memory-match", "mechanic:match-pairs"],
     requestAliases: ["memory", "memory game", "memory match", "matching cards", "card pairs", "pair match"],
+    requestAliasSummary: "memory, memory game, memory match",
     exampleRequest: "Memory game",
     assetPromptKind: "memory-cards",
     assetEditOperations: memoryAssetEditOperations,
@@ -283,6 +284,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     description: "A toddler-safe categorization game that asks the player to move items into matching bins.",
     capabilityTags: ["game:sorting", "mechanic:sort-into-bins"],
     requestAliases: ["sort", "sorting", "sorting game", "category", "categories", "color bins", "group by color"],
+    requestAliasSummary: "sort, sorting, sorting game",
     exampleRequest: "Sorting game",
     assetPromptKind: "sorting-game",
     assetEditOperations: sortingAssetEditOperations,
@@ -326,6 +328,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     description: "A toddler-safe pattern game that asks the player to repeat a short sequence.",
     capabilityTags: ["game:sequence-repeat", "mechanic:sequence-repeat"],
     requestAliases: ["sequence", "sequence repeat", "pattern", "repeat", "repeat pattern", "copy the pattern"],
+    requestAliasSummary: "sequence, sequence repeat, pattern",
     exampleRequest: "Sequence repeat",
     assetPromptKind: "sequence-buttons",
     assetEditOperations: sequenceAssetEditOperations,
@@ -672,6 +675,7 @@ export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.ma
     description: template.description,
     capabilityTags: template.capabilityTags,
     requestAliases: template.requestAliases,
+    requestAliasSummary: template.requestAliasSummary,
     exampleRequest: template.exampleRequest,
     assetPromptKind: template.assetPromptKind,
     assetEditOperations: template.assetEditOperations,
@@ -1332,6 +1336,7 @@ interface MvpProfileTemplate {
   description: string;
   capabilityTags: string[];
   requestAliases: string[];
+  requestAliasSummary: string;
   exampleRequest: string;
   assetPromptKind: GameTemplateAssetPromptKind;
   assetEditOperations: GameTemplateAssetEditOperation[];
@@ -1367,6 +1372,7 @@ function memoryTemplate(input: {
     description: `A toddler-safe matching game for ${input.title.toLowerCase()}.`,
     capabilityTags: [`game:${input.slug}`, "mechanic:match-pairs"],
     requestAliases: input.aliases,
+    requestAliasSummary: requestAliasSummary(input.aliases),
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     assetPromptKind: "memory-cards",
     assetEditOperations: memoryAssetEditOperations,
@@ -1424,6 +1430,7 @@ function sortingTemplate(input: {
     description: `A toddler-safe sorting game for ${input.title.toLowerCase()}.`,
     capabilityTags: [`game:${input.slug}`, "mechanic:sort-into-bins"],
     requestAliases: input.aliases,
+    requestAliasSummary: requestAliasSummary(input.aliases),
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     assetPromptKind: "sorting-game",
     assetEditOperations: sortingAssetEditOperations,
@@ -1480,6 +1487,7 @@ function sequenceTemplate(input: {
     description: `A toddler-safe sequence game for ${input.title.toLowerCase()}.`,
     capabilityTags: [`game:${input.slug}`, "mechanic:sequence-repeat"],
     requestAliases: input.aliases,
+    requestAliasSummary: requestAliasSummary(input.aliases),
     exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
     assetPromptKind: "sequence-buttons",
     assetEditOperations: sequenceAssetEditOperations,
@@ -1532,6 +1540,10 @@ function pairedCards(items: string[]): { cards: string[]; pairs: Record<string, 
 
 function sentenceCase(value: string): string {
   return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
+}
+
+function requestAliasSummary(aliases: string[]): string {
+  return aliases.slice(0, 3).join(", ");
 }
 
 function findMechanicByCapability(capability: string): MechanicDefinition {

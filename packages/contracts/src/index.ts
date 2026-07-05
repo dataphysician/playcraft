@@ -546,6 +546,7 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
   description: z.string().min(1),
   capabilityTags: z.array(CapabilityTagSchema).min(1),
   requestAliases: z.array(z.string().min(2).max(80)).min(1),
+  requestAliasSummary: z.string().min(1).max(240),
   exampleRequest: z.string().min(2).max(120),
   assetPromptKind: GameTemplateAssetPromptKindSchema,
   assetEditOperations: z.array(GameTemplateAssetEditOperationSchema).min(1),

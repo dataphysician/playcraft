@@ -158,6 +158,8 @@ describe("MVP profile pack", () => {
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)
     );
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.memory-match")?.requestAliasSummary).toBe("memory, memory game, memory match");
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.sorting")?.requestAliasSummary).toBe("sort, sorting, sorting game");
   });
 
   it("keeps bundled mechanics and templates free of runtime audio capture modalities", () => {

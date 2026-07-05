@@ -263,6 +263,7 @@ describe("import-light boundaries and source scans", () => {
 
     expect(cliSource).toContain("template.displayLabel");
     expect(cliSource).toContain("template.exampleRequest");
+    expect(cliSource).toContain("template.requestAliasSummary");
     expect(cliSource).toContain("tool.displayName");
     expect(cliSource).toContain("catalog.input.noInputLabel");
     expect(cliSource).toContain("tool.argumentsSchema");
@@ -272,6 +273,7 @@ describe("import-light boundaries and source scans", () => {
     expect(cliSource).toContain("catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel)");
     expect(cliSource).not.toContain("catalog.templates.map((template) => template.id)");
     expect(cliSource).not.toContain("catalog.tools.map((tool) => tool.toolName)");
+    expect(cliSource).not.toContain("requestAliases.slice(0, 3)");
     expect(cliSource).not.toContain('sources.join(", ")');
   });
 
@@ -290,8 +292,10 @@ describe("import-light boundaries and source scans", () => {
     expect(builderCliSource).toContain("presentation.noArgumentsLabel");
     expect(builderCliSource).toContain("template.displayLabel");
     expect(builderCliSource).toContain("template.exampleRequest");
+    expect(builderCliSource).toContain("template.requestAliasSummary");
     expect(builderCliSource).toContain("if (!args.json)");
     expect(builderCliSource).not.toContain('"args: none"');
+    expect(builderCliSource).not.toContain("requestAliases.slice(0, 3)");
   });
 
   it("keeps Studio service event ingestion schema-backed", () => {
@@ -614,10 +618,13 @@ describe("import-light boundaries and source scans", () => {
     const packSource = readSource("packages/packs/src/index.ts");
 
     expect(contractSource).toContain("displayLabel");
+    expect(contractSource).toContain("requestAliasSummary");
     expect(packSource).toContain("displayLabel: template.displayLabel");
     expect(studioSource).toContain("catalog.requestTips.summaryLines");
+    expect(studioSource).toContain("template.requestAliasSummary");
     expect(studioSource).not.toContain("displayGameName");
     expect(studioSource).not.toContain("replace(/\\s+MVP");
+    expect(studioSource).not.toContain("requestAliases.slice(0, 3)");
     expect(packSource).not.toContain("displayLabelForTemplateName");
     expect(packSource).not.toContain("replace(/\\s+MVP");
   });

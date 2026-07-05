@@ -308,7 +308,7 @@ function writeServiceEnvelopeResponse(response: BuilderServiceResponse, json: bo
 function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): void {
   io.stdout("templates:");
   for (const template of catalog.templates) {
-    io.stdout(`- ${template.displayLabel} [${template.id}] try: ${template.exampleRequest}; aliases: ${template.requestAliases.slice(0, 3).join(", ")}`);
+    io.stdout(`- ${template.displayLabel} [${template.id}] try: ${template.exampleRequest}; aliases: ${template.requestAliasSummary}`);
   }
 
   io.stdout("tools:");

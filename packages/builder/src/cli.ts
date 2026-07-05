@@ -157,7 +157,7 @@ function writeCatalogSummary(
 
   io.stdout("templates:");
   for (const template of templates) {
-    io.stdout(`- ${template.displayLabel} [${template.id}] try: ${template.exampleRequest}; aliases: ${template.requestAliases.slice(0, 3).join(", ")}`);
+    io.stdout(`- ${template.displayLabel} [${template.id}] try: ${template.exampleRequest}; aliases: ${template.requestAliasSummary}`);
   }
 }
 

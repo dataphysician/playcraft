@@ -482,7 +482,7 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               { key: template.id, style: shellStyles.catalogItem },
               React.createElement("strong", null, template.displayName),
               React.createElement("span", { style: shellStyles.catalogMeta }, template.id),
-              React.createElement("span", { style: shellStyles.catalogMeta }, template.requestAliases.slice(0, 3).join(", "))
+              React.createElement("span", { style: shellStyles.catalogMeta }, template.requestAliasSummary)
             )
           )
         )

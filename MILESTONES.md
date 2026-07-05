@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Publish Template Alias Summaries
+
+Milestone:
+- Game template contracts now include `requestAliasSummary` as the agent-facing alias presentation field.
+- Bundled toddler-game templates publish alias summaries from the pack layer.
+- Studio Developer catalog, builder CLI, and service CLI now read template alias summaries from the contract instead of slicing request aliases locally.
+
+Supportive changes:
+- Pack and source-scan tests validate template-owned alias summaries.
+- Source scans block local `requestAliases.slice(0, 3)` presentation shortcuts from returning in Studio and CLI catalog surfaces.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/packs/test/mvp-profiles.test.ts packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Keeps agent-facing template presentation contract-owned and forward-only without UI/CLI alias truncation shortcuts, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Publish Catalog-Owned Request Tips
 
 Milestone:
