@@ -623,6 +623,10 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
   .refine((value) => value.template.assemblyRequestId === value.assemblyRequestId, {
     message: "profile template snapshot must match assemblyRequestId",
     path: ["template", "assemblyRequestId"]
+  })
+  .refine((value) => value.validation.profileId === value.id, {
+    message: "profile validation snapshot must match profile id",
+    path: ["validation", "profileId"]
   });
 export type GameAssemblyProfile = z.infer<typeof GameAssemblyProfileSchema>;
 

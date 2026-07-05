@@ -657,6 +657,21 @@ describe("public contract schemas", () => {
     ).toBe(false);
   });
 
+  it("requires profiles to carry matching validation snapshots", () => {
+    const profile = assembleMvpProfiles()[0];
+    expect(profile).toBeDefined();
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        validation: {
+          ...profile!.validation,
+          profileId: "profile.other"
+        }
+      }).success
+    ).toBe(false);
+  });
+
   it("keeps render requests strict and identified", () => {
     const result = ComponentRenderRequestSchema.safeParse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

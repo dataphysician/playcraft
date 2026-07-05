@@ -1732,6 +1732,10 @@ describe("local Playcraft service", () => {
     const customProfile = {
       ...profile!,
       id: "profile.service-custom-memory",
+      validation: {
+        ...profile!.validation,
+        profileId: "profile.service-custom-memory"
+      },
       assemblyRequestId: "request.service-custom-memory",
       template: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

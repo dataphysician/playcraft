@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { assembleMvpProfiles } from "@playcraft/packs";
 import {
   BuilderProfileExportSchema,
@@ -736,11 +736,11 @@ describe("studio UI", () => {
     expect(screen.queryByLabelText("Chat history")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "toy-1-a" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "toy-1-a" }).textContent?.toLowerCase()).toContain("toy 1"));
+    await within(screen.getByRole("button", { name: "toy-1-a" })).findByRole("img", { name: /toy 1/u });
     fireEvent.click(screen.getByRole("button", { name: "toy-1-b" }));
     await waitFor(() => expect(screen.getByText("1 of 2 pairs")).toBeDefined());
     fireEvent.click(screen.getByRole("button", { name: "toy-2-a" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "toy-2-a" }).textContent?.toLowerCase()).toContain("toy 2"));
+    await within(screen.getByRole("button", { name: "toy-2-a" })).findByRole("img", { name: /toy 2/u });
     fireEvent.click(screen.getByRole("button", { name: "toy-2-b" }));
     await waitFor(() => expect(screen.getByText("All pairs found")).toBeDefined());
     await waitFor(() => {

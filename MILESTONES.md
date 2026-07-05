@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Profile Validation Snapshot IDs
+
+Milestone:
+- Game assembly profiles now fail contract parsing when their embedded validation snapshot points at a different profile id.
+- Imported profile metadata can no longer report validation state for a different profile than the one being replayed.
+
+Supportive changes:
+- Contract schema tests cover mismatched profile validation snapshot ids.
+- Builder and service custom import fixtures now update validation profile ids when they rename profiles.
+- Studio memory asset swap assertions now target revealed card image labels instead of text fallback timing.
+- Source scans guard validation snapshot identity beside imported template snapshot identity.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps validation metadata profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or cross-profile validation snapshots.
+
 ## 2026-07-05 - Exact Core Replay Event Order
 
 Milestone:

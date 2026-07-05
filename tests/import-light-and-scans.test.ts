@@ -639,6 +639,10 @@ describe("import-light boundaries and source scans", () => {
 
     expect(contractSource).toContain("template: GameProfileTemplateSnapshotSchema,");
     expect(contractSource).toContain("profile template snapshot must match assemblyRequestId");
+    expect(contractSource).toContain("profile validation snapshot must match profile id");
+    expect(readSource("packages/contracts/test/schemas.test.ts")).toContain("requires profiles to carry matching validation snapshots");
+    expect(readSource("packages/builder/test/session-service.test.ts")).toContain('profileId: "profile.custom-memory"');
+    expect(readSource("packages/service/test/local-service.test.ts")).toContain('profileId: "profile.service-custom-memory"');
     expect(builderSource).toContain("return profile.template");
     expect(builderSource).not.toContain("if (profile.template)");
     expect(builderSource).not.toContain("must carry a template snapshot");

@@ -283,6 +283,10 @@ describe("builder session service", () => {
     const custom = {
       ...exported!,
       id: "profile.custom-memory-three-pairs",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-memory-three-pairs"
+      },
       components: exported!.components.map((component) =>
         component.renderCapability === "component:reveal-card-grid"
           ? {
@@ -340,6 +344,10 @@ describe("builder session service", () => {
     const custom = {
       ...exported!,
       id: "profile.custom-memory-undercovered",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-memory-undercovered"
+      },
       components: exported!.components.map((component) =>
         component.renderCapability === "component:reveal-card-grid"
           ? {
@@ -410,6 +418,10 @@ describe("builder session service", () => {
     const custom = {
       ...exported!,
       id: "profile.custom-sorting-without-bins",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-sorting-without-bins"
+      },
       components: exported!.components.map((component) =>
         component.renderCapability === "component:sort-bins"
           ? {
@@ -443,6 +455,10 @@ describe("builder session service", () => {
     const custom = {
       ...exported!,
       id: "profile.custom-sorting-duplicate-bins",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-sorting-duplicate-bins"
+      },
       template: {
         ...exported!.template,
         liveSurface: {
@@ -483,6 +499,10 @@ describe("builder session service", () => {
     const custom = {
       ...exported!,
       id: "profile.custom-sorting-dup-ops",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-sorting-dup-ops"
+      },
       template: {
         ...exported!.template,
         assetEditOperations: [
@@ -564,6 +584,10 @@ describe("builder session service", () => {
     const custom = {
       ...exported!,
       id: "profile.custom-sequence-without-pattern",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-sequence-without-pattern"
+      },
       components: exported!.components.map((component) =>
         component.renderCapability === "component:sequence-pad"
           ? {
@@ -596,6 +620,10 @@ describe("builder session service", () => {
     const custom = {
       ...exported!,
       id: "profile.custom-sequence-without-rounds",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-sequence-without-rounds"
+      },
       components: exported!.components.map((component) =>
         component.renderCapability === "component:sequence-pad"
           ? {
@@ -634,6 +662,10 @@ describe("builder session service", () => {
     const custom = {
       ...exported!,
       id: "profile.custom-sequence",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-sequence"
+      },
       components: exported!.components.map((component) => {
         if (component.renderCapability === "component:sequence-pad") {
           return {
@@ -761,6 +793,10 @@ describe("builder session service", () => {
     const renamed = {
       ...exported!,
       id: "profile.custom-memory",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-memory"
+      },
       profileName: "Custom Memory"
     };
 
@@ -786,6 +822,10 @@ describe("builder session service", () => {
     const unknownAssemblyProfile = {
       ...exported!,
       id: "profile.custom-memory",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-memory"
+      },
       assemblyRequestId: "request.custom-memory",
       template: undefined
     };
@@ -802,6 +842,10 @@ describe("builder session service", () => {
     const customProfile = {
       ...exported!,
       id: "profile.custom-template-memory",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-template-memory"
+      },
       assemblyRequestId: "request.custom-template-memory",
       template: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -872,6 +916,10 @@ describe("builder session service", () => {
     const customProfile = {
       ...exported!,
       id: "profile.custom-template-memory",
+      validation: {
+        ...exported!.validation,
+        profileId: "profile.custom-template-memory"
+      },
       assemblyRequestId: "request.custom-template-memory",
       template: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
