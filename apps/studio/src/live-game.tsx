@@ -167,31 +167,41 @@ function LiveGameForProfile({
     requireUniqueProfileAssetIds(profile);
 
     switch (liveSurface.kind) {
-      case "memory":
+      case "memory": {
+        const component = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
+        validateTokenStylesForTokens(profile.id, memoryStyleTokens(component), tokenStyleCatalog);
         return React.createElement(MemoryGame, {
           profile,
-          component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
+          component,
           replacements,
           tokenStyleCatalog,
           onInteraction
         });
-      case "sorting":
+      }
+      case "sorting": {
+        const component = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
+        validateTokenStylesForTokens(profile.id, sortingStyleTokens(component), tokenStyleCatalog);
         return React.createElement(SortingGame, {
           profile,
-          component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
+          component,
           replacements,
           tokenStyleCatalog,
           onInteraction
         });
-      case "sequence":
+      }
+      case "sequence": {
+        const sequenceComponent = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
+        const choiceComponent = optionalComponentByCapability(profile, liveSurface.componentCapabilities.choice);
+        validateTokenStylesForTokens(profile.id, sequenceStyleTokens(sequenceComponent, choiceComponent), tokenStyleCatalog);
         return React.createElement(SequenceGame, {
           profile,
-          sequenceComponent: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
-          choiceComponent: optionalComponentByCapability(profile, liveSurface.componentCapabilities.choice),
+          sequenceComponent,
+          choiceComponent,
           replacements,
           tokenStyleCatalog,
           onInteraction
         });
+      }
     }
   } catch (cause) {
     return React.createElement(LiveGameFailure, { message: errorMessage(cause, "live game surface selection failed") });
@@ -1129,6 +1139,40 @@ function tokenStyleCatalogForSurface(liveSurface: GameTemplateLiveSurface): Toke
   };
 }
 
+function validateTokenStylesForTokens(
+  profileId: string,
+  tokens: string[],
+  tokenStyleCatalog: TokenStyleCatalog
+): void {
+  for (const token of uniqueStrings(tokens)) {
+    const matches = tokenStyleMatchesForToken(token, tokenStyleCatalog);
+    if (matches.length > 1) {
+      throw new Error(`profile ${profileId} live token ${token} maps to multiple token styles: ${matches.map(describeTokenStyle).join(", ")}`);
+    }
+  }
+}
+
+function memoryStyleTokens(component: ComponentBinding): string[] {
+  return Object.values(stringRecordProp(component.props, "pairs"));
+}
+
+function sortingStyleTokens(component: ComponentBinding): string[] {
+  const targets = stringRecordProp(component.props, "targets");
+  return [
+    ...stringArrayProp(component.props, "items"),
+    ...stringArrayProp(component.props, "bins"),
+    ...Object.values(targets)
+  ];
+}
+
+function sequenceStyleTokens(sequenceComponent: ComponentBinding, choiceComponent: ComponentBinding | undefined): string[] {
+  return [
+    ...stringArrayProp(sequenceComponent.props, "sequence"),
+    ...stringMatrixProp(sequenceComponent.props, "rounds").flat(),
+    ...stringArrayProp(choiceComponent?.props ?? {}, "items")
+  ];
+}
+
 function requiredComponentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding {
   const component = optionalComponentByCapability(profile, capability);
   if (!component) {
@@ -1452,10 +1496,11 @@ function colorForToken(
   token: string,
   tokenStyleCatalog: TokenStyleCatalog
 ): MemoryPairVisual {
-  const tokenParts = normalizedTokens(token);
-  const tokenStyle = tokenStyleCatalog.tokenStyles.find((entry) =>
-    entry.tokens.some((styleToken) => tokenSequenceIncludes(tokenParts, normalizedTokens(styleToken)))
-  ) ?? tokenStyleCatalog.defaultStyle;
+  const matches = tokenStyleMatchesForToken(token, tokenStyleCatalog);
+  if (matches.length > 1) {
+    throw new Error(`live token ${token} maps to multiple token styles: ${matches.map(describeTokenStyle).join(", ")}`);
+  }
+  const tokenStyle = matches[0] ?? tokenStyleCatalog.defaultStyle;
 
   return {
     background: tokenStyle.background,
@@ -1463,6 +1508,17 @@ function colorForToken(
     foreground: tokenStyle.foreground,
     accent: tokenStyle.accent
   };
+}
+
+function tokenStyleMatchesForToken(token: string, tokenStyleCatalog: TokenStyleCatalog): GameTemplateTokenStyle[] {
+  const tokenParts = normalizedTokens(token);
+  return tokenStyleCatalog.tokenStyles.filter((entry) =>
+    entry.tokens.some((styleToken) => tokenSequenceIncludes(tokenParts, normalizedTokens(styleToken)))
+  );
+}
+
+function describeTokenStyle(tokenStyle: GameTemplateTokenStyle): string {
+  return tokenStyle.tokens.join("|");
 }
 
 function normalizedTokens(value: string): string[] {

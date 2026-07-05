@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Token Styles
+
+Milestone:
+- Live App token styling now rejects imported/custom template snapshots whose token style rules match the same rendered game token more than once.
+- Memory, sorting, and sequence game surfaces validate style-driving tokens before rendering instead of taking the first matching style rule.
+
+Supportive changes:
+- Studio asset-library tests cover duplicate Live App token styles in profile-carried template snapshots.
+- Source scans block first-match token style lookup from returning.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Live App visual styling template-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or token-style order inference.
+
 ## 2026-07-05 - Exact Studio Replacement Catalog Matches
 
 Milestone:

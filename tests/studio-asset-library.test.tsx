@@ -273,6 +273,35 @@ describe("studio asset library", () => {
     expect(screen.getByTestId("live-game-error").textContent).toContain(profile!.assets[0]!.assetId);
   });
 
+  it("rejects duplicate Live App token styles instead of using style order", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const duplicateStyleProfile = {
+      ...profile!,
+      template: {
+        ...profile!.template,
+        liveSurface: {
+          ...profile!.template.liveSurface,
+          tokenStyles: [
+            ...profile!.template.liveSurface.tokenStyles,
+            {
+              ...profile!.template.liveSurface.tokenStyles[0]!,
+              background: "#ffffff"
+            }
+          ]
+        }
+      }
+    };
+
+    render(React.createElement(LiveGame, { profile: duplicateStyleProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("live token pair-1 maps to multiple token styles");
+    expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
+  });
+
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toybox" });
