@@ -149,6 +149,18 @@ describe("studio asset library", () => {
     expect(replacements["card:toy-1-a"]?.uri.length).toBeGreaterThan(0);
   });
 
+  it("maps sorting item sprites from explicit asset item IDs instead of item order", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Sorting game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const replacements = createProfileLibraryAssetReplacements(profile!);
+    expect(replacements["item:toy-1"]?.altText).toBe("toy 1 sprite");
+    expect(replacements["item:toy-2"]?.altText).toBe("toy 2 sprite");
+    expect(replacements["item:red toy"]).toBeUndefined();
+  });
+
   it("ignores bare token asset replacements in the Live App renderer", async () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });

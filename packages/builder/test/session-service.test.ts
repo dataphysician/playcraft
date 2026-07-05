@@ -255,10 +255,10 @@ describe("builder session service", () => {
     const edited = service.execute(command({ templateId: "template.sorting", assetEdit: { theme: "toys" } }));
     const sortBins = edited.result.profile?.components.find((component) => component.renderCapability === "component:sort-bins");
 
-    expect(sortBins?.props.items).toEqual(["red toy", "blue toy"]);
+    expect(sortBins?.props.items).toEqual(["toy-1", "toy-2"]);
     expect(sortBins?.props.targets).toEqual({
-      "red toy": "red",
-      "blue toy": "blue"
+      "toy-1": "red",
+      "toy-2": "blue"
     });
     expect(edited.result.validation?.valid).toBe(true);
   });

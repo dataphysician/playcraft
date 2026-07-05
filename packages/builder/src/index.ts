@@ -836,7 +836,7 @@ function editComponentProps(
       };
     case "sorting-items": {
       const activeBins = requireStringArrayProp(props, "bins", "sorting-items");
-      const items = activeBins.map((bin) => `${bin} ${edit.singularTheme}`);
+      const items = requireAssetEditItemsForBins(edit, activeBins);
       return {
         ...props,
         title: `${titleCase(edit.theme)} bins`,
@@ -921,6 +921,14 @@ function assetEditCatalogEntryFor(theme: string): typeof localAssetEditCatalog[n
 function freeformItemsForTheme(singularTheme: string): string[] {
   const base = slugLabel(singularTheme);
   return localAssetEditFreeformItemSuffixes.map((suffix) => `${base}-${suffix}`);
+}
+
+function requireAssetEditItemsForBins(edit: NormalizedAssetEdit, bins: string[]): string[] {
+  if (edit.items.length < bins.length) {
+    throw new Error(`sorting-items requires at least ${bins.length} asset edit items for bins ${bins.join(", ")}`);
+  }
+
+  return edit.items.slice(0, bins.length);
 }
 
 function remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>): string[] {

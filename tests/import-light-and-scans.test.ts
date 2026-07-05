@@ -555,6 +555,7 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).toContain("function pairedCardSpriteIdentifier");
     expect(assetLibrarySource).not.toContain("normalized.endsWith");
     expect(assetLibrarySource).not.toContain(".find((entry): entry is ReplacementSprite => Boolean(entry))");
+    expect(assetLibrarySource).not.toContain("candidates[index % candidates.length]");
   });
 
   it("keeps imported profile template selection tied to assembly request contracts", () => {
@@ -1149,9 +1150,12 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string array prop ${key}");
     expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string matrix prop ${key}");
     expect(builderSource).toContain('requireStringArrayProp(props, "bins", "sorting-items")');
+    expect(builderSource).toContain("function requireAssetEditItemsForBins");
+    expect(builderSource).toContain("sorting-items requires at least ${bins.length} asset edit items");
     expect(builderSource).toContain('requireStringArrayProp(props, "sequence", "sequence-items")');
     expect(builderSource).toContain('requireStringMatrixProp(props, "rounds", "sequence-items")');
     expect(builderSource).not.toContain('bins.length > 0 ? bins : ["red", "blue"]');
+    expect(builderSource).not.toContain('activeBins.map((bin) => `${bin} ${edit.singularTheme}`)');
     expect(builderSource).not.toContain("remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>, fallback");
     expect(builderSource).not.toContain("return [fallback]");
     expect(builderSource).not.toContain("rounds.length > 0 ? rounds : [sequence]");

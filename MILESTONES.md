@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Sorting Asset Item Tokens
+
+Milestone:
+- Sorting asset edits now emit explicit asset item IDs such as `toy-1` and `toy-2` mapped to authored bins instead of color-prefixed theme labels.
+- Studio local item sprite replacement no longer assigns unmatched tokens to sprites by token order.
+
+Supportive changes:
+- Builder tests assert sorting item IDs and target mappings stay explicit after asset edits.
+- Studio asset-library tests assert sorting replacements use namespaced exact item IDs and do not create stale color-prefixed replacement keys.
+- Source scans block the old color-label sorting item generation and the old index-based sprite fallback.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Sorting asset token source scan confirmed explicit item IDs and no index-based replacement sprite fallback.
+
+Constraint notes:
+- Keeps edit-aware local asset replacement explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or token-order sprite substitution.
+
 ## 2026-07-04 - Fail-Closed Planner Recipe Ties
 
 Milestone:

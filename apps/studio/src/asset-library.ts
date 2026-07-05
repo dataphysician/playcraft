@@ -163,8 +163,8 @@ function addTokenReplacements(
   themeFolders: string[],
   namespace: GameTemplateAssetReplacementNamespace
 ): void {
-  for (const [index, token] of uniqueStrings(tokens).entries()) {
-    const sprite = spriteForIdentifier(token, themeFolders, index);
+  for (const token of uniqueStrings(tokens)) {
+    const sprite = spriteForIdentifier(token, themeFolders);
     if (!sprite) {
       continue;
     }
@@ -294,7 +294,7 @@ function themeTerms(theme: string): string[] {
   return uniqueStrings([normalized, singular, catalogEntry?.theme, catalogEntry?.displayLabel, ...(catalogEntry?.aliases ?? [])].filter((entry): entry is string => Boolean(entry)));
 }
 
-function spriteForIdentifier(identifier: string, themeFolders: string[], index: number): ReplacementSprite | undefined {
+function spriteForIdentifier(identifier: string, themeFolders: string[]): ReplacementSprite | undefined {
   const normalized = slugLabel(identifier);
   const themeSprites = replacementSprites.filter((sprite) => themeFolders.includes(sprite.theme));
   if (themeSprites.length === 0) {
@@ -313,7 +313,7 @@ function spriteForIdentifier(identifier: string, themeFolders: string[], index: 
     return ordinalMatch;
   }
 
-  return candidates[index % candidates.length];
+  return undefined;
 }
 
 function spriteForPairedCardIdentifier(identifier: string, themeFolders: string[]): ReplacementSprite | undefined {
