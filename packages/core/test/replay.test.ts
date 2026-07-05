@@ -160,13 +160,13 @@ describe("saved profile replay", () => {
       components: [
         ...saved.components,
         {
-          ...saved.components[0]!
+          ...saved.components[1]!
         }
       ]
     };
 
     expect(() => replayProfile(duplicateComponentProfile, createDefaultRegistries())).toThrow(
-      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate component binding ids: ${saved.components[0]!.bindingId.replace(/\./gu, "\\.")}`, "u")
+      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate component binding ids: ${saved.components[1]!.bindingId.replace(/\./gu, "\\.")}`, "u")
     );
   });
 

@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Profile Live Surface Components Are Schema-Owned
+
+Milestone:
+- `GameAssemblyProfileSchema` now requires every authored live-surface component capability to be present exactly once in the profile component bindings.
+- Imported or saved profiles with missing or duplicate live game components fail at the public contract boundary instead of relying on Studio or builder runtime selection checks.
+
+Supportive changes:
+- Contract tests cover missing and duplicate live-surface component bindings.
+- Source scans guard the schema-level component presence and uniqueness validation alongside the existing runtime fail-closed checks.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden stale removed-provider exact scan
+- full ignored-path legacy transcript/provider scan
+
+Constraint notes:
+- Keeps saved profiles self-validating for local agent-driven toddler mini-game assembly without component-order fallback, UI-only validation, or late discovery of malformed live surfaces.
+
 ## 2026-07-05 - Live Surface Asset Sources Are Schema-Owned
 
 Milestone:

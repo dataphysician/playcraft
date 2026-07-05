@@ -788,6 +788,8 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("??\n        replay.renderRequests[0]");
     expect(source).not.toContain("?? replay.renderRequests[0]");
     expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile components contain duplicate binding ids");
+    expect(readSource("packages/builder/test/session-service.test.ts")).toContain("rejects duplicate primary preview components at the profile contract boundary");
+    expect(readSource("tests/studio-ui.test.ts")).toContain("fails closed when trusted preview has duplicate primary profile components");
     expect(readSource("tests/studio-ui.test.ts")).toContain("fails closed when a selected trusted preview component key has duplicate component bindings");
   });
 
@@ -1485,6 +1487,9 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).not.toContain("liveSurface?.kind");
     expect(liveGameSource).toContain("liveSurface.componentCapabilities.primary");
     expect(liveGameSource).toContain("liveSurface.componentCapabilities.choice");
+    expect(contractSource).toContain("liveSurfaceComponentCapabilities(value.template.liveSurface.componentCapabilities)");
+    expect(contractSource).toContain("profile live surface component ${capability} must be present in components");
+    expect(contractSource).toContain("profile live surface component ${capability} must be unique in components");
     expect(liveGameSource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");
     expect(liveGameSource).toContain("has multiple live surface components");
     expect(liveGameSource).toContain("function singleValue");

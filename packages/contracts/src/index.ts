@@ -639,8 +639,33 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
   .refine((value) => value.validation.profileId === value.id, {
     message: "profile validation snapshot must match profile id",
     path: ["validation", "profileId"]
+  })
+  .superRefine((value, context) => {
+    for (const capability of liveSurfaceComponentCapabilities(value.template.liveSurface.componentCapabilities)) {
+      const matches = value.components.filter((component) => component.renderCapability === capability);
+      if (matches.length === 0) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `profile live surface component ${capability} must be present in components`,
+          path: ["components"]
+        });
+      }
+      if (matches.length > 1) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `profile live surface component ${capability} must be unique in components`,
+          path: ["components"]
+        });
+      }
+    }
   });
 export type GameAssemblyProfile = z.infer<typeof GameAssemblyProfileSchema>;
+
+function liveSurfaceComponentCapabilities(
+  capabilities: GameTemplateLiveSurfaceComponentCapabilities
+): string[] {
+  return [capabilities.primary, capabilities.choice].filter((capability): capability is string => Boolean(capability));
+}
 
 export const BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"]);
 export type BuilderInputSource = z.infer<typeof BuilderInputSourceSchema>;

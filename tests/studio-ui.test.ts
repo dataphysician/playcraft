@@ -671,7 +671,7 @@ describe("studio UI", () => {
     expect(screen.queryByText("You found every pair.")).toBeNull();
   });
 
-  it("fails closed when trusted preview has duplicate primary render requests", () => {
+  it("fails closed when trusted preview has duplicate primary profile components", () => {
     const duplicatePrimaryProfile = {
       ...profileA,
       components: [
@@ -685,11 +685,11 @@ describe("studio UI", () => {
 
     render(React.createElement(TrustedPreview, { profile: duplicatePrimaryProfile }));
 
-    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("multiple trusted preview primary render requests");
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("profile live surface component component:reveal-card-grid must be unique in components");
     expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
   });
 
-  it("does not auto-select the first duplicate primary trusted preview surface", () => {
+  it("does not auto-select the first duplicate primary profile component", () => {
     const duplicatePrimaryProfile = {
       ...profileA,
       components: [
@@ -713,7 +713,7 @@ describe("studio UI", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
 
-    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("multiple trusted preview primary render requests");
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("profile live surface component component:reveal-card-grid must be unique in components");
     expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
   });
 

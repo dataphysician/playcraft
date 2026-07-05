@@ -766,6 +766,34 @@ describe("public contract schemas", () => {
     ).toBe(false);
   });
 
+  it("requires profiles to carry exactly one live surface component per authored capability", () => {
+    const profile = assembleMvpProfiles()[0];
+    expect(profile).toBeDefined();
+    const primaryCapability = profile!.template.liveSurface.componentCapabilities.primary;
+    const primaryComponent = profile!.components.find((component) => component.renderCapability === primaryCapability);
+    expect(primaryComponent).toBeDefined();
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        components: profile!.components.filter((component) => component.renderCapability !== primaryCapability)
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        components: [
+          ...profile!.components,
+          {
+            ...primaryComponent!,
+            bindingId: `${primaryComponent!.bindingId}.duplicate`
+          }
+        ]
+      }).success
+    ).toBe(false);
+  });
+
   it("keeps render requests strict and identified", () => {
     const result = ComponentRenderRequestSchema.safeParse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

@@ -1057,7 +1057,7 @@ describe("builder session service", () => {
     expect(preview.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("tool:preview-interaction"))).toBe(false);
   });
 
-  it("rejects duplicate primary preview render requests instead of using replay order", () => {
+  it("rejects duplicate primary preview components at the profile contract boundary", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
     expect(exported).toBeDefined();
@@ -1075,7 +1075,7 @@ describe("builder session service", () => {
     const target = new PlaycraftBuilderSessionService();
 
     expect(() => target.importProfile("session.duplicate-primary-preview", duplicatePrimaryProfile)).toThrow(
-      /multiple live-surface primary render requests/u
+      /profile live surface component component:reveal-card-grid must be unique in components/u
     );
   });
 
