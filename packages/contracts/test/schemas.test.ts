@@ -205,6 +205,7 @@ describe("public contract schemas", () => {
         },
         requestTips: {
           availableGames: ["Memory Match"],
+          featuredGames: ["Memory Match"],
           assetEdits: ["with dinosaurs"],
           examples: ["Memory game with dinosaurs"],
           summaryLines: [

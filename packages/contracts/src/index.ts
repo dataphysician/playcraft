@@ -833,6 +833,7 @@ export type BuilderServiceCatalog = z.infer<typeof BuilderServiceCatalogSchema>;
 export const BuilderCatalogRequestTipsSchema = z
   .object({
     availableGames: z.array(z.string().min(1).max(80)).min(1),
+    featuredGames: z.array(z.string().min(1).max(80)).min(1),
     assetEdits: z.array(z.string().min(1).max(80)).min(1),
     examples: z.array(z.string().min(1).max(160)).min(1),
     summaryLines: z.array(z.string().min(1).max(240)).min(1)

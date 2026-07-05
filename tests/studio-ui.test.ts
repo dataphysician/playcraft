@@ -371,7 +371,7 @@ describe("studio UI", () => {
     fireEvent.mouseEnter(screen.getByRole("button", { name: "Request tips" }));
 
     expect(screen.getByRole("tooltip")).toBeDefined();
-    expect(await screen.findByText("Available games: Memory Match, Sorting, Sequence Repeat, Shape Memory, Color Memory, plus 19 more.")).toBeDefined();
+    expect(await screen.findByText("Available games: Memory Match, Sorting, Sequence Repeat, plus 21 more.")).toBeDefined();
     expect(screen.getByText("Asset edits: with dinosaurs, with toys, with ocean animals, with fruit.")).toBeDefined();
     expect(screen.getByText("Try: Memory game with dinosaurs; Sorting game with toys; Sequence repeat with ocean animals.")).toBeDefined();
   });

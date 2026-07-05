@@ -1020,6 +1020,7 @@ describe("import-light boundaries and source scans", () => {
 
     expect(contractSource).toContain("BuilderCatalogRequestTipsSchema");
     expect(contractSource).toContain("exampleRequest");
+    expect(contractSource).toContain("featuredGames: z.array");
     expect(packSource).toContain("exampleRequest: input.exampleRequest");
     expect(packSource).not.toContain("exampleRequest?: string");
     expect(packSource).not.toContain("sentenceCase");
@@ -1027,8 +1028,13 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).toContain("requestTipsForCatalog");
     expect(serviceSource).toContain("requestTips: requestTipsForCatalog");
     expect(serviceSource).toContain("LOCAL_SERVICE_REQUEST_TIP_EXAMPLES");
+    expect(serviceSource).toContain("LOCAL_SERVICE_REQUEST_TIP_FEATURED_TEMPLATE_IDS");
+    expect(serviceSource).toContain("requiredTemplateForRequestTip");
     expect(serviceSource).toContain('templateId: "template.memory-match"');
     expect(serviceSource).toContain('request: "Memory game with dinosaurs"');
+    expect(serviceSource).not.toContain("availableGames.slice");
+    expect(serviceSource).not.toContain("visibleGames");
+    expect(serviceSource).not.toContain(".filter((entry) => templateIds.has(entry.templateId))");
     expect(serviceSource).not.toContain("assetEdits[index % Math.max(assetEdits.length, 1)]");
     expect(serviceSource).not.toContain("templates.slice(0, 3).map((template, index)");
     expect(serviceSource).not.toContain("function sentenceCase");

@@ -91,6 +91,12 @@ export const LOCAL_SERVICE_REQUEST_TIP_EXAMPLES = [
   }
 ] as const;
 
+export const LOCAL_SERVICE_REQUEST_TIP_FEATURED_TEMPLATE_IDS = [
+  "template.memory-match",
+  "template.sorting",
+  "template.sequence-repeat"
+] as const satisfies readonly BuilderTemplateId[];
+
 export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
   actions: [
     {
@@ -570,24 +576,40 @@ function requestTipsForCatalog(
   assetThemes: BuilderAssetEditCatalogEntry[]
 ): BuilderCatalog["requestTips"] {
   const availableGames = templates.map((template) => template.displayLabel);
-  const visibleGames = availableGames.slice(0, 5);
-  const hiddenGameCount = Math.max(0, availableGames.length - visibleGames.length);
+  const templateById = new Map(templates.map((template) => [template.id, template]));
+  const featuredGames = LOCAL_SERVICE_REQUEST_TIP_FEATURED_TEMPLATE_IDS.map((templateId) =>
+    requiredTemplateForRequestTip(templateById, templateId).displayLabel
+  );
+  const hiddenGameCount = Math.max(0, availableGames.length - featuredGames.length);
   const assetEdits = assetThemes.map((entry) => `with ${entry.displayLabel}`);
-  const templateIds = new Set(templates.map((template) => template.id));
-  const examples = LOCAL_SERVICE_REQUEST_TIP_EXAMPLES
-    .filter((entry) => templateIds.has(entry.templateId))
-    .map((entry) => entry.request);
+  const examples = LOCAL_SERVICE_REQUEST_TIP_EXAMPLES.map((entry) => {
+    requiredTemplateForRequestTip(templateById, entry.templateId);
+    return entry.request;
+  });
 
   return {
     availableGames,
+    featuredGames,
     assetEdits,
     examples,
     summaryLines: [
-      `Available games: ${visibleGames.join(", ")}${hiddenGameCount > 0 ? `, plus ${hiddenGameCount} more` : ""}.`,
+      `Available games: ${featuredGames.join(", ")}${hiddenGameCount > 0 ? `, plus ${hiddenGameCount} more` : ""}.`,
       `Asset edits: ${assetEdits.join(", ")}.`,
       `Try: ${examples.join("; ")}.`
     ]
   };
+}
+
+function requiredTemplateForRequestTip(
+  templateById: Map<string, GameTemplateDefinition>,
+  templateId: BuilderTemplateId
+): GameTemplateDefinition {
+  const template = templateById.get(templateId);
+  if (!template) {
+    throw new Error(`request tip references unknown template ${templateId}`);
+  }
+
+  return template;
 }
 
 export function createLocalPlaycraftService(handler?: BuilderCommandHandler): LocalPlaycraftService {

@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Explicit Featured Request Tip Games
+
+Milestone:
+- Builder catalog request tips now expose `featuredGames` as contract data separate from the complete `availableGames` list.
+- The service request-tip summary now uses explicit featured template IDs instead of truncating catalog order with `availableGames.slice(0, 5)`.
+
+Supportive changes:
+- Request-tip examples and featured games now validate their authored template IDs against the current catalog instead of silently filtering missing entries.
+- Service, Studio, contract, and source-scan tests cover the new featured-game contract and block returning to visible-game slicing.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps agent-facing catalog guidance explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, catalog-order truncation, or silent request-tip filtering.
+
 ## 2026-07-05 - Authored Pack Template Examples
 
 Milestone:
