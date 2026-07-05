@@ -36,6 +36,15 @@
       "agent": "Sisyphus-Junior",
       "category": "quick",
       "updated_at": "2026-07-05T18:16:58.679Z"
+    },
+    "todo:4": {
+      "task_key": "todo:4",
+      "task_label": "4",
+      "task_title": "MCP tool discovery adapter (over builder/service tools)",
+      "session_id": "ses_0cc7655d5ffeg93Ul8cWCyFAo5",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-07-05T18:41:46.073Z"
     }
   }
 }

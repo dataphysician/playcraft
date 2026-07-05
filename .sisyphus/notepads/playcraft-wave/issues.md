@@ -39,3 +39,9 @@
   export const BuilderServiceResponseSchema: z.ZodType<BuilderServiceResponse, z.ZodTypeDef, BuilderServiceResponseInput> = PublicContractBaseSchema.extend({ ... }).refine(...)...;
   ```
 - Future schema work with long refine chains should use explicit annotation from the start.
+
+## [2026-07-05] T4 Issues
+
+- `pnpm typecheck` reports `packages/service/src/index.ts:581` (`JsonValue` vs `AgUiEventLike` for `null`). This is pre-existing uncommitted work for the SSE/server tasks (T5/T6) and is outside the T4 file scope (`packages/mcp/`, `pnpm-workspace.yaml`, root `package.json` only). The MCP package itself typechecks cleanly in isolation when built directly via `pnpm exec tsc -b packages/contracts packages/builder packages/mcp`.
+- `tsc -b --clean` followed by `pnpm typecheck` still shows the same service error, confirming it is independent of MCP caching.
+- A future clean-up task needs to either guard `agUiEventToSseFrame` against `null` or change `BuilderServiceExecution.events` to a narrower type. Either fix lives entirely inside `packages/service/` and must be done by the responsible task owner, not T4.

@@ -21,3 +21,13 @@
 ## [2026-07-05] Builder Service Response Typing
 
 - Keep `BuilderServiceResponse` as a hand-written public output type and use a separate private `BuilderServiceResponseInput` alias for schema inputs so defaulted nested fields remain accepted without suppressing TypeScript errors.
+
+## [2026-07-05] T4 MCP Adapter Decisions
+
+- **Scope**: T4 stays strictly in `packages/mcp/`. The catalog-derived `exampleRequest` is used to satisfy the service's `text` requirement so we can go through `service.handle()` and return a contract-valid `BuilderServiceResponse`. Calling the builder handler directly would skip schema validation and force a custom envelope shape.
+- **Routing**: Builder action names map to service action names via an internal table (`assemble-game` → `assemble`, `update-game` → `update`, `preview-action` → `preview`, `list-builder-tools` → `catalog`, `get-session`/`export-profile`/`import-profile` stay the same). MCP tool names are the builder tool's `toolName` (`tool:<action>`).
+- **Guardrails**: Default filter uses `PLAYCRAFT_MCP_GUARDRAILS.allowlistedTools`; tests verify the same shape and a custom subset both behave correctly. `localOnly`, `noAuth`, `noNetworkExecution`, `noDatabaseAccess` invariants are NOT weakened (no custom guardrails type was added).
+- **Tool-call envelope**: Use `kind: "builder-service-request"`, `schemaVersion: "playcraft.v1"`, `version: "1.0.0"`, `actionName` matching the service action. Generated `id` prefix `builder-service-request.mcp.` allows downstream filtering, and `sessionId` is auto-generated when not supplied.
+- **No schema drift**: `packages/contracts/src/index.ts` and `PLAYCRAFT_MCP_GUARDRAILS` were NOT modified; the TS7056 preservation rule is honored.
+- **No new wire/server code**: No stdio/HTTP/MCP transport; those belong to T17. `invokeMcpTool` returns `Promise<BuilderServiceResponse>` directly, ready for a future transport.
+- **Out-of-scope typecheck failure**: A pre-existing uncommitted error in `packages/service/src/index.ts:581` (`agUiEventToSseFrame` from `./sse.js` rejects `JsonValue` because of `null`) is left untouched; it belongs to T5/T6 SSE work and is outside the T4 file scope restriction.
