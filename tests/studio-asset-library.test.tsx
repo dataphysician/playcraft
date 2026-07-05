@@ -16,9 +16,9 @@ describe("studio asset library", () => {
   it("maps local edit-aware sprites from profile themes", () => {
     const client = createLocalStudioClient();
     const oceanSession = client.assembleFromIntent({ idea: "Memory game with ocean animals" });
-    const oceanProfile = oceanSession.profiles.at(-1);
+    const oceanProfile = oceanSession.activeProfile;
     const fruitSession = client.requestChange({ sessionId: oceanSession.sessionId, changeRequest: "Change the memory game to fruit" });
-    const fruitProfile = fruitSession.profiles.at(-1);
+    const fruitProfile = fruitSession.activeProfile;
 
     expect(oceanProfile).toBeDefined();
     expect(fruitProfile).toBeDefined();
@@ -29,7 +29,7 @@ describe("studio asset library", () => {
   it("does not map stale indirect paired-card IDs through sprite suffixes", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with ocean animals" });
-    const profile = session.profiles.at(-1);
+    const profile = session.activeProfile;
 
     expect(profile).toBeDefined();
     const staleProfile = {
@@ -57,7 +57,7 @@ describe("studio asset library", () => {
   it("exposes validated local sprite URLs through profile replacements", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toys" });
-    const profile = session.profiles.at(-1);
+    const profile = session.activeProfile;
 
     expect(profile).toBeDefined();
     const replacements = createProfileLibraryAssetReplacements(profile!);
@@ -69,7 +69,7 @@ describe("studio asset library", () => {
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toybox" });
-    const profile = session.profiles.at(-1);
+    const profile = session.activeProfile;
 
     expect(profile).toBeDefined();
     expect(createProfileLibraryAssetReplacements(profile!)["card:toybox-1-a"]).toBeUndefined();
@@ -78,7 +78,7 @@ describe("studio asset library", () => {
   it("renders the Playcraft card back and replacement card sprites", async () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
-    const profile = session.profiles.at(-1);
+    const profile = session.activeProfile;
     expect(profile).toBeDefined();
     render(React.createElement(LiveGame, { profile: profile! }));
 

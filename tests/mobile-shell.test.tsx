@@ -83,7 +83,7 @@ describe("Tauri mobile shell", () => {
     });
 
     expect(session.activeProfileId).toBe("profile.memory-match.mvp");
-    expect(session.profiles[0].assetRequests[0]?.prompt).toContain("toys memory card illustrations");
+    expect(session.activeProfile?.assetRequests[0]?.prompt).toContain("toys memory card illustrations");
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-streaming"))).toBe(true);
   });
 
@@ -99,7 +99,7 @@ describe("Tauri mobile shell", () => {
     }));
 
     expect(session.activeProfileId).toBe("profile.memory-match.mvp");
-    expect(session.profiles[0].assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
+    expect(session.activeProfile?.assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.mobile-client"))).toBe(true);
   });
 
@@ -123,7 +123,7 @@ describe("Tauri mobile shell", () => {
 
     expect(requestedUrls).toEqual(["http://127.0.0.1:8787/playcraft"]);
     expect(session.activeProfileId).toBe("profile.sequence-repeat.mvp");
-    expect(session.profiles[0].assetRequests[0]?.prompt).toContain("gems sequence game button illustrations");
+    expect(session.activeProfile?.assetRequests[0]?.prompt).toContain("gems sequence game button illustrations");
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-streaming"))).toBe(true);
   });
 

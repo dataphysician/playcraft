@@ -279,7 +279,7 @@ describe("studio UI", () => {
     expect(catalog?.assetEdit.availableThemes.map((entry) => entry.theme)).toContain("dinosaurs");
     expect(requestedUrls).toEqual(["http://127.0.0.1:8787/playcraft", "http://127.0.0.1:8787/playcraft"]);
     expect(session.activeProfileId).toBe("profile.sorting.mvp");
-    expect(session.profiles[0].profileName).toBe("Sorting MVP");
+    expect(session.activeProfile?.profileName).toBe("Sorting MVP");
     expect(session.timeline.length).toBeGreaterThan(0);
     expect(session.timeline.some((entry) => entry.detail.includes("template.sorting"))).toBe(true);
   });
@@ -447,7 +447,6 @@ describe("studio UI", () => {
       sessionId: "session.demo",
       activeProfileId: profileA.id,
       activeProfile: profileA,
-      profiles: [profileA],
       timeline: [
         timelineEntry("timeline.1", "Run started", "lifecycle"),
         timelineEntry("timeline.2", "Profile A assembled", "activity", profileA.id)
@@ -458,7 +457,6 @@ describe("studio UI", () => {
       sessionId: "session.demo",
       activeProfileId: profileB.id,
       activeProfile: profileB,
-      profiles: [profileA, profileB],
       timeline: [
         timelineEntry("timeline.1", "Run started", "lifecycle"),
         timelineEntry("timeline.2", "Profile A assembled", "activity", profileA.id),
@@ -575,7 +573,6 @@ describe("studio UI", () => {
         activeAssetEdit: { theme: "dinosaurs" },
         activeProfileId: "profile.memory-match.mvp",
         activeProfile,
-        profiles: [activeProfile],
         sessionId: "session.summary",
         timeline: []
       }),
@@ -605,7 +602,6 @@ describe("studio UI", () => {
       client,
       initialSession: {
         activeProfileId: profileA.id,
-        profiles: [profileA],
         sessionId: "session.stale-active-profile",
         timeline: []
       }
@@ -889,6 +885,7 @@ describe("studio UI", () => {
 
     expect(await screen.findByText("Sequence Repeat MVP")).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Start Round" }));
+    expect(await screen.findByText("Round 1: repeat the pattern.")).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "blue" }));
     expect(await screen.findByText("Not blue. Try green next; watch the pattern again.")).toBeDefined();
     expect(screen.getByRole("button", { name: "blue" }).getAttribute("style")).toContain("rgb(239, 68, 68)");

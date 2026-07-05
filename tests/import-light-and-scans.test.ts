@@ -314,6 +314,10 @@ describe("import-light boundaries and source scans", () => {
     expect(appSource).toContain("const activeProfile = session?.activeProfile");
     expect(source).not.toContain("response.session?.activeProfileId");
     expect(source).not.toContain("response.execution.result.profile?.id");
+    expect(source).not.toContain("const profiles");
+    expect(source).not.toContain("profiles: Array.from");
+    expect(source).not.toContain("profiles.clear()");
+    expect(typesSource).not.toContain("profiles: GameAssemblyProfile[]");
     expect(appSource).not.toContain("function findActiveProfile");
     expect(appSource).not.toContain("session.profiles.find((profile) => profile.id === session.activeProfileId)");
     expect(appSource).not.toContain("session.profiles.at(-1)");

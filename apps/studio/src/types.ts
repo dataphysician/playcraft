@@ -24,7 +24,6 @@ export interface StudioSessionSnapshot {
   sessionId: string;
   activeProfileId?: string;
   activeProfile?: GameAssemblyProfile;
-  profiles: GameAssemblyProfile[];
   timeline: StudioTimelineEntry[];
 }
 

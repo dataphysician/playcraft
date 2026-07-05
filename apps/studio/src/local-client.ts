@@ -7,7 +7,6 @@ import {
   type BuilderProfileExport,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
-  type GameAssemblyProfile,
   type JsonValue,
   type MoonshineTranscriptRecord
 } from "@playcraft/contracts";
@@ -58,7 +57,6 @@ export function createStudioClientFromServiceTransport(options: {
 }): StudioClient {
   const defaultSessionId = options.defaultSessionId ?? STUDIO_CLIENT_POLICY.defaultSessionId;
   const timelineIdPrefix = options.timelineIdPrefix ?? STUDIO_CLIENT_POLICY.defaultTimelineIdPrefix;
-  const profiles = new Map<string, GameAssemblyProfile>();
   const timeline: StudioTimelineEntry[] = [];
   let requestCounter = 0;
 
@@ -70,10 +68,6 @@ export function createStudioClientFromServiceTransport(options: {
       throw new Error(`${response.actionName} response did not include session snapshot`);
     }
 
-    if (response.session.profile) {
-      profiles.set(response.session.profile.id, response.session.profile);
-    }
-
     const entries = response.execution.events.map((event, index) => timelineEntry(event, timeline.length + index + 1, timelineIdPrefix));
     timeline.push(...entries);
 
@@ -82,7 +76,6 @@ export function createStudioClientFromServiceTransport(options: {
       sessionId,
       activeProfileId: response.session.activeProfileId,
       activeProfile: response.session.profile,
-      profiles: Array.from(profiles.values()),
       timeline: [...timeline]
     };
   }
@@ -173,7 +166,6 @@ export function createStudioClientFromServiceTransport(options: {
     },
     reset() {
       void options.transport.send(nextRequest("reset", {}));
-      profiles.clear();
       timeline.length = 0;
     }
   };

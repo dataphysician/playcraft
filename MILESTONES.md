@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Remove Studio Profile History Cache
+
+Milestone:
+- Studio session snapshots now expose only the explicit `activeProfile` from the service session.
+- The Studio local client no longer stores or publishes a cached ordered `profiles` list.
+- Mobile shell and Studio tests read active game data from `activeProfile` instead of profile history order.
+
+Supportive changes:
+- Studio asset-library, Studio UI, and Mobile shell tests now validate active-profile data directly.
+- Source scans block reintroducing the Studio client profile cache or `profiles` on the app-facing session snapshot.
+
+Validation:
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Keeps user-facing app state session-owned and forward-only without client-side profile history caches, profile ordering heuristics, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Explicit Studio Active Profile Selection
 
 Milestone:
