@@ -556,6 +556,55 @@ describe("local Playcraft service", () => {
     ).toThrow(/requires activeTemplateId/u);
   });
 
+  it("rejects imported profile results that omit active template ids before storing session state", () => {
+    const baseHandler = createBuilderCommandHandler();
+    const assembled = baseHandler.execute({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-command.test.import-source",
+      version: "1.0.0",
+      kind: "builder-command",
+      sessionId: "session.import-source",
+      actionName: "assemble-game",
+      templateId: "template.memory-match"
+    });
+    const profile = assembled.result.profile;
+    if (!profile) {
+      throw new Error("expected assembled profile fixture");
+    }
+    const handler: BuilderCommandHandler = {
+      assembleTemplates: (...args) => baseHandler.assembleTemplates(...args),
+      execute: (...args) => baseHandler.execute(...args),
+      getSessionSnapshot: (...args) => baseHandler.getSessionSnapshot(...args),
+      listTemplates: () => baseHandler.listTemplates(),
+      listTools: () => baseHandler.listTools(),
+      importProfile(...args) {
+        const output = baseHandler.importProfile(...args);
+        const preview = { ...output.result.preview };
+        delete preview.activeTemplateId;
+        return {
+          ...output,
+          result: {
+            ...output.result,
+            preview
+          }
+        };
+      }
+    };
+    const service = createLocalPlaycraftService(handler);
+
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.missing-template-import",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "import-profile",
+        sessionId: "session.missing-template-import",
+        profile
+      })
+    ).toThrow(/requires activeTemplateId/u);
+  });
+
   it("rejects transcript-sourced service requests without Moonshine transcript records", () => {
     const service = createLocalPlaycraftService();
 

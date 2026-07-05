@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Strict Imported Template State
+
+Milestone:
+- Profile import persistence now requires imported builder results to carry `preview.activeTemplateId`.
+- Local session state now requires an active template id whenever persisted service state exists.
+- Import results can no longer write an undefined template id and rely on later session snapshot fallback.
+
+Supportive changes:
+- Service tests cover a custom profile import handler that strips `activeTemplateId`.
+- Source scans guard import persistence against direct result preview template-id reads.
+
+Validation:
+- `pnpm --filter @playcraft/service test`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps imported profile sessions explicit without hosted providers, generated runtime code, auth, database state, compatibility shims, or stale snapshot fallback.
+
 ## 2026-07-04 - Strict Result Template State
 
 Milestone:

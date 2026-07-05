@@ -540,7 +540,10 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("function requireResultTemplateId(result: BuilderExecutionResult[\"result\"]): BuilderTemplateId");
     expect(source).toContain("result preview requires activeTemplateId");
     expect(source).toContain("activeTemplateId: requireResultTemplateId(result)");
+    expect(source).toContain("activeTemplateId: requireResultTemplateId(output.result)");
+    expect(source).toContain("activeTemplateId: BuilderTemplateId;");
     expect(source).not.toContain("activeTemplateId: result.preview.activeTemplateId ?? existing?.activeTemplateId");
+    expect(source).not.toContain("activeTemplateId: output.result.preview.activeTemplateId");
   });
 
   it("keeps service CLI preview/get/export free of hidden assemble seeding", () => {

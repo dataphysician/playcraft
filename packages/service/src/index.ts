@@ -360,7 +360,7 @@ export class LocalPlaycraftService {
     );
     this.sessionState.set(sessionId, {
       activeAssetEdit: input.assetEdit,
-      activeTemplateId: output.result.preview.activeTemplateId
+      activeTemplateId: requireResultTemplateId(output.result)
     });
     return output;
   }
@@ -516,7 +516,7 @@ export class LocalPlaycraftService {
 
 interface LocalSessionState {
   activeAssetEdit?: BuilderAssetEdit;
-  activeTemplateId?: BuilderTemplateId;
+  activeTemplateId: BuilderTemplateId;
 }
 
 function requestTipsForCatalog(
