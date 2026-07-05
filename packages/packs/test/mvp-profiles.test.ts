@@ -78,6 +78,22 @@ describe("MVP profile pack", () => {
       ["green", "yellow", "green", "blue"],
       ["yellow", "green", "blue", "green", "yellow"]
     ]);
+    expect(profileA.mechanics.map((binding) => binding.eventBindings)).toEqual([
+      { primary: "frontend:revealed" },
+      { primary: "rule:pair-matched" },
+      { primary: "frontend:celebrated" }
+    ]);
+    expect(profileB.mechanics.map((binding) => binding.eventBindings)).toEqual([
+      { primary: "frontend:selected" },
+      { primary: "rule:item-sorted" },
+      { primary: "rule:retry-ready" },
+      { primary: "frontend:hint-shown" }
+    ]);
+    expect(profileC.mechanics.map((binding) => binding.eventBindings)).toEqual([
+      { primary: "rule:sequence-progressed" },
+      { primary: "frontend:selected" },
+      { primary: "frontend:celebrated" }
+    ]);
   });
 
   it("publishes bundled game templates for the builder catalog", () => {

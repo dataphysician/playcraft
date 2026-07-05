@@ -182,6 +182,18 @@ describe("import-light boundaries and source scans", () => {
     expect(registryTestSource).not.toContain('supportedModalities: ["audio"]');
   });
 
+  it("keeps pack mechanic event bindings template-authored instead of emitted-event-order inferred", () => {
+    const packSource = readSource("packages/packs/src/index.ts");
+    const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
+
+    expect(packSource).toContain("mechanicEventBindings: memoryMechanicEventBindings");
+    expect(packSource).toContain("mechanicEventBindings: sortingMechanicEventBindings");
+    expect(packSource).toContain("mechanicEventBindings: sequenceMechanicEventBindings");
+    expect(packSource).toContain("requiredMechanicEventBindings(template, capability, selected.emitsEvents)");
+    expect(packSource).not.toContain("selected.emitsEvents[0]");
+    expect(packTestSource).toContain('primary: "rule:sequence-progressed"');
+  });
+
   it("keeps play input modalities separate from audio asset content", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");

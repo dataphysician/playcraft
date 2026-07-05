@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Template-Authored Mechanic Event Bindings
+
+Milestone:
+- MVP templates now publish explicit mechanic event-binding maps for memory, sorting, and sequence families.
+- Pack assembly now validates authored mechanic event bindings against the selected mechanic instead of using the first emitted event.
+
+Supportive changes:
+- Pack tests assert assembled memory, sorting, and sequence mechanic event bindings.
+- Source scans block the removed emitted-event-order inference path.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Mechanic event-binding source scan confirmed authored template maps and removed emitted-event-order inference.
+
+Constraint notes:
+- Keeps template assembly contract-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or mechanic event-order heuristics.
+
 ## 2026-07-04 - Explicit Builder CLI Preview Interaction
 
 Milestone:
