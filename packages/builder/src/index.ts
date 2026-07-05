@@ -545,12 +545,15 @@ function requireRenderRequestComponentId(renderRequest: ReplayResult["renderRequ
 
 function renderRequestForTemplatePrimary(profile: GameAssemblyProfile, replay: ReplayResult): ReplayResult["renderRequests"][number] {
   const primaryCapability = profile.template.liveSurface.componentCapabilities.primary;
-  const renderRequest = replay.renderRequests.find((request) => request.componentCapability === primaryCapability);
-  if (!renderRequest) {
+  const matches = replay.renderRequests.filter((request) => request.componentCapability === primaryCapability);
+  if (matches.length === 0) {
     throw new Error(`profile ${profile.id} does not include live-surface primary component ${primaryCapability}`);
   }
+  if (matches.length > 1) {
+    throw new Error(`profile ${profile.id} has multiple live-surface primary render requests for ${primaryCapability}`);
+  }
 
-  return renderRequest;
+  return matches[0];
 }
 
 function requireSinglePreviewToolName(renderRequest: ReplayResult["renderRequests"][number]): string {

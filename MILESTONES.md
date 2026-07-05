@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Builder Primary Preview Requests
+
+Milestone:
+- Builder preview state now rejects replay output with multiple render requests for the template-declared primary live surface capability.
+- Builder preview actions no longer select the first primary render request when imported or custom profiles create duplicate primary component bindings.
+
+Supportive changes:
+- Builder session tests cover duplicate primary preview render requests through imported profiles.
+- Source scans require duplicate-aware primary render-request filtering and block first-match primary preview lookup from returning.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Builder primary preview source scan confirmed duplicate-aware filtering and no first-match render-request lookup path.
+
+Constraint notes:
+- Keeps agent-facing preview state template-owned and fail-closed without hosted providers, generated runtime code, auth, database state, compatibility shims, or replay render-request order heuristics.
+
 ## 2026-07-04 - Fail-Closed Live Surface Component Resolution
 
 Milestone:

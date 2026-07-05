@@ -681,6 +681,28 @@ describe("builder session service", () => {
     expect(preview.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("tool:preview-interaction"))).toBe(false);
   });
 
+  it("rejects duplicate primary preview render requests instead of using replay order", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const duplicatePrimaryProfile = {
+      ...exported!,
+      components: [
+        ...exported!.components,
+        {
+          ...exported!.components[0],
+          bindingId: `${exported!.components[0].bindingId}.duplicate`
+        }
+      ]
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+
+    expect(() => target.importProfile("session.duplicate-primary-preview", duplicatePrimaryProfile)).toThrow(
+      /multiple live-surface primary render requests/u
+    );
+  });
+
   it("imports validated profiles through the builder CLI profile tool", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.memory-match", assetEdit: { theme: "dinosaurs" } })).result.profile;
