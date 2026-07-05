@@ -77,3 +77,13 @@
   - Adding `templateAliasSummary`, `templateSuggestedItemSummary`, and `assetEditAliasSummary` helpers referencing `template.requestAliasSummary`, `template.suggestedItemSummary`, `entry.aliasSummary`, and `entry.localReplacementFolder`.
 - **`live-game.tsx` missing `LiveGameFailure` alias**: Source-light scan requires `function LiveGameFailure` to exist in source. Added `LiveGameFailure` as a thin wrapper around `LiveGameError` to satisfy the scan without changing runtime behavior.
 - **`studio-ui.test.ts` sorting feedback expectation**: The test expected "red circle does not belong in red." but the current interaction model uses direct bin placement (select item then bin), so the correct feedback for a wrong placement is "red circle does not belong in blue." and for correct placement is "red circle belongs in red." The test was already correct; the failure was due to the missing `LiveGameFailure` alias causing the test file to not load properly. Once the alias was restored, the test passed.
+
+## [2026-07-05] T13 Pointer/Click Double-Fire Bug
+
+- **Problem**: Adding `onPointerDown`/`onPointerUp` tap detection to memory cards, sorting items, sequence choices, and the start-round button caused double-triggering because browsers fire both `pointerup` and `click` for a tap. Actions ran twice or toggled back.
+- **Fix**: Introduced `suppressNextClick` refs in `MemoryGame` and `SequenceGame` (SortingGame already had one). When a valid pointer tap is handled (`distance <= 10 && duration <= 200`), set `suppressNextClick.current = true` before invoking the action. In each element's `onClick` handler, check the flag first and return early if set, resetting the flag. Keyboard users still work via `onClick`; pointer users get the tolerant tap path without double-fire.
+- **Pattern**: 
+  - Memory cards: `onClick` wraps `handleCard` with suppress check.
+  - Sorting items: `finishItemPointer` sets flag before toggling selection; `onClick` already checked it.
+  - Sequence choices: `onClick` wraps `choose` with suppress check; `handleChoicePointerUp` sets flag.
+  - Start-round button: `onClick` wraps `startRound` with suppress check; inline `onPointerUp` sets flag.

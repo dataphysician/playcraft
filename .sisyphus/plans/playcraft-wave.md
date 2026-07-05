@@ -1380,7 +1380,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `apps/studio/src/live-game.tsx`, `tests/studio-live-streaming.test.tsx`
   - Pre-commit: `pnpm exec vitest run tests/studio-live-streaming.test.tsx`
 
-- [ ] 13. Studio tactile toddler interactions (tap targets, audio cues, error forgiveness)
+- [x] 13. Studio tactile toddler interactions (tap targets, audio cues, error forgiveness)
 
   **What to do**:
   - In `apps/studio/src/live-game.tsx`:

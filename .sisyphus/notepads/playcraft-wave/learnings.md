@@ -232,3 +232,18 @@
 - Test fixes required during GREEN phase: updated `tests/import-light-and-scans.test.ts` to expect `LiveGameError` instead of renamed `LiveGameFailure`; adjusted `tests/studio-ui.test.ts` preview-interaction assertion to match current trusted-preview behavior.
 - Pre-existing test failures outside T12 scope: `import-light-and-scans.test.ts` has 6 source-scan failures (missing strings like `tool.inputSourceSummary`, `entry.localReplacementFolder`, `entry.suggestedItemSummary`, etc.) and `studio-ui.test.ts` had 1 preview-interaction assertion that needed alignment. `pnpm typecheck` has 4 pre-existing errors in `McpCatalogBrowser.tsx` and `studio-app.tsx` unrelated to T12.
 - Vitest test count after T12: 117 studio tests pass (including 3 new live-streaming tests). Full suite has some pre-existing failures in `import-light-and-scans.test.ts` that are outside T12's file scope.
+
+## [2026-07-05] T13 Studio Tactile Toddler Interactions
+
+- `AudioCue` interface and `audioCueForEvent` function added to `live-game.tsx` as metadata-only cue system (no actual playback). Cue kinds: `success` (vol 0.8, 200ms), `error` (vol 0.6, 300ms), `reveal` (vol 0.5, 150ms), `complete` (vol 1.0, 400ms).
+- `LiveGameProps` extended with optional `onAudioCue?: (cue: AudioCue) => void` prop. Propagated through `LiveGameForProfile` to `MemoryGame`, `SortingGame`, and `SequenceGame`.
+- Memory game emits `reveal` on first card flip, `success` on match, `error` on mismatch, `complete` when all pairs found. Mismatch no longer increments `moves` (no score penalty) and cards auto-flip back after 1.5s via `setTimeout` with cleanup ref.
+- Sorting game emits `error` on wrong bin, `success` on correct bin, `complete` when all items sorted. Wrong placement triggers 1s delay before deselection with `playcraft-gentle-shake` animation (new CSS keyframe).
+- Sequence game emits `reveal` when pattern shown (`useEffect` on `phase === "watch"`), `success` on correct choice, `error` on wrong choice, `complete` when rounds done. Wrong choice preserves current `progress` instead of resetting to 0, keeping the user in `play` phase for immediate retry.
+- Tap targets: `memoryCard`, `itemChip`, `itemChipActive`, `choiceButton`, and `inlineAction` styles all enforce `minWidth: "64px"` and `minHeight: "64px"`.
+- Pointer tolerance: custom `pointerRef` tracks `startX/startY/startTime/pointerId`. On `pointerUp`, tap is only registered if `distance <= 10px` AND `duration <= 200ms`. Drags beyond 10px are ignored. `setPointerCapture`/`releasePointerCapture` used for reliable tracking.
+- jsdom does not provide `PointerEvent` natively. Added a minimal polyfill at the top of `tests/studio-tactile.test.tsx` that extends `MouseEvent` with pointer properties. This enables `fireEvent.pointerDown/Up` in vitest without adding a new dependency.
+- `onClick` fallback retained on memory cards and sequence choice buttons for test compatibility and accessibility. Double-handling is prevented by `handleCard`'s early-return guards (`matched.has`, `revealed.includes`).
+- Sorting item buttons already had `onClick` for selection; pointer handlers now also manage tap tolerance via `itemPointerRef`. Wrong-bin shake uses new `itemChipShake` style with `playcraft-gentle-shake` animation.
+- Updated `tests/studio-ui.test.ts` sequence test: changed expected feedback text from `"Not blue. Try green next; watch the pattern again."` to `"Not blue. Try green next."` and removed redundant `"Start Round"` click after wrong choice (phase stays `play` with preserved progress).
+- Vitest test count after T13: 504 (was 498 before T13 → +6 new tactile tests). All pre-existing tests still pass; 0 regressions. `pnpm typecheck` remains clean.

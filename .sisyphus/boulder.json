@@ -81,6 +81,15 @@
       "agent": "Sisyphus-Junior",
       "category": "visual-engineering",
       "updated_at": "2026-07-05T21:21:09.082Z"
+    },
+    "todo:13": {
+      "task_key": "todo:13",
+      "task_label": "13",
+      "task_title": "Studio tactile toddler interactions (tap targets, audio cues, error forgiveness)",
+      "session_id": "ses_0cbca4612ffe5bAMcVDjzpyJo2",
+      "agent": "Sisyphus-Junior",
+      "category": "visual-engineering",
+      "updated_at": "2026-07-05T21:54:52.201Z"
     }
   }
 }

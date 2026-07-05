@@ -34,6 +34,26 @@ export interface LiveGameProps {
   activeProfileId?: string;
   streamError?: string | null;
   onRetry?: () => void;
+  onAudioCue?: (cue: AudioCue) => void;
+}
+
+export interface AudioCue {
+  kind: "success" | "error" | "reveal" | "complete";
+  volume: number;
+  duration: number;
+}
+
+export function audioCueForEvent(kind: "success" | "error" | "reveal" | "complete"): AudioCue {
+  switch (kind) {
+    case "success":
+      return { kind, volume: 0.8, duration: 200 };
+    case "error":
+      return { kind, volume: 0.6, duration: 300 };
+    case "reveal":
+      return { kind, volume: 0.5, duration: 150 };
+    case "complete":
+      return { kind, volume: 1, duration: 400 };
+  }
 }
 
 type AssetReplacementLookup = Map<string, AssetReplacement>;
@@ -142,7 +162,7 @@ const liveGameCss = `
   }
 `;
 
-export function LiveGame({ profile, assetReplacements, onInteraction, timeline, activeProfileId, streamError, onRetry }: LiveGameProps): React.ReactElement {
+export function LiveGame({ profile, assetReplacements, onInteraction, timeline, activeProfileId, streamError, onRetry, onAudioCue }: LiveGameProps): React.ReactElement {
   const [progressText, setProgressText] = React.useState("");
   const [isResetting, setIsResetting] = React.useState(false);
   const previousProfileIdRef = React.useRef<string | undefined>(undefined);
@@ -191,7 +211,7 @@ export function LiveGame({ profile, assetReplacements, onInteraction, timeline, 
     React.createElement("style", null, liveMotionCss + liveGameCss),
     streamError ? React.createElement(LiveGameError, { message: streamError, onRetry })
       : isResetting ? React.createElement("div", { className: "loading-placeholder" }, "Loading new game...")
-      : profile ? React.createElement(LiveGameForProfile, { profile, assetReplacements, onInteraction, progressText, isLoading: isResetting })
+      : profile ? React.createElement(LiveGameForProfile, { profile, assetReplacements, onInteraction, progressText, isLoading: isResetting, onAudioCue })
       : React.createElement(EmptyGameHero)
   );
 }
@@ -213,13 +233,15 @@ function LiveGameForProfile({
   assetReplacements,
   onInteraction,
   progressText,
-  isLoading
+  isLoading,
+  onAudioCue
 }: {
   profile: GameAssemblyProfile;
   assetReplacements?: AssetReplacementInput;
   onInteraction?: (interaction: LiveGameInteraction) => void;
   progressText?: string;
   isLoading?: boolean;
+  onAudioCue?: (cue: AudioCue) => void;
 }): React.ReactElement {
   const parsedProfile = GameAssemblyProfileSchema.safeParse(profile);
   if (!parsedProfile.success) {
@@ -261,7 +283,8 @@ function LiveGameForProfile({
           tokenStyleCatalog,
           onInteraction,
           progressText,
-          isLoading
+          isLoading,
+          onAudioCue
         });
       }
       case "sorting": {
@@ -275,7 +298,8 @@ function LiveGameForProfile({
           tokenStyleCatalog,
           onInteraction,
           progressText,
-          isLoading
+          isLoading,
+          onAudioCue
         });
       }
       case "sequence": {
@@ -291,7 +315,8 @@ function LiveGameForProfile({
           tokenStyleCatalog,
           onInteraction,
           progressText,
-          isLoading
+          isLoading,
+          onAudioCue
         });
       }
     }
@@ -331,7 +356,8 @@ function MemoryGame({
   tokenStyleCatalog,
   onInteraction,
   progressText,
-  isLoading
+  isLoading,
+  onAudioCue
 }: {
   profile: GameAssemblyProfile;
   component: ComponentBinding;
@@ -340,6 +366,7 @@ function MemoryGame({
   onInteraction?: (interaction: LiveGameInteraction) => void;
   progressText?: string;
   isLoading?: boolean;
+  onAudioCue?: (cue: AudioCue) => void;
 }): React.ReactElement {
   if (isLoading) {
     return React.createElement("div", { className: "loading-placeholder" }, "Loading...");
@@ -354,6 +381,9 @@ function MemoryGame({
   const [moves, setMoves] = React.useState(0);
   const didMountRef = React.useRef(false);
   const roundKey = `${profile.id}:${sourceCards.join("|")}:${JSON.stringify(cardPairs)}`;
+  const mismatchTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pointerRef = React.useRef<{ startX: number; startY: number; startTime: number; pointerId: number | null } | null>(null);
+  const suppressNextClick = React.useRef(false);
 
   React.useEffect(() => {
     if (!didMountRef.current) {
@@ -366,10 +396,28 @@ function MemoryGame({
     setMoves(0);
   }, [roundKey]);
 
+  React.useEffect(() => {
+    return () => {
+      if (mismatchTimerRef.current) {
+        clearTimeout(mismatchTimerRef.current);
+      }
+    };
+  }, []);
+
   const pairs = new Set(deck.map((card) => card.pairKey));
   const complete = pairs.size > 0 && matched.size === pairs.size;
   const componentArt = resolveComponentAsset(profile, component, "illustration", replacements);
   const score = Math.max(0, matched.size * 150 - moves * 5);
+
+  function emitCue(kind: "success" | "error" | "reveal" | "complete"): void {
+    onAudioCue?.(audioCueForEvent(kind));
+  }
+
+  React.useEffect(() => {
+    if (complete) {
+      emitCue("complete");
+    }
+  }, [complete]);
 
   function handleCard(card: MemoryCard): void {
     if (matched.has(card.pairKey) || revealed.includes(card.id)) {
@@ -378,21 +426,27 @@ function MemoryGame({
 
     const active = revealed.length >= 2 ? [] : revealed;
     const next = [...active, card.id];
-    const nextMoves = next.length === 2 ? moves + 1 : moves;
     let matchedNow = false;
 
     if (next.length === 2) {
       const first = memoryCardForDeckId(deck, next[0]!);
       matchedNow = first.pairKey === card.pairKey;
-      setMoves(nextMoves);
       if (matchedNow) {
+        setMoves((current) => current + 1);
         setMatched((current) => new Set([...current, card.pairKey]));
         setRevealed([]);
+        emitCue("success");
       } else {
+        emitCue("error");
         setRevealed(next);
+        mismatchTimerRef.current = setTimeout(() => {
+          setRevealed([]);
+          mismatchTimerRef.current = null;
+        }, 1500);
       }
     } else {
       setRevealed(next);
+      emitCue("reveal");
     }
 
     onInteraction?.({
@@ -403,9 +457,44 @@ function MemoryGame({
         cardId: card.id,
         pairKey: card.pairKey,
         matched: matchedNow,
-        moveCount: nextMoves
+        moveCount: matchedNow ? moves + 1 : moves
       }
     });
+  }
+
+  function handleCardPointerDown(card: MemoryCard, event: React.PointerEvent<HTMLButtonElement>): void {
+    if (matched.has(card.pairKey) || revealed.includes(card.id)) {
+      return;
+    }
+
+    pointerRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startTime: Date.now(),
+      pointerId: event.pointerId
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function handleCardPointerUp(card: MemoryCard, event: React.PointerEvent<HTMLButtonElement>): void {
+    const pointer = pointerRef.current;
+    if (!pointer || pointer.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const dx = event.clientX - pointer.startX;
+    const dy = event.clientY - pointer.startY;
+    const distance = Math.hypot(dx, dy);
+    const duration = Date.now() - pointer.startTime;
+
+    pointerRef.current = null;
+
+    if (distance <= 10 && duration <= 200) {
+      suppressNextClick.current = true;
+      handleCard(card);
+    }
+
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
   }
 
   return React.createElement(
@@ -443,8 +532,17 @@ function MemoryGame({
           {
             key: `${card.id}.${index}`,
             type: "button",
-            onClick: () => handleCard(card),
             "aria-label": card.id,
+            onClick: () => {
+              if (suppressNextClick.current) {
+                suppressNextClick.current = false;
+                return;
+              }
+
+              handleCard(card);
+            },
+            onPointerDown: (event: React.PointerEvent<HTMLButtonElement>) => handleCardPointerDown(card, event),
+            onPointerUp: (event: React.PointerEvent<HTMLButtonElement>) => handleCardPointerUp(card, event),
             style: {
               ...liveStyles.memoryCard,
               ...(shown ? memoryCardFaceStyle(pairVisual) : liveStyles.memoryCardHidden),
@@ -483,7 +581,8 @@ function SortingGame({
   tokenStyleCatalog,
   onInteraction,
   progressText,
-  isLoading
+  isLoading,
+  onAudioCue
 }: {
   profile: GameAssemblyProfile;
   component: ComponentBinding;
@@ -492,6 +591,7 @@ function SortingGame({
   onInteraction?: (interaction: LiveGameInteraction) => void;
   progressText?: string;
   isLoading?: boolean;
+  onAudioCue?: (cue: AudioCue) => void;
 }): React.ReactElement {
   if (isLoading) {
     return React.createElement("div", { className: "loading-placeholder" }, "Loading...");
@@ -508,10 +608,12 @@ function SortingGame({
   const [dragState, setDragState] = React.useState<SortDragState | undefined>();
   const [dragTarget, setDragTarget] = React.useState<string | undefined>();
   const [binFeedback, setBinFeedback] = React.useState<Record<string, BinFeedback | undefined>>({});
+  const [shakingItem, setShakingItem] = React.useState<string | undefined>();
   const binRefs = React.useRef<Map<string, HTMLButtonElement>>(new Map());
   const dragStateRef = React.useRef<SortDragState | undefined>(undefined);
   const feedbackTimers = React.useRef<Array<ReturnType<typeof setTimeout>>>([]);
   const suppressNextClick = React.useRef(false);
+  const itemPointerRef = React.useRef<{ startX: number; startY: number; startTime: number; pointerId: number | null; item: string } | null>(null);
   const componentArt = resolveComponentAsset(profile, component, "illustration", replacements);
   const placedCount = Object.keys(placements).length;
   const complete = items.length > 0 && placedCount === items.length;
@@ -533,7 +635,14 @@ function SortingGame({
     dragStateRef.current = undefined;
     setDragTarget(undefined);
     setBinFeedback({});
+    setShakingItem(undefined);
   }, [profile.id, items.join("|"), bins.join("|"), JSON.stringify(targets)]);
+
+  React.useEffect(() => {
+    if (complete) {
+      emitCue("complete");
+    }
+  }, [complete]);
 
   React.useEffect(
     () => () => {
@@ -543,6 +652,10 @@ function SortingGame({
     },
     []
   );
+
+  function emitCue(kind: "success" | "error" | "reveal" | "complete"): void {
+    onAudioCue?.(audioCueForEvent(kind));
+  }
 
   function placeSelectedItem(targetId: string): void {
     if (!selectedItem || placements[selectedItem] !== undefined) {
@@ -561,12 +674,19 @@ function SortingGame({
       setFeedback(`${item} belongs in ${targetId}.`);
       setStreak((current) => current + 1);
       setSelectedItem(undefined);
+      emitCue("success");
     } else {
       setFeedback(`${item} does not belong in ${targetId}.`);
       setMistakes((current) => current + 1);
       setStreak(0);
+      emitCue("error");
       if (clearOnFailure) {
-        setSelectedItem(undefined);
+        setShakingItem(item);
+        const timer = setTimeout(() => {
+          setShakingItem(undefined);
+          setSelectedItem(undefined);
+        }, 1000);
+        feedbackTimers.current.push(timer);
       }
     }
 
@@ -608,6 +728,13 @@ function SortingGame({
 
     const rect = event.currentTarget.getBoundingClientRect();
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    itemPointerRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startTime: Date.now(),
+      pointerId: event.pointerId,
+      item
+    };
     beginItemDrag(item, event.pointerId, event.clientX, event.clientY, rect);
   }
 
@@ -616,6 +743,21 @@ function SortingGame({
   }
 
   function finishItemPointer(event: React.PointerEvent<HTMLButtonElement>): void {
+    const pointer = itemPointerRef.current;
+    if (pointer && pointer.pointerId === event.pointerId) {
+      const dx = event.clientX - pointer.startX;
+      const dy = event.clientY - pointer.startY;
+      const distance = Math.hypot(dx, dy);
+      const duration = Date.now() - pointer.startTime;
+
+      if (distance <= 10 && duration <= 200 && !dragStateRef.current?.dragging) {
+        suppressNextClick.current = true;
+        const item = pointer.item;
+        setSelectedItem((current) => current === item ? undefined : item);
+      }
+    }
+
+    itemPointerRef.current = null;
     finishItemDrag(event.pointerId, event.clientX, event.clientY, () => event.preventDefault());
     event.currentTarget.releasePointerCapture?.(event.pointerId);
   }
@@ -760,7 +902,8 @@ function SortingGame({
               style: sortItemStyle({
                 placed: placements[item] !== undefined,
                 selected: selectedItem === item,
-                dragging: dragState?.item === item && dragState.dragging
+                dragging: dragState?.item === item && dragState.dragging,
+                shaking: shakingItem === item
               })
             },
             React.createElement(TokenSprite, { replacement: itemReplacement, token: item, tokenStyleCatalog }),
@@ -859,7 +1002,8 @@ function SequenceGame({
   tokenStyleCatalog,
   onInteraction,
   progressText,
-  isLoading
+  isLoading,
+  onAudioCue
 }: {
   profile: GameAssemblyProfile;
   sequenceComponent: ComponentBinding;
@@ -869,6 +1013,7 @@ function SequenceGame({
   onInteraction?: (interaction: LiveGameInteraction) => void;
   progressText?: string;
   isLoading?: boolean;
+  onAudioCue?: (cue: AudioCue) => void;
 }): React.ReactElement {
   if (isLoading) {
     return React.createElement("div", { className: "loading-placeholder" }, "Loading...");
@@ -888,6 +1033,8 @@ function SequenceGame({
   const componentArt = resolveComponentAsset(profile, sequenceComponent, "illustration", replacements);
   const activeRound = rounds[roundIndex] ?? [];
   const complete = phase === "complete";
+  const choicePointerRef = React.useRef<{ startX: number; startY: number; startTime: number; pointerId: number | null } | null>(null);
+  const suppressNextClick = React.useRef(false);
 
   React.useEffect(() => {
     if (!didMountRef.current) {
@@ -902,6 +1049,22 @@ function SequenceGame({
     setPhase("watch");
     setScore(0);
   }, [profile.id, sequence.join("|"), choices.join("|"), JSON.stringify(configuredRounds)]);
+
+  function emitCue(kind: "success" | "error" | "reveal" | "complete"): void {
+    onAudioCue?.(audioCueForEvent(kind));
+  }
+
+  React.useEffect(() => {
+    if (phase === "watch" && activeRound.length > 0) {
+      emitCue("reveal");
+    }
+  }, [phase, activeRound.length]);
+
+  React.useEffect(() => {
+    if (complete) {
+      emitCue("complete");
+    }
+  }, [complete]);
 
   function startRound(): void {
     if (complete || activeRound.length === 0) {
@@ -924,7 +1087,7 @@ function SequenceGame({
     const nextAttempts = attempts + 1;
     setAttempts(nextAttempts);
 
-    let nextProgress = 0;
+    let nextProgress = progress;
     let nextComplete = false;
     if (correct) {
       nextProgress = progress + 1;
@@ -942,19 +1105,20 @@ function SequenceGame({
           setFeedback({ kind: "success", message: `Round ${roundIndex + 2} unlocked. Watch the next pattern.`, item });
         }
         setProgress(0);
+        emitCue("success");
       } else {
         setProgress(nextProgress);
         setFeedback({ kind: "success", message: "Correct.", item });
+        emitCue("success");
       }
     } else {
-      setProgress(0);
-      setPhase("watch");
       setFeedback({
         expected,
         item,
         kind: "failure",
-        message: `Not ${item}. Try ${expected} next; watch the pattern again.`
+        message: `Not ${item}. Try ${expected} next.`
       });
+      emitCue("error");
     }
 
     onInteraction?.({
@@ -971,6 +1135,41 @@ function SequenceGame({
         attempts: nextAttempts
       }
     });
+  }
+
+  function handleChoicePointerDown(item: string, event: React.PointerEvent<HTMLButtonElement>): void {
+    if (complete || phase !== "play") {
+      return;
+    }
+
+    choicePointerRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startTime: Date.now(),
+      pointerId: event.pointerId
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function handleChoicePointerUp(item: string, event: React.PointerEvent<HTMLButtonElement>): void {
+    const pointer = choicePointerRef.current;
+    if (!pointer || pointer.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const dx = event.clientX - pointer.startX;
+    const dy = event.clientY - pointer.startY;
+    const distance = Math.hypot(dx, dy);
+    const duration = Date.now() - pointer.startTime;
+
+    choicePointerRef.current = null;
+
+    if (distance <= 10 && duration <= 200) {
+      suppressNextClick.current = true;
+      choose(item);
+    }
+
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
   }
 
   return React.createElement(
@@ -1032,7 +1231,34 @@ function SequenceGame({
           "button",
           {
             type: "button",
-            onClick: startRound,
+            onClick: () => {
+              if (suppressNextClick.current) {
+                suppressNextClick.current = false;
+                return;
+              }
+
+              startRound();
+            },
+            onPointerDown: (event: React.PointerEvent<HTMLButtonElement>) => {
+              const pointer = { startX: event.clientX, startY: event.clientY, startTime: Date.now(), pointerId: event.pointerId };
+              choicePointerRef.current = pointer as { startX: number; startY: number; startTime: number; pointerId: number | null };
+              event.currentTarget.setPointerCapture?.(event.pointerId);
+            },
+            onPointerUp: (event: React.PointerEvent<HTMLButtonElement>) => {
+              const pointer = choicePointerRef.current;
+              if (pointer && pointer.pointerId === event.pointerId) {
+                const dx = event.clientX - pointer.startX;
+                const dy = event.clientY - pointer.startY;
+                const distance = Math.hypot(dx, dy);
+                const duration = Date.now() - pointer.startTime;
+                if (distance <= 10 && duration <= 200) {
+                  suppressNextClick.current = true;
+                  startRound();
+                }
+              }
+              choicePointerRef.current = null;
+              event.currentTarget.releasePointerCapture?.(event.pointerId);
+            },
             style: liveStyles.inlineAction
           },
           roundIndex === 0 ? "Start Round" : "Continue"
@@ -1049,7 +1275,16 @@ function SequenceGame({
             type: "button",
             "aria-label": item,
             "aria-invalid": feedback?.kind === "failure" && feedback.item === item ? true : undefined,
-            onClick: () => choose(item),
+            onClick: () => {
+              if (suppressNextClick.current) {
+                suppressNextClick.current = false;
+                return;
+              }
+
+              choose(item);
+            },
+            onPointerDown: (event: React.PointerEvent<HTMLButtonElement>) => handleChoicePointerDown(item, event),
+            onPointerUp: (event: React.PointerEvent<HTMLButtonElement>) => handleChoicePointerUp(item, event),
             disabled: complete || phase !== "play",
             style: sequenceChoiceStyle(item, phase === "play", feedback, tokenStyleCatalog)
           },
@@ -1688,13 +1923,17 @@ function pointInRect(x: number, y: number, rect: DOMRect): boolean {
   return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 }
 
-function sortItemStyle(state: { dragging: boolean; placed: boolean; selected: boolean }): React.CSSProperties {
+function sortItemStyle(state: { dragging: boolean; placed: boolean; selected: boolean; shaking: boolean }): React.CSSProperties {
   if (state.dragging) {
     return { ...liveStyles.itemChip, ...liveStyles.itemChipDraggingSource };
   }
 
   if (state.placed) {
     return liveStyles.itemChipPlaced;
+  }
+
+  if (state.shaking) {
+    return { ...liveStyles.itemChip, ...liveStyles.itemChipShake };
   }
 
   if (state.selected) {
@@ -1892,6 +2131,14 @@ const liveMotionCss = `
   54% { transform: translateX(-4px); }
   72% { transform: translateX(3px); }
 }
+@keyframes playcraft-gentle-shake {
+  0%, 100% { transform: translateX(0); }
+  12% { transform: translateX(-3px); }
+  24% { transform: translateX(3px); }
+  36% { transform: translateX(-2px); }
+  48% { transform: translateX(2px); }
+  60% { transform: translateX(0); }
+}
 `;
 
 const liveStyles = {
@@ -2046,6 +2293,8 @@ const liveStyles = {
   memoryCard: {
     width: "100%",
     aspectRatio: "1",
+    minWidth: "64px",
+    minHeight: "64px",
     border: "2px solid #cbd5e1",
     borderRadius: "8px",
     padding: "0.75rem",
@@ -2133,6 +2382,8 @@ const liveStyles = {
   },
   inlineAction: {
     justifySelf: "start",
+    minWidth: "64px",
+    minHeight: "64px",
     border: "1px solid #0f766e",
     borderRadius: "8px",
     background: "#0f766e",
@@ -2200,7 +2451,8 @@ const liveStyles = {
     alignContent: "start"
   },
   itemChip: {
-    minHeight: "3rem",
+    minWidth: "64px",
+    minHeight: "64px",
     borderRadius: "8px",
     border: "1px solid #d4d4d8",
     background: "rgba(255, 255, 255, 0.86)",
@@ -2217,7 +2469,8 @@ const liveStyles = {
     touchAction: "none"
   },
   itemChipActive: {
-    minHeight: "3rem",
+    minWidth: "64px",
+    minHeight: "64px",
     borderRadius: "8px",
     border: "2px solid #d97706",
     background: "#fff7ed",
@@ -2252,6 +2505,9 @@ const liveStyles = {
     opacity: 0.28,
     transform: "scale(0.98)",
     boxShadow: "none"
+  },
+  itemChipShake: {
+    animation: "playcraft-gentle-shake 420ms ease-in-out"
   },
   dragGhost: {
     position: "fixed" as const,
@@ -2420,7 +2676,8 @@ const liveStyles = {
     gap: "0.75rem"
   },
   choiceButton: {
-    minHeight: "4rem",
+    minWidth: "64px",
+    minHeight: "64px",
     borderRadius: "8px",
     borderWidth: "2px",
     borderStyle: "solid",
