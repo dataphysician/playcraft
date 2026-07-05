@@ -729,7 +729,14 @@ describe("builder session service", () => {
       ...exported!,
       replay: {
         ...exported!.replay,
-        eventLog: [replayEvent!, replayEvent!]
+        eventLog: [
+          replayEvent!,
+          {
+            ...replayEvent!,
+            id: `${replayEvent!.id}.duplicate`,
+            sequence: replayEvent!.sequence + 1
+          }
+        ]
       }
     };
 

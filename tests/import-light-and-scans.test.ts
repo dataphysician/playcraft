@@ -727,6 +727,16 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("tests/studio-ui.test.ts")).toContain("fails closed when a selected trusted preview component key has duplicate component bindings");
   });
 
+  it("keeps saved replay event identity unique instead of log-order trusted", () => {
+    const coreSource = readSource("packages/core/src/index.ts");
+    const replayTestSource = readSource("packages/core/test/replay.test.ts");
+
+    expect(coreSource).toContain("duplicate_replay_event_id");
+    expect(coreSource).toContain("const duplicateReplayEventIds = duplicateStrings(profile.replay.eventLog.map((event) => event.id));");
+    expect(replayTestSource).toContain("fails closed when saved profile replay events contain duplicate event ids");
+    expect(coreSource).not.toContain("profile.replay.eventLog[0]");
+  });
+
   it("keeps component render fallback policy fail-closed only", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const coreSource = readSource("packages/core/src/index.ts");

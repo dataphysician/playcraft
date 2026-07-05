@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Replay Event IDs
+
+Milestone:
+- Core profile validation now rejects duplicate replay event ids before saved profile replay.
+- Saved replay logs no longer accept repeated event identity when downstream tooling reconstructs interaction history.
+
+Supportive changes:
+- Core replay tests cover duplicate saved profile replay event ids.
+- Builder replay ambiguity tests now preserve unique replay event ids while covering multi-event preview rejection.
+- Source scans guard replay event identity validation beside trusted preview identity checks.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps replay event identity profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or duplicate saved replay event ids.
+
 ## 2026-07-05 - Exact Core Asset Request IDs
 
 Milestone:

@@ -167,4 +167,25 @@ describe("saved profile replay", () => {
       new RegExp(`profile profile\\.memory-match\\.mvp has duplicate component binding ids: ${saved.components[0]!.bindingId.replace(/\./gu, "\\.")}`, "u")
     );
   });
+
+  it("fails closed when saved profile replay events contain duplicate event ids", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const duplicateReplayEventProfile = {
+      ...saved,
+      replay: {
+        ...saved.replay,
+        eventLog: [
+          ...saved.replay.eventLog,
+          {
+            ...saved.replay.eventLog[0]!
+          }
+        ]
+      }
+    };
+
+    expect(() => replayProfile(duplicateReplayEventProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate replay event ids: ${saved.replay.eventLog[0]!.id.replace(/\./gu, "\\.")}`, "u")
+    );
+  });
 });
