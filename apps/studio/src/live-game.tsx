@@ -1145,9 +1145,37 @@ function validateMemorySurfaceProps(
   tokenStyleCatalog: TokenStyleCatalog
 ): void {
   const cards = stringArrayProp(component.props, "cards");
+  const cardPairs = stringRecordProp(component.props, "pairs");
+  if (cards.length === 0) {
+    throw new Error(`profile ${profileId} memory surface is missing authored cards`);
+  }
+
   const duplicateCards = duplicateStrings(cards);
   if (duplicateCards.length > 0) {
     throw new Error(`profile ${profileId} memory cards contain duplicate card ids: ${duplicateCards.join(", ")}`);
+  }
+
+  const cardIds = new Set(cards);
+  const missingPairCards = cards.filter((card) => !cardPairs[card]);
+  if (missingPairCards.length > 0) {
+    throw new Error(`profile ${profileId} memory cards are missing authored pairs: ${missingPairCards.join(", ")}`);
+  }
+
+  const unknownPairCards = Object.keys(cardPairs).filter((card) => !cardIds.has(card));
+  if (unknownPairCards.length > 0) {
+    throw new Error(`profile ${profileId} memory pairs reference missing cards: ${unknownPairCards.join(", ")}`);
+  }
+
+  const pairCards = new Map<string, string[]>();
+  for (const card of cards) {
+    const pairKey = cardPairs[card]!;
+    pairCards.set(pairKey, [...(pairCards.get(pairKey) ?? []), card]);
+  }
+
+  for (const [pairKey, pairedCards] of pairCards) {
+    if (pairedCards.length !== 2) {
+      throw new Error(`profile ${profileId} memory pair ${pairKey} must contain exactly 2 cards: ${pairedCards.join(", ")}`);
+    }
   }
 
   validateTokenStylesForTokens(profileId, memoryStyleTokens(component), tokenStyleCatalog);
@@ -1336,7 +1364,12 @@ function textProp(props: Record<string, JsonValue>, key: string, fallback: strin
 function shuffleMemoryCards(cards: string[], cardPairs: Record<string, string>, seed: string): MemoryCard[] {
   return cards
     .map((id) => ({ id, pairKey: cardPairs[id], order: hashString(`${seed}.${id}`) }))
-    .filter((card): card is MemoryCard & { order: number } => typeof card.pairKey === "string" && card.pairKey.length > 0)
+    .map((card): MemoryCard & { order: number } => {
+      if (!card.pairKey) {
+        throw new Error(`memory deck card ${card.id} is missing an authored pair`);
+      }
+      return { id: card.id, pairKey: card.pairKey, order: card.order };
+    })
     .sort((left, right) => left.order - right.order)
     .map(({ id, pairKey }) => ({ id, pairKey }));
 }

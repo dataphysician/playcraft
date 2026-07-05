@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Memory Pairs
+
+Milestone:
+- Live App memory games now require every displayed card to have an authored pair entry and every pair to contain exactly two cards.
+- Memory deck construction no longer filters out cards with missing pair metadata or renders unwinnable singleton pairs.
+
+Supportive changes:
+- Studio asset-library tests cover missing authored card pairs and incomplete memory pair groups.
+- Source scans guard memory pair coverage checks and block silent deck-card filtering.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps memory game interactions profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or deck filtering inference.
+
 ## 2026-07-05 - Explicit Sequence Choice Components
 
 Milestone:

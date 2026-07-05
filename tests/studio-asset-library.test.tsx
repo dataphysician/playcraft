@@ -334,6 +334,69 @@ describe("studio asset library", () => {
     expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
   });
 
+  it("rejects memory cards missing authored pairs instead of dropping deck cards", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const missingPairProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["dinosaur-1-a", "dinosaur-1-b", "dinosaur-2-a"],
+                pairs: {
+                  "dinosaur-1-a": "pair-1",
+                  "dinosaur-1-b": "pair-1"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile: missingPairProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("memory cards are missing authored pairs: dinosaur-2-a");
+    expect(screen.queryByRole("button", { name: "dinosaur-2-a" })).toBeNull();
+  });
+
+  it("rejects incomplete Live App memory pairs instead of making unwinnable decks", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const incompletePairProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["dinosaur-1-a", "dinosaur-1-b", "dinosaur-2-a"],
+                pairs: {
+                  "dinosaur-1-a": "pair-1",
+                  "dinosaur-1-b": "pair-1",
+                  "dinosaur-2-a": "pair-2"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile: incompletePairProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("memory pair pair-2 must contain exactly 2 cards: dinosaur-2-a");
+    expect(screen.queryByRole("button", { name: "dinosaur-2-a" })).toBeNull();
+  });
+
   it("rejects duplicate Live App sorting item ids instead of using placement keys", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Sorting game with toys" });

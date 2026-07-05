@@ -1391,6 +1391,9 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("tokenStyleCatalogForSurface");
     expect(liveGameSource).toContain("function validateMemorySurfaceProps");
     expect(liveGameSource).toContain("memory cards contain duplicate card ids");
+    expect(liveGameSource).toContain("memory cards are missing authored pairs");
+    expect(liveGameSource).toContain("memory pairs reference missing cards");
+    expect(liveGameSource).toContain("memory pair ${pairKey} must contain exactly 2 cards");
     expect(liveGameSource).toContain("function validateSortingSurfaceProps");
     expect(liveGameSource).toContain("sorting items contain duplicate item ids");
     expect(liveGameSource).toContain("function validateSequenceSurfaceProps");
@@ -1403,6 +1406,8 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("liveSurface.defaultTokenStyle");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App token styles instead of using style order");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App memory card ids instead of using deck order");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects memory cards missing authored pairs instead of dropping deck cards");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects incomplete Live App memory pairs instead of making unwinnable decks");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App sorting item ids instead of using placement keys");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects sequence tokens missing from authored choices instead of inferring buttons");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects sequence surfaces without an authored choice component capability");
@@ -1411,6 +1416,7 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).not.toContain("const palette =");
     expect(liveGameSource).not.toContain("fallbackIndex");
     expect(liveGameSource).not.toContain("uniqueStrings([...sequence, ...configuredRounds.flat()])");
+    expect(liveGameSource).not.toContain(".filter((card): card is MemoryCard");
     expect(liveGameSource).not.toContain("tokenStyleCatalog.tokenStyles.find");
     expect(liveGameSource).not.toContain('aliases: ["red"]');
     expect(liveGameSource).not.toContain('aliases: ["blue"]');
