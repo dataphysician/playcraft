@@ -261,6 +261,48 @@ describe("studio UI", () => {
     expect(() => client.assembleFromIntent({ idea: "Memory game with dinosaurs" })).toThrow(/session snapshot/u);
   });
 
+  it("requires service execution sessions to include the active profile payload", () => {
+    const client = createStudioClientFromServiceTransport({
+      defaultSessionId: "studio.missing-active-profile",
+      timelineIdPrefix: "timeline.missing-active-profile",
+      transport: {
+        send(request) {
+          const response: Partial<BuilderServiceResponse> = { ...handleLocalServiceRequest(request) };
+          if (response.session) {
+            response.session = {
+              ...response.session,
+              profile: undefined
+            };
+          }
+          return response as BuilderServiceResponse;
+        }
+      }
+    });
+
+    expect(() => client.assembleFromIntent({ idea: "Memory game with dinosaurs" })).toThrow(/active profile/u);
+  });
+
+  it("requires service execution active profile ids to match the profile payload", () => {
+    const client = createStudioClientFromServiceTransport({
+      defaultSessionId: "studio.mismatched-active-profile",
+      timelineIdPrefix: "timeline.mismatched-active-profile",
+      transport: {
+        send(request) {
+          const response: Partial<BuilderServiceResponse> = { ...handleLocalServiceRequest(request) };
+          if (response.session) {
+            response.session = {
+              ...response.session,
+              activeProfileId: "profile.other"
+            };
+          }
+          return response as BuilderServiceResponse;
+        }
+      }
+    });
+
+    expect(() => client.assembleFromIntent({ idea: "Memory game with dinosaurs" })).toThrow(/did not match activeProfileId/u);
+  });
+
   it("can assemble through a configured HTTP service endpoint", async () => {
     const requestedUrls: string[] = [];
     vi.stubGlobal("fetch", async (url: unknown, init: { body?: unknown } = {}) => {

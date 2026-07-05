@@ -369,7 +369,12 @@ describe("import-light boundaries and source scans", () => {
 
     expect(source).toContain("response did not include session snapshot");
     expect(source).toContain("response.session.activeProfileId");
-    expect(source).toContain("activeProfile: response.session.profile");
+    expect(source).toContain("function activeProfileFromResponse(response: BuilderServiceResponse): GameAssemblyProfile");
+    expect(source).toContain("response session did not include activeProfileId");
+    expect(source).toContain("response session did not include active profile");
+    expect(source).toContain("did not match activeProfileId");
+    expect(source).toContain("const activeProfile = activeProfileFromResponse(response)");
+    expect(source).toContain("activeProfile,");
     expect(typesSource).toContain("activeProfile?: GameAssemblyProfile");
     expect(appSource).toContain("const activeProfile = session?.activeProfile");
     expect(source).not.toContain("response.session?.activeProfileId");

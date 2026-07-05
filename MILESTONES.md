@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Studio Active Profile Response Guard
+
+Milestone:
+- Studio transport-backed execution snapshots now require `activeProfileId` and an active profile payload.
+- Studio rejects service responses where `session.profile.id` does not match `session.activeProfileId`.
+- Mobile shell inherits the same guard through the shared Studio client.
+
+Supportive changes:
+- Studio UI tests cover missing active profile payloads and mismatched active profile IDs from transport responses.
+- Source scans pin the session-owned active profile helper and block falling back to execution result profile data.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps user-facing app sessions tied to the validated service session snapshot without hosted providers, generated runtime code, auth, database state, compatibility shims, or app-local active profile recovery.
+
 ## 2026-07-04 - Authored Asset Edit Props
 
 Milestone:

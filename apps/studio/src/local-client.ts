@@ -7,6 +7,7 @@ import {
   type BuilderProfileExport,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
+  type GameAssemblyProfile,
   type JsonValue,
   type MoonshineTranscriptRecord
 } from "@playcraft/contracts";
@@ -74,6 +75,7 @@ export function createStudioClientFromServiceTransport(options: {
       throw new Error(`${response.actionName} response did not include session snapshot`);
     }
 
+    const activeProfile = activeProfileFromResponse(response);
     const entries = response.execution.events.map((event, index) => timelineEntry(event, timeline.length + index + 1, timelineIdPrefix));
     timeline.push(...entries);
 
@@ -81,7 +83,7 @@ export function createStudioClientFromServiceTransport(options: {
       activeAssetEdit: response.session.activeAssetEdit,
       sessionId,
       activeProfileId: response.session.activeProfileId,
-      activeProfile: response.session.profile,
+      activeProfile,
       timeline: [...timeline]
     };
   }
@@ -216,6 +218,25 @@ function moonshineTranscriptForClientInput(input: {
     },
     text: input.text
   });
+}
+
+function activeProfileFromResponse(response: BuilderServiceResponse): GameAssemblyProfile {
+  if (!response.session) {
+    throw new Error(`${response.actionName} response did not include session snapshot`);
+  }
+
+  const session = response.session;
+  if (!session.activeProfileId) {
+    throw new Error(`${response.actionName} response session did not include activeProfileId`);
+  }
+  if (!session.profile) {
+    throw new Error(`${response.actionName} response session did not include active profile`);
+  }
+  if (session.profile.id !== session.activeProfileId) {
+    throw new Error(`${response.actionName} response active profile ${session.profile.id} did not match activeProfileId ${session.activeProfileId}`);
+  }
+
+  return session.profile;
 }
 
 function profileExportFromResponse(response: BuilderServiceResponse): BuilderProfileExport {
