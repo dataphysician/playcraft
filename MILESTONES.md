@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Selection Helpers
+
+Milestone:
+- Core registry get and deterministic planner recipe selection now use explicit single-value helpers instead of indexed first-match returns.
+- Core selection paths keep ambiguity fail-closed while removing positional return shortcuts from registry and planner matching.
+
+Supportive changes:
+- Source scans guard core single-value helpers and block indexed registry and planner match returns.
+- Existing core registry and planner tests continue covering ambiguous registry matches, version requirements, and equal-score planner rejection.
+
+Validation:
+- `pnpm test packages/core/test/registries.test.ts packages/core/test/planner.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps core selection local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match core selection.
+
 ## 2026-07-05 - Exact Builder Backend Matches
 
 Milestone:

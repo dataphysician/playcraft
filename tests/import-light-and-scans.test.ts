@@ -189,12 +189,15 @@ describe("import-light boundaries and source scans", () => {
     expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.modalities");
     expect(coreSource).toContain('entry.kind !== "mechanic" && entry.kind !== "rule-module"');
     expect(coreSource).toContain("function registrySelectionWarnings");
+    expect(coreSource).toContain("function singleValue");
+    expect(coreSource).toContain("return singleValue(matches);");
     expect(coreSource).toContain("matches.length === 1 ? matches[0] : null");
     expect(coreSource).toContain("has multiple versions for ${id}; pass version");
     expect(coreSource).not.toContain("Reflect.get");
     expect(registryTestSource).not.toContain("Reflect.get");
     expect(coreSource).not.toContain("selected: matches[0] ?? null");
     expect(coreSource).not.toContain("return this.all().find((entry) => entry.id === id)");
+    expect(coreSource).not.toContain("return matches[0]");
     expect(registryTestSource).toContain("does not select the first matching registry candidate when matches are ambiguous");
     expect(registryTestSource).toContain("requires a version for unversioned registry gets with multiple versions");
     expect(registryTestSource).toContain("does not use partial compatibility objects from loose mechanic-shaped entries");
@@ -210,7 +213,10 @@ describe("import-light boundaries and source scans", () => {
     expect(coreSource).toContain("const bestScore = Math.max(...candidates.map((candidate) => candidate.score));");
     expect(coreSource).toContain("const bestCandidates = candidates.filter((candidate) => candidate.score === bestScore);");
     expect(coreSource).toContain("ambiguous deterministic recipes matched requested capabilities");
+    expect(coreSource).toContain("function requireSingleValue");
+    expect(coreSource).toContain('return requireSingleValue(bestCandidates, "deterministic planner best candidate").recipe;');
     expect(coreSource).not.toContain(".sort((left, right) => right.score - left.score || left.index - right.index)[0]?.recipe");
+    expect(coreSource).not.toContain("bestCandidates[0]");
     expect(plannerTestSource).toContain("rejects equal-score recipe matches instead of using recipe order");
   });
 

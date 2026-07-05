@@ -104,7 +104,7 @@ export class CapabilityRegistry<TEntry extends RegistryEntry> {
       throw new Error(`${this.name} has multiple versions for ${id}; pass version`);
     }
 
-    return matches[0];
+    return singleValue(matches);
   }
 
   all(): TEntry[] {
@@ -241,6 +241,18 @@ function registrySelectionWarnings(registryName: string, matches: RegistryEntry[
   return [];
 }
 
+function singleValue<TValue>(values: TValue[]): TValue | undefined {
+  return values.length === 1 ? values[0] : undefined;
+}
+
+function requireSingleValue<TValue>(values: TValue[], label: string): TValue {
+  const value = singleValue(values);
+  if (value === undefined) {
+    throw new Error(`${label} requires exactly one value`);
+  }
+  return value;
+}
+
 export function createMechanicRegistry(): CapabilityRegistry<MechanicDefinition> {
   return new CapabilityRegistry("mechanics", MechanicDefinitionSchema as z.ZodType<MechanicDefinition>);
 }
@@ -370,7 +382,7 @@ export class DeterministicAssemblyPlanner {
       throw new Error(`ambiguous deterministic recipes matched requested capabilities: ${bestCandidates.map((candidate) => candidate.recipe.id).join(", ")}`);
     }
 
-    return bestCandidates[0].recipe;
+    return requireSingleValue(bestCandidates, "deterministic planner best candidate").recipe;
   }
 }
 
