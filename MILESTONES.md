@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Asset Edit Component Operations
+
+Milestone:
+- Builder asset edits now require each profile component capability to map to at most one authored asset edit operation.
+- Imported/custom template snapshots with duplicate component operation metadata fail closed instead of editing through the first matching operation.
+
+Supportive changes:
+- Builder tests cover duplicate component asset edit operations in imported template snapshots.
+- Source scans block first-match component operation lookup from returning.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps component asset edits template-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or asset operation order inference.
+
 ## 2026-07-05 - Exact Studio Input Source Options
 
 Milestone:

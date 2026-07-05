@@ -776,7 +776,7 @@ function applyAssetEdit(
   const components = profile.components.map((component) => ({
     ...component,
     props: editComponentProps(
-      template.assetEditOperations.find((operation) => operation.componentCapability === component.renderCapability),
+      assetEditOperationForComponent(template, component.renderCapability),
       component.props,
       edit
     ),
@@ -793,6 +793,17 @@ function applyAssetEdit(
     ...editedProfile,
     validation: validateGameAssemblyProfile(editedProfile, registries)
   });
+}
+
+function assetEditOperationForComponent(
+  template: GameProfileTemplateSnapshot,
+  componentCapability: string
+): GameTemplateAssetEditOperation | undefined {
+  const operations = template.assetEditOperations.filter((operation) => operation.componentCapability === componentCapability);
+  if (operations.length > 1) {
+    throw new Error(`${template.id} has multiple asset edit operations for ${componentCapability}`);
+  }
+  return operations[0];
 }
 
 function normalizeAssetEdit(assetEdit: BuilderAssetEdit | undefined): NormalizedAssetEdit | undefined {

@@ -450,6 +450,40 @@ describe("builder session service", () => {
     }))).toThrow(/profile\.custom-sorting-duplicate-bins has multiple components for component:sort-bins sorting-items asset requests/u);
   });
 
+  it("rejects asset edit requests when imported templates duplicate component operations", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.sorting" })).result.profile;
+    expect(exported).toBeDefined();
+    const sortBinsOperation = exported!.template.assetEditOperations.find(
+      (operation) => operation.componentCapability === "component:sort-bins"
+    );
+    expect(sortBinsOperation).toBeDefined();
+    const custom = {
+      ...exported!,
+      id: "profile.custom-sorting-dup-ops",
+      template: {
+        ...exported!.template,
+        assetEditOperations: [
+          ...exported!.template.assetEditOperations,
+          {
+            ...sortBinsOperation!,
+            operation: "hint-message" as const
+          }
+        ]
+      }
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.dup-ops", custom);
+
+    expect(() => target.execute(command({
+      actionName: "update-game",
+      assetEdit: { theme: "toys" },
+      sessionId: "session.dup-ops",
+      templateId: "template.sorting"
+    }))).toThrow(/template\.sorting has multiple asset edit operations for component:sort-bins/u);
+  });
+
   it("rejects explicit sorting asset edits with unused extra items instead of dropping them", () => {
     const service = new PlaycraftBuilderSessionService();
 
