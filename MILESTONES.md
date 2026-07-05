@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Self-Describing Profile Export Contract
+
+Milestone:
+- `BuilderProfileExportSchema` now requires preview metadata and validation output.
+- Profile exports require `preview.activeProfileId`.
+- Exported profile IDs must match `preview.activeProfileId`, so portable profile handoff cannot rely on importer-side recovery.
+
+Supportive changes:
+- Contract tests cover valid profile exports, missing preview metadata, missing validation, missing preview active IDs, and mismatched active IDs.
+- Source scans pin the profile export invariant alongside session snapshot and command result active profile checks.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps exported/imported game profiles self-describing without hosted providers, generated runtime code, auth, database state, compatibility shims, or consumer-side profile recovery.
+
 ## 2026-07-04 - Command Result Active Profile Contract
 
 Milestone:

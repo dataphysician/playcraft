@@ -373,6 +373,8 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("session snapshot profile id must match activeProfileId");
     expect(contractSource).toContain("command results with profile payloads require preview activeProfileId");
     expect(contractSource).toContain("command result profile id must match preview activeProfileId");
+    expect(contractSource).toContain("profile exports require preview activeProfileId");
+    expect(contractSource).toContain("profile export profile id must match preview activeProfileId");
     expect(source).toContain("response did not include session snapshot");
     expect(source).toContain("response.session.activeProfileId");
     expect(source).toContain("function activeProfileFromResponse(response: BuilderServiceResponse): GameAssemblyProfile");

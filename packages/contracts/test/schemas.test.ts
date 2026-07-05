@@ -829,6 +829,56 @@ describe("public contract schemas", () => {
     }).success).toBe(false);
   });
 
+  it("keeps profile exports self-describing and active-profile consistent", () => {
+    const profile = assembleMvpProfiles()[0];
+    const baseExport = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-profile-export.profile-consistency",
+      version: "1.0.0",
+      kind: "builder-profile-export",
+      sessionId: "session.profile-export-consistency",
+      templateId: "template.memory-match",
+      profile,
+      preview: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        sessionId: "session.profile-export-consistency",
+        activeProfileId: profile.id,
+        activeTemplateId: "template.memory-match",
+        interactionCount: 0
+      },
+      validation: profile.validation,
+      exportedAt: "2026-07-04T00:00:00.000Z",
+      retrieval: {
+        current: "bundled-local",
+        planned: "server-catalog"
+      }
+    };
+
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse(baseExport).success).toBe(true);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      preview: undefined
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      validation: undefined
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      preview: {
+        ...baseExport.preview,
+        activeProfileId: undefined
+      }
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      preview: {
+        ...baseExport.preview,
+        activeProfileId: "profile.other"
+      }
+    }).success).toBe(false);
+  });
+
   it("keeps builder command payload fields scoped to their actions", () => {
     const baseCommand = {
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

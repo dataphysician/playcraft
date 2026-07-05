@@ -1035,8 +1035,8 @@ export const BuilderProfileExportSchema = PublicContractBaseSchema.extend({
   templateId: BuilderTemplateIdSchema.optional(),
   assetEdit: BuilderAssetEditSchema.optional(),
   profile: GameAssemblyProfileSchema,
-  preview: BuilderPreviewStateSchema.optional(),
-  validation: AssemblyValidationResultSchema.optional(),
+  preview: BuilderPreviewStateSchema,
+  validation: AssemblyValidationResultSchema,
   exportedAt: z.string().datetime(),
   retrieval: z
     .object({
@@ -1044,7 +1044,16 @@ export const BuilderProfileExportSchema = PublicContractBaseSchema.extend({
       planned: z.literal("server-catalog")
     })
     .strict()
-}).strict();
+})
+  .strict()
+  .refine((value) => Boolean(value.preview.activeProfileId), {
+    message: "profile exports require preview activeProfileId",
+    path: ["preview", "activeProfileId"]
+  })
+  .refine((value) => !value.preview.activeProfileId || value.profile.id === value.preview.activeProfileId, {
+    message: "profile export profile id must match preview activeProfileId",
+    path: ["profile"]
+  });
 export type BuilderProfileExport = z.infer<typeof BuilderProfileExportSchema>;
 
 export const BuilderServiceExecutionSchema = z
