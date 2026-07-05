@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Studio Primary Preview Key
+
+Milestone:
+- Studio primary trusted-preview key selection now uses the shared exact single-value helper instead of indexed extraction after a length check.
+- Duplicate primary preview surfaces continue to fail closed without positional component selection.
+
+Supportive changes:
+- Source scans guard helper-based primary preview key extraction and block `primarySummaries[0]`.
+- Existing Studio UI tests continue covering duplicate primary preview surfaces and selected trusted preview failures.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Studio preview selection local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or indexed primary-preview selection.
+
 ## 2026-07-05 - Complete Builder Memory Pair Validation
 
 Milestone:

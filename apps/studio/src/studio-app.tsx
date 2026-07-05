@@ -935,7 +935,7 @@ function selectedTimelineEntry(
 
 function primaryPreviewComponentKey(componentSummaries: TrustedPreviewComponentSummary[]): string | undefined {
   const primarySummaries = componentSummaries.filter((component) => component.isPrimaryPreviewSurface);
-  return primarySummaries.length === 1 ? primarySummaries[0].componentKey : undefined;
+  return singleValue(primarySummaries)?.componentKey;
 }
 
 function singleValue<TValue>(values: TValue[]): TValue | undefined {

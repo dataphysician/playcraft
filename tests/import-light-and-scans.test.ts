@@ -732,7 +732,8 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).toContain("component.isPrimaryPreviewSurface");
     expect(studioSource).toContain("function primaryPreviewComponentKey");
     expect(studioSource).toContain("const primarySummaries = componentSummaries.filter((component) => component.isPrimaryPreviewSurface);");
-    expect(studioSource).toContain("primarySummaries.length === 1 ? primarySummaries[0].componentKey : undefined");
+    expect(studioSource).toContain("return singleValue(primarySummaries)?.componentKey;");
+    expect(studioSource).not.toContain("primarySummaries[0]");
     expect(studioSource).not.toContain("componentSummaries.find((component) => component.isPrimaryPreviewSurface)?.componentKey");
     expect(studioSource).not.toContain("componentSummaries[0]");
     expect(source).not.toContain("??\n        replay.renderRequests[0]");
