@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Trusted Preview Selected Keys
+
+Milestone:
+- Studio trusted preview now requires a selected component key to match exactly one replay render request.
+- Imported/custom profiles with duplicate selected render request keys fail closed instead of rendering the first matching request.
+
+Supportive changes:
+- Studio UI tests cover duplicate non-primary selected render request keys.
+- Source scans block returning to first-match selected render request lookup.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Developer-tab trusted preview selection replay-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or render-request key order inference.
+
 ## 2026-07-05 - Exact Pack Requirement Lookup
 
 Milestone:

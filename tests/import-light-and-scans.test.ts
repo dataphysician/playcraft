@@ -677,10 +677,14 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("selected trusted preview component");
     expect(source).toContain("function renderRequestKey(request: ComponentRenderRequest): string");
     expect(source).toContain("return request.id;");
+    expect(source).toContain("function renderRequestForSelectedKey");
+    expect(source).toContain("renderRequests.filter((request) => renderRequestKey(request) === selectedComponentKey)");
+    expect(source).toContain("has multiple trusted preview render requests for selected component");
     expect(source).toContain("function renderRequestForTemplatePrimary");
     expect(source).toContain("profile.template.liveSurface.componentCapabilities.primary");
     expect(source).toContain("const matches = renderRequests.filter((request) => request.componentCapability === primaryCapability);");
     expect(source).toContain("has multiple trusted preview primary render requests");
+    expect(source).not.toContain("replay.renderRequests.find((candidate) => renderRequestKey(candidate) === selectedComponentKey)");
     expect(source).not.toContain("renderRequests.find((request) => request.componentCapability === primaryCapability)");
     expect(source).not.toContain("renderRequestKey(request, index)");
     expect(source).not.toContain("renderRequestKey(candidate, index)");
@@ -694,6 +698,7 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).not.toContain("componentSummaries[0]");
     expect(source).not.toContain("??\n        replay.renderRequests[0]");
     expect(source).not.toContain("?? replay.renderRequests[0]");
+    expect(readSource("tests/studio-ui.test.ts")).toContain("fails closed when a selected trusted preview component key matches multiple render requests");
   });
 
   it("keeps component render fallback policy fail-closed only", () => {

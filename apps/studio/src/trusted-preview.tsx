@@ -78,9 +78,9 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
   try {
     request = selectedComponentKey === undefined
       ? renderRequestForTemplatePrimary(profile, replay.renderRequests)
-      : replay.renderRequests.find((candidate) => renderRequestKey(candidate) === selectedComponentKey);
+      : renderRequestForSelectedKey(profile, replay.renderRequests, selectedComponentKey);
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "trusted preview primary component selection failed";
+    const message = cause instanceof Error ? cause.message : "trusted preview component selection failed";
     return React.createElement(PreviewFailure, { failure: { code: "invalid-request", message } });
   }
 
@@ -129,6 +129,19 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
 
 function renderRequestKey(request: ComponentRenderRequest): string {
   return request.id;
+}
+
+function renderRequestForSelectedKey(
+  profile: GameAssemblyProfile,
+  renderRequests: ComponentRenderRequest[],
+  selectedComponentKey: string
+): ComponentRenderRequest | undefined {
+  const matches = renderRequests.filter((request) => renderRequestKey(request) === selectedComponentKey);
+  if (matches.length > 1) {
+    throw new Error(`profile ${profile.id} has multiple trusted preview render requests for selected component ${selectedComponentKey}`);
+  }
+
+  return matches[0];
 }
 
 function renderRequestForTemplatePrimary(

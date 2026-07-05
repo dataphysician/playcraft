@@ -1208,4 +1208,29 @@ describe("studio UI", () => {
     expect(screen.getByTestId("trusted-preview-error").textContent).toContain("component.not-in-profile");
     expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
   });
+
+  it("fails closed when a selected trusted preview component key matches multiple render requests", () => {
+    const celebration = profileA.components.find((component) => component.renderCapability === "component:celebration-overlay");
+    expect(celebration).toBeDefined();
+    const duplicateSelectedProfile = {
+      ...profileA,
+      components: [
+        ...profileA.components,
+        {
+          ...celebration!,
+          componentId: "component.celebration-overlay"
+        }
+      ]
+    };
+    const selectedComponentKey = `render.${profileA.id}.${celebration!.bindingId}`;
+
+    render(React.createElement(TrustedPreview, {
+      profile: duplicateSelectedProfile,
+      selectedComponentKey
+    }));
+
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("multiple trusted preview render requests");
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain(selectedComponentKey);
+    expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
+  });
 });
