@@ -23,6 +23,13 @@ const BuilderCliBatchOutputSchema = z.array(
     .strict()
 );
 
+const BuilderCliOutputSchema = z
+  .object({
+    events: z.array(JsonValueSchema),
+    result: BuilderCommandResultSchema
+  })
+  .strict();
+
 function command(overrides: Partial<BuilderCommand>): BuilderCommand {
   return {
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -462,6 +469,36 @@ describe("builder session service", () => {
     expect(preview.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("tool:preview-interaction"))).toBe(false);
   });
 
+  it("imports validated profiles through the builder CLI profile tool", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match", assetEdit: { theme: "dinosaurs" } })).result.profile;
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+
+    expect(exported).toBeDefined();
+    const exitCode = runBuilderCli([
+      "import-profile",
+      "--session",
+      "session.cli.import",
+      "--profile-json",
+      JSON.stringify(exported),
+      "--json"
+    ], {
+      stdout: (message) => stdout.push(message),
+      stderr: (message) => stderr.push(message)
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stderr).toEqual([]);
+
+    const parsed = BuilderCliOutputSchema.parse(JSON.parse(stdout.join("\n")));
+    expect(parsed.result.sessionId).toBe("session.cli.import");
+    expect(parsed.result.profile?.id).toBe("profile.memory-match.mvp");
+    expect(parsed.result.preview.activeTemplateId).toBe("template.memory-match");
+    expect(cardsFor(parsed.result.profile)).toEqual(["dinosaur-1-a", "dinosaur-1-b", "dinosaur-2-a", "dinosaur-2-b"]);
+    expect(parsed.events.some((event) => JSON.stringify(event).includes("tool:import-profile"))).toBe(true);
+  });
+
   it("keeps CLI batch output in parity with all registered templates", () => {
     const stdout: string[] = [];
     const stderr: string[] = [];
@@ -527,6 +564,10 @@ describe("builder session service", () => {
     expect(stderr.pop()).toMatch(/unknown option: --provider/u);
     expect(runBuilderCli(["assemble", "--template"], io)).toBe(1);
     expect(stderr.pop()).toMatch(/--template requires a value/u);
+    expect(runBuilderCli(["import-profile", "--session", "session.cli"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/import-profile requires --profile-json/u);
+    expect(runBuilderCli(["preview", "--session", "session.cli", "--profile-json", "{}"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/preview does not accept --profile-json/u);
     expect(stdout).toEqual([]);
   });
 
@@ -542,6 +583,12 @@ describe("builder session service", () => {
     expect(stderr.pop()).toMatch(/update requires --session/u);
     expect(runBuilderCli(["preview"], io)).toBe(1);
     expect(stderr.pop()).toMatch(/preview requires --session/u);
+    expect(runBuilderCli(["get-session"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/get-session requires --session/u);
+    expect(runBuilderCli(["export-profile"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/export-profile requires --session/u);
+    expect(runBuilderCli(["import-profile", "--profile-json", "{}"], io)).toBe(1);
+    expect(stderr.pop()).toMatch(/import-profile requires --session/u);
     expect(stdout).toEqual([]);
   });
 });

@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Expose Builder Profile CLI Tools
+
+Milestone:
+- `playcraft-builder` now exposes the advertised session/profile tool commands: `get-session`, `export-profile`, and `import-profile`.
+- Profile imports accept explicit `--profile-json` payloads and validate them with `GameAssemblyProfileSchema` before command execution.
+- Profile payload flags are rejected on non-import CLI commands instead of being silently ignored.
+
+Supportive changes:
+- Builder CLI tests cover importing a dinosaur-themed memory profile through `import-profile`.
+- Builder CLI tests require explicit sessions for all session-bound profile commands.
+- Source scans guard the CLI command mapping and schema-backed profile JSON parsing.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts packages/contracts/test/schemas.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across app source, package source, tests, milestones, framework docs, specs, and plans returned only guard/planning references.
+
+Constraint notes:
+- Keeps the lower-level builder tool surface local, schema-backed, and forward-only without adding hosted providers, generated runtime code, auth, database state, or persistence shims.
+
 ## 2026-07-04 - Update Imported Template Snapshots
 
 Milestone:

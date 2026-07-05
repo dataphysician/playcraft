@@ -301,6 +301,10 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain("argumentsPrefix");
     expect(builderSource).not.toContain("noArgumentsLabel");
     expect(builderCliSource).toContain("writeCatalogSummary(handler.listTools(), handler.listTemplates(), io)");
+    expect(builderCliSource).toContain("get-session|export-profile|import-profile");
+    expect(builderCliSource).toContain('case "import-profile"');
+    expect(builderCliSource).toContain("GameAssemblyProfileSchema.parse(JSON.parse(value))");
+    expect(builderCliSource).toContain("import-profile requires --profile-json");
     expect(builderCliSource).toContain("tool.displayName");
     expect(builderCliSource).toContain("tool.argumentSummary");
     expect(builderCliSource).toContain("template.displayLabel");
