@@ -114,6 +114,24 @@ describe("saved profile replay", () => {
     );
   });
 
+  it("fails closed when saved profile rules contain duplicate binding ids", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const duplicateRuleProfile = {
+      ...saved,
+      rules: [
+        ...saved.rules,
+        {
+          ...saved.rules[0]!
+        }
+      ]
+    };
+
+    expect(() => replayProfile(duplicateRuleProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate rule binding ids: ${saved.rules[0]!.bindingId.replace(/\./gu, "\\.")}`, "u")
+    );
+  });
+
   it("fails closed when saved profile components contain duplicate binding ids", () => {
     const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
     const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));

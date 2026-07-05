@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Rule Binding IDs
+
+Milestone:
+- Core profile validation now rejects duplicate rule binding ids before saved profile replay.
+- Saved profile rule configuration no longer accepts repeated binding identity.
+
+Supportive changes:
+- Core replay tests cover duplicate saved profile rule binding ids.
+- Source scans guard duplicate rule binding validation beside exact template requirement lookup checks.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps rule binding identity profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or duplicate saved rule bindings.
+
 ## 2026-07-05 - Exact Core Component Binding IDs
 
 Milestone:

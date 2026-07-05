@@ -247,9 +247,13 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps template requirement lookup exact instead of first pack match", () => {
+    const coreSource = readSource("packages/core/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
+    expect(coreSource).toContain("duplicate_rule_binding_id");
+    expect(coreSource).toContain("const duplicateRuleBindingIds = duplicateStrings(profile.rules.map((rule) => rule.bindingId));");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile rules contain duplicate binding ids");
     expect(packSource).toContain("duplicate mechanic capability ${capability}");
     expect(packSource).toContain("duplicate rule category ${category}");
     expect(packSource).toContain("duplicate component capability ${capability}");
