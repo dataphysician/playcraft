@@ -110,7 +110,7 @@ export function createStudioClientFromServiceTransport(options: {
     },
     assembleFromIntent(input) {
       const sessionId = input.sessionId ?? defaultSessionId;
-      const moonshineTranscript = moonshineTranscriptForClientInput({
+      const inputPayload = serviceInputPayloadForClientInput({
         requestId: `moonshine-transcript.${defaultSessionId}.${requestCounter + 1}`,
         source: input.source,
         moonshineTranscript: input.moonshineTranscript,
@@ -120,9 +120,7 @@ export function createStudioClientFromServiceTransport(options: {
         options.transport.send(
           nextRequest("assemble", {
             sessionId,
-            source: input.source,
-            moonshineTranscript,
-            text: moonshineTranscript?.text ?? input.idea
+            ...inputPayload
           })
         ),
         (response) => snapshotFromResponse(sessionId, response)
@@ -152,7 +150,7 @@ export function createStudioClientFromServiceTransport(options: {
       );
     },
     requestChange(input) {
-      const moonshineTranscript = moonshineTranscriptForClientInput({
+      const inputPayload = serviceInputPayloadForClientInput({
         requestId: `moonshine-transcript.${defaultSessionId}.${requestCounter + 1}`,
         source: input.source,
         moonshineTranscript: input.moonshineTranscript,
@@ -162,9 +160,7 @@ export function createStudioClientFromServiceTransport(options: {
         options.transport.send(
           nextRequest("update", {
             sessionId: input.sessionId,
-            source: input.source,
-            moonshineTranscript,
-            text: moonshineTranscript?.text ?? input.changeRequest
+            ...inputPayload
           })
         ),
         (response) => snapshotFromResponse(input.sessionId, response)
@@ -174,6 +170,28 @@ export function createStudioClientFromServiceTransport(options: {
       void options.transport.send(nextRequest("reset", {}));
       timeline.length = 0;
     }
+  };
+}
+
+function serviceInputPayloadForClientInput(input: {
+  requestId: string;
+  source?: BuilderInputSource;
+  moonshineTranscript?: MoonshineTranscriptRecord;
+  text: string;
+}): Partial<Pick<BuilderServiceRequest, "moonshineTranscript" | "source" | "text">> {
+  const moonshineTranscript = moonshineTranscriptForClientInput(input);
+  const source = input.source ? { source: input.source } : {};
+
+  if (moonshineTranscript) {
+    return {
+      ...source,
+      moonshineTranscript
+    };
+  }
+
+  return {
+    ...source,
+    text: input.text
   };
 }
 

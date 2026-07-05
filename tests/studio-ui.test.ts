@@ -166,10 +166,10 @@ describe("studio UI", () => {
       sessionId: "studio.transcript",
       moonshineTranscript: {
         transcriptId: "moonshine-transcript.test.studio-client"
-      },
-      text: "Repeat a pattern with gems"
+      }
     });
     expect(requests[0]?.source).toBeUndefined();
+    expect(requests[0]).not.toHaveProperty("text");
     expect(session.activeProfileId).toBe("profile.sequence-repeat.mvp");
     expect(session.activeProfile?.id).toBe("profile.sequence-repeat.mvp");
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.studio-client"))).toBe(true);

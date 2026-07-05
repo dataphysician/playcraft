@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Single-Source Studio Input Payloads
+
+Milestone:
+- Studio client assemble/update requests now send either text or a Moonshine transcript record, not duplicated transcript text.
+- Moonshine transcript requests remain service-routable through the transcript record without a redundant `text` payload.
+- Text requests continue to send text payloads through the same service envelope contract.
+
+Supportive changes:
+- Studio transport tests assert explicit transcript requests omit the `text` field.
+- Source scans guard against reintroducing transcript-text fallback payload expressions in Studio request construction.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps Studio input transport explicit for text or local Moonshine Streaming CPU transcripts without hosted providers, generated runtime code, auth, database state, compatibility shims, or dual-source payload ambiguity.
+
 ## 2026-07-04 - Strict Imported Template State
 
 Milestone:
