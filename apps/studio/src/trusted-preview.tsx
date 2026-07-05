@@ -73,9 +73,15 @@ export function TrustedPreview({ profile, selectedComponentKey, onInteraction }:
     return React.createElement(PreviewFailure, { failure: { code: "invalid-request", message } });
   }
 
-  const request = selectedComponentKey === undefined
-    ? renderRequestForTemplatePrimary(profile, replay.renderRequests)
-    : replay.renderRequests.find((candidate, index) => renderRequestKey(candidate, index) === selectedComponentKey);
+  let request: ComponentRenderRequest | undefined;
+  try {
+    request = selectedComponentKey === undefined
+      ? renderRequestForTemplatePrimary(profile, replay.renderRequests)
+      : replay.renderRequests.find((candidate, index) => renderRequestKey(candidate, index) === selectedComponentKey);
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : "trusted preview primary component selection failed";
+    return React.createElement(PreviewFailure, { failure: { code: "invalid-request", message } });
+  }
 
   if (!request) {
     if (selectedComponentKey !== undefined) {
@@ -129,7 +135,11 @@ function renderRequestForTemplatePrimary(
   renderRequests: ComponentRenderRequest[]
 ): ComponentRenderRequest | undefined {
   const primaryCapability = profile.template.liveSurface.componentCapabilities.primary;
-  return renderRequests.find((request) => request.componentCapability === primaryCapability);
+  const matches = renderRequests.filter((request) => request.componentCapability === primaryCapability);
+  if (matches.length > 1) {
+    throw new Error(`profile ${profile.id} has multiple trusted preview primary render requests for ${primaryCapability}`);
+  }
+  return matches[0];
 }
 
 function manifestForRenderRequest(request: ComponentRenderRequest) {

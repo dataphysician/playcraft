@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Studio Trusted Preview Primary Requests
+
+Milestone:
+- Studio trusted preview now rejects duplicate render requests for the template-declared primary live surface capability.
+- Default trusted preview rendering no longer selects the first primary render request when imported or custom profiles create duplicate primary component bindings.
+
+Supportive changes:
+- Studio UI tests cover duplicate primary trusted preview render requests and assert a visible fail-closed preview error.
+- Source scans require duplicate-aware trusted preview primary filtering and block first-match primary lookup from returning.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Trusted preview primary source scan confirmed duplicate-aware filtering and no first-match render-request lookup path.
+
+Constraint notes:
+- Keeps Studio trusted preview selection template-owned and fail-closed without hosted providers, generated runtime code, auth, database state, compatibility shims, or replay render-request order heuristics.
+
 ## 2026-07-04 - Fail-Closed Builder Primary Preview Requests
 
 Milestone:

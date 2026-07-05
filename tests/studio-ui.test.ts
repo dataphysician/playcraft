@@ -593,6 +593,24 @@ describe("studio UI", () => {
     expect(screen.queryByText("You found every pair.")).toBeNull();
   });
 
+  it("fails closed when trusted preview has duplicate primary render requests", () => {
+    const duplicatePrimaryProfile = {
+      ...profileA,
+      components: [
+        ...profileA.components,
+        {
+          ...profileA.components[0],
+          bindingId: `${profileA.components[0].bindingId}.duplicate`
+        }
+      ]
+    };
+
+    render(React.createElement(TrustedPreview, { profile: duplicatePrimaryProfile }));
+
+    expect(screen.getByTestId("trusted-preview-error").textContent).toContain("multiple trusted preview primary render requests");
+    expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
+  });
+
   it("keeps the memory game selected while swapping requested card assets", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 

@@ -604,6 +604,9 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("selected trusted preview component");
     expect(source).toContain("function renderRequestForTemplatePrimary");
     expect(source).toContain("profile.template.liveSurface.componentCapabilities.primary");
+    expect(source).toContain("const matches = renderRequests.filter((request) => request.componentCapability === primaryCapability);");
+    expect(source).toContain("has multiple trusted preview primary render requests");
+    expect(source).not.toContain("renderRequests.find((request) => request.componentCapability === primaryCapability)");
     expect(source).not.toContain("replay.renderRequests[0]");
     expect(studioSource).toContain("component.isPrimaryPreviewSurface");
     expect(studioSource).not.toContain("componentSummaries[0]");
