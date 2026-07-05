@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Single-Tool Preview Interaction Contract
+
+Milestone:
+- Builder preview actions now require the selected interactive render request to declare exactly one emitted tool.
+- Preview tool selection no longer reads the first emitted event by array index.
+
+Supportive changes:
+- Source scans pin the strict preview tool helper and block index-based emitted-tool selection.
+- Existing builder preview tests continue to cover real memory and sorting preview interactions through the stricter path.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Preview tool source scan confirmed strict single-tool selection and removed index-based emitted-tool selection.
+
+Constraint notes:
+- Keeps preview interactions fail-closed and contract-shaped without hosted providers, generated runtime code, auth, database state, compatibility shims, or emitted-tool order heuristics.
+
 ## 2026-07-04 - Template-Authored Mechanic Event Bindings
 
 Milestone:

@@ -366,10 +366,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     }
 
     const componentId = requireRenderRequestComponentId(renderRequest);
-    const toolName = renderRequest.expectedEmittedEvents[0];
-    if (!toolName) {
-      throw new Error(`interactive render request ${renderRequest.id} does not declare an emitted tool`);
-    }
+    const toolName = requireSinglePreviewToolName(renderRequest);
 
     const action = command.interaction?.action;
     if (!action) {
@@ -541,6 +538,14 @@ function requireRenderRequestComponentId(renderRequest: ReplayResult["renderRequ
   }
 
   return renderRequest.componentId;
+}
+
+function requireSinglePreviewToolName(renderRequest: ReplayResult["renderRequests"][number]): string {
+  if (renderRequest.expectedEmittedEvents.length !== 1) {
+    throw new Error(`interactive render request ${renderRequest.id} must declare exactly one emitted tool`);
+  }
+
+  return renderRequest.expectedEmittedEvents.at(0)!;
 }
 
 function interactiveRenderRequestForReplay(replay: ReplayResult): ReplayResult["renderRequests"][number] | undefined {

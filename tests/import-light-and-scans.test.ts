@@ -577,6 +577,9 @@ describe("import-light boundaries and source scans", () => {
 
     expect(builderSource).toContain("preview-action requires an interaction action");
     expect(builderSource).not.toContain('command.interaction?.action ?? "primary"');
+    expect(builderSource).toContain("function requireSinglePreviewToolName");
+    expect(builderSource).toContain("must declare exactly one emitted tool");
+    expect(builderSource).not.toContain("renderRequest.expectedEmittedEvents[0]");
     expect(builderSource).toContain("const previewInteraction");
     expect(builderSource).toContain("interaction: previewInteraction");
     expect(builderCliSource).toContain("--interaction <primary>");
