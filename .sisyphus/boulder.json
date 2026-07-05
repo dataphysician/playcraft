@@ -117,6 +117,15 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-07-05T23:21:43.942Z"
+    },
+    "todo:18": {
+      "task_key": "todo:18",
+      "task_label": "18",
+      "task_title": "Workflow integration with `handleLocalServiceRequestBatch`",
+      "session_id": "ses_0cb677d22ffeqp0J5L6Mu1WdkD",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-07-05T23:33:06.091Z"
     }
   }
 }

@@ -8,6 +8,7 @@ import {
   BuilderTemplateIdSchema,
   GameAssemblyProfileSchema,
   PLAYCRAFT_SCHEMA_VERSION,
+  WorkflowGraphSchema,
   type BuilderAssetEdit,
   type BuilderCatalog,
   type BuilderInputSource,
@@ -19,6 +20,7 @@ import {
   type BuilderTemplateId,
   type GameAssemblyProfile,
 } from "@playcraft/contracts";
+import { readFileSync } from "node:fs";
 import { createLocalPlaycraftService, createMoonshineTranscriptRecord } from "./index.js";
 
 export interface LocalServiceCliIo {
@@ -48,11 +50,15 @@ const defaultIo: LocalServiceCliIo = {
 export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defaultIo): number {
   const [commandName, ...rest] = argv;
   if (!commandName) {
-    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request|request-batch> [--text <request>] [--transcript <moonshine transcript>] [--source <text|moonshine-transcript>] [--session <id>] [--interaction <primary>] [--template <template-id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
+    io.stderr("usage: playcraft-service <catalog|assemble|update|preview|get-session|export-profile|import-profile|reset|request|request-batch|run-workflow> [--text <request>] [--transcript <moonshine transcript>] [--source <text|moonshine-transcript>] [--session <id>] [--interaction <primary>] [--template <template-id>] [--asset-theme <theme>] [--asset-item <item>] [--profile-json <json>] [--profile-export-json <json>] [--request-json <json>] [--json]");
     return 1;
   }
 
   try {
+    if (commandName === "run-workflow") {
+      return runWorkflowCommand(rest, io);
+    }
+
     const args = parseArgs(rest);
     const service = createLocalPlaycraftService();
     const catalog = service.catalog();
@@ -83,6 +89,21 @@ export function runLocalServiceCli(argv: string[], io: LocalServiceCliIo = defau
     io.stderr(error instanceof Error ? error.message : String(error));
     return 1;
   }
+}
+
+function runWorkflowCommand(rest: string[], io: LocalServiceCliIo): number {
+  const graphPath = rest[0];
+  if (!graphPath) {
+    io.stderr("run-workflow requires a graph JSON file path");
+    return 1;
+  }
+
+  const json = rest.includes("--json");
+  const request = buildExecuteWorkflowRequestFromFile(graphPath);
+  const service = createLocalPlaycraftService();
+  const response = service.handle(request);
+  writeServiceEnvelopeResponse(response, json, io);
+  return 0;
 }
 
 type CliCommand = BuilderServiceRequest["actionName"];
@@ -280,6 +301,43 @@ function parseServiceRequestBatchJson(value: string | undefined): BuilderService
   return BuilderServiceRequestBatchSchema.parse(JSON.parse(value));
 }
 
+function buildExecuteWorkflowRequestFromFile(graphPath: string): BuilderServiceRequest {
+  let raw: string;
+  try {
+    raw = readFileSync(graphPath, "utf8");
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`unable to read workflow graph file ${graphPath}: ${reason}`);
+  }
+
+  let parsedJson: unknown;
+  try {
+    parsedJson = JSON.parse(raw);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`workflow graph file ${graphPath} is not valid JSON: ${reason}`);
+  }
+
+  const workflow = WorkflowGraphSchema.parse(parsedJson);
+  const requestId = buildRequestIdForGraph(workflow.id);
+
+  return BuilderServiceRequestSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: requestId,
+    version: "1.0.0",
+    kind: "builder-service-request",
+    actionName: "execute-workflow",
+    workflow
+  });
+}
+
+function buildRequestIdForGraph(graphId: string): string {
+  const sanitized = graphId.replace(/[^a-z0-9.-]+/gu, "-").slice(0, 60);
+  const suffix = sanitized.length > 0 ? `.${sanitized}` : "";
+  const candidate = `bsr.cli.run-workflow${suffix}`;
+  return candidate.length <= 96 ? candidate : candidate.slice(0, 96);
+}
+
 function rejectNonEnvelopeFlags(args: ParsedArgs, commandName: "request" | "request-batch"): void {
   if (
     args.assetEdit ||
@@ -304,6 +362,11 @@ function writeResponse(response: BuilderServiceResponse, json: boolean, io: Loca
 
   if (response.actionName === "catalog" && response.catalog) {
     writeCatalogSummary(response.catalog, io);
+    return;
+  }
+
+  if (response.actionName === "execute-workflow" && response.execution) {
+    io.stdout(workflowExecutionSummary(response.execution));
     return;
   }
 
@@ -333,6 +396,21 @@ function serviceExecutionSummary(execution: BuilderServiceExecution): string {
   return `${execution.result.sessionId}: preview ${execution.result.preview.activeComponentId} interaction ${execution.result.preview.interactionCount}`;
 }
 
+function workflowExecutionSummary(execution: BuilderServiceExecution): string {
+  const toolCallCount = execution.events.filter((event) => isEventType(event, "ToolCall")).length;
+  const toolResultCount = execution.events.filter((event) => isEventType(event, "ToolResult")).length;
+  const runFinishedCount = execution.events.filter((event) => isEventType(event, "RunFinished")).length;
+  return `${execution.result.sessionId}: workflow events toolCall=${String(toolCallCount)} toolResult=${String(toolResultCount)} runFinished=${String(runFinishedCount)}`;
+}
+
+function isEventType(value: unknown, eventType: string): boolean {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const candidate = value as { type?: unknown };
+  return candidate.type === eventType;
+}
+
 function payloadForResponse(response: BuilderServiceResponse): unknown {
   switch (response.actionName) {
     case "catalog":
@@ -341,6 +419,7 @@ function payloadForResponse(response: BuilderServiceResponse): unknown {
     case "update":
     case "preview":
     case "import-profile":
+    case "execute-workflow":
       return response.execution;
     case "get-session":
       return response.session;

@@ -1903,7 +1903,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `packages/service/src/http-server.ts`, `packages/service/test/mcp-endpoints.test.ts`, `playcraft-agentic-framework/MCP_API.md`
   - Pre-commit: `pnpm exec vitest run packages/service/test/`
 
-- [ ] 18. Workflow integration with `handleLocalServiceRequestBatch`
+- [x] 18. Workflow integration with `handleLocalServiceRequestBatch`
 
   **What to do**:
   - In `packages/service/src/index.ts`:
