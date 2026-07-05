@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Schema-Backed Asset Edit Normalization
+
+Milestone:
+- Builder asset-edit normalization now parses `BuilderAssetEditSchema` before rewriting profile assets.
+- Empty asset edits now fail at the builder boundary instead of recovering to invented `custom assets`.
+- Freeform themes such as gems remain supported, but only after the request satisfies the public asset-edit contract.
+
+Supportive changes:
+- Builder tests cover empty asset-edit rejection.
+- Source scans require schema-backed normalization and block the removed custom-assets recovery literal.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps local builder asset edits aligned with the published contracts without hosted providers, generated runtime code, auth, database state, compatibility shims, or empty-payload fallback behavior.
+
 ## 2026-07-04 - Studio Template Snapshot Enforcement
 
 Milestone:

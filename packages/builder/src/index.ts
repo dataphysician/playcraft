@@ -16,13 +16,14 @@ import {
 } from "@playcraft/ag-ui";
 import {
   AssetGenerationRequestSchema,
-  GameAssemblyProfileSchema,
   BuilderCommandResultSchema,
   BuilderCommandSchema,
   BuilderPreviewStateSchema,
   BuilderSessionSnapshotSchema,
+  BuilderAssetEditSchema,
   BuilderTemplateIdSchema,
   BuilderToolDefinitionSchema,
+  GameAssemblyProfileSchema,
   PLAYCRAFT_LOCAL_TIMESTAMP,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
@@ -770,9 +771,10 @@ function normalizeAssetEdit(assetEdit: BuilderAssetEdit | undefined): Normalized
     return undefined;
   }
 
-  const theme = cleanLabel(assetEdit.theme ?? assetEdit.items?.join(" ") ?? "");
-  const items = (assetEdit.items ?? []).map(cleanLabel).filter(Boolean);
-  const normalizedTheme = theme || items.join(" ") || "custom assets";
+  const parsedAssetEdit = BuilderAssetEditSchema.parse(assetEdit);
+  const theme = cleanLabel(parsedAssetEdit.theme ?? parsedAssetEdit.items?.join(" ") ?? "");
+  const items = (parsedAssetEdit.items ?? []).map(cleanLabel).filter(Boolean);
+  const normalizedTheme = theme || items.join(" ");
   const singularTheme = singularize(normalizedTheme);
   const catalogEntry = assetEditCatalogEntryFor(normalizedTheme);
 

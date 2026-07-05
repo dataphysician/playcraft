@@ -411,8 +411,10 @@ describe("import-light boundaries and source scans", () => {
     expect(rootReadme).toContain("local replacement themes and folders");
     expect(devGuide).toContain("bundled local replacement themes/items/folders");
     expect(builderSource).toContain("localAssetEditCatalog");
+    expect(builderSource).toContain("BuilderAssetEditSchema.parse(assetEdit)");
     expect(builderSource).toContain("assetEditCatalogEntryFor");
     expect(builderSource).toContain("catalogEntry?.suggestedItems");
+    expect(builderSource).not.toContain('"custom assets"');
     expect(builderSource).not.toContain("defaultItemsForTheme");
     expect(serviceSource).toContain('from "@playcraft/assets"');
     expect(serviceCliSource).toContain("entry.localReplacementFolder");

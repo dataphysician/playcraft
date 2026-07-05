@@ -277,6 +277,12 @@ describe("builder session service", () => {
     expect(edited.result.validation?.valid).toBe(true);
   });
 
+  it("rejects empty asset edits instead of inventing custom asset defaults", () => {
+    const service = new PlaycraftBuilderSessionService();
+
+    expect(() => service.execute(command({ assetEdit: {} as never }))).toThrow(/asset edit requires a theme or items/u);
+  });
+
   it("updates imported sequence profiles without regenerating authored rounds from the bundled template", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.sequence-repeat" })).result.profile;
