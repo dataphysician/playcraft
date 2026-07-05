@@ -689,6 +689,23 @@ describe("public contract schemas", () => {
     };
 
     expect(GameTemplateDefinitionSchema.safeParse(missingAccent).success).toBe(false);
+
+    const missingReplacementCapability = {
+      ...gameTemplateDefinitions[1],
+      liveSurface: {
+        ...gameTemplateDefinitions[1].liveSurface,
+        assetReplacementSources: [
+          ...gameTemplateDefinitions[1].liveSurface.assetReplacementSources,
+          {
+            componentRole: "choice",
+            prop: "items",
+            namespace: "choice"
+          }
+        ]
+      }
+    };
+
+    expect(GameTemplateDefinitionSchema.safeParse(missingReplacementCapability).success).toBe(false);
   });
 
   it("requires profiles to carry matching template snapshots", () => {

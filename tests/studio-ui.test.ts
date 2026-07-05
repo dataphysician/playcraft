@@ -674,16 +674,6 @@ describe("studio UI", () => {
   it("fails closed when trusted preview has duplicate primary render requests", () => {
     const duplicatePrimaryProfile = {
       ...profileA,
-      template: {
-        ...profileA.template,
-        liveSurface: {
-          ...profileA.template.liveSurface,
-          assetReplacementSources: profileA.template.liveSurface.assetReplacementSources.map((source) => ({
-            ...source,
-            componentRole: "choice" as const
-          }))
-        }
-      },
       components: [
         ...profileA.components,
         {
@@ -702,16 +692,6 @@ describe("studio UI", () => {
   it("does not auto-select the first duplicate primary trusted preview surface", () => {
     const duplicatePrimaryProfile = {
       ...profileA,
-      template: {
-        ...profileA.template,
-        liveSurface: {
-          ...profileA.template.liveSurface,
-          assetReplacementSources: profileA.template.liveSurface.assetReplacementSources.map((source) => ({
-            ...source,
-            componentRole: "choice" as const
-          }))
-        }
-      },
       components: [
         ...profileA.components,
         {

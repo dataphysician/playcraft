@@ -551,7 +551,18 @@ export const GameTemplateLiveSurfaceSchema = z
     tokenStyles: z.array(GameTemplateTokenStyleSchema).min(1),
     defaultTokenStyle: GameTemplateTokenStyleSchema
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    for (const source of value.assetReplacementSources) {
+      if (!value.componentCapabilities[source.componentRole]) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `asset replacement source ${source.componentRole}:${source.prop} must reference an authored live surface component capability`,
+          path: ["assetReplacementSources"]
+        });
+      }
+    }
+  });
 export type GameTemplateLiveSurface = z.infer<typeof GameTemplateLiveSurfaceSchema>;
 
 export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({

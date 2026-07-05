@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Live Surface Asset Sources Are Schema-Owned
+
+Milestone:
+- `GameTemplateLiveSurfaceSchema` now rejects asset replacement sources whose component role is not declared in `componentCapabilities`.
+- Invalid template catalogs fail at the public contract boundary instead of relying on Studio runtime rendering to discover missing replacement components.
+
+Supportive changes:
+- Contract tests cover missing live-surface replacement capabilities.
+- Source scans guard the schema-level replacement-source/component-capability validation in addition to Studio's runtime fail-closed checks.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden stale removed-provider exact scan
+- full ignored-path legacy transcript/provider scan
+
+Constraint notes:
+- Keeps local template catalogs self-validating for agent-driven toddler mini-game assembly without UI-only validation or component-priority fallback behavior.
+
 ## 2026-07-05 - Asset Edit Text Limits Are Asset-Owned
 
 Milestone:

@@ -1575,6 +1575,9 @@ describe("import-light boundaries and source scans", () => {
 
     expect(contractSource).toContain("GameTemplateAssetReplacementSourceSchema");
     expect(contractSource).toContain("GameProfileTemplateSnapshotSchema");
+    expect(contractSource).toContain("assetReplacementSources: z.array(GameTemplateAssetReplacementSourceSchema).min(1)");
+    expect(contractSource).toContain("value.componentCapabilities[source.componentRole]");
+    expect(contractSource).toContain("must reference an authored live surface component capability");
     expect(packSource).toContain("assetReplacementSources");
     expect(assetLibrarySource).toContain("return profile.template");
     expect(assetLibrarySource).not.toContain("@playcraft/packs");
