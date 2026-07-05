@@ -9,6 +9,7 @@
     { "path": "./packages/packs" },
     { "path": "./packages/builder" },
     { "path": "./packages/service" },
+    { "path": "./packages/mcp" },
     { "path": "./apps/studio" },
     { "path": "./apps/mobile-shell" }
   ],
@@ -33,6 +34,7 @@
       "@playcraft/packs": ["packages/packs/src/index.ts"],
       "@playcraft/builder": ["packages/builder/src/index.ts"],
       "@playcraft/service": ["packages/service/src/index.ts"],
+      "@playcraft/mcp": ["packages/mcp/src/index.ts"],
       "@playcraft/studio": ["apps/studio/src/index.ts"],
       "@playcraft/mobile-shell": ["apps/mobile-shell/src/App.tsx"]
     }

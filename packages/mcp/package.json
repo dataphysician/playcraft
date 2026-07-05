@@ -1,0 +1,25 @@
+{
+  "name": "@playcraft/mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@playcraft/builder": "workspace:*",
+    "@playcraft/contracts": "workspace:*",
+    "@playcraft/service": "workspace:*"
+  }
+}
