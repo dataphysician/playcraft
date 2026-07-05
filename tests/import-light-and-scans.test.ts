@@ -1131,6 +1131,9 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).not.toContain("liveSurface?.kind");
     expect(liveGameSource).toContain("liveSurface.componentCapabilities.primary");
     expect(liveGameSource).toContain("liveSurface.componentCapabilities.choice");
+    expect(liveGameSource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");
+    expect(liveGameSource).toContain("has multiple live surface components");
+    expect(liveGameSource).not.toContain("profile.components.find((component) => component.renderCapability === capability)");
     expect(contractSource).not.toContain("liveSurfaceKind");
     expect(packSource).not.toContain("liveSurfaceKind");
     expect(liveGameSource).not.toContain("liveSurfaceKind");
@@ -1192,6 +1195,9 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).not.toContain("gameTemplateDefinitions.find");
     expect(assetLibrarySource).toContain("template.liveSurface.assetReplacementSources");
     expect(assetLibrarySource).toContain("componentForReplacementSource");
+    expect(assetLibrarySource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");
+    expect(assetLibrarySource).toContain("has multiple asset replacement components");
+    expect(assetLibrarySource).not.toContain("profile.components.find((component) => component.renderCapability === capability)");
     expect(assetLibrarySource).toContain("setReplacement(replacements, `${namespace}:${token}`, sprite);");
     expect(assetLibrarySource).toContain("setReplacement(replacements, `${source.namespace}:${token}`, sprite);");
     expect(assetLibrarySource).not.toContain("setReplacement(replacements, token, sprite);");

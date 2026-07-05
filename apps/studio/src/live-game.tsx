@@ -1111,7 +1111,11 @@ function optionalComponentByCapability(profile: GameAssemblyProfile, capability:
   if (!capability) {
     return undefined;
   }
-  return profile.components.find((component) => component.renderCapability === capability);
+  const matches = profile.components.filter((component) => component.renderCapability === capability);
+  if (matches.length > 1) {
+    throw new Error(`profile ${profile.id} has multiple live surface components for ${capability}`);
+  }
+  return matches[0];
 }
 
 function replacementForToken(

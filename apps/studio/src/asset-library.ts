@@ -138,9 +138,15 @@ function componentForReplacementSource(
   source: GameTemplateAssetReplacementSource
 ): ComponentBinding | undefined {
   const capability = template.liveSurface.componentCapabilities[source.componentRole];
-  return capability
-    ? profile.components.find((component) => component.renderCapability === capability)
-    : undefined;
+  if (!capability) {
+    return undefined;
+  }
+
+  const matches = profile.components.filter((component) => component.renderCapability === capability);
+  if (matches.length > 1) {
+    throw new Error(`profile ${profile.id} has multiple asset replacement components for ${capability}`);
+  }
+  return matches[0];
 }
 
 export function sortingBinAssetFor(bin: string): LibraryAssetReplacement | undefined {

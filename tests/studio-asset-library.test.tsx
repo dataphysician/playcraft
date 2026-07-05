@@ -55,6 +55,27 @@ describe("studio asset library", () => {
     expect(createProfileLibraryAssetReplacements(staleProfile)["card:ocean-animal-1-a"]).toBeUndefined();
   });
 
+  it("rejects ambiguous asset replacement components instead of using profile order", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const duplicateProfile = {
+      ...profile!,
+      components: [
+        ...profile!.components,
+        {
+          ...profile!.components[0],
+          bindingId: `${profile!.components[0].bindingId}.duplicate`,
+          componentId: `${profile!.components[0].componentId}.duplicate`
+        }
+      ]
+    };
+
+    expect(() => createProfileLibraryAssetReplacements(duplicateProfile)).toThrow(/multiple asset replacement components/u);
+  });
+
   it("exposes validated local sprite URLs through profile replacements", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toys" });
@@ -88,6 +109,34 @@ describe("studio asset library", () => {
 
     expect(screen.queryByRole("img", { name: "bare dinosaur replacement" })).toBeNull();
     expect(await screen.findByRole("img", { name: "dinosaur 1 sprite" })).toBeDefined();
+  });
+
+  it("rejects ambiguous Live App components instead of using profile order", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const duplicateProfile = {
+      ...profile!,
+      template: {
+        ...profile!.template,
+        liveSurface: {
+          ...profile!.template.liveSurface,
+          assetReplacementSources: []
+        }
+      },
+      components: [
+        ...profile!.components,
+        {
+          ...profile!.components[0],
+          bindingId: `${profile!.components[0].bindingId}.duplicate`,
+          componentId: `${profile!.components[0].componentId}.duplicate`
+        }
+      ]
+    };
+
+    expect(() => render(React.createElement(LiveGame, { profile: duplicateProfile }))).toThrow(/multiple live surface components/u);
   });
 
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {

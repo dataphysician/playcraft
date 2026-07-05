@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Live Surface Component Resolution
+
+Milestone:
+- Live App component resolution now rejects duplicate components for a template-declared live surface capability instead of selecting the first profile component.
+- Studio local asset replacement publishing now rejects duplicate components for a template-declared asset replacement source instead of selecting the first profile component.
+
+Supportive changes:
+- Studio asset-library tests cover duplicate profile components for local replacement publishing.
+- Live App tests cover duplicate profile components for playable rendering.
+- Source scans block first-match component capability lookup from returning in the Live App and local asset library.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Component capability source scan confirmed duplicate-aware filtering and no first-match lookup path.
+
+Constraint notes:
+- Keeps template-declared live surface and asset replacement roles fail-closed and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or component-order heuristics.
+
 ## 2026-07-04 - Namespaced Live App Asset Replacements
 
 Milestone:
