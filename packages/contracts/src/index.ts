@@ -508,7 +508,8 @@ export const GameTemplateLiveSurfaceSchema = z
     kind: GameTemplateLiveSurfaceKindSchema,
     componentCapabilities: GameTemplateLiveSurfaceComponentCapabilitiesSchema,
     assetReplacementSources: z.array(GameTemplateAssetReplacementSourceSchema).min(1),
-    tokenStyles: z.array(GameTemplateTokenStyleSchema)
+    tokenStyles: z.array(GameTemplateTokenStyleSchema).min(1),
+    defaultTokenStyle: GameTemplateTokenStyleSchema
   })
   .strict();
 export type GameTemplateLiveSurface = z.infer<typeof GameTemplateLiveSurfaceSchema>;

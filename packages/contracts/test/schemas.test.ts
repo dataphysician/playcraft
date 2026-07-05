@@ -483,6 +483,15 @@ describe("public contract schemas", () => {
         })
       ])
     );
+    expect(GameTemplateDefinitionSchema.parse(gameTemplateDefinitions[1]).liveSurface.defaultTokenStyle).toEqual(
+      expect.objectContaining({
+        tokens: ["default"],
+        background: "#ede9fe",
+        border: "#7c3aed",
+        foreground: "#4c1d95",
+        accent: "#ddd6fe"
+      })
+    );
 
     const missingTokenStyles = {
       ...gameTemplateDefinitions[1],
@@ -493,6 +502,26 @@ describe("public contract schemas", () => {
     delete (missingTokenStyles.liveSurface as Partial<typeof gameTemplateDefinitions[1]["liveSurface"]>).tokenStyles;
 
     expect(GameTemplateDefinitionSchema.safeParse(missingTokenStyles).success).toBe(false);
+
+    const emptyTokenStyles = {
+      ...gameTemplateDefinitions[1],
+      liveSurface: {
+        ...gameTemplateDefinitions[1].liveSurface,
+        tokenStyles: []
+      }
+    };
+
+    expect(GameTemplateDefinitionSchema.safeParse(emptyTokenStyles).success).toBe(false);
+
+    const missingDefaultTokenStyle = {
+      ...gameTemplateDefinitions[1],
+      liveSurface: {
+        ...gameTemplateDefinitions[1].liveSurface
+      }
+    };
+    delete (missingDefaultTokenStyle.liveSurface as Partial<typeof gameTemplateDefinitions[1]["liveSurface"]>).defaultTokenStyle;
+
+    expect(GameTemplateDefinitionSchema.safeParse(missingDefaultTokenStyle).success).toBe(false);
 
     const missingAccent = {
       ...gameTemplateDefinitions[1],

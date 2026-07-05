@@ -365,7 +365,22 @@ describe("builder session service", () => {
               pairMapProp: "pairs"
             }
           ],
-          tokenStyles: []
+          tokenStyles: [
+            {
+              tokens: ["pair-1"],
+              background: "#fee2e2",
+              border: "#ef4444",
+              foreground: "#7f1d1d",
+              accent: "#fecaca"
+            }
+          ],
+          defaultTokenStyle: {
+            tokens: ["default"],
+            background: "#fce7f3",
+            border: "#db2777",
+            foreground: "#831843",
+            accent: "#fbcfe8"
+          }
         },
         assemblyRequestId: "request.custom-template-memory"
       }
@@ -420,7 +435,22 @@ describe("builder session service", () => {
               pairMapProp: "pairs"
             }
           ],
-          tokenStyles: []
+          tokenStyles: [
+            {
+              tokens: ["pair-1"],
+              background: "#fee2e2",
+              border: "#ef4444",
+              foreground: "#7f1d1d",
+              accent: "#fecaca"
+            }
+          ],
+          defaultTokenStyle: {
+            tokens: ["default"],
+            background: "#fce7f3",
+            border: "#db2777",
+            foreground: "#831843",
+            accent: "#fbcfe8"
+          }
         },
         assemblyRequestId: "request.custom-template-memory"
       }

@@ -45,6 +45,8 @@ Agents that need the exact API boundary can call `playcraft-service request --re
 
 Template request phrases belong in `GameTemplateDefinition.requestAliases`. Do not add service-side `if game == ...` branches when adding a template; the local service resolves template switches from catalog aliases and records the matched alias in `BuilderIntentResolution`.
 
+Live app visual levers belong in `GameTemplateDefinition.liveSurface`. Each template must provide component capabilities, asset replacement sources, explicit token styles, and a default token style so Studio/Mobile renderers do not invent local color palettes for custom asset tokens.
+
 ## 3. Stack Defaults
 
 | Area | Default |

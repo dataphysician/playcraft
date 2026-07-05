@@ -46,6 +46,11 @@ interface MemoryPairVisual {
   accent: string;
 }
 
+interface TokenStyleCatalog {
+  defaultStyle: GameTemplateTokenStyle;
+  tokenStyles: GameTemplateTokenStyle[];
+}
+
 type SequencePhase = "watch" | "play" | "complete";
 type BinFeedback = "success" | "failure";
 type SequenceFeedbackKind = "info" | "success" | "failure";
@@ -147,6 +152,7 @@ function LiveGameForProfile({
   const replacements = useProfileAssetReplacements(profile, mergedAssetReplacements);
   const template = liveTemplateForProfile(profile);
   const liveSurface = template?.liveSurface;
+  const tokenStyleCatalog = liveSurface ? tokenStyleCatalogForSurface(liveSurface) : undefined;
 
   switch (liveSurface?.kind) {
     case "memory":
@@ -154,7 +160,7 @@ function LiveGameForProfile({
         profile,
         component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         replacements,
-        tokenStyles: liveSurface.tokenStyles,
+        tokenStyleCatalog: requireTokenStyleCatalog(tokenStyleCatalog),
         onInteraction
       });
     case "sorting":
@@ -162,7 +168,7 @@ function LiveGameForProfile({
         profile,
         component: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         replacements,
-        tokenStyles: liveSurface.tokenStyles,
+        tokenStyleCatalog: requireTokenStyleCatalog(tokenStyleCatalog),
         onInteraction
       });
     case "sequence":
@@ -171,7 +177,7 @@ function LiveGameForProfile({
         sequenceComponent: requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary),
         choiceComponent: optionalComponentByCapability(profile, liveSurface.componentCapabilities.choice),
         replacements,
-        tokenStyles: liveSurface.tokenStyles,
+        tokenStyleCatalog: requireTokenStyleCatalog(tokenStyleCatalog),
         onInteraction
       });
   }
@@ -187,19 +193,19 @@ function MemoryGame({
   profile,
   component,
   replacements,
-  tokenStyles,
+  tokenStyleCatalog,
   onInteraction
 }: {
   profile: GameAssemblyProfile;
   component: ComponentBinding;
   replacements: AssetReplacementLookup;
-  tokenStyles: GameTemplateTokenStyle[];
+  tokenStyleCatalog: TokenStyleCatalog;
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
   const sourceCards = stringArrayProp(component.props, "cards");
   const cardPairs = stringRecordProp(component.props, "pairs");
   const deck = React.useMemo(() => shuffleMemoryCards(sourceCards, cardPairs, profile.id), [sourceCards.join("|"), JSON.stringify(cardPairs), profile.id]);
-  const pairVisuals = React.useMemo(() => createMemoryPairVisuals(cardPairs, tokenStyles), [JSON.stringify(cardPairs), JSON.stringify(tokenStyles)]);
+  const pairVisuals = React.useMemo(() => createMemoryPairVisuals(cardPairs, tokenStyleCatalog), [JSON.stringify(cardPairs), JSON.stringify(tokenStyleCatalog)]);
   const [revealed, setRevealed] = React.useState<string[]>([]);
   const [matched, setMatched] = React.useState<Set<string>>(() => new Set());
   const [moves, setMoves] = React.useState(0);
@@ -286,7 +292,7 @@ function MemoryGame({
       { style: liveStyles.memoryBoard },
       ...deck.map((card, index) => {
         const cardReplacement = replacements.get(`card:${card.id}`) ?? replacements.get(card.id);
-        const pairVisual = pairVisuals.get(card.pairKey) ?? colorForToken(card.pairKey, tokenStyles);
+        const pairVisual = pairVisuals.get(card.pairKey) ?? colorForToken(card.pairKey, tokenStyleCatalog);
         const shown = revealed.includes(card.id) || matched.has(card.pairKey);
         return React.createElement(
           "button",
@@ -330,13 +336,13 @@ function SortingGame({
   profile,
   component,
   replacements,
-  tokenStyles,
+  tokenStyleCatalog,
   onInteraction
 }: {
   profile: GameAssemblyProfile;
   component: ComponentBinding;
   replacements: AssetReplacementLookup;
-  tokenStyles: GameTemplateTokenStyle[];
+  tokenStyleCatalog: TokenStyleCatalog;
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
   const items = stringArrayProp(component.props, "items");
@@ -565,7 +571,7 @@ function SortingGame({
       asset: componentArt,
       label: textProp(component.props, "title", profile.profileName),
       replacements,
-      tokenStyles,
+      tokenStyleCatalog,
       tokens: items
     }),
     React.createElement(
@@ -604,7 +610,7 @@ function SortingGame({
                 dragging: dragState?.item === item && dragState.dragging
               })
             },
-            React.createElement(TokenSprite, { replacement: itemReplacement, token: item, tokenStyles }),
+            React.createElement(TokenSprite, { replacement: itemReplacement, token: item, tokenStyleCatalog }),
             React.createElement("span", null, item)
           );
         })
@@ -670,7 +676,7 @@ function SortingGame({
           React.createElement(TokenSprite, {
             replacement: replacementForToken(dragState.item, replacements, "item"),
             token: dragState.item,
-            tokenStyles
+            tokenStyleCatalog
           }),
           React.createElement("span", null, dragState.item)
         )
@@ -697,14 +703,14 @@ function SequenceGame({
   sequenceComponent,
   choiceComponent,
   replacements,
-  tokenStyles,
+  tokenStyleCatalog,
   onInteraction
 }: {
   profile: GameAssemblyProfile;
   sequenceComponent: ComponentBinding;
   choiceComponent?: ComponentBinding;
   replacements: AssetReplacementLookup;
-  tokenStyles: GameTemplateTokenStyle[];
+  tokenStyleCatalog: TokenStyleCatalog;
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
   const sequence = stringArrayProp(sequenceComponent.props, "sequence");
@@ -837,7 +843,7 @@ function SequenceGame({
       asset: componentArt,
       label: textProp(sequenceComponent.props, "title", profile.profileName),
       replacements,
-      tokenStyles,
+      tokenStyleCatalog,
       tokens: activeRound
     }),
     React.createElement(
@@ -850,9 +856,9 @@ function SequenceGame({
             key: `${item}.${index}`,
             style:
               phase === "watch"
-                ? sequenceStepStyle(item, true, tokenStyles)
+                ? sequenceStepStyle(item, true, tokenStyleCatalog)
                 : index < progress
-                  ? sequenceStepStyle(item, true, tokenStyles)
+                  ? sequenceStepStyle(item, true, tokenStyleCatalog)
                   : liveStyles.sequenceStep
           },
           phase === "watch" || index < progress ? item : String(index + 1)
@@ -883,9 +889,9 @@ function SequenceGame({
             "aria-invalid": feedback?.kind === "failure" && feedback.item === item ? true : undefined,
             onClick: () => choose(item),
             disabled: complete || phase !== "play",
-            style: sequenceChoiceStyle(item, phase === "play", feedback, tokenStyles)
+            style: sequenceChoiceStyle(item, phase === "play", feedback, tokenStyleCatalog)
           },
-          React.createElement(TokenSprite, { replacement: replacementForToken(item, replacements, "choice"), token: item, tokenStyles }),
+          React.createElement(TokenSprite, { replacement: replacementForToken(item, replacements, "choice"), token: item, tokenStyleCatalog }),
           React.createElement("span", null, item)
         )
       )
@@ -925,11 +931,11 @@ function CardBackFace(): React.ReactElement {
 function TokenSprite({
   replacement,
   token,
-  tokenStyles
+  tokenStyleCatalog
 }: {
   replacement?: AssetReplacement;
   token: string;
-  tokenStyles: GameTemplateTokenStyle[];
+  tokenStyleCatalog: TokenStyleCatalog;
 }): React.ReactElement {
   if (replacement && isRenderableUri(replacement.uri)) {
     return React.createElement(
@@ -939,7 +945,7 @@ function TokenSprite({
     );
   }
 
-  return React.createElement("span", { style: tokenDotStyle(token, tokenStyles) }, displayInitial(token));
+  return React.createElement("span", { style: tokenDotStyle(token, tokenStyleCatalog) }, displayInitial(token));
 }
 
 function CardFace({
@@ -973,13 +979,13 @@ function HeroArt({
   asset,
   label,
   replacements,
-  tokenStyles,
+  tokenStyleCatalog,
   tokens
 }: {
   asset?: AssetReplacement;
   label: string;
   replacements?: AssetReplacementLookup;
-  tokenStyles: GameTemplateTokenStyle[];
+  tokenStyleCatalog: TokenStyleCatalog;
   tokens: string[];
 }): React.ReactElement {
   const tokenAssets = uniqueStrings(tokens)
@@ -997,7 +1003,7 @@ function HeroArt({
         ...tokenAssets.map(({ replacement, token }, index) =>
           React.createElement(
             "span",
-            { key: `${token}.${index}`, style: heroTokenStyle(token, index, tokenStyles) },
+            { key: `${token}.${index}`, style: heroTokenStyle(token, index, tokenStyleCatalog) },
             React.createElement("img", { alt: replacement.altText ?? token, src: replacement.uri, style: liveStyles.heroTokenImage })
           )
         )
@@ -1020,7 +1026,7 @@ function HeroArt({
       ...visibleTokens.map((token, index) =>
         React.createElement(
           "span",
-          { key: `${token}.${index}`, style: heroTokenStyle(token, index, tokenStyles) },
+          { key: `${token}.${index}`, style: heroTokenStyle(token, index, tokenStyleCatalog) },
           displayInitial(token)
         )
       )
@@ -1086,6 +1092,21 @@ function CompletionPanel({
 
 function liveTemplateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | GameProfileTemplateSnapshot | undefined {
   return profile.template ?? gameTemplateDefinitions.find((template) => template.assemblyRequestId === profile.assemblyRequestId);
+}
+
+function tokenStyleCatalogForSurface(liveSurface: GameTemplateLiveSurface): TokenStyleCatalog {
+  return {
+    defaultStyle: liveSurface.defaultTokenStyle,
+    tokenStyles: liveSurface.tokenStyles
+  };
+}
+
+function requireTokenStyleCatalog(catalog: TokenStyleCatalog | undefined): TokenStyleCatalog {
+  if (!catalog) {
+    throw new Error("live surface does not include token style catalog");
+  }
+
+  return catalog;
 }
 
 function requiredComponentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding {
@@ -1157,11 +1178,11 @@ function shuffleMemoryCards(cards: string[], cardPairs: Record<string, string>, 
     .map(({ id, pairKey }) => ({ id, pairKey }));
 }
 
-function createMemoryPairVisuals(cardPairs: Record<string, string>, tokenStyles: GameTemplateTokenStyle[]): Map<string, MemoryPairVisual> {
+function createMemoryPairVisuals(cardPairs: Record<string, string>, tokenStyleCatalog: TokenStyleCatalog): Map<string, MemoryPairVisual> {
   return new Map(
-    uniqueStrings(Object.values(cardPairs)).map((pairKey, index) => [
+    uniqueStrings(Object.values(cardPairs)).map((pairKey) => [
       pairKey,
-      colorForToken(pairKey, tokenStyles, index)
+      colorForToken(pairKey, tokenStyleCatalog)
     ])
   );
 }
@@ -1307,12 +1328,12 @@ function sequenceChoiceStyle(
   item: string,
   enabled: boolean,
   feedback: SequenceFeedback | undefined,
-  tokenStyles: GameTemplateTokenStyle[]
+  tokenStyleCatalog: TokenStyleCatalog
 ): React.CSSProperties {
   const failed = feedback?.kind === "failure" && feedback.item === item;
   return {
     ...liveStyles.choiceButton,
-    ...tokenPanelStyle(item, tokenStyles),
+    ...tokenPanelStyle(item, tokenStyleCatalog),
     ...(failed ? liveStyles.sequenceChoiceFailure : {}),
     opacity: enabled || failed ? 1 : 0.58,
     cursor: enabled ? "pointer" : "not-allowed"
@@ -1325,8 +1346,8 @@ function sequenceRailStyle(feedback?: SequenceFeedback): React.CSSProperties {
     : liveStyles.sequenceRail;
 }
 
-function sequenceStepStyle(item: string, revealed: boolean, tokenStyles: GameTemplateTokenStyle[]): React.CSSProperties {
-  return revealed ? { ...liveStyles.sequenceStepComplete, ...tokenPanelStyle(item, tokenStyles) } : liveStyles.sequenceStep;
+function sequenceStepStyle(item: string, revealed: boolean, tokenStyleCatalog: TokenStyleCatalog): React.CSSProperties {
+  return revealed ? { ...liveStyles.sequenceStepComplete, ...tokenPanelStyle(item, tokenStyleCatalog) } : liveStyles.sequenceStep;
 }
 
 function gameSurfaceStyle(kind: GameTemplateLiveSurface["kind"]): React.CSSProperties {
@@ -1346,8 +1367,8 @@ function gameSurfaceStyle(kind: GameTemplateLiveSurface["kind"]): React.CSSPrope
   };
 }
 
-function tokenDotStyle(token: string, tokenStyles: GameTemplateTokenStyle[]): React.CSSProperties {
-  const color = colorForToken(token, tokenStyles);
+function tokenDotStyle(token: string, tokenStyleCatalog: TokenStyleCatalog): React.CSSProperties {
+  const color = colorForToken(token, tokenStyleCatalog);
   return {
     ...liveStyles.tokenDot,
     background: color.background,
@@ -1356,8 +1377,8 @@ function tokenDotStyle(token: string, tokenStyles: GameTemplateTokenStyle[]): Re
   };
 }
 
-function tokenPanelStyle(token: string, tokenStyles: GameTemplateTokenStyle[]): React.CSSProperties {
-  const color = colorForToken(token, tokenStyles);
+function tokenPanelStyle(token: string, tokenStyleCatalog: TokenStyleCatalog): React.CSSProperties {
+  const color = colorForToken(token, tokenStyleCatalog);
   return {
     background: color.background,
     color: color.foreground,
@@ -1365,8 +1386,8 @@ function tokenPanelStyle(token: string, tokenStyles: GameTemplateTokenStyle[]): 
   };
 }
 
-function heroTokenStyle(token: string, index: number, tokenStyles: GameTemplateTokenStyle[]): React.CSSProperties {
-  const color = colorForToken(token, tokenStyles);
+function heroTokenStyle(token: string, index: number, tokenStyleCatalog: TokenStyleCatalog): React.CSSProperties {
+  const color = colorForToken(token, tokenStyleCatalog);
   return {
     ...liveStyles.heroToken,
     background: color.background,
@@ -1378,29 +1399,19 @@ function heroTokenStyle(token: string, index: number, tokenStyles: GameTemplateT
 
 function colorForToken(
   token: string,
-  tokenStyles: GameTemplateTokenStyle[],
-  fallbackIndex?: number
+  tokenStyleCatalog: TokenStyleCatalog
 ): MemoryPairVisual {
   const tokenParts = normalizedTokens(token);
-  const tokenStyle = tokenStyles.find((entry) =>
+  const tokenStyle = tokenStyleCatalog.tokenStyles.find((entry) =>
     entry.tokens.some((styleToken) => tokenSequenceIncludes(tokenParts, normalizedTokens(styleToken)))
-  );
-  if (tokenStyle) {
-    return {
-      background: tokenStyle.background,
-      border: tokenStyle.border,
-      foreground: tokenStyle.foreground,
-      accent: tokenStyle.accent
-    };
-  }
+  ) ?? tokenStyleCatalog.defaultStyle;
 
-  const palette = [
-    { background: "#fce7f3", border: "#db2777", foreground: "#831843", accent: "#fbcfe8" },
-    { background: "#ede9fe", border: "#7c3aed", foreground: "#4c1d95", accent: "#ddd6fe" },
-    { background: "#ffedd5", border: "#f97316", foreground: "#7c2d12", accent: "#fed7aa" },
-    { background: "#ccfbf1", border: "#0d9488", foreground: "#134e4a", accent: "#99f6e4" }
-  ];
-  return palette[(fallbackIndex ?? hashString(token)) % palette.length];
+  return {
+    background: tokenStyle.background,
+    border: tokenStyle.border,
+    foreground: tokenStyle.foreground,
+    accent: tokenStyle.accent
+  };
 }
 
 function normalizedTokens(value: string): string[] {

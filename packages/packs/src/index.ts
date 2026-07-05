@@ -64,12 +64,26 @@ export const memoryPairTokenStyles: GameTemplateTokenStyle[] = [
   { tokens: ["pair-3"], background: "#dcfce7", border: "#16a34a", foreground: "#14532d", accent: "#bbf7d0" },
   { tokens: ["pair-4"], background: "#fef3c7", border: "#d97706", foreground: "#713f12", accent: "#fde68a" }
 ];
+export const defaultMemoryTokenStyle: GameTemplateTokenStyle = {
+  tokens: ["default"],
+  background: "#fce7f3",
+  border: "#db2777",
+  foreground: "#831843",
+  accent: "#fbcfe8"
+};
 export const toddlerTokenStyles: GameTemplateTokenStyle[] = [
   { tokens: ["red"], background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d", accent: "#fecaca" },
   { tokens: ["blue"], background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a", accent: "#bfdbfe" },
   { tokens: ["green"], background: "#dcfce7", border: "#16a34a", foreground: "#14532d", accent: "#bbf7d0" },
   { tokens: ["yellow"], background: "#fef3c7", border: "#eab308", foreground: "#713f12", accent: "#fde68a" }
 ];
+export const defaultToddlerTokenStyle: GameTemplateTokenStyle = {
+  tokens: ["default"],
+  background: "#ede9fe",
+  border: "#7c3aed",
+  foreground: "#4c1d95",
+  accent: "#ddd6fe"
+};
 
 const memoryAssetEditOperations: GameTemplateAssetEditOperation[] = [
   { componentCapability: "component:reveal-card-grid", operation: "memory-pairs" },
@@ -252,7 +266,8 @@ const mvpTemplates: MvpProfileTemplate[] = [
         namespace: "card",
         pairMapProp: "pairs"
       }],
-      tokenStyles: memoryPairTokenStyles
+      tokenStyles: memoryPairTokenStyles,
+      defaultTokenStyle: defaultMemoryTokenStyle
     },
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
@@ -296,7 +311,8 @@ const mvpTemplates: MvpProfileTemplate[] = [
         prop: "items",
         namespace: "item"
       }],
-      tokenStyles: toddlerTokenStyles
+      tokenStyles: toddlerTokenStyles,
+      defaultTokenStyle: defaultToddlerTokenStyle
     },
     profileId: "profile.sorting.mvp",
     profileName: "Sorting MVP",
@@ -350,7 +366,8 @@ const mvpTemplates: MvpProfileTemplate[] = [
           namespace: "choice"
         }
       ],
-      tokenStyles: toddlerTokenStyles
+      tokenStyles: toddlerTokenStyles,
+      defaultTokenStyle: defaultToddlerTokenStyle
     },
     profileId: "profile.sequence-repeat.mvp",
     profileName: "Sequence Repeat MVP",
@@ -1385,7 +1402,8 @@ function memoryTemplate(input: {
         namespace: "card",
         pairMapProp: "pairs"
       }],
-      tokenStyles: memoryPairTokenStyles
+      tokenStyles: memoryPairTokenStyles,
+      defaultTokenStyle: defaultMemoryTokenStyle
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
@@ -1442,7 +1460,8 @@ function sortingTemplate(input: {
         prop: "items",
         namespace: "item"
       }],
-      tokenStyles: toddlerTokenStyles
+      tokenStyles: toddlerTokenStyles,
+      defaultTokenStyle: defaultToddlerTokenStyle
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
@@ -1509,7 +1528,8 @@ function sequenceTemplate(input: {
           namespace: "choice"
         }
       ],
-      tokenStyles: toddlerTokenStyles
+      tokenStyles: toddlerTokenStyles,
+      defaultTokenStyle: defaultToddlerTokenStyle
     },
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,

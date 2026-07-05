@@ -143,17 +143,26 @@ describe("MVP profile pack", () => {
         expect.objectContaining({ tokens: ["pair-2"], background: "#dbeafe", accent: "#bfdbfe" })
       ])
     );
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.memory-match")?.liveSurface.defaultTokenStyle).toEqual(
+      expect.objectContaining({ tokens: ["default"], background: "#fce7f3", accent: "#fbcfe8" })
+    );
     expect(gameTemplateDefinitions.find((template) => template.id === "template.sorting")?.liveSurface.tokenStyles).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ tokens: ["red"], background: "#fee2e2" }),
         expect.objectContaining({ tokens: ["blue"], background: "#dbeafe" })
       ])
     );
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.sorting")?.liveSurface.defaultTokenStyle).toEqual(
+      expect.objectContaining({ tokens: ["default"], background: "#ede9fe", accent: "#ddd6fe" })
+    );
     expect(gameTemplateDefinitions.find((template) => template.id === "template.sequence-repeat")?.liveSurface.tokenStyles).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ tokens: ["green"], background: "#dcfce7" }),
         expect.objectContaining({ tokens: ["yellow"], background: "#fef3c7" })
       ])
+    );
+    expect(gameTemplateDefinitions.find((template) => template.id === "template.sequence-repeat")?.liveSurface.defaultTokenStyle).toEqual(
+      expect.objectContaining({ tokens: ["default"], background: "#ede9fe", accent: "#ddd6fe" })
     );
     expect(gameTemplateDefinitions.map((template) => template.assemblyRequestId)).toEqual(
       mvpAssemblyRequests.map((request) => request.id)

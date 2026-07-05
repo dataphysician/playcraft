@@ -798,6 +798,8 @@ describe("import-light boundaries and source scans", () => {
   it("keeps Live App surface selection template-owned instead of component-priority inferred", () => {
     const liveGameSource = readSource("apps/studio/src/live-game.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");
+    const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
+    const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
     const packSource = readSource("packages/packs/src/index.ts");
 
     expect(contractSource).toContain("GameTemplateLiveSurfaceSchema");
@@ -819,19 +821,31 @@ describe("import-light boundaries and source scans", () => {
   it("keeps Live App token styling template-owned", () => {
     const liveGameSource = readSource("apps/studio/src/live-game.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");
+    const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
+    const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
     const packSource = readSource("packages/packs/src/index.ts");
 
     expect(contractSource).toContain("GameTemplateTokenStyleSchema");
-    expect(contractSource).toContain("tokenStyles: z.array(GameTemplateTokenStyleSchema)");
+    expect(contractSource).toContain("tokenStyles: z.array(GameTemplateTokenStyleSchema).min(1)");
+    expect(contractSource).toContain("defaultTokenStyle: GameTemplateTokenStyleSchema");
     expect(contractSource).toContain("accent: z.string()");
     expect(packSource).toContain("memoryPairTokenStyles");
     expect(packSource).toContain("toddlerTokenStyles");
+    expect(packSource).toContain("defaultMemoryTokenStyle");
+    expect(packSource).toContain("defaultToddlerTokenStyle");
     expect(packSource).toContain("tokenStyles: memoryPairTokenStyles");
     expect(packSource).toContain("tokenStyles: toddlerTokenStyles");
+    expect(packSource).toContain("defaultTokenStyle: defaultMemoryTokenStyle");
+    expect(packSource).toContain("defaultTokenStyle: defaultToddlerTokenStyle");
+    expect(architecture).toContain("default token style");
+    expect(devGuide).toContain("default token style");
     expect(liveGameSource).toContain("GameTemplateTokenStyle");
-    expect(liveGameSource).toContain("liveSurface.tokenStyles");
+    expect(liveGameSource).toContain("tokenStyleCatalogForSurface");
+    expect(liveGameSource).toContain("liveSurface.defaultTokenStyle");
     expect(liveGameSource).not.toContain("tokenColorCatalog");
     expect(liveGameSource).not.toContain("memoryPairPalette");
+    expect(liveGameSource).not.toContain("const palette =");
+    expect(liveGameSource).not.toContain("fallbackIndex");
     expect(liveGameSource).not.toContain('aliases: ["red"]');
     expect(liveGameSource).not.toContain('aliases: ["blue"]');
     expect(liveGameSource).not.toContain('aliases: ["green"]');

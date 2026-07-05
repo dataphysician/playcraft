@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Move Live Token Defaults Into Templates
+
+Milestone:
+- `GameTemplateLiveSurface` now requires non-empty token styles plus a template-owned `defaultTokenStyle`.
+- Built-in memory, sorting, sequence, and generated template definitions publish default token styles with their explicit token style catalogs.
+- The Studio Live App renderer now uses the template style catalog for unmatched tokens instead of a local hard-coded palette.
+
+Supportive changes:
+- Custom template snapshot tests now carry self-contained token style defaults.
+- Contract, pack, Studio asset, and source-scan tests guard required default token styles and block local palette fallback code.
+- Canonical architecture and developer guide docs now state that live-surface visual defaults belong in template contracts.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts packages/contracts/test/schemas.test.ts packages/packs/test/mvp-profiles.test.ts tests/studio-asset-library.test.tsx tests/studio-ui.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps Live App visual behavior template-owned and forward-only without renderer-local palette heuristics, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Promote Service Request Batch Contract
 
 Milestone:
