@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "asset-catalog-manifest.bundled.fruits",
+  "version": "1.0.0",
+  "kind": "asset-catalog-manifest",
+  "source": "catalog.json",
+  "theme": "fruits",
+  "displayLabel": "fruit",
+  "aliases": ["fruit", "fruits"],
+  "suggestedItems": ["fruit-1", "fruit-2", "fruit-3"],
+  "spriteNaming": {
+    "kind": "ordinal",
+    "rules": {}
+  }
+}

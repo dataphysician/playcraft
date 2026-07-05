@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "asset-catalog-manifest.bundled.dolphins",
+  "version": "1.0.0",
+  "kind": "asset-catalog-manifest",
+  "source": "catalog.json",
+  "theme": "dolphins",
+  "displayLabel": "ocean animals",
+  "aliases": ["dolphin", "dolphins", "ocean animals", "ocean animal", "sea animals", "sea animal"],
+  "suggestedItems": ["dolphin-1", "dolphin-2", "dolphin-3"],
+  "spriteNaming": {
+    "kind": "ordinal",
+    "rules": {}
+  }
+}

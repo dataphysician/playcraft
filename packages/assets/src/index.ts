@@ -1,9 +1,14 @@
+import { existsSync, readFileSync } from "node:fs";
+import { isAbsolute, join, resolve } from "node:path";
+
 import {
+  AssetCatalogManifestSchema,
   AssetGenerationRequestSchema,
   AssetSourceCapabilityManifestSchema,
   GeneratedAssetRecordSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   BuilderAssetEditCatalogEntrySchema,
+  type AssetCatalogManifest,
   type AssetContentTypeSchema,
   type AssetFormatSchema,
   type AssetGenerationRequest,
@@ -103,6 +108,61 @@ function assetEditCatalogEntry(input: {
     aliasSummary: input.aliases.join(", "),
     localReplacementFolder: input.localReplacementFolder ?? input.theme,
     suggestedItemSummary: input.suggestedItems.join(", ")
+  });
+}
+
+export const ASSET_CATALOG_MANIFEST_FILE_NAME = "catalog.json";
+
+export function assetCatalogManifestPath(folderPath: string): string {
+  const absolute = isAbsolute(folderPath) ? folderPath : resolve(folderPath);
+  return join(absolute, ASSET_CATALOG_MANIFEST_FILE_NAME);
+}
+
+export async function loadManifestFromFolder(folderPath: string): Promise<AssetCatalogManifest | null> {
+  const manifestPath = assetCatalogManifestPath(folderPath);
+  if (!existsSync(manifestPath)) {
+    return null;
+  }
+
+  const raw = readFileSync(manifestPath, "utf8");
+  const parsed = JSON.parse(raw) as unknown;
+  return AssetCatalogManifestSchema.parse(parsed);
+}
+
+export function mergeAssetCatalogs(
+  bundled: BuilderAssetEditCatalogEntry[],
+  discovered: AssetCatalogManifest[]
+): BuilderAssetEditCatalogEntry[] {
+  const bundledSnapshot = bundled.map((entry) => entry);
+  const bundledByTheme = new Map<string, BuilderAssetEditCatalogEntry>();
+  for (const entry of bundledSnapshot) {
+    bundledByTheme.set(entry.theme, entry);
+  }
+
+  const merged: BuilderAssetEditCatalogEntry[] = bundledSnapshot.map((entry) => entry);
+
+  for (const manifest of discovered) {
+    const entry = assetEditCatalogEntryFromManifest(manifest);
+    const existingIndex = merged.findIndex((row) => row.theme === entry.theme);
+    if (existingIndex >= 0) {
+      merged[existingIndex] = entry;
+    } else {
+      merged.push(entry);
+    }
+    bundledByTheme.set(entry.theme, entry);
+  }
+
+  return merged.sort((left, right) => left.theme.localeCompare(right.theme));
+}
+
+function assetEditCatalogEntryFromManifest(manifest: AssetCatalogManifest): BuilderAssetEditCatalogEntry {
+  const folderName = manifest.theme;
+  return assetEditCatalogEntry({
+    aliases: manifest.aliases,
+    displayLabel: manifest.displayLabel,
+    localReplacementFolder: folderName,
+    suggestedItems: manifest.suggestedItems,
+    theme: manifest.theme
   });
 }
 

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "asset-catalog-manifest.bundled.toys",
+  "version": "1.0.0",
+  "kind": "asset-catalog-manifest",
+  "source": "catalog.json",
+  "theme": "toys",
+  "displayLabel": "toys",
+  "aliases": ["toy", "toys"],
+  "suggestedItems": ["toy-1", "toy-2", "toy-3"],
+  "spriteNaming": {
+    "kind": "ordinal",
+    "rules": {}
+  }
+}

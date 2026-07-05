@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "asset-catalog-manifest.bundled.dinosaurs",
+  "version": "1.0.0",
+  "kind": "asset-catalog-manifest",
+  "source": "catalog.json",
+  "theme": "dinosaurs",
+  "displayLabel": "dinosaurs",
+  "aliases": ["dinosaur", "dinosaurs"],
+  "suggestedItems": ["dinosaur-1", "dinosaur-2", "dinosaur-3"],
+  "spriteNaming": {
+    "kind": "ordinal",
+    "rules": {}
+  }
+}
