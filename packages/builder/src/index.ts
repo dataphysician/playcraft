@@ -570,11 +570,7 @@ function templateForId(templateId: BuilderTemplateId): GameTemplateDefinition {
 }
 
 function templateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {
-  if (profile.template) {
-    return profile.template;
-  }
-
-  throw new Error(`profile ${profile.id} must carry a template snapshot for assembly request ${profile.assemblyRequestId}`);
+  return profile.template;
 }
 
 function templateForBuildOrUpdate(

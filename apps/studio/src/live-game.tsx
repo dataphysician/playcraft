@@ -1089,10 +1089,6 @@ function CompletionPanel({
 }
 
 function liveTemplateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {
-  if (!profile.template) {
-    throw new Error(`live game profile ${profile.id} must carry a template snapshot`);
-  }
-
   return profile.template;
 }
 

@@ -598,7 +598,7 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
   kind: z.literal("game-assembly-profile"),
   profileName: z.string().min(1),
   assemblyRequestId: StableIdSchema,
-  template: GameProfileTemplateSnapshotSchema.optional(),
+  template: GameProfileTemplateSnapshotSchema,
   domainProfile: z.object({ id: StableIdSchema, version: VersionSchema }).strict(),
   safetyPolicy: z.object({ id: StableIdSchema, version: VersionSchema }).strict(),
   theme: z.object({ id: StableIdSchema, version: VersionSchema }).strict(),
@@ -618,7 +618,7 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
     .strict(),
   validation: AssemblyValidationResultSchema
 }).strict()
-  .refine((value) => !value.template || value.template.assemblyRequestId === value.assemblyRequestId, {
+  .refine((value) => value.template.assemblyRequestId === value.assemblyRequestId, {
     message: "profile template snapshot must match assemblyRequestId",
     path: ["template", "assemblyRequestId"]
   });

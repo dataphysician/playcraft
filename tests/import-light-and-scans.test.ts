@@ -456,16 +456,19 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps imported profile template selection tied to assembly request contracts", () => {
     const builderSource = readSource("packages/builder/src/index.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");
     const liveGameSource = readSource("apps/studio/src/live-game.tsx");
     const assetLibrarySource = readSource("apps/studio/src/asset-library.ts");
 
-    expect(builderSource).toContain("if (profile.template)");
+    expect(contractSource).toContain("template: GameProfileTemplateSnapshotSchema,");
+    expect(contractSource).toContain("profile template snapshot must match assemblyRequestId");
     expect(builderSource).toContain("return profile.template");
-    expect(builderSource).toContain("must carry a template snapshot");
+    expect(builderSource).not.toContain("if (profile.template)");
+    expect(builderSource).not.toContain("must carry a template snapshot");
     expect(builderSource).not.toContain("entry.assemblyRequestId === profile.assemblyRequestId");
-    expect(liveGameSource).toContain("live game profile ${profile.id} must carry a template snapshot");
-    expect(assetLibrarySource).toContain("asset replacement profile ${profile.id} must carry a template snapshot");
+    expect(liveGameSource).not.toContain("must carry a template snapshot");
+    expect(assetLibrarySource).not.toContain("must carry a template snapshot");
     expect(liveGameSource).not.toContain("const liveSurface = template?.liveSurface");
     expect(assetLibrarySource).not.toContain("if (!template)");
     expect(packSource).toContain("template: templateSnapshotForProfileTemplate(template, context.request.id)");

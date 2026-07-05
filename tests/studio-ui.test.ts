@@ -5,6 +5,7 @@ import { assembleMvpProfiles } from "@playcraft/packs";
 import {
   BuilderProfileExportSchema,
   BuilderServiceRequestSchema,
+  GameAssemblyProfileSchema,
   type BuilderServiceRequest,
   type BuilderServiceResponse
 } from "@playcraft/contracts";
@@ -631,13 +632,13 @@ describe("studio UI", () => {
     expect(screen.getByText("Updated Memory Match MVP with toys assets.")).toBeDefined();
   });
 
-  it("requires profile-carried template snapshots for live game rendering", () => {
+  it("rejects snapshotless live game profiles at the contract boundary", () => {
     const snapshotlessProfile = {
       ...profileA,
       template: undefined
     };
 
-    expect(() => render(React.createElement(LiveGame, { profile: snapshotlessProfile }))).toThrow(/must carry a template snapshot/u);
+    expect(GameAssemblyProfileSchema.safeParse(snapshotlessProfile).success).toBe(false);
   });
 
   it("summarizes active asset edits from service session state instead of profile prompts", async () => {

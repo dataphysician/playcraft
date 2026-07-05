@@ -495,7 +495,7 @@ describe("builder session service", () => {
     expect(preview.result.preview.lastToolName).toBe("tool:reveal-card");
   });
 
-  it("rejects profile imports without template snapshots", () => {
+  it("rejects snapshotless profile imports at the contract boundary", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
     expect(exported).toBeDefined();
@@ -508,7 +508,7 @@ describe("builder session service", () => {
 
     const target = new PlaycraftBuilderSessionService();
 
-    expect(() => target.importProfile("session.unknown-assembly", unknownAssemblyProfile)).toThrow(/must carry a template snapshot/u);
+    expect(() => target.importProfile("session.unknown-assembly", unknownAssemblyProfile)).toThrow(/Required/u);
   });
 
   it("imports custom template snapshots without bundled assembly contracts", () => {

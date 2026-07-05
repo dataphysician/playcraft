@@ -608,7 +608,7 @@ describe("public contract schemas", () => {
     expect(GameTemplateDefinitionSchema.safeParse(missingAccent).success).toBe(false);
   });
 
-  it("allows profiles to carry matching custom template snapshots", () => {
+  it("requires profiles to carry matching template snapshots", () => {
     const template = gameTemplateDefinitions[0];
     const profile = assembleMvpProfiles()[0];
     expect(profile).toBeDefined();
@@ -630,8 +630,15 @@ describe("public contract schemas", () => {
         ...profile!,
         assemblyRequestId: "request.custom-memory",
         template: templateSnapshot
-      }).template?.id
+      }).template.id
     ).toBe("template.custom-memory");
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        assemblyRequestId: "request.custom-memory",
+        template: undefined
+      }).success
+    ).toBe(false);
     expect(
       GameAssemblyProfileSchema.safeParse({
         ...profile!,

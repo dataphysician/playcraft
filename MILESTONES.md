@@ -1,5 +1,34 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Required Profile Template Snapshots Contract
+
+Milestone:
+- `GameAssemblyProfileSchema` now requires every game profile to carry a `GameProfileTemplateSnapshot`.
+- Profile template snapshots must still match the profile `assemblyRequestId`.
+- Builder and Studio template lookup now use `profile.template` directly instead of rechecking for missing snapshots.
+
+Supportive changes:
+- Contract tests reject snapshotless profiles at the public profile boundary.
+- Builder import tests reject snapshotless imports through `GameAssemblyProfileSchema`.
+- Studio live-game and asset-library tests validate snapshotless profiles at the contract boundary instead of consumer-side recovery checks.
+- Source scans pin required profile templates and block reintroducing builder/UI missing-template fallback branches.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/builder/test/session-service.test.ts`
+- `pnpm test tests/studio-asset-library.test.tsx`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps game profiles self-describing at the public contract boundary without hosted providers, generated runtime code, auth, database state, compatibility shims, snapshotless imports, or consumer-side template recovery.
+
 ## 2026-07-04 - Profile Export Template Ownership Contract
 
 Milestone:

@@ -1,6 +1,7 @@
 import React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { GameAssemblyProfileSchema } from "@playcraft/contracts";
 import {
   createProfileLibraryAssetReplacements,
   sortingBinAssetCatalog,
@@ -93,7 +94,7 @@ describe("studio asset library", () => {
     expect(createProfileLibraryAssetReplacements(staleProfile)["card:toy-1-a"]).toBeUndefined();
   });
 
-  it("requires profile-carried template snapshots before mapping local replacements", () => {
+  it("rejects snapshotless asset replacement profiles at the contract boundary", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toys" });
     const profile = session.activeProfile;
@@ -104,7 +105,7 @@ describe("studio asset library", () => {
       template: undefined
     };
 
-    expect(() => createProfileLibraryAssetReplacements(snapshotlessProfile)).toThrow(/must carry a template snapshot/u);
+    expect(GameAssemblyProfileSchema.safeParse(snapshotlessProfile).success).toBe(false);
   });
 
   it("maps local sprites through profile-carried custom template snapshots", () => {

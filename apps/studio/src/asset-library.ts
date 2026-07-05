@@ -129,10 +129,6 @@ export function createProfileLibraryAssetReplacements(
 }
 
 function liveTemplateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {
-  if (!profile.template) {
-    throw new Error(`asset replacement profile ${profile.id} must carry a template snapshot`);
-  }
-
   return profile.template;
 }
 
