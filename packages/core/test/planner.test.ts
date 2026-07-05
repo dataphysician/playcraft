@@ -51,8 +51,13 @@ function request(capabilities: string[]): PlaycraftAssemblyRequest {
 }
 
 describe("deterministic assembly planner", () => {
-  it("selects the strongest capability match before using recipe order as a tie-breaker", () => {
+  it("selects a unique strongest capability match", () => {
     expect(planner.selectRecipe(request(["game:shape-memory", "mechanic:match-pairs"])).id).toBe("recipe.specific");
-    expect(planner.selectRecipe(request(["mechanic:match-pairs"])).id).toBe("recipe.shared");
+  });
+
+  it("rejects equal-score recipe matches instead of using recipe order", () => {
+    expect(() => planner.selectRecipe(request(["mechanic:match-pairs"]))).toThrow(
+      /ambiguous deterministic recipes matched requested capabilities: recipe.shared, recipe.specific, recipe.tie/u
+    );
   });
 });

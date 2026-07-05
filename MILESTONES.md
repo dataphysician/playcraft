@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Planner Recipe Ties
+
+Milestone:
+- Deterministic planner recipe selection now rejects equal-score recipe matches instead of choosing by recipe list order.
+- Unique strongest recipe matches still assemble normally, preserving bundled MVP profile assembly while making future extension conflicts explicit.
+
+Supportive changes:
+- Core planner tests cover unique strongest matches and equal-score ambiguity.
+- Source scans require best-score candidate filtering and block the old sort-and-first recipe selection path.
+
+Validation:
+- `pnpm test packages/core/test/planner.test.ts packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Planner source scan confirmed fail-closed best-candidate selection and no recipe-order tie path.
+
+Constraint notes:
+- Keeps local agent recipe assembly explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or recipe list-order selection.
+
 ## 2026-07-04 - Exact-One Registry Candidate Selection
 
 Milestone:

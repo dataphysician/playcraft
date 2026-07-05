@@ -201,6 +201,17 @@ describe("import-light boundaries and source scans", () => {
     expect(registryTestSource).not.toContain('supportedModalities: ["audio"]');
   });
 
+  it("keeps deterministic planner recipe selection fail-closed on equal scores", () => {
+    const coreSource = readSource("packages/core/src/index.ts");
+    const plannerTestSource = readSource("packages/core/test/planner.test.ts");
+
+    expect(coreSource).toContain("const bestScore = Math.max(...candidates.map((candidate) => candidate.score));");
+    expect(coreSource).toContain("const bestCandidates = candidates.filter((candidate) => candidate.score === bestScore);");
+    expect(coreSource).toContain("ambiguous deterministic recipes matched requested capabilities");
+    expect(coreSource).not.toContain(".sort((left, right) => right.score - left.score || left.index - right.index)[0]?.recipe");
+    expect(plannerTestSource).toContain("rejects equal-score recipe matches instead of using recipe order");
+  });
+
   it("keeps pack mechanic event bindings template-authored instead of emitted-event-order inferred", () => {
     const packSource = readSource("packages/packs/src/index.ts");
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");

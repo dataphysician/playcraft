@@ -354,19 +354,23 @@ export class DeterministicAssemblyPlanner {
 
   selectRecipe(request: PlaycraftAssemblyRequest): AssemblyRecipe {
     const requested = new Set(request.intent.requestedCapabilities);
-    const selected = this.recipes
-      .map((recipe, index) => ({
+    const candidates = this.recipes
+      .map((recipe) => ({
         recipe,
-        index,
         score: recipe.capabilityTags.filter((capability) => requested.has(capability)).length
       }))
-      .filter((candidate) => candidate.score > 0)
-      .sort((left, right) => right.score - left.score || left.index - right.index)[0]?.recipe;
-    if (!selected) {
+      .filter((candidate) => candidate.score > 0);
+    if (candidates.length === 0) {
       throw new Error(`no deterministic recipe matched requested capabilities: ${[...requested].join(",")}`);
     }
 
-    return selected;
+    const bestScore = Math.max(...candidates.map((candidate) => candidate.score));
+    const bestCandidates = candidates.filter((candidate) => candidate.score === bestScore);
+    if (bestCandidates.length > 1) {
+      throw new Error(`ambiguous deterministic recipes matched requested capabilities: ${bestCandidates.map((candidate) => candidate.recipe.id).join(", ")}`);
+    }
+
+    return bestCandidates[0].recipe;
   }
 }
 
