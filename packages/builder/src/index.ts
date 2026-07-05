@@ -567,7 +567,7 @@ function renderRequestForTemplatePrimary(profile: GameAssemblyProfile, replay: R
     throw new Error(`profile ${profile.id} has multiple live-surface primary render requests for ${primaryCapability}`);
   }
 
-  return matches[0];
+  return requireSingleValue(matches, `live-surface primary render request for ${primaryCapability}`);
 }
 
 function requireSinglePreviewToolName(renderRequest: ReplayResult["renderRequests"][number]): string {
@@ -803,7 +803,7 @@ function assetEditOperationForComponent(
   if (operations.length > 1) {
     throw new Error(`${template.id} has multiple asset edit operations for ${componentCapability}`);
   }
-  return operations[0];
+  return singleValue(operations);
 }
 
 function normalizeAssetEdit(assetEdit: BuilderAssetEdit | undefined): NormalizedAssetEdit | undefined {
@@ -1026,7 +1026,7 @@ function assetEditCatalogEntryFor(theme: string): typeof localAssetEditCatalog[n
     throw new Error(`asset edit theme ${theme} maps to multiple builder asset edit catalog entries: ${matches.map((entry) => entry.theme).join(", ")}`);
   }
 
-  return matches[0];
+  return singleValue(matches);
 }
 
 function freeformItemsForTheme(singularTheme: string): string[] {
@@ -1172,6 +1172,19 @@ function requireStringMatrixProp(
 
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
+}
+
+function singleValue<TValue>(values: TValue[]): TValue | undefined {
+  return values.length === 1 ? values[0] : undefined;
+}
+
+function requireSingleValue<TValue>(values: TValue[], label: string): TValue {
+  const value = singleValue(values);
+  if (value === undefined) {
+    throw new Error(`${label} requires exactly one value`);
+  }
+
+  return value;
 }
 
 function cleanLabel(value: string): string {

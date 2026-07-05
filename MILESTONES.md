@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Builder Backend Matches
+
+Milestone:
+- Builder backend selection now uses explicit single-value helpers for primary render requests, asset edit operations, and asset edit catalog matches.
+- Builder preview and asset-edit paths keep duplicate fail-closed checks while removing first-match return shortcuts.
+
+Supportive changes:
+- Source scans guard builder single-value helpers and block indexed match/operation returns.
+- Existing builder tests continue covering duplicate asset catalog aliases, duplicate template operations, and duplicate primary preview render requests.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps the CLI/API builder backend local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match backend selection.
+
 ## 2026-07-05 - Exact Trusted Preview Matches
 
 Milestone:

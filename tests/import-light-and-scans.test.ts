@@ -789,6 +789,9 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain("replay.renderRequests.find((request) => request.componentCapability === primaryCapability)");
     expect(builderSource).toContain("function requireSinglePreviewReplayEvent");
     expect(builderSource).toContain("preview requires exactly one replay event");
+    expect(builderSource).toContain("function singleValue");
+    expect(builderSource).toContain("function requireSingleValue");
+    expect(builderSource).not.toContain("return matches[0]");
     expect(builderSource).not.toContain("session.profile.replay.eventLog[0]");
     expect(builderSource).toContain("function requireSessionTemplateId");
     expect(builderSource).not.toContain("interactiveRenderRequestForReplay");
@@ -1302,6 +1305,7 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain("function propsForAssetEditOperation");
     expect(builderSource).toContain("function assetEditOperationForComponent");
     expect(builderSource).toContain("has multiple asset edit operations for ${componentCapability}");
+    expect(builderSource).not.toContain("return operations[0]");
     expect(builderSource).toContain("promptForAssetEdit(template, edit, assetRequestItems)");
     expect(builderSource).toContain("assetEditItems: assetRequestItems");
     expect(builderTestSource).toContain('not.toContain("dinosaur-3")');
