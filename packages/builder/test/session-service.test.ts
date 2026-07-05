@@ -378,6 +378,63 @@ describe("builder session service", () => {
     expect(preview.result.preview.lastToolName).toBe("tool:reveal-card");
   });
 
+  it("updates imported custom template snapshots without bundled assembly contracts", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const customProfile = {
+      ...exported!,
+      id: "profile.custom-template-memory",
+      assemblyRequestId: "request.custom-template-memory",
+      template: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "template.custom-template-memory",
+        version: "1.0.0",
+        kind: "game-template-snapshot",
+        displayName: "Custom Template Memory",
+        displayLabel: "Custom Memory",
+        assetPromptKind: "memory-cards",
+        assetEditOperations: [
+          {
+            componentCapability: "component:reveal-card-grid",
+            operation: "memory-pairs"
+          }
+        ],
+        liveSurface: {
+          kind: "memory",
+          componentCapabilities: {
+            primary: "component:reveal-card-grid"
+          },
+          assetReplacementSources: [
+            {
+              componentRole: "primary",
+              prop: "cards",
+              namespace: "card",
+              pairMapProp: "pairs"
+            }
+          ],
+          tokenStyles: []
+        },
+        assemblyRequestId: "request.custom-template-memory"
+      }
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.custom-template-update", customProfile);
+    const updated = target.execute(command({
+      actionName: "update-game",
+      assetEdit: { theme: "toys" },
+      id: "builder-command.test.update-custom-template",
+      sessionId: "session.custom-template-update",
+      templateId: "template.custom-template-memory"
+    }));
+
+    expect(updated.result.preview.activeTemplateId).toBe("template.custom-template-memory");
+    expect(updated.result.profile?.template?.id).toBe("template.custom-template-memory");
+    expect(cardsFor(updated.result.profile)).toEqual(["toy-1-a", "toy-1-b", "toy-2-a", "toy-2-b"]);
+    expect(updated.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("request.custom-template-memory"))).toBe(true);
+  });
+
   it("previews the first interactive component when visual components render first", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;

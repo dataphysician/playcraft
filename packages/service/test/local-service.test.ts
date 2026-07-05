@@ -1094,6 +1094,83 @@ describe("local Playcraft service", () => {
     ).toThrow(/template IDs are only accepted by assemble and update/u);
   });
 
+  it("updates imported custom template snapshots through the service text path", () => {
+    const service = createLocalPlaycraftService();
+    const assembled = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.custom-import-source",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.custom-import-source",
+      text: "Memory game with dinosaurs"
+    });
+    const profile = assembled.session?.profile;
+    expect(profile).toBeDefined();
+    const customProfile = {
+      ...profile!,
+      id: "profile.service-custom-memory",
+      assemblyRequestId: "request.service-custom-memory",
+      template: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "template.service-custom-memory",
+        version: "1.0.0",
+        kind: "game-template-snapshot",
+        displayName: "Service Custom Memory",
+        displayLabel: "Service Custom Memory",
+        assetPromptKind: "memory-cards",
+        assetEditOperations: [
+          {
+            componentCapability: "component:reveal-card-grid",
+            operation: "memory-pairs"
+          }
+        ],
+        liveSurface: {
+          kind: "memory",
+          componentCapabilities: {
+            primary: "component:reveal-card-grid"
+          },
+          assetReplacementSources: [
+            {
+              componentRole: "primary",
+              prop: "cards",
+              namespace: "card",
+              pairMapProp: "pairs"
+            }
+          ],
+          tokenStyles: []
+        },
+        assemblyRequestId: "request.service-custom-memory"
+      }
+    };
+    const imported = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.custom-import",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "import-profile",
+      sessionId: "session.service-custom-import",
+      profile: customProfile
+    });
+    const updated = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.custom-import-update",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "update",
+      sessionId: "session.service-custom-import",
+      text: "Change the cards to toys"
+    });
+
+    expect(imported.session?.activeTemplateId).toBe("template.service-custom-memory");
+    expect(updated.session?.activeTemplateId).toBe("template.service-custom-memory");
+    expect(updated.session?.profile?.template?.id).toBe("template.service-custom-memory");
+    expect(
+      updated.session?.profile?.components.find((component) => component.renderCapability === "component:reveal-card-grid")?.props.cards
+    ).toEqual(["toy-1-a", "toy-1-b", "toy-2-a", "toy-2-b"]);
+    expect(JSON.stringify(updated.execution?.events)).toContain("request.service-custom-memory");
+  });
+
   it("rejects invalid profile export JSON before import requests reach the service", () => {
     const out: string[] = [];
     const err: string[] = [];

@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Update Imported Template Snapshots
+
+Milestone:
+- Builder `update-game` now resolves the active profile's custom template snapshot when updating an imported custom profile.
+- Service text updates can edit assets on imported custom template profiles without requiring the template to exist in the bundled catalog.
+- Tool events for custom updates retain the profile snapshot assembly request ID instead of inventing a bundled request.
+
+Supportive changes:
+- Builder tests cover custom snapshot import, preview, and asset update through `update-game`.
+- Service tests cover importing a custom snapshot profile and updating it through the text/API path.
+- Builder dispatch now narrows assemble/update commands before reaching the build/update implementation.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts tests/studio-ui.test.ts tests/studio-asset-library.test.tsx`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Custom-template update scan confirmed active code uses the snapshot update helper without profile-ID or component-set inference.
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Keeps imported custom profile updates contract-owned through template snapshots without bundled-template lookup fallbacks, profile-ID branching, component-set inference, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Support Profile Template Snapshots
 
 Milestone:

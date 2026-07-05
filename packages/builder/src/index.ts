@@ -98,6 +98,10 @@ export interface BuilderExecutionResult {
   events: BuilderAgUiEvent[];
 }
 
+type BuildOrUpdateCommand = BuilderCommand & {
+  actionName: Extract<BuilderCommand["actionName"], "assemble-game" | "update-game">;
+};
+
 export interface BuilderCommandHandler {
   execute(command: BuilderCommand): BuilderExecutionResult;
   assembleTemplates(templateIds: BuilderTemplateId[], sessionId?: string): BuilderExecutionResult[];
@@ -120,7 +124,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     switch (command.actionName) {
       case "assemble-game":
       case "update-game":
-        return this.buildOrUpdate(session, command);
+        return this.buildOrUpdate(session, requireBuildOrUpdateCommand(command));
       case "preview-action":
         return this.previewAction(session, command);
       case "list-builder-tools":
@@ -223,15 +227,14 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
     };
   }
 
-  private buildOrUpdate(session: BuilderSessionRecord, command: BuilderCommand): BuilderExecutionResult {
+  private buildOrUpdate(session: BuilderSessionRecord, command: BuildOrUpdateCommand): BuilderExecutionResult {
     const templateId = BuilderTemplateIdSchema.parse(command.templateId);
-    const template = templateForId(templateId);
-    const request = requestForTemplate(templateId);
+    const template = templateForBuildOrUpdate(session, command.actionName, templateId);
     const runId = `${command.sessionId}.${templateId}`;
     const baseProfile =
       command.actionName === "update-game" && session.profile && session.templateId === templateId
         ? session.profile
-        : this.planner.assemble(request);
+        : this.planner.assemble(requestForTemplate(templateId));
     const profile = applyAssetEdit(baseProfile, command.assetEdit, this.assetSource, this.registries);
     const replay = replayProfile(profile, this.registries);
     const preview = previewForReplay(session.sessionId, templateId, profile, replay, session.preview);
@@ -264,7 +267,7 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
       stepStarted(runId, `${command.actionName}.plan`, `${command.actionName} planner`, 1),
       activity(runId, "builder.profile", "started", `assembling ${template.displayName}`, 2),
       stateEvent,
-      toolCall(runId, toolName, { requestId: request.id, templateId, assetEdit: command.assetEdit ?? null, input: command.input ?? null }, 4),
+      toolCall(runId, toolName, { requestId: template.assemblyRequestId, templateId, assetEdit: command.assetEdit ?? null, input: command.input ?? null }, 4),
       toolResult(runId, toolName, { profileId: profile.id, valid: result.validation?.valid ?? false }, 5),
       playcraftCustomEvent(
         createPlaycraftEnvelope({
@@ -577,6 +580,26 @@ function templateForProfile(profile: GameAssemblyProfile): GameTemplateDefinitio
   }
 
   return template;
+}
+
+function templateForBuildOrUpdate(
+  session: BuilderSessionRecord,
+  actionName: Extract<BuilderCommand["actionName"], "assemble-game" | "update-game">,
+  templateId: BuilderTemplateId
+): GameTemplateDefinition | GameProfileTemplateSnapshot {
+  if (actionName === "update-game" && session.profile && session.templateId === templateId) {
+    return templateForProfile(session.profile);
+  }
+
+  return templateForId(templateId);
+}
+
+function requireBuildOrUpdateCommand(command: BuilderCommand): BuildOrUpdateCommand {
+  if (command.actionName === "assemble-game" || command.actionName === "update-game") {
+    return command as BuildOrUpdateCommand;
+  }
+
+  throw new Error(`command ${command.actionName} is not a build or update command`);
 }
 
 function builderTool(
