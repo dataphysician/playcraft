@@ -961,6 +961,20 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).not.toContain('component.renderCapability === "component:sequence-pad"');
   });
 
+  it("keeps live and asset token readers from stringifying malformed JSON props", () => {
+    const tokenReaders = [
+      readSource("apps/studio/src/live-game.tsx"),
+      readSource("apps/studio/src/asset-library.ts"),
+      readSource("packages/builder/src/index.ts"),
+      readSource("packages/packs/src/index.ts")
+    ].join("\n");
+    const studioTestSource = readSource("tests/studio-ui.test.ts");
+
+    expect(tokenReaders).toContain('value.filter((entry): entry is string => typeof entry === "string")');
+    expect(tokenReaders).not.toContain('typeof entry === "string" ? entry : JSON.stringify(entry)');
+    expect(studioTestSource).toContain("ignores non-string live game token entries instead of stringifying JSON labels");
+  });
+
   it("keeps trusted rendering component-id concrete without capability fallback dispatch", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const rendererSource = readSource("packages/renderer/src/index.tsx");

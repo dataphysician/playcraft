@@ -940,7 +940,7 @@ function stringArrayProp(props: Record<string, JsonValue>, key: string): string[
     return [];
   }
 
-  return value.map((entry) => (typeof entry === "string" ? entry : JSON.stringify(entry)));
+  return value.filter((entry): entry is string => typeof entry === "string");
 }
 
 function stringMatrixProp(props: Record<string, JsonValue>, key: string): string[][] {

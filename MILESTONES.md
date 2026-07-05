@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Strict Live Token Props
+
+Milestone:
+- Studio live-game token readers now ignore non-string component prop array entries instead of stringifying JSON values into playable labels.
+- Studio asset replacement token readers now use the same string-only behavior for replacement keys.
+- Builder asset-edit rewrites and trusted pack component rendering now use string-only token arrays.
+
+Supportive changes:
+- Studio UI tests cover malformed non-string card entries so JSON labels are not rendered or playable.
+- Source scans guard the shared string-only token reader pattern across Studio live-game, Studio asset library, builder, and packs.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts packages/builder/test/session-service.test.ts packages/packs/test/mvp-profiles.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps malformed profile props from becoming inferred runtime tokens without hosted providers, generated runtime code, auth, database state, compatibility shims, or app-owned JSON-label heuristics.
+
 ## 2026-07-04 - Local Asset Folder Discovery
 
 Milestone:

@@ -666,6 +666,37 @@ describe("studio UI", () => {
     expect(await screen.findByText("1 of 2 pairs")).toBeDefined();
   });
 
+  it("ignores non-string live game token entries instead of stringifying JSON labels", async () => {
+    const profile = {
+      ...profileA,
+      components: profileA.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["moon", { label: "json-card" }, "drum"],
+                pairs: {
+                  moon: "pair-one",
+                  drum: "pair-one"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile }));
+
+    expect(await screen.findByRole("button", { name: "moon" })).toBeDefined();
+    expect(screen.queryByRole("button", { name: /json-card/u })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "moon" }));
+    fireEvent.click(screen.getByRole("button", { name: "drum" }));
+
+    expect(await screen.findByText("All pairs found")).toBeDefined();
+  });
+
   it("exports and imports profiles from the Developer tab through the Studio client", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 
