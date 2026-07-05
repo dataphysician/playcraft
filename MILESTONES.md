@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Service Intent Single Matches
+
+Milestone:
+- Service text intent resolution now extracts catalog template and asset matches through explicit single-value helpers instead of first-element indexing.
+- Template and asset match resolution keeps ambiguity fail-closed while making the exact-one path locally visible.
+
+Supportive changes:
+- Source scans guard the single-value helpers and block first matched-template or asset-match indexing.
+- Existing local service tests continue covering ambiguous template and asset request rejection.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps text and Moonshine CPU intent handling local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match template dispatch.
+
 ## 2026-07-05 - Direct Core Registry Field Reads
 
 Milestone:

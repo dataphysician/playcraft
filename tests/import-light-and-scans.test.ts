@@ -1254,6 +1254,10 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("if (input.allowActiveAssetEdit && input.activeAssetEdit)");
     expect(serviceTestSource).toContain("does not inherit active asset edits when switching templates");
     expect(serviceTestSource).toContain("clears stale active asset edits when a session switches games without an asset request");
+    expect(source).toContain("function singleValue");
+    expect(source).toContain("function requireSingleValue");
+    expect(source).not.toContain("matchedTemplateIds[0]");
+    expect(source).not.toContain("const match = matches[0]");
     expect(source).not.toContain("if (input.activeAssetEdit) {\n    return {");
   });
 

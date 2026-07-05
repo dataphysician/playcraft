@@ -925,12 +925,13 @@ function templateDecisionFor(input: {
     return { source: "explicit-template-id", templateId: input.templateId };
   }
 
-  if (input.matchedTemplateIds.length === 1) {
-    return { source: "catalog-template-alias", templateId: input.matchedTemplateIds[0] };
-  }
-
   if (input.matchedTemplateIds.length > 1) {
     throw new Error(`ambiguous template request matched ${input.matchedTemplateIds.join(", ")}; use explicit templateId`);
+  }
+
+  const matchedTemplateId = singleValue(input.matchedTemplateIds);
+  if (matchedTemplateId) {
+    return { source: "catalog-template-alias", templateId: matchedTemplateId };
   }
 
   if (input.activeTemplateId) {
@@ -990,7 +991,7 @@ function assetEditForText(text: string): TextAssetEdit | undefined {
     throw new Error(`ambiguous asset request matched ${matches.map((entry) => entry.theme).join(", ")}; use explicit assetEdit`);
   }
 
-  const match = matches[0];
+  const match = requireSingleValue(matches, "asset request match");
   requireTextAssetThemeWithinContract(match.theme);
   const items = match.theme
     .split(/\s*(?:,| and )\s*/u)
@@ -1005,6 +1006,19 @@ function assetEditForText(text: string): TextAssetEdit | undefined {
     matchedText: match.theme,
     source: match.source
   };
+}
+
+function singleValue<TValue>(values: TValue[]): TValue | undefined {
+  return values.length === 1 ? values[0] : undefined;
+}
+
+function requireSingleValue<TValue>(values: TValue[], label: string): TValue {
+  const value = singleValue(values);
+  if (value === undefined) {
+    throw new Error(`${label} requires exactly one value`);
+  }
+
+  return value;
 }
 
 function assetIntentClauses(text: string): string[] {
