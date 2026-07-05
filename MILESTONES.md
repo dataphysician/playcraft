@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Fail-Closed Replay Manifest Tool Metadata
+
+Milestone:
+- Replay render requests now require registered component manifests before copying emitted tool names into trusted render metadata.
+- Studio trusted preview summaries now require trusted registry manifests instead of reporting missing manifests as empty tool lists.
+
+Supportive changes:
+- Core replay tests cover missing component manifests during emitted-tool metadata construction.
+- Source scans block optional `manifest?.emittedTools` fallbacks in replay and Studio preview summaries.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps trusted local preview metadata explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or non-interactive fallbacks for missing component manifests.
+
 ## 2026-07-05 - Explicit Text Asset Theme Length Errors
 
 Milestone:

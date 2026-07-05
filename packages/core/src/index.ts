@@ -397,7 +397,7 @@ export function replayProfile(profileInput: unknown, registries: PlaycraftRegist
     profile,
     validation,
     renderRequests: profile.components.map((component) => {
-      const manifest = registries.components.get(component.componentId, component.version);
+      const manifest = requiredReplayComponentManifest(profile, component.componentId, component.version, registries);
 
       return ComponentRenderRequestSchema.parse({
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -411,12 +411,26 @@ export function replayProfile(profileInput: unknown, registries: PlaycraftRegist
         mechanicBindingId: component.renderMechanicBindingId,
         props: component.props,
         assetBindings: component.assetBindings,
-        expectedEmittedEvents: manifest?.emittedTools.map((toolDefinition) => toolDefinition.toolName) ?? [],
+        expectedEmittedEvents: manifest.emittedTools.map((toolDefinition) => toolDefinition.toolName),
         fallbackPolicy: "fail-closed"
       });
     }),
     eventLog: profile.replay.eventLog
   };
+}
+
+function requiredReplayComponentManifest(
+  profile: GameAssemblyProfile,
+  componentId: string,
+  version: string,
+  registries: PlaycraftRegistries
+): ComponentManifest {
+  const manifest = registries.components.get(componentId, version);
+  if (!manifest) {
+    throw new Error(`saved profile ${profile.id} cannot replay missing component manifest ${componentId}@${version}`);
+  }
+
+  return manifest;
 }
 
 export function validateGameAssemblyProfile(profileInput: unknown, registries: PlaycraftRegistries): AssemblyValidationResult {

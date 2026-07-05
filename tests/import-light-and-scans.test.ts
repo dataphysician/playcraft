@@ -1413,10 +1413,26 @@ describe("import-light boundaries and source scans", () => {
     expect(rendererSource).not.toContain("entry.manifest.id === request.componentId");
     expect(rendererSource).not.toContain("entry.manifest.renderCapability === request.componentCapability");
     expect(previewSource).toContain("candidate.id === request.componentId && candidate.version === request.componentVersion");
+    expect(previewSource).toContain("function requiredTrustedManifestForRenderRequest");
+    expect(previewSource).toContain("trusted preview manifest ${request.componentId}@${request.componentVersion} is not registered");
+    expect(previewSource).toContain("const emittedToolNames = manifest.emittedTools.map((tool) => tool.toolName)");
+    expect(previewSource).not.toContain("manifest?.emittedTools");
     expect(previewSource).not.toContain("request.componentCapability ??");
     expect(previewSource).not.toContain("manifest?.renderCapability");
     expect(previewSource).not.toContain("candidate.renderCapability === request.componentCapability");
     expect(previewSource).not.toContain("request.componentCapability).");
+  });
+
+  it("keeps replay render request tool metadata fail-closed on component manifests", () => {
+    const coreSource = readSource("packages/core/src/index.ts");
+    const replayTestSource = readSource("packages/core/test/replay.test.ts");
+
+    expect(coreSource).toContain("function requiredReplayComponentManifest");
+    expect(coreSource).toContain("saved profile ${profile.id} cannot replay missing component manifest ${componentId}@${version}");
+    expect(coreSource).toContain("expectedEmittedEvents: manifest.emittedTools.map");
+    expect(coreSource).not.toContain("expectedEmittedEvents: manifest?.emittedTools.map");
+    expect(coreSource).not.toContain("expectedEmittedEvents: manifest?.emittedTools.map((toolDefinition) => toolDefinition.toolName) ?? []");
+    expect(replayTestSource).toContain("fails closed when replay cannot load a component manifest for emitted tool metadata");
   });
 
   it("keeps Studio trusted component interaction summaries replay-owned", () => {

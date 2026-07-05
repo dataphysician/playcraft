@@ -1,5 +1,5 @@
 import React from "react";
-import type { ComponentRenderRequest, GameAssemblyProfile, JsonValue } from "@playcraft/contracts";
+import type { ComponentManifest, ComponentRenderRequest, GameAssemblyProfile, JsonValue } from "@playcraft/contracts";
 import { replayProfile } from "@playcraft/core";
 import { registerPlaycraftTrustedComponents } from "@playcraft/packs";
 import { TrustedComponentRegistry, type TrustedRenderFailure } from "@playcraft/renderer";
@@ -37,9 +37,10 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
   const primaryCapability = profile.template.liveSurface.componentCapabilities.primary;
 
   return replay.renderRequests.map((request, index) => {
-    const manifest = manifestForRenderRequest(request);
+    const manifest = requiredTrustedManifestForRenderRequest(request);
     const componentId = request.componentId;
     const componentCapability = request.componentCapability;
+    const emittedToolNames = manifest.emittedTools.map((tool) => tool.toolName);
 
     return {
       componentKey: renderRequestKey(request, index),
@@ -47,8 +48,8 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
       componentCapability,
       mechanicBindingId: request.mechanicBindingId,
       isPrimaryPreviewSurface: componentCapability === primaryCapability,
-      emittedToolNames: manifest?.emittedTools.map((tool) => tool.toolName) ?? [],
-      interactionSummary: interactionSummaryFor(manifest?.emittedTools.map((tool) => tool.toolName) ?? [], request.expectedEmittedEvents),
+      emittedToolNames,
+      interactionSummary: interactionSummaryFor(emittedToolNames, request.expectedEmittedEvents),
       expectedEmittedEvents: [...request.expectedEmittedEvents]
     };
   });
@@ -144,6 +145,15 @@ function renderRequestForTemplatePrimary(
 
 function manifestForRenderRequest(request: ComponentRenderRequest) {
   return manifests.find((candidate) => candidate.id === request.componentId && candidate.version === request.componentVersion);
+}
+
+function requiredTrustedManifestForRenderRequest(request: ComponentRenderRequest): ComponentManifest {
+  const manifest = manifestForRenderRequest(request);
+  if (!manifest) {
+    throw new Error(`trusted preview manifest ${request.componentId}@${request.componentVersion} is not registered`);
+  }
+
+  return manifest;
 }
 
 function PreviewFailure({ failure }: { failure: TrustedRenderFailure["error"] }): React.ReactElement {
