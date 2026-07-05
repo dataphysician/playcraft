@@ -735,6 +735,53 @@ describe("public contract schemas", () => {
     }).success).toBe(false);
   });
 
+  it("keeps session snapshots active-profile consistent", () => {
+    const profile = assembleMvpProfiles()[0];
+    const preview = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      sessionId: "session.snapshot-consistency",
+      activeProfileId: profile.id,
+      activeTemplateId: "template.memory-match",
+      interactionCount: 0
+    };
+    const baseSession = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      kind: "builder-session-snapshot",
+      sessionId: "session.snapshot-consistency",
+      activeProfileId: profile.id,
+      activeTemplateId: "template.memory-match",
+      profile,
+      preview,
+      validation: profile.validation,
+      updatedAt: "2026-07-04T00:00:00.000Z"
+    };
+
+    expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse(baseSession).success).toBe(true);
+    expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
+      ...baseSession,
+      activeProfileId: undefined,
+      profile: undefined,
+      preview: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        sessionId: "session.snapshot-consistency",
+        interactionCount: 0
+      },
+      validation: undefined
+    }).success).toBe(true);
+    expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
+      ...baseSession,
+      profile: undefined
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
+      ...baseSession,
+      activeProfileId: undefined
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderSessionSnapshotSchema.safeParse({
+      ...baseSession,
+      activeProfileId: "profile.other"
+    }).success).toBe(false);
+  });
+
   it("keeps builder command payload fields scoped to their actions", () => {
     const baseCommand = {
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

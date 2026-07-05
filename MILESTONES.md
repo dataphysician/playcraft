@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Session Snapshot Active Profile Contract
+
+Milestone:
+- `BuilderSessionSnapshotSchema` now requires `profile` when `activeProfileId` is present.
+- Session snapshots with profile payloads now require `activeProfileId`.
+- Session snapshot profile IDs must match `activeProfileId`, while empty pre-assembly snapshots remain valid.
+
+Supportive changes:
+- Contract tests cover valid active sessions, valid empty sessions, missing profile payloads, missing active IDs, and mismatched IDs.
+- Source scans pin the public session snapshot invariant alongside the Studio response guard.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps active profile ownership in the public local service contract without hosted providers, generated runtime code, auth, database state, compatibility shims, or consumer-side profile recovery.
+
 ## 2026-07-04 - Studio Active Profile Response Guard
 
 Milestone:

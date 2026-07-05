@@ -1005,7 +1005,19 @@ export const BuilderSessionSnapshotSchema = z
     validation: AssemblyValidationResultSchema.optional(),
     updatedAt: z.string().datetime()
   })
-  .strict();
+  .strict()
+  .refine((value) => !value.activeProfileId || Boolean(value.profile), {
+    message: "session snapshots with activeProfileId require an active profile payload",
+    path: ["profile"]
+  })
+  .refine((value) => !value.profile || Boolean(value.activeProfileId), {
+    message: "session snapshots with profile payloads require activeProfileId",
+    path: ["activeProfileId"]
+  })
+  .refine((value) => !value.profile || !value.activeProfileId || value.profile.id === value.activeProfileId, {
+    message: "session snapshot profile id must match activeProfileId",
+    path: ["profile"]
+  });
 export type BuilderSessionSnapshot = z.infer<typeof BuilderSessionSnapshotSchema>;
 
 export const BuilderProfileExportSchema = PublicContractBaseSchema.extend({

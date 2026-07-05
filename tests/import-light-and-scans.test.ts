@@ -364,9 +364,13 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps Studio service execution responses session-owned", () => {
     const source = readSource("apps/studio/src/local-client.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
     const appSource = readSource("apps/studio/src/studio-app.tsx");
     const typesSource = readSource("apps/studio/src/types.ts");
 
+    expect(contractSource).toContain("session snapshots with activeProfileId require an active profile payload");
+    expect(contractSource).toContain("session snapshots with profile payloads require activeProfileId");
+    expect(contractSource).toContain("session snapshot profile id must match activeProfileId");
     expect(source).toContain("response did not include session snapshot");
     expect(source).toContain("response.session.activeProfileId");
     expect(source).toContain("function activeProfileFromResponse(response: BuilderServiceResponse): GameAssemblyProfile");
