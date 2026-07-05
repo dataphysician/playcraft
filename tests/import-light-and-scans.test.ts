@@ -922,11 +922,15 @@ describe("import-light boundaries and source scans", () => {
   it("keeps the default builder template pack-owned", () => {
     const packSource = readSource("packages/packs/src/index.ts");
     const serviceSource = readSource("packages/service/src/index.ts");
+    const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
 
     expect(packSource).toContain("DEFAULT_GAME_TEMPLATE_ID");
     expect(serviceSource).toContain("DEFAULT_GAME_TEMPLATE_ID");
+    expect(serviceSource).toContain("ambiguous template request matched");
+    expect(serviceTestSource).toContain("rejects ambiguous first-time template text instead of defaulting");
     expect(serviceSource).not.toContain("DEFAULT_TEMPLATE_ID");
     expect(serviceSource).not.toContain('BuilderTemplateIdSchema.parse("template.memory-match")');
+    expect(serviceSource).not.toContain("input.activeTemplateId ?? DEFAULT_GAME_TEMPLATE_ID");
   });
 
   it("keeps builder asset prompt wording template-owned instead of component-inferred", () => {

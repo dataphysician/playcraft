@@ -863,9 +863,13 @@ function templateDecisionFor(input: {
   }
 
   if (input.matchedTemplateIds.length > 1) {
+    if (!input.activeTemplateId) {
+      throw new Error(`ambiguous template request matched ${input.matchedTemplateIds.join(", ")} without an active template`);
+    }
+
     return {
       source: "ambiguous-template-match",
-      templateId: input.activeTemplateId ?? DEFAULT_GAME_TEMPLATE_ID
+      templateId: input.activeTemplateId
     };
   }
 

@@ -1077,19 +1077,14 @@ describe("local Playcraft service", () => {
     });
   });
 
-  it("records ambiguous template text when selecting the default template", () => {
-    const resolved = resolveBuilderInputCommand({
-      sequence: 1,
-      source: "text",
-      text: "Sort or memory game"
-    });
-
-    expect(resolved.templateId).toBe("template.memory-match");
-    expect(resolved.resolution.templateDecision).toMatchObject({
-      source: "ambiguous-template-match",
-      matchedTemplateIds: ["template.memory-match", "template.sorting"]
-    });
-    expect(resolved.resolution.assetDecision.source).toBe("none");
+  it("rejects ambiguous first-time template text instead of defaulting", () => {
+    expect(() =>
+      resolveBuilderInputCommand({
+        sequence: 1,
+        source: "text",
+        text: "Sort or memory game"
+      })
+    ).toThrow(/ambiguous template request matched template.memory-match, template.sorting without an active template/u);
   });
 
   it("records explicit template and asset-edit decisions without text guessing", () => {

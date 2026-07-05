@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Ambiguous Template Requests Fail Closed
+
+Milestone:
+- First-time requests that match multiple game templates now fail explicitly instead of selecting the default template.
+- Ambiguous update requests still preserve the active template and record `ambiguous-template-match`.
+- Default template selection remains limited to genuinely unmatched first-time requests.
+
+Supportive changes:
+- Service tests reject ambiguous first-time template text instead of defaulting to Memory Match.
+- Source scans block the removed `input.activeTemplateId ?? DEFAULT_GAME_TEMPLATE_ID` ambiguous fallback.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps game switching explicit and catalog-owned without hosted providers, generated runtime code, auth, database state, compatibility shims, or ambiguous default-template recovery.
+
 ## 2026-07-04 - Source-Owned Direct Local Inputs
 
 Milestone:
