@@ -185,9 +185,7 @@ function addPairedTokenReplacements(
 
   for (const pairKey of pairKeys) {
     const pairTokens = tokens.filter((entry) => pairs[entry] === pairKey);
-    const sprite = pairTokens
-      .map((token) => spriteForPairedCardIdentifier(token, themeFolders))
-      .find((entry): entry is ReplacementSprite => Boolean(entry));
+    const sprite = singlePairedCardSpriteForPair(pairKey, pairTokens, themeFolders);
     if (!sprite) {
       continue;
     }
@@ -197,6 +195,50 @@ function addPairedTokenReplacements(
       setReplacement(replacements, `${source.namespace}:${token}`, sprite);
     }
   }
+}
+
+function singlePairedCardSpriteForPair(
+  pairKey: string,
+  pairTokens: string[],
+  themeFolders: string[]
+): ReplacementSprite | undefined {
+  const resolvedSprites = pairTokens.map((token) => ({
+    sprite: spriteForPairedCardIdentifier(token, themeFolders),
+    token
+  }));
+  const missingTokens = resolvedSprites
+    .filter((entry) => !entry.sprite)
+    .map((entry) => entry.token);
+  if (missingTokens.length === pairTokens.length) {
+    return undefined;
+  }
+  if (missingTokens.length > 0) {
+    throw new Error(`asset replacement pair ${pairKey} is missing local sprites for ${missingTokens.join(", ")}`);
+  }
+
+  const uniqueSprites = uniqueReplacementSprites(resolvedSprites.map((entry) => entry.sprite!));
+  if (uniqueSprites.length !== 1) {
+    throw new Error(`asset replacement pair ${pairKey} maps to multiple local sprites: ${uniqueSprites.map((sprite) => sprite.id).join(", ")}`);
+  }
+
+  return uniqueSprites[0];
+}
+
+function uniqueReplacementSprites(sprites: ReplacementSprite[]): ReplacementSprite[] {
+  const seen = new Set<string>();
+  const unique: ReplacementSprite[] = [];
+
+  for (const sprite of sprites) {
+    const key = `${sprite.theme}/${sprite.id}`;
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    unique.push(sprite);
+  }
+
+  return unique;
 }
 
 function setReplacement(

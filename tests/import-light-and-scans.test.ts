@@ -530,9 +530,13 @@ describe("import-light boundaries and source scans", () => {
   it("keeps edit-aware card sprite matching explicit for paired-card IDs", () => {
     const assetLibrarySource = readSource("apps/studio/src/asset-library.ts");
 
+    expect(assetLibrarySource).toContain("function singlePairedCardSpriteForPair");
+    expect(assetLibrarySource).toContain("asset replacement pair ${pairKey} maps to multiple local sprites");
+    expect(assetLibrarySource).toContain("asset replacement pair ${pairKey} is missing local sprites");
     expect(assetLibrarySource).toContain("function spriteForPairedCardIdentifier");
     expect(assetLibrarySource).toContain("function pairedCardSpriteIdentifier");
     expect(assetLibrarySource).not.toContain("normalized.endsWith");
+    expect(assetLibrarySource).not.toContain(".find((entry): entry is ReplacementSprite => Boolean(entry))");
   });
 
   it("keeps imported profile template selection tied to assembly request contracts", () => {

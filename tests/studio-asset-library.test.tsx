@@ -55,6 +55,66 @@ describe("studio asset library", () => {
     expect(createProfileLibraryAssetReplacements(staleProfile)["card:ocean-animal-1-a"]).toBeUndefined();
   });
 
+  it("rejects paired card replacements that resolve to multiple local sprites", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const conflictingPairProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["toy-1-a", "toy-2-b"],
+                pairs: {
+                  "toy-1-a": "pair-conflict",
+                  "toy-2-b": "pair-conflict"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    expect(() => createProfileLibraryAssetReplacements(conflictingPairProfile)).toThrow(
+      /asset replacement pair pair-conflict maps to multiple local sprites/u
+    );
+  });
+
+  it("rejects paired card replacements with partial local sprite coverage", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const partiallyMissingProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["toy-1-a", "toybox-1-b"],
+                pairs: {
+                  "toy-1-a": "pair-partial",
+                  "toybox-1-b": "pair-partial"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    expect(() => createProfileLibraryAssetReplacements(partiallyMissingProfile)).toThrow(
+      /asset replacement pair pair-partial is missing local sprites for toybox-1-b/u
+    );
+  });
+
   it("rejects ambiguous asset replacement components instead of using profile order", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toys" });

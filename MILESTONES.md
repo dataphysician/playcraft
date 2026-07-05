@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Fail-Closed Paired Card Replacement Sprites
+
+Milestone:
+- Studio edit-aware memory card asset replacements now require each paired card group to resolve to exactly one local sprite.
+- Conflicting or partially missing local sprites for a card pair now fail closed instead of using the first resolved pair token.
+
+Supportive changes:
+- Studio asset-library tests cover conflicting paired-card sprite IDs and partial local sprite coverage.
+- Source scans require the single-pair sprite guard and block the old first-resolved replacement sprite lookup.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Paired card replacement source scan confirmed the exact-one local sprite guard and no first-resolved lookup path.
+
+Constraint notes:
+- Keeps edit-aware local asset replacement explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or pair-token order heuristics.
+
 ## 2026-07-04 - Reject Default Template Assembly Fallback
 
 Milestone:
