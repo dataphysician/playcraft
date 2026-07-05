@@ -693,6 +693,7 @@ export function resolveBuilderInputCommand(input: {
   const textAssetEdit = assetEditForText(commandText);
   const assetDecision = assetDecisionFor({
     activeAssetEdit: input.activeAssetEdit,
+    allowActiveAssetEdit: templateDecision.templateId === input.activeTemplateId,
     explicitAssetEdit: input.assetEdit,
     textAssetEdit
   });
@@ -906,6 +907,7 @@ function templateDecisionFor(input: {
 
 function assetDecisionFor(input: {
   activeAssetEdit?: BuilderAssetEdit;
+  allowActiveAssetEdit: boolean;
   explicitAssetEdit?: BuilderAssetEdit;
   textAssetEdit?: TextAssetEdit;
 }): AssetDecision {
@@ -925,7 +927,7 @@ function assetDecisionFor(input: {
     };
   }
 
-  if (input.activeAssetEdit) {
+  if (input.allowActiveAssetEdit && input.activeAssetEdit) {
     return {
       assetEdit: input.activeAssetEdit,
       matchedText: input.activeAssetEdit.theme ?? input.activeAssetEdit.items?.join(", "),

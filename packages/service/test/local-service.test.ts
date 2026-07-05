@@ -830,6 +830,34 @@ describe("local Playcraft service", () => {
     expect(betaSession.session?.activeAssetEdit?.theme).toBe("fruits");
   });
 
+  it("clears stale active asset edits when a session switches games without an asset request", () => {
+    const service = createLocalPlaycraftService();
+    const assembled = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.switch-clear-assemble",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "assemble",
+      sessionId: "session.switch-clear",
+      text: "Memory game with dinosaurs"
+    });
+    const switched = service.handle({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.switch-clear-update",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "update",
+      sessionId: "session.switch-clear",
+      text: "Switch game to sorting"
+    });
+
+    expect(assembled.session?.activeAssetEdit?.theme).toBe("dinosaurs");
+    expect(switched.session?.activeTemplateId).toBe("template.sorting");
+    expect(switched.session?.activeAssetEdit).toBeUndefined();
+    expect(switched.execution?.result.profile?.assetRequests[0]?.prompt).toContain("sorting game");
+    expect(switched.execution?.result.profile?.assetRequests[0]?.prompt).not.toContain("dinosaurs");
+  });
+
   it("routes in-process transport requests through the same service envelope", () => {
     const transport = createLocalServiceTransport();
     const response = transport.send({
@@ -1031,6 +1059,36 @@ describe("local Playcraft service", () => {
     expect(resolved.templateId).toBe("template.sorting");
     expect(resolved.assetEdit).toBeUndefined();
     expect(resolved.resolution.assetDecision.source).toBe("none");
+  });
+
+  it("does not inherit active asset edits when switching templates", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeAssetEdit: { theme: "dinosaurs" },
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "Switch game to sorting"
+    });
+
+    expect(resolved.templateId).toBe("template.sorting");
+    expect(resolved.assetEdit).toBeUndefined();
+    expect(resolved.resolution.templateDecision.source).toBe("catalog-template-alias");
+    expect(resolved.resolution.assetDecision.source).toBe("none");
+  });
+
+  it("keeps active asset edits only for active-template updates", () => {
+    const resolved = resolveBuilderInputCommand({
+      activeAssetEdit: { theme: "dinosaurs" },
+      activeTemplateId: "template.memory-match",
+      sequence: 1,
+      source: "text",
+      text: "make it more colorful"
+    });
+
+    expect(resolved.templateId).toBe("template.memory-match");
+    expect(resolved.assetEdit).toEqual({ theme: "dinosaurs" });
+    expect(resolved.resolution.templateDecision.source).toBe("active-template");
+    expect(resolved.resolution.assetDecision.source).toBe("active-asset-edit");
   });
 
   it("only treats game/profile/challenge retheme wording as asset edits for catalog themes", () => {

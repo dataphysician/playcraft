@@ -1,5 +1,23 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Template-Scoped Asset Edit Inheritance
+
+Milestone:
+- Active asset edits now carry forward only when an update resolves to the same active template.
+- Switching to another game without an explicit asset request clears stale asset edit state instead of applying the previous game theme to the new profile.
+
+Supportive changes:
+- Local service tests cover resolver-level template switches, active-template updates, and service-envelope session state after a game switch.
+- Source scans require the explicit `allowActiveAssetEdit` gate and block unconditional active asset edit inheritance.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+
+Constraint notes:
+- Keeps game switching and asset replacement independently explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or stale cross-template asset inheritance.
+
 ## 2026-07-05 - Authored Memory Pair Asset Coverage
 
 Milestone:

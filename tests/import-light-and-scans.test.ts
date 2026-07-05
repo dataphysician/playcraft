@@ -1103,6 +1103,17 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toMatch(/replace\(\s*\/\\b\(\?:assets\?\|cards/u);
   });
 
+  it("keeps active asset edit inheritance scoped to the active template", () => {
+    const source = readSource("packages/service/src/index.ts");
+    const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
+
+    expect(source).toContain("allowActiveAssetEdit: templateDecision.templateId === input.activeTemplateId");
+    expect(source).toContain("if (input.allowActiveAssetEdit && input.activeAssetEdit)");
+    expect(serviceTestSource).toContain("does not inherit active asset edits when switching templates");
+    expect(serviceTestSource).toContain("clears stale active asset edits when a session switches games without an asset request");
+    expect(source).not.toContain("if (input.activeAssetEdit) {\n    return {");
+  });
+
   it("keeps the default builder template pack-owned", () => {
     const packSource = readSource("packages/packs/src/index.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");
