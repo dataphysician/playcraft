@@ -1153,8 +1153,10 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
     const sessionBoundActions = value.sessions.sessionBoundActions;
     const toolActionNames = value.tools.map((tool) => tool.actionName);
     const templateIds = value.templates.map((template) => template.id);
+    const templateLabels = value.templates.map((template) => template.displayLabel);
     const assetEditThemes = value.assetEdit.availableThemes.map((entry) => entry.theme);
     const assetEditFolders = value.assetEdit.availableThemes.map((entry) => entry.localReplacementFolder);
+    const assetEditLabels = value.assetEdit.availableThemes.map((entry) => `with ${entry.displayLabel}`);
 
     addDuplicateBuilderInputSourceIssues(context, acceptedSources, ["acceptedInputSources"]);
     addDuplicateBuilderInputSourceIssues(context, optionSources, ["input", "sourceOptions"]);
@@ -1164,6 +1166,36 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
     addDuplicateBuilderAssetThemeIssues(context, assetEditThemes, ["assetEdit", "availableThemes"]);
     addDuplicateBuilderAssetFolderIssues(context, assetEditFolders, ["assetEdit", "availableThemes"]);
     addDuplicateBuilderAssetAliasIssues(context, value.assetEdit.availableThemes, ["assetEdit", "availableThemes"]);
+    addDuplicateCatalogTextIssues(context, value.requestTips.availableGames, ["requestTips", "availableGames"], "request tip available game");
+    addDuplicateCatalogTextIssues(context, value.requestTips.featuredGames, ["requestTips", "featuredGames"], "request tip featured game");
+    addDuplicateCatalogTextIssues(context, value.requestTips.assetEdits, ["requestTips", "assetEdits"], "request tip asset edit");
+    addDuplicateCatalogTextIssues(context, value.requestTips.examples, ["requestTips", "examples"], "request tip example");
+
+    if (!sameStringArray(value.requestTips.availableGames, templateLabels)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "request tip availableGames must match catalog template display labels",
+        path: ["requestTips", "availableGames"]
+      });
+    }
+
+    if (!sameStringArray(value.requestTips.assetEdits, assetEditLabels)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "request tip assetEdits must match asset edit display labels",
+        path: ["requestTips", "assetEdits"]
+      });
+    }
+
+    for (const game of value.requestTips.featuredGames) {
+      if (!value.requestTips.availableGames.includes(game)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `request tip featured game ${game} must be listed in availableGames`,
+          path: ["requestTips", "featuredGames"]
+        });
+      }
+    }
 
     for (const key of ["theme", "items"] as const) {
       if (!value.assetEdit.acceptedKeys.includes(key)) {
@@ -1414,6 +1446,35 @@ function addDuplicateBuilderAssetAliasIssues(
 
 function normalizedCatalogToken(value: string): string {
   return value.trim().toLowerCase();
+}
+
+function sameStringArray(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((entry, index) => entry === right[index]);
+}
+
+function addDuplicateCatalogTextIssues(
+  context: z.RefinementCtx,
+  entries: string[],
+  path: Array<string | number>,
+  label: string
+): void {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const entry of entries.map((value) => normalizedCatalogToken(value))) {
+    if (seen.has(entry)) {
+      duplicates.add(entry);
+    }
+    seen.add(entry);
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `${label} ${duplicate} must be unique`,
+      path
+    });
+  }
 }
 
 function addDuplicateSessionBoundActionIssues(

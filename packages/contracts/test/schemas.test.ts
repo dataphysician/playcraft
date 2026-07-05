@@ -328,7 +328,7 @@ describe("public contract schemas", () => {
           ]
         },
         requestTips: {
-          availableGames: ["Memory Match"],
+          availableGames: gameTemplateDefinitions.map((template) => template.displayLabel),
           featuredGames: ["Memory Match"],
           assetEdits: ["with dinosaurs"],
           examples: ["Memory game with dinosaurs"],
@@ -937,7 +937,7 @@ describe("public contract schemas", () => {
         ]
       },
       requestTips: {
-        availableGames: ["Memory Match"],
+        availableGames: gameTemplateDefinitions.map((template) => template.displayLabel),
         featuredGames: ["Memory Match"],
         assetEdits: ["with dinosaurs"],
         examples: ["Memory game with dinosaurs"],
@@ -974,6 +974,48 @@ describe("public contract schemas", () => {
     };
 
     expect(BuilderCatalogSchema.safeParse(validCatalog).success).toBe(true);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      requestTips: {
+        ...validCatalog.requestTips,
+        availableGames: validCatalog.requestTips.availableGames.slice(0, 1)
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      requestTips: {
+        ...validCatalog.requestTips,
+        availableGames: [...validCatalog.requestTips.availableGames, validCatalog.requestTips.availableGames[0]!]
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      requestTips: {
+        ...validCatalog.requestTips,
+        featuredGames: ["Memory Match", "Memory Match"]
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      requestTips: {
+        ...validCatalog.requestTips,
+        featuredGames: ["Unknown Game"]
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      requestTips: {
+        ...validCatalog.requestTips,
+        assetEdits: ["with toys"]
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      requestTips: {
+        ...validCatalog.requestTips,
+        examples: ["Memory game with dinosaurs", "Memory game with dinosaurs"]
+      }
+    }).success).toBe(false);
     expect(BuilderCatalogSchema.safeParse({
       ...validCatalog,
       tools: validCatalog.tools.filter((tool) => tool.actionName !== "export-profile")

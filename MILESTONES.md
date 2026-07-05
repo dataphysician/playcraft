@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Request Tips Follow Catalog Data
+
+Milestone:
+- `BuilderCatalogSchema` now requires request-tip game lists to match template display labels and request-tip asset edit labels to match the local asset edit themes.
+- Featured game request tips must be unique and must reference available catalog games instead of freeform UI text.
+
+Supportive changes:
+- Contract tests cover stale available game tips, duplicate game tips, unknown featured games, stale asset edit tips, and duplicate examples.
+- Source scans guard the request-tip text uniqueness helper, exact list alignment helper, and catalog-owned game/asset tip validation messages.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps Studio request guidance derived from the local template and asset catalog for agent-driven toddler mini-game assembly without hosted providers, generated runtime code, auth, database state, compatibility shims, or stale app-composed tips.
+
 ## 2026-07-05 - Asset Edit Catalogs Are Local And Unambiguous
 
 Milestone:

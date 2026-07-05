@@ -1200,6 +1200,11 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("BuilderCatalogRequestTipsSchema");
     expect(contractSource).toContain("exampleRequest");
     expect(contractSource).toContain("featuredGames: z.array");
+    expect(contractSource).toContain("addDuplicateCatalogTextIssues");
+    expect(contractSource).toContain("sameStringArray");
+    expect(contractSource).toContain("request tip availableGames must match catalog template display labels");
+    expect(contractSource).toContain("request tip assetEdits must match asset edit display labels");
+    expect(contractSource).toContain("must be listed in availableGames");
     expect(packSource).toContain("exampleRequest: input.exampleRequest");
     expect(packSource).toContain("requestAliasSummary: input.requestAliasSummary");
     expect(packSource).not.toContain("exampleRequest?: string");
