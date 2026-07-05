@@ -191,8 +191,8 @@ function LiveGameForProfile({
       }
       case "sequence": {
         const sequenceComponent = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
-        const choiceComponent = optionalComponentByCapability(profile, liveSurface.componentCapabilities.choice);
-        validateTokenStylesForTokens(profile.id, sequenceStyleTokens(sequenceComponent, choiceComponent), tokenStyleCatalog);
+        const choiceComponent = sequenceChoiceComponent(profile, liveSurface);
+        validateSequenceSurfaceProps(profile.id, sequenceComponent, choiceComponent, tokenStyleCatalog);
         return React.createElement(SequenceGame, {
           profile,
           sequenceComponent,
@@ -753,7 +753,9 @@ function SequenceGame({
 }): React.ReactElement {
   const sequence = stringArrayProp(sequenceComponent.props, "sequence");
   const configuredRounds = stringMatrixProp(sequenceComponent.props, "rounds");
-  const choices = uniqueStrings([...stringArrayProp(choiceComponent?.props ?? {}, "items"), ...sequence, ...configuredRounds.flat()]);
+  const choices = choiceComponent
+    ? stringArrayProp(choiceComponent.props, "items")
+    : uniqueStrings([...sequence, ...configuredRounds.flat()]);
   const rounds = React.useMemo(() => configuredRounds, [JSON.stringify(configuredRounds)]);
   const [roundIndex, setRoundIndex] = React.useState(0);
   const [progress, setProgress] = React.useState(0);
@@ -1216,6 +1218,55 @@ function sequenceStyleTokens(sequenceComponent: ComponentBinding, choiceComponen
     ...stringMatrixProp(sequenceComponent.props, "rounds").flat(),
     ...stringArrayProp(choiceComponent?.props ?? {}, "items")
   ];
+}
+
+function validateSequenceSurfaceProps(
+  profileId: string,
+  sequenceComponent: ComponentBinding,
+  choiceComponent: ComponentBinding | undefined,
+  tokenStyleCatalog: TokenStyleCatalog
+): void {
+  const sequence = stringArrayProp(sequenceComponent.props, "sequence");
+  const rounds = stringMatrixProp(sequenceComponent.props, "rounds");
+  if (sequence.length === 0) {
+    throw new Error(`profile ${profileId} sequence surface is missing authored sequence tokens`);
+  }
+  if (rounds.length === 0) {
+    throw new Error(`profile ${profileId} sequence surface is missing authored rounds`);
+  }
+
+  const emptyRound = rounds.findIndex((round) => round.length === 0);
+  if (emptyRound >= 0) {
+    throw new Error(`profile ${profileId} sequence round ${emptyRound + 1} is empty`);
+  }
+
+  if (choiceComponent) {
+    const choices = stringArrayProp(choiceComponent.props, "items");
+    if (choices.length === 0) {
+      throw new Error(`profile ${profileId} sequence choices are missing authored items`);
+    }
+
+    const duplicateChoices = duplicateStrings(choices);
+    if (duplicateChoices.length > 0) {
+      throw new Error(`profile ${profileId} sequence choices contain duplicate item ids: ${duplicateChoices.join(", ")}`);
+    }
+
+    const choiceIds = new Set(choices);
+    const missingChoices = uniqueStrings([...sequence, ...rounds.flat()].filter((token) => !choiceIds.has(token)));
+    if (missingChoices.length > 0) {
+      throw new Error(`profile ${profileId} sequence tokens are missing authored choices: ${missingChoices.join(", ")}`);
+    }
+  }
+
+  validateTokenStylesForTokens(profileId, sequenceStyleTokens(sequenceComponent, choiceComponent), tokenStyleCatalog);
+}
+
+function sequenceChoiceComponent(
+  profile: GameAssemblyProfile,
+  liveSurface: GameTemplateLiveSurface
+): ComponentBinding | undefined {
+  const choiceCapability = liveSurface.componentCapabilities.choice;
+  return choiceCapability ? requiredComponentByCapability(profile, choiceCapability) : undefined;
 }
 
 function requiredComponentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding {

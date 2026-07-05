@@ -364,6 +364,33 @@ describe("studio asset library", () => {
     expect(screen.queryByRole("button", { name: "toy-1" })).toBeNull();
   });
 
+  it("rejects sequence tokens missing from authored choices instead of inferring buttons", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Repeat a pattern with gems" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const missingChoiceProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:choice-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                items: ["gem-1", "gem-2"]
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile: missingChoiceProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("sequence tokens are missing authored choices: gem-3");
+    expect(screen.queryByRole("button", { name: "gem-3" })).toBeNull();
+  });
+
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toybox" });

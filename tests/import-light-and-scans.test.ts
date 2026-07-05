@@ -1393,6 +1393,8 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("memory cards contain duplicate card ids");
     expect(liveGameSource).toContain("function validateSortingSurfaceProps");
     expect(liveGameSource).toContain("sorting items contain duplicate item ids");
+    expect(liveGameSource).toContain("function validateSequenceSurfaceProps");
+    expect(liveGameSource).toContain("sequence tokens are missing authored choices");
     expect(liveGameSource).toContain("function validateTokenStylesForTokens");
     expect(liveGameSource).toContain("function tokenStyleMatchesForToken");
     expect(liveGameSource).toContain("maps to multiple token styles");
@@ -1400,6 +1402,7 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App token styles instead of using style order");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App memory card ids instead of using deck order");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App sorting item ids instead of using placement keys");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects sequence tokens missing from authored choices instead of inferring buttons");
     expect(liveGameSource).not.toContain("tokenColorCatalog");
     expect(liveGameSource).not.toContain("memoryPairPalette");
     expect(liveGameSource).not.toContain("const palette =");

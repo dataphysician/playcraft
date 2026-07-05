@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Sequence Choices
+
+Milestone:
+- Live App sequence games now require authored choice items to cover every sequence and round token when the template declares a choice component.
+- Sequence play no longer invents missing buttons from sequence/round tokens when imported/custom profiles omit choice items.
+
+Supportive changes:
+- Studio asset-library tests cover missing authored sequence choices in profile-carried Live App props.
+- Source scans guard the sequence surface validator and missing-choice error path.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Live App sequence interactions profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or inferred choice buttons.
+
 ## 2026-07-05 - Exact Live App Sorting Items
 
 Milestone:
