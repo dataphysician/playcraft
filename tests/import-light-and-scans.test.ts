@@ -1109,6 +1109,10 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("function matchAssetThemes");
     expect(source).toContain("function uniqueAssetThemeMatches");
     expect(source).toContain("ambiguous asset request matched");
+    expect(source).toContain("LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS");
+    expect(source).toContain("text asset requests accept at most ${LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS} explicit items");
+    expect(source).not.toContain(".slice(0, 12)");
+    expect(serviceTestSource).toContain("rejects text asset edits with too many explicit items instead of truncating them");
     expect(serviceTestSource).toContain("rejects ambiguous asset edit text instead of selecting the first match");
     expect(contractSource).toContain("genericThemeTokens");
     expect(contractSource).toContain("freeformItemSuffixes");

@@ -1158,6 +1158,17 @@ describe("local Playcraft service", () => {
     ).toThrow(/ambiguous asset request matched toys, fruits; use explicit assetEdit/u);
   });
 
+  it("rejects text asset edits with too many explicit items instead of truncating them", () => {
+    expect(() =>
+      resolveBuilderInputCommand({
+        activeTemplateId: "template.memory-match",
+        sequence: 1,
+        source: "text",
+        text: "Use assets with aa, bb, cc, dd, ee, ff, gg, hh, ii, jj, kk, ll, mm"
+      })
+    ).toThrow(/text asset requests accept at most 12 explicit items; use explicit assetEdit/u);
+  });
+
   it("keeps freeform asset folder names literal instead of stripping generic nouns", () => {
     const resolved = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",

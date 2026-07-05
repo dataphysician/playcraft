@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Text Asset Item Limits
+
+Milestone:
+- Service text-derived asset edits now reject over-long explicit item lists instead of truncating them before contract validation.
+- `+with` and asset-request text keeps the 12-item `BuilderAssetEdit` limit visible as an error path.
+
+Supportive changes:
+- Local service tests cover 13 text-derived asset items.
+- Source scans block returning to `.slice(0, 12)` truncation in service text asset parsing.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps text and Moonshine-derived local asset requests forward-only and non-lossy without hosted providers, generated runtime code, auth, database state, compatibility shims, or silent item truncation.
+
 ## 2026-07-05 - Exact Explicit Asset Edit Items
 
 Milestone:

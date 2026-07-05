@@ -76,6 +76,8 @@ export const LOCAL_SERVICE_INPUT_POLICY = {
   ]
 } as const;
 
+const LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS = 12;
+
 export const LOCAL_SERVICE_REQUEST_TIP_EXAMPLES = [
   {
     templateId: "template.memory-match",
@@ -991,8 +993,10 @@ function assetEditForText(text: string): TextAssetEdit | undefined {
   const items = match.theme
     .split(/\s*(?:,| and )\s*/u)
     .map((entry) => cleanAssetTheme(entry))
-    .filter((entry) => entry.length > 0)
-    .slice(0, 12);
+    .filter((entry) => entry.length > 0);
+  if (items.length > LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS) {
+    throw new Error(`text asset requests accept at most ${LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS} explicit items; use explicit assetEdit`);
+  }
 
   return {
     assetEdit: items.length > 1 ? { theme: match.theme, items } : { theme: match.theme },
