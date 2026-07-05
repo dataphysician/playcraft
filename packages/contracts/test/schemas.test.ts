@@ -19,6 +19,7 @@ import {
   PublicContractNameSchema,
   PublicContractSchemas,
   McpManifestSchema,
+  McpServerPolicySchema,
   McpToolSchema,
   SseFrameSchema,
   WorkflowGraphSchema,
@@ -26,7 +27,8 @@ import {
   WorkflowEdgeSchema,
   BuilderSessionOwnershipSchema,
   AssetCatalogManifestSchema,
-  BuilderTemplateNamespaceSchema
+  BuilderTemplateNamespaceSchema,
+  PLAYCRAFT_MCP_GUARDRAILS
 } from "@playcraft/contracts";
 import { replayProfile } from "@playcraft/core";
 import {
@@ -666,6 +668,25 @@ describe("public contract schemas", () => {
           kind: "ordinal",
           rules: {}
         }
+      },
+      McpServerPolicySchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "mcp-server-policy.fixture",
+        version: "1.0.0",
+        kind: "mcp-server-policy",
+        localOnly: true,
+        noAuth: true,
+        noNetworkExecution: true,
+        noDatabaseAccess: true,
+        allowlistedTools: [
+          "assemble-game",
+          "update-game",
+          "preview-action",
+          "list-builder-tools",
+          "get-session",
+          "export-profile",
+          "import-profile"
+        ]
       }
     };
 
@@ -2342,6 +2363,83 @@ describe("public contract schemas", () => {
         }
       }).success
     ).toBe(true);
+  });
+
+  it("validates MCP server policy with all true literals", () => {
+    expect(McpServerPolicySchema.safeParse(PLAYCRAFT_MCP_GUARDRAILS).success).toBe(true);
+    expect(PLAYCRAFT_MCP_GUARDRAILS.allowlistedTools).toEqual([
+      "assemble-game",
+      "update-game",
+      "preview-action",
+      "list-builder-tools",
+      "get-session",
+      "export-profile",
+      "import-profile"
+    ]);
+  });
+
+  it("rejects MCP server policy with localOnly: false", () => {
+    expect(
+      McpServerPolicySchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "mcp-server-policy.test",
+        version: "1.0.0",
+        kind: "mcp-server-policy",
+        localOnly: false,
+        noAuth: true,
+        noNetworkExecution: true,
+        noDatabaseAccess: true,
+        allowlistedTools: ["assemble-game"]
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects MCP server policy with noAuth: false", () => {
+    expect(
+      McpServerPolicySchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "mcp-server-policy.test",
+        version: "1.0.0",
+        kind: "mcp-server-policy",
+        localOnly: true,
+        noAuth: false,
+        noNetworkExecution: true,
+        noDatabaseAccess: true,
+        allowlistedTools: ["assemble-game"]
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects MCP server policy with empty allowlistedTools", () => {
+    expect(
+      McpServerPolicySchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "mcp-server-policy.test",
+        version: "1.0.0",
+        kind: "mcp-server-policy",
+        localOnly: true,
+        noAuth: true,
+        noNetworkExecution: true,
+        noDatabaseAccess: true,
+        allowlistedTools: []
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects MCP server policy with unknown tool in allowlistedTools", () => {
+    expect(
+      McpServerPolicySchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "mcp-server-policy.test",
+        version: "1.0.0",
+        kind: "mcp-server-policy",
+        localOnly: true,
+        noAuth: true,
+        noNetworkExecution: true,
+        noDatabaseAccess: true,
+        allowlistedTools: ["unknown-tool"]
+      }).success
+    ).toBe(false);
   });
 
   it("discriminates SSE frame kinds", () => {

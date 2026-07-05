@@ -127,6 +127,7 @@ export const PublicContractNameSchema = z.enum([
   "BuilderServiceRequestBatchSchema",
   "BuilderServiceResponseSchema",
   "McpManifestSchema",
+  "McpServerPolicySchema",
   "WorkflowGraphSchema",
   "AssetCatalogManifestSchema"
 ]);
@@ -1337,6 +1338,48 @@ export const McpManifestSchema = PublicContractBaseSchema.extend({
 }).strict();
 export type McpManifest = z.infer<typeof McpManifestSchema>;
 
+export const McpServerPolicySchema = PublicContractBaseSchema.extend({
+  kind: z.literal("mcp-server-policy"),
+  localOnly: z.literal(true),
+  noAuth: z.literal(true),
+  noNetworkExecution: z.literal(true),
+  noDatabaseAccess: z.literal(true),
+  allowlistedTools: z.array(z.string().min(1)).min(1)
+}).strict()
+  .superRefine((value, context) => {
+    const allowedActionNames = new Set<z.infer<typeof BuilderActionNameSchema>>(BuilderActionNameSchema.options);
+    for (const tool of value.allowlistedTools) {
+      if (!allowedActionNames.has(tool as z.infer<typeof BuilderActionNameSchema>)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `allowlisted tool ${tool} must be a registered builder action name`,
+          path: ["allowlistedTools"]
+        });
+      }
+    }
+  });
+export type McpServerPolicy = z.infer<typeof McpServerPolicySchema>;
+
+export const PLAYCRAFT_MCP_GUARDRAILS: McpServerPolicy = {
+  schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+  id: "mcp-server-policy.playcraft-local",
+  version: "1.0.0",
+  kind: "mcp-server-policy",
+  localOnly: true,
+  noAuth: true,
+  noNetworkExecution: true,
+  noDatabaseAccess: true,
+  allowlistedTools: [
+    "assemble-game",
+    "update-game",
+    "preview-action",
+    "list-builder-tools",
+    "get-session",
+    "export-profile",
+    "import-profile"
+  ]
+};
+
 const SseRunStartedFrameSchema = z
   .object({
     kind: z.literal("sse-run-started"),
@@ -2335,7 +2378,6 @@ export const BuilderServiceResponseSchema: z.ZodType<BuilderServiceResponse, z.Z
     message: "reset responses only include reset acknowledgement",
     path: ["reset"]
   });
-
 function hasOnlyServiceResponsePayloads(
   value: Record<string, unknown>,
   allowedPayloads: Array<(typeof BuilderServiceResponsePayloadKeys)[number]>
@@ -2380,6 +2422,7 @@ export const PublicContractSchemas: Record<PublicContractName, z.ZodTypeAny> = {
   BuilderServiceRequestBatchSchema,
   BuilderServiceResponseSchema,
   McpManifestSchema,
+  McpServerPolicySchema,
   WorkflowGraphSchema,
   AssetCatalogManifestSchema
 };
