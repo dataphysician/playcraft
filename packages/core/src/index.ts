@@ -99,7 +99,12 @@ export class CapabilityRegistry<TEntry extends RegistryEntry> {
       return this.entries.get(keyFor(id, version));
     }
 
-    return this.all().find((entry) => entry.id === id);
+    const matches = this.all().filter((entry) => entry.id === id);
+    if (matches.length > 1) {
+      throw new Error(`${this.name} has multiple versions for ${id}; pass version`);
+    }
+
+    return matches[0];
   }
 
   all(): TEntry[] {
@@ -129,12 +134,12 @@ export class CapabilityRegistry<TEntry extends RegistryEntry> {
     return {
       registry: this.name,
       query,
-      selected: matches[0] ?? null,
+      selected: matches.length === 1 ? matches[0] : null,
       matches,
       rejected,
       missingCapabilities,
       versionConflicts,
-      warnings: matches.length === 0 ? [`${this.name} found no matching candidates`] : []
+      warnings: registrySelectionWarnings(this.name, matches)
     };
   }
 
@@ -223,6 +228,17 @@ export class CapabilityRegistry<TEntry extends RegistryEntry> {
 
     return reasons;
   }
+}
+
+function registrySelectionWarnings(registryName: string, matches: RegistryEntry[]): string[] {
+  if (matches.length === 0) {
+    return [`${registryName} found no matching candidates`];
+  }
+  if (matches.length > 1) {
+    return [`${registryName} found multiple matching candidates: ${matches.map((entry) => entry.id).join(", ")}`];
+  }
+
+  return [];
 }
 
 export function createMechanicRegistry(): CapabilityRegistry<MechanicDefinition> {

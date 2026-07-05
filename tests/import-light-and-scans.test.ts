@@ -188,6 +188,13 @@ describe("import-light boundaries and source scans", () => {
     expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.ageBands");
     expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.modalities");
     expect(coreSource).toContain('entry.kind !== "mechanic" && entry.kind !== "rule-module"');
+    expect(coreSource).toContain("function registrySelectionWarnings");
+    expect(coreSource).toContain("matches.length === 1 ? matches[0] : null");
+    expect(coreSource).toContain("has multiple versions for ${id}; pass version");
+    expect(coreSource).not.toContain("selected: matches[0] ?? null");
+    expect(coreSource).not.toContain("return this.all().find((entry) => entry.id === id)");
+    expect(registryTestSource).toContain("does not select the first matching registry candidate when matches are ambiguous");
+    expect(registryTestSource).toContain("requires a version for unversioned registry gets with multiple versions");
     expect(registryTestSource).toContain("does not use partial compatibility objects from loose mechanic-shaped entries");
     expect(registryTestSource).not.toContain('supportedDomains: ["domain.alias"]');
     expect(registryTestSource).not.toContain('supportedAgeBands: ["adult"]');

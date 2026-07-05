@@ -85,6 +85,51 @@ describe("capability registries", () => {
     expect(result.warnings.length).toBeGreaterThan(0);
   });
 
+  it("does not select the first matching registry candidate when matches are ambiguous", () => {
+    const registry = new CapabilityRegistry("loose", looseEntrySchema());
+
+    registry.registerMany([
+      {
+        id: "loose.first",
+        version: "1.0.0",
+        kind: "loose-entry",
+        capabilityTags: ["capability.shared"]
+      },
+      {
+        id: "loose.second",
+        version: "1.0.0",
+        kind: "loose-entry",
+        capabilityTags: ["capability.shared"]
+      }
+    ]);
+
+    const result = registry.select({ capabilityTags: ["capability.shared"] });
+
+    expect(result.selected).toBeNull();
+    expect(result.matches.map((entry) => entry.id)).toEqual(["loose.first", "loose.second"]);
+    expect(result.warnings).toEqual(["loose found multiple matching candidates: loose.first, loose.second"]);
+  });
+
+  it("requires a version for unversioned registry gets with multiple versions", () => {
+    const registry = new CapabilityRegistry("loose", looseEntrySchema());
+
+    registry.registerMany([
+      {
+        id: "loose.versioned",
+        version: "1.0.0",
+        kind: "loose-entry"
+      },
+      {
+        id: "loose.versioned",
+        version: "2.0.0",
+        kind: "loose-entry"
+      }
+    ]);
+
+    expect(() => registry.get("loose.versioned")).toThrow(/loose has multiple versions for loose\.versioned; pass version/u);
+    expect(registry.get("loose.versioned", "2.0.0")?.version).toBe("2.0.0");
+  });
+
   it("rejects stale compatibility alias fields at the contract boundary", () => {
     const registries = createDefaultRegistries();
     const mechanic = registries.mechanics.select({ ids: ["mechanic.match-pairs"] }).selected;
@@ -177,3 +222,22 @@ describe("capability registries", () => {
     expect(result.selected?.id).toBe("loose.partial-mechanic");
   });
 });
+
+function looseEntrySchema(): { parse(value: unknown): RegistryEntry & { kind: string } } {
+  return {
+    parse(value: unknown): RegistryEntry & { kind: string } {
+      if (
+        typeof value !== "object" ||
+        value === null ||
+        Array.isArray(value) ||
+        typeof Reflect.get(value, "id") !== "string" ||
+        typeof Reflect.get(value, "version") !== "string" ||
+        typeof Reflect.get(value, "kind") !== "string"
+      ) {
+        throw new Error("invalid loose registry entry");
+      }
+
+      return value as RegistryEntry & { kind: string };
+    }
+  };
+}

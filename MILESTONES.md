@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Exact-One Registry Candidate Selection
+
+Milestone:
+- Core capability registry selection now returns a selected candidate only when exactly one registry entry matches the query.
+- Unversioned registry lookups now reject ids with multiple registered versions instead of returning the first registered version.
+
+Supportive changes:
+- Core registry tests cover ambiguous multi-candidate selection and unversioned multi-version lookup.
+- Source scans require the exact-one selection helper and block first-match registry selection/get paths.
+
+Validation:
+- `pnpm test packages/core/test/registries.test.ts packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Core registry source scan confirmed exact-one selected candidates and no first-match registry get path.
+
+Constraint notes:
+- Keeps reusable agent-facing registries explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or registry insertion-order selection.
+
 ## 2026-07-04 - Fail-Closed Paired Card Replacement Sprites
 
 Milestone:
