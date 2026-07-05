@@ -205,6 +205,16 @@ describe("import-light boundaries and source scans", () => {
     expect(packTestSource).toContain("keeps trusted component interaction tools single-emitter");
   });
 
+  it("keeps generated profile assets bound by request id instead of generation order", () => {
+    const packSource = readSource("packages/packs/src/index.ts");
+    const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
+
+    expect(packSource).toContain("const illustrationRequestId");
+    expect(packSource).toContain("requiredGeneratedAssetForRequestId");
+    expect(packSource).not.toContain("const illustration = assets[0].assetId");
+    expect(packTestSource).toContain("asset-request.profile.memory-match.mvp");
+  });
+
   it("keeps component render mechanic bindings explicit instead of list-order inferred", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const coreSource = readSource("packages/core/src/index.ts");

@@ -849,13 +849,14 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
     };
   });
 
+  const illustrationRequestId = `asset-request.${template.profileId}`;
   const assetRequests = [
     AssetGenerationRequestSchema.parse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-      id: `asset-request.${template.profileId}`,
+      id: illustrationRequestId,
       version: "1.0.0",
       kind: "asset-generation-request",
-      requestId: `asset-request.${template.profileId}`,
+      requestId: illustrationRequestId,
       profileId: template.profileId,
       domainProfileId: domain.id,
       safetyPolicyId: safety.id,
@@ -872,7 +873,7 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
     })
   ];
   const assets = context.assetSource.generateBatch(assetRequests);
-  const illustration = assets[0].assetId;
+  const illustration = requiredGeneratedAssetForRequestId(template, assets, illustrationRequestId).assetId;
 
   const components = template.componentCapabilities.map((capability, index) => {
     const selected = requireSelected(context.registries.components.select({
@@ -1409,6 +1410,19 @@ function requiredComponentRenderMechanicBindingId(
   }
 
   return bindingId;
+}
+
+function requiredGeneratedAssetForRequestId(
+  template: MvpProfileTemplate,
+  assets: GeneratedAssetRecord[],
+  requestId: string
+): GeneratedAssetRecord {
+  const asset = assets.find((candidate) => candidate.requestId === requestId);
+  if (!asset) {
+    throw new Error(`${template.id} did not receive a generated asset for request ${requestId}`);
+  }
+
+  return asset;
 }
 
 function validAssemblyResult(profileId: string) {

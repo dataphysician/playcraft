@@ -109,6 +109,15 @@ describe("MVP profile pack", () => {
       "profile.sequence-repeat.mvp.mechanic.2",
       "profile.sequence-repeat.mvp.mechanic.3"
     ]);
+    expect(profileA.components.find((component) => component.renderCapability === "component:reveal-card-grid")?.assetBindings.illustration).toBe(
+      profileA.assets.find((asset) => asset.requestId === "asset-request.profile.memory-match.mvp")?.assetId
+    );
+    expect(profileB.components.find((component) => component.renderCapability === "component:sort-bins")?.assetBindings.illustration).toBe(
+      profileB.assets.find((asset) => asset.requestId === "asset-request.profile.sorting.mvp")?.assetId
+    );
+    expect(profileC.components.find((component) => component.renderCapability === "component:sequence-pad")?.assetBindings.illustration).toBe(
+      profileC.assets.find((asset) => asset.requestId === "asset-request.profile.sequence-repeat.mvp")?.assetId
+    );
   });
 
   it("publishes bundled game templates for the builder catalog", () => {

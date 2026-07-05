@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Request-Owned Generated Asset Binding
+
+Milestone:
+- MVP pack assembly now resolves generated illustration assets by `requestId`.
+- Component asset bindings no longer depend on generated asset array order.
+
+Supportive changes:
+- Pack tests assert memory, sorting, and sequence component illustration bindings match assets generated for the authored request ids.
+- Source scans block the removed first-generated-asset binding path.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Generated asset binding source scan confirmed request-id lookup and removed first-generated-asset selection.
+
+Constraint notes:
+- Keeps generated asset binding request-owned and contract-shaped without hosted providers, generated runtime code, auth, database state, compatibility shims, or generated asset order heuristics.
+
 ## 2026-07-04 - Single-Tool Trusted Component Emission
 
 Milestone:
