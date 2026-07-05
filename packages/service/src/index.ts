@@ -77,6 +77,7 @@ export const LOCAL_SERVICE_INPUT_POLICY = {
 } as const;
 
 const LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_ITEMS = 12;
+const LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_THEME_LENGTH = 80;
 
 export const LOCAL_SERVICE_REQUEST_TIP_EXAMPLES = [
   {
@@ -990,6 +991,7 @@ function assetEditForText(text: string): TextAssetEdit | undefined {
   }
 
   const match = matches[0];
+  requireTextAssetThemeWithinContract(match.theme);
   const items = match.theme
     .split(/\s*(?:,| and )\s*/u)
     .map((entry) => cleanAssetTheme(entry))
@@ -1019,6 +1021,7 @@ function matchAssetThemes(
   const matcher = new RegExp(pattern.pattern.source, pattern.pattern.flags.includes("g") ? pattern.pattern.flags : `${pattern.pattern.flags}g`);
   return Array.from(text.matchAll(matcher)).flatMap((match) => {
     const candidate = cleanAssetTheme(match[1]);
+    requireTextAssetThemeWithinContract(candidate);
     if (
       candidate.length === 0 ||
       isGenericAssetTheme(candidate) ||
@@ -1073,8 +1076,13 @@ function cleanAssetTheme(value: string): string {
     .replace(/\b(?:a|an|the)\b/gu, " ")
     .replace(/[^a-z0-9 ,.-]+/gu, " ")
     .replace(/\s+/gu, " ")
-    .trim()
-    .slice(0, 80);
+    .trim();
+}
+
+function requireTextAssetThemeWithinContract(theme: string): void {
+  if (theme.length > LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_THEME_LENGTH) {
+    throw new Error(`text asset requests accept asset themes up to ${LOCAL_SERVICE_TEXT_ASSET_EDIT_MAX_THEME_LENGTH} characters; use explicit assetEdit`);
+  }
 }
 
 function toJsonValue(value: unknown): JsonValue {

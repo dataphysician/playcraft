@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Explicit Text Asset Theme Length Errors
+
+Milestone:
+- Text-derived asset edit themes now fail with a service error when they exceed the 80-character `BuilderAssetEdit.theme` contract.
+- Asset intent regexes no longer cap captured theme text before the service can validate it.
+
+Supportive changes:
+- Local service tests cover over-long freeform asset themes.
+- Source scans block both service `.slice(0, 80)` truncation and the old asset intent regex `{1,80}` capture cap.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps text and Moonshine-derived local asset requests forward-only and non-lossy without hosted providers, generated runtime code, auth, database state, compatibility shims, or silent theme truncation.
+
 ## 2026-07-05 - Complete Pack Manifest Capabilities
 
 Milestone:

@@ -1169,6 +1169,17 @@ describe("local Playcraft service", () => {
     ).toThrow(/text asset requests accept at most 12 explicit items; use explicit assetEdit/u);
   });
 
+  it("rejects text asset edit themes that exceed the contract instead of truncating them", () => {
+    expect(() =>
+      resolveBuilderInputCommand({
+        activeTemplateId: "template.memory-match",
+        sequence: 1,
+        source: "text",
+        text: "Use assets with alphabet block rocket blanket rainbow pillow wagon garden sticker mural carousel telescope"
+      })
+    ).toThrow(/text asset requests accept asset themes up to 80 characters; use explicit assetEdit/u);
+  });
+
   it("keeps freeform asset folder names literal instead of stripping generic nouns", () => {
     const resolved = resolveBuilderInputCommand({
       activeTemplateId: "template.memory-match",

@@ -42,23 +42,23 @@ export const localAssetEditGenericThemeTokens = [
 export const localAssetEditFreeformItemSuffixes = ["1", "2", "3"];
 export const localAssetEditIntentPatterns: LocalAssetEditIntentPattern[] = [
   {
-    pattern: /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    pattern: /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]*)/u,
     source: "freeform-asset-request"
   },
   {
-    pattern: /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    pattern: /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]*)/u,
     source: "freeform-asset-request"
   },
   {
-    pattern: /\b(?:make|change|switch|update)\s+(?:it|this|them)\s+(?:(?:to|with|as|for)\s+)?([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    pattern: /\b(?:make|change|switch|update)\s+(?:it|this|them)\s+(?:(?:to|with|as|for)\s+)?([a-z0-9][a-z0-9 ,.-]*)/u,
     source: "catalog-asset-alias"
   },
   {
-    pattern: /\b(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    pattern: /\b(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]*)/u,
     source: "catalog-asset-alias"
   },
   {
-    pattern: /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]{1,80})/u,
+    pattern: /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]*)/u,
     source: "freeform-asset-request"
   }
 ];
