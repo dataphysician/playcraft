@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Profile Asset Identities Are Schema-Owned
+
+Milestone:
+- `GameAssemblyProfileSchema` now rejects duplicate generated asset IDs and duplicate asset request IDs.
+- Core replay no longer carries separate duplicate generated-asset/request-id validators after profile schema parsing.
+
+Supportive changes:
+- Contract tests cover duplicate generated assets and duplicate asset requests.
+- Core and Studio tests now expect duplicate generated asset/request identity failures at the public profile contract boundary.
+- Source scans guard the schema-owned identity checks and reject the removed core duplicate asset branches.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/core/test/replay.test.ts tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden stale removed-provider exact scan
+- full ignored-path legacy transcript/provider scan
+
+Constraint notes:
+- Keeps saved profiles self-validating for local agent-driven toddler mini-game assembly without asset-order fallback or late replay/UI duplicate identity checks.
+
 ## 2026-07-05 - Profile Live Surface Components Are Schema-Owned
 
 Milestone:

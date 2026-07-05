@@ -1,4 +1,5 @@
 import React from "react";
+import { GameAssemblyProfileSchema } from "@playcraft/contracts";
 import type {
   ComponentBinding,
   GameAssemblyProfile,
@@ -142,36 +143,40 @@ function LiveGameForProfile({
   assetReplacements?: AssetReplacementInput;
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
-  const template = liveTemplateForProfile(profile);
+  const parsedProfile = GameAssemblyProfileSchema.safeParse(profile);
+  if (!parsedProfile.success) {
+    return React.createElement(LiveGameFailure, { message: `saved profile failed schema validation: ${parsedProfile.error.message}` });
+  }
+
+  const profileParsed = parsedProfile.data;
+  const template = liveTemplateForProfile(profileParsed);
   const liveSurface = template.liveSurface;
   const tokenStyleCatalog = tokenStyleCatalogForSurface(liveSurface);
   const libraryAssetReplacementResult = React.useMemo(() => {
     try {
-      return { ok: true as const, value: createProfileLibraryAssetReplacements(profile) };
+      return { ok: true as const, value: createProfileLibraryAssetReplacements(profileParsed) };
     } catch (cause) {
       return { ok: false as const, message: errorMessage(cause, "live game asset replacement lookup failed") };
     }
-  }, [profile]);
+  }, [profileParsed]);
   const libraryAssetReplacements = libraryAssetReplacementResult.ok ? libraryAssetReplacementResult.value : {};
   const mergedAssetReplacements = React.useMemo(
     () => ({ ...libraryAssetReplacements, ...assetReplacements }),
     [assetReplacements, libraryAssetReplacements]
   );
-  const replacements = useProfileAssetReplacements(profile, mergedAssetReplacements);
+  const replacements = useProfileAssetReplacements(profileParsed, mergedAssetReplacements);
 
   if (!libraryAssetReplacementResult.ok) {
     return React.createElement(LiveGameFailure, { message: libraryAssetReplacementResult.message });
   }
 
   try {
-    requireUniqueProfileAssetIds(profile);
-
     switch (liveSurface.kind) {
       case "memory": {
-        const component = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
-        validateMemorySurfaceProps(profile.id, component, tokenStyleCatalog);
+        const component = requiredComponentByCapability(profileParsed, liveSurface.componentCapabilities.primary);
+        validateMemorySurfaceProps(profileParsed.id, component, tokenStyleCatalog);
         return React.createElement(MemoryGame, {
-          profile,
+          profile: profileParsed,
           component,
           replacements,
           tokenStyleCatalog,
@@ -179,10 +184,10 @@ function LiveGameForProfile({
         });
       }
       case "sorting": {
-        const component = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
-        validateSortingSurfaceProps(profile.id, component, tokenStyleCatalog);
+        const component = requiredComponentByCapability(profileParsed, liveSurface.componentCapabilities.primary);
+        validateSortingSurfaceProps(profileParsed.id, component, tokenStyleCatalog);
         return React.createElement(SortingGame, {
-          profile,
+          profile: profileParsed,
           component,
           replacements,
           tokenStyleCatalog,
@@ -190,11 +195,11 @@ function LiveGameForProfile({
         });
       }
       case "sequence": {
-        const sequenceComponent = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
-        const choiceComponent = requiredSequenceChoiceComponent(profile, liveSurface);
-        validateSequenceSurfaceProps(profile.id, sequenceComponent, choiceComponent, tokenStyleCatalog);
+        const sequenceComponent = requiredComponentByCapability(profileParsed, liveSurface.componentCapabilities.primary);
+        const choiceComponent = requiredSequenceChoiceComponent(profileParsed, liveSurface);
+        validateSequenceSurfaceProps(profileParsed.id, sequenceComponent, choiceComponent, tokenStyleCatalog);
         return React.createElement(SequenceGame, {
-          profile,
+          profile: profileParsed,
           sequenceComponent,
           choiceComponent,
           replacements,
@@ -210,7 +215,7 @@ function LiveGameForProfile({
   return React.createElement(
     "section",
     { role: "status", style: liveStyles.emptyState },
-    `${profile.profileName} does not have a live game surface yet.`
+    `${profileParsed.profileName} does not have a live game surface yet.`
   );
 }
 
@@ -1475,24 +1480,6 @@ function duplicateStrings(values: string[]): string[] {
   }
 
   return [...duplicates];
-}
-
-function requireUniqueProfileAssetIds(profile: GameAssemblyProfile): void {
-  const seen = new Set<string>();
-  const duplicates = new Set<string>();
-
-  for (const asset of profile.assets) {
-    if (seen.has(asset.assetId)) {
-      duplicates.add(asset.assetId);
-      continue;
-    }
-
-    seen.add(asset.assetId);
-  }
-
-  if (duplicates.size > 0) {
-    throw new Error(`profile ${profile.id} has duplicate generated asset ids: ${[...duplicates].join(", ")}`);
-  }
 }
 
 function replacementFromAsset(asset: GeneratedAssetRecord): AssetReplacement {

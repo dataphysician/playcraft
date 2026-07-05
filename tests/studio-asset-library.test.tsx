@@ -321,7 +321,7 @@ describe("studio asset library", () => {
     expect(await screen.findByRole("img", { name: "dinosaur 1 sprite" })).toBeDefined();
   });
 
-  it("rejects ambiguous Live App components instead of using profile order", () => {
+  it("rejects duplicate Live App components at the profile contract boundary", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
     const profile = session.activeProfile;
@@ -329,13 +329,6 @@ describe("studio asset library", () => {
     expect(profile).toBeDefined();
     const duplicateProfile = {
       ...profile!,
-      template: {
-        ...profile!.template,
-        liveSurface: {
-          ...profile!.template.liveSurface,
-          assetReplacementSources: []
-        }
-      },
       components: [
         ...profile!.components,
         {
@@ -348,7 +341,7 @@ describe("studio asset library", () => {
 
     render(React.createElement(LiveGame, { profile: duplicateProfile }));
 
-    expect(screen.getByTestId("live-game-error").textContent).toContain("multiple live surface components");
+    expect(screen.getByTestId("live-game-error").textContent).toContain("profile live surface component component:reveal-card-grid must be unique in components");
   });
 
   it("rejects duplicate generated asset ids instead of using asset order", () => {
@@ -369,7 +362,8 @@ describe("studio asset library", () => {
 
     render(React.createElement(LiveGame, { profile: duplicateAssetProfile }));
 
-    expect(screen.getByTestId("live-game-error").textContent).toContain("duplicate generated asset ids");
+    expect(screen.getByTestId("live-game-error").textContent).toContain("profile generated asset");
+    expect(screen.getByTestId("live-game-error").textContent).toContain("must be unique");
     expect(screen.getByTestId("live-game-error").textContent).toContain(profile!.assets[0]!.assetId);
   });
 
@@ -608,7 +602,7 @@ describe("studio asset library", () => {
 
     render(React.createElement(LiveGame, { profile: missingChoiceCapabilityProfile }));
 
-    expect(screen.getByTestId("live-game-error").textContent).toContain("asset replacement source choice:items is missing a live surface component capability");
+    expect(screen.getByTestId("live-game-error").textContent).toContain("asset replacement source choice:items must reference an authored live surface component capability");
     expect(screen.queryByRole("button", { name: "gem-1" })).toBeNull();
   });
 

@@ -480,16 +480,6 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
     }
   }
 
-  const duplicateAssetIds = duplicateStrings(profile.assets.map((asset) => asset.assetId));
-  if (duplicateAssetIds.length > 0) {
-    errors.push(schemaIssue(["assets"], "duplicate_asset_id", `profile ${profile.id} has duplicate generated asset ids: ${duplicateAssetIds.join(", ")}`, "error"));
-  }
-
-  const duplicateAssetRequestIds = duplicateStrings(profile.assetRequests.map((request) => request.requestId));
-  if (duplicateAssetRequestIds.length > 0) {
-    errors.push(schemaIssue(["assetRequests"], "duplicate_asset_request_id", `profile ${profile.id} has duplicate asset request ids: ${duplicateAssetRequestIds.join(", ")}`, "error"));
-  }
-
   const duplicateMechanicBindingIds = duplicateStrings(profile.mechanics.map((mechanic) => mechanic.bindingId));
   if (duplicateMechanicBindingIds.length > 0) {
     errors.push(schemaIssue(["mechanics"], "duplicate_mechanic_binding_id", `profile ${profile.id} has duplicate mechanic binding ids: ${duplicateMechanicBindingIds.join(", ")}`, "error"));

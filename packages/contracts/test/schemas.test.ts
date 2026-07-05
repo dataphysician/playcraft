@@ -794,6 +794,35 @@ describe("public contract schemas", () => {
     ).toBe(false);
   });
 
+  it("requires profiles to carry unique generated asset and request ids", () => {
+    const profile = assembleMvpProfiles()[0];
+    expect(profile).toBeDefined();
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        assetRequests: [
+          ...profile!.assetRequests,
+          {
+            ...profile!.assetRequests[0]!
+          }
+        ]
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        assets: [
+          ...profile!.assets,
+          {
+            ...profile!.assets[0]!
+          }
+        ]
+      }).success
+    ).toBe(false);
+  });
+
   it("keeps render requests strict and identified", () => {
     const result = ComponentRenderRequestSchema.safeParse({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

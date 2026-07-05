@@ -641,6 +641,22 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
     path: ["validation", "profileId"]
   })
   .superRefine((value, context) => {
+    for (const duplicate of profileDuplicateStrings(value.assetRequests.map((request) => request.requestId))) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `profile asset request ${duplicate} must be unique`,
+        path: ["assetRequests"]
+      });
+    }
+
+    for (const duplicate of profileDuplicateStrings(value.assets.map((asset) => asset.assetId))) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `profile generated asset ${duplicate} must be unique`,
+        path: ["assets"]
+      });
+    }
+
     for (const capability of liveSurfaceComponentCapabilities(value.template.liveSurface.componentCapabilities)) {
       const matches = value.components.filter((component) => component.renderCapability === capability);
       if (matches.length === 0) {
@@ -665,6 +681,20 @@ function liveSurfaceComponentCapabilities(
   capabilities: GameTemplateLiveSurfaceComponentCapabilities
 ): string[] {
   return [capabilities.primary, capabilities.choice].filter((capability): capability is string => Boolean(capability));
+}
+
+function profileDuplicateStrings(values: string[]): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const value of values) {
+    if (seen.has(value)) {
+      duplicates.add(value);
+    }
+    seen.add(value);
+  }
+
+  return [...duplicates];
 }
 
 export const BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"]);

@@ -94,7 +94,7 @@ describe("saved profile replay", () => {
     };
 
     expect(() => replayProfile(duplicateAssetProfile, createDefaultRegistries())).toThrow(
-      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate generated asset ids: ${saved.assets[0]!.assetId.replace(/\./gu, "\\.")}`, "u")
+      new RegExp(`profile generated asset ${saved.assets[0]!.assetId.replace(/\./gu, "\\.")} must be unique`, "u")
     );
   });
 
@@ -112,7 +112,7 @@ describe("saved profile replay", () => {
     };
 
     expect(() => replayProfile(duplicateAssetRequestProfile, createDefaultRegistries())).toThrow(
-      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate asset request ids: ${saved.assetRequests[0]!.requestId.replace(/\./gu, "\\.")}`, "u")
+      new RegExp(`profile asset request ${saved.assetRequests[0]!.requestId.replace(/\./gu, "\\.")} must be unique`, "u")
     );
   });
 
