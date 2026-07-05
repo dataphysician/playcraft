@@ -1,5 +1,23 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Exact Sequence Asset Item Coverage
+
+Milestone:
+- Sequence asset edits now require enough replacement items to cover every authored sequence token.
+- Sequence remapping no longer cycles short replacement lists by modulo, preventing accidental duplicated or mismatched sequence choices.
+
+Supportive changes:
+- Builder tests cover successful catalog-backed sequence edits and rejection of explicit under-covered sequence edits.
+- Source scans block the old modulo replacement path and require the new sequence coverage error.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+
+Constraint notes:
+- Keeps edit-aware local sequence assets explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or token-order cycling fallback.
+
 ## 2026-07-04 - Fail-Closed Ambiguous Template Requests
 
 Milestone:

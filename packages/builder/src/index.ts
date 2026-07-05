@@ -941,7 +941,11 @@ function remapSequenceRounds(rounds: string[][], tokenMap: Map<string, string>):
 
 function tokenMapForSequence(tokens: string[], items: string[]): Map<string, string> {
   const uniqueTokens = uniqueStrings(tokens);
-  return new Map(uniqueTokens.map((token, index) => [token, items[index % items.length] ?? token]));
+  if (items.length < uniqueTokens.length) {
+    throw new Error(`sequence-items requires at least ${uniqueTokens.length} asset edit items for sequence tokens ${uniqueTokens.join(", ")}`);
+  }
+
+  return new Map(uniqueTokens.map((token, index) => [token, items[index]!]));
 }
 
 function rewriteAssetBindings(

@@ -1157,8 +1157,11 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).toContain("sorting-items requires at least ${bins.length} asset edit items");
     expect(builderSource).toContain('requireStringArrayProp(props, "sequence", "sequence-items")');
     expect(builderSource).toContain('requireStringMatrixProp(props, "rounds", "sequence-items")');
+    expect(builderSource).toContain("sequence-items requires at least ${uniqueTokens.length} asset edit items");
+    expect(readSource("packages/builder/test/session-service.test.ts")).toContain("rejects sequence asset edits that do not cover every authored sequence token");
     expect(builderSource).not.toContain('bins.length > 0 ? bins : ["red", "blue"]');
     expect(builderSource).not.toContain('activeBins.map((bin) => `${bin} ${edit.singularTheme}`)');
+    expect(builderSource).not.toContain("items[index % items.length]");
     expect(builderSource).not.toContain("remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>, fallback");
     expect(builderSource).not.toContain("return [fallback]");
     expect(builderSource).not.toContain("rounds.length > 0 ? rounds : [sequence]");

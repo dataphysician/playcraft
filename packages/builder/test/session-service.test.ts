@@ -308,6 +308,18 @@ describe("builder session service", () => {
     expect(edited.result.validation?.valid).toBe(true);
   });
 
+  it("rejects sequence asset edits that do not cover every authored sequence token", () => {
+    const service = new PlaycraftBuilderSessionService();
+
+    expect(() => service.execute(command({
+      templateId: "template.sequence-repeat",
+      assetEdit: {
+        theme: "custom gems",
+        items: ["ruby", "sapphire"]
+      }
+    }))).toThrow(/sequence-items requires at least 3 asset edit items for sequence tokens green, yellow, blue/u);
+  });
+
   it("rejects sequence asset edits when imported profiles do not author sequence props", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.sequence-repeat" })).result.profile;
