@@ -775,10 +775,6 @@ function sourceForServiceRequest(
   request: BuilderServiceRequest,
   inputPolicy: BuilderCatalog["input"]
 ): BuilderInputSource {
-  if (request.moonshineTranscript) {
-    return inputPolicy.transcriptSource;
-  }
-
   return request.source ?? inputPolicy.defaultSource;
 }
 

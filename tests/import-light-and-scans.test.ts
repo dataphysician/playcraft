@@ -225,6 +225,8 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("packages/contracts/src/index.ts")).toContain("moonshineTranscript: MoonshineTranscriptRecordSchema.optional()");
     expect(readSource("packages/contracts/src/index.ts")).toContain("defaultSource: BuilderInputSourceSchema");
     expect(readSource("packages/service/src/index.ts")).toContain("LOCAL_SERVICE_INPUT_POLICY");
+    expect(readSource("packages/service/src/index.ts")).toContain("function sourceForServiceRequest");
+    expect(readSource("packages/service/src/index.ts")).toContain("return request.source ?? inputPolicy.defaultSource;");
     expect(readSource("packages/service/src/index.ts")).not.toContain('input.source ?? "text"');
     expect(readSource("packages/service/src/index.ts")).not.toContain('request.source ?? "text"');
     expect(readSource("packages/service/src/cli.ts")).not.toContain('args.source ?? "text"');
@@ -232,9 +234,11 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("packages/service/src/cli.ts")).not.toContain("request.text = text || undefined");
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain('input.source ?? "text"');
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain('moonshineTranscript ? "moonshine-transcript"');
+    expect(readSource("apps/studio/src/local-client.ts")).toContain('source: "moonshine-transcript"');
     expect(readSource("apps/studio/src/local-client.ts")).toContain("function serviceInputPayloadForClientInput");
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain("text: moonshineTranscript?.text ?? input.idea");
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain("text: moonshineTranscript?.text ?? input.changeRequest");
+    expect(readSource("packages/contracts/src/index.ts")).toContain("Moonshine transcript records require moonshine-transcript source");
     expect(violations).toEqual([]);
   });
 

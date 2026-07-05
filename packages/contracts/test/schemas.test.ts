@@ -1042,6 +1042,17 @@ describe("public contract schemas", () => {
     expect(
       BuilderServiceRequestSchema.safeParse({
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.transcript-without-source",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        moonshineTranscript
+      }).success
+    ).toBe(false);
+
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-service-request.test.missing-transcript",
         version: "1.0.0",
         kind: "builder-service-request",

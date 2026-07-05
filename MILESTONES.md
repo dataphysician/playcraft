@@ -1,5 +1,33 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Transcript Service Source
+
+Milestone:
+- `BuilderServiceRequestSchema` now requires Moonshine transcript records to declare `source: "moonshine-transcript"`.
+- Studio transport requests now include explicit `source: "moonshine-transcript"` whenever they send a Moonshine transcript record.
+- Service source selection no longer infers transcript source from the presence of `moonshineTranscript`.
+
+Supportive changes:
+- Contract tests reject transcript service requests with omitted source.
+- Studio transport tests assert explicit transcript source on outgoing service requests.
+- Service tests update Moonshine transcript fixtures to use explicit source.
+- Source scans pin the explicit source helper and Studio transcript payload behavior.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps local Moonshine Streaming CPU inputs explicit at the service boundary without hosted providers, generated runtime code, auth, database state, compatibility shims, or transcript-source inference.
+
 ## 2026-07-04 - Source-Owned Builder Input Text
 
 Milestone:

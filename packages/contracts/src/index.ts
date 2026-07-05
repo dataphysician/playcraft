@@ -1131,8 +1131,8 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
     message: "assemble and update requests must not include profile import payloads",
     path: ["profile"]
   })
-  .refine((value) => !value.moonshineTranscript || value.source !== "text", {
-    message: "Moonshine transcript records must not use text source",
+  .refine((value) => !value.moonshineTranscript || value.source === "moonshine-transcript", {
+    message: "Moonshine transcript records require moonshine-transcript source",
     path: ["source"]
   })
   .refine((value) => value.source !== "moonshine-transcript" || Boolean(value.moonshineTranscript), {

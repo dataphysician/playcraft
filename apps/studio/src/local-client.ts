@@ -186,7 +186,7 @@ function serviceInputPayloadForClientInput(input: {
 
   if (moonshineTranscript) {
     return {
-      ...source,
+      source: "moonshine-transcript",
       moonshineTranscript
     };
   }

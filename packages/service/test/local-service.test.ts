@@ -467,6 +467,7 @@ describe("local Playcraft service", () => {
       kind: "builder-service-request",
       actionName: "assemble",
       sessionId: "session.transcript-record",
+      source: "moonshine-transcript",
       moonshineTranscript: transcript
     });
     const serializedEvents = JSON.stringify(response.execution?.events);
