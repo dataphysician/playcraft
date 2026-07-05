@@ -2,10 +2,12 @@ import type { z } from "zod";
 import {
   AssemblyValidationResultSchema,
   AssetSourceCapabilityManifestSchema,
+  BuilderTemplateNamespaceSchema,
   ComponentManifestSchema,
   ComponentRenderRequestSchema,
   DomainProfileSchema,
   GameAssemblyProfileSchema,
+  GameProfileTemplateSnapshotSchema,
   MechanicDefinitionSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   PlaycraftAssemblyRequestSchema,
@@ -21,6 +23,7 @@ import {
   type ComponentRenderRequest,
   type DomainProfile,
   type GameAssemblyProfile,
+  type GameProfileTemplateSnapshot,
   type GeneratedAssetRecord,
   type MechanicDefinition,
   type PlaycraftAssemblyRequest,
@@ -430,6 +433,40 @@ export function replayProfile(profileInput: unknown, registries: PlaycraftRegist
     }),
     eventLog: profile.replay.eventLog
   };
+}
+
+export function roundTripCustomTemplate(
+  profileInput: unknown,
+  registries: PlaycraftRegistries
+): GameProfileTemplateSnapshot {
+  const parsed = GameAssemblyProfileSchema.safeParse(profileInput);
+  if (!parsed.success) {
+    throw new Error(`saved profile failed schema validation: ${parsed.error.message}`);
+  }
+
+  const profile = parsed.data;
+  const snapshot = profile.template;
+  BuilderTemplateNamespaceSchema.parse(snapshot.id);
+
+  const validation = validateGameAssemblyProfile(profile, registries);
+  if (!validation.valid) {
+    throw new Error(`saved custom template profile cannot replay: ${validation.errors.map((issue) => issue.message).join("; ")}`);
+  }
+
+  const serialized = JSON.parse(JSON.stringify(snapshot)) as GameProfileTemplateSnapshot;
+  const reparsed = GameProfileTemplateSnapshotSchema.parse(serialized);
+
+  if (reparsed.id !== snapshot.id) {
+    throw new Error(`custom template round-trip changed snapshot id from ${snapshot.id} to ${reparsed.id}`);
+  }
+  if (reparsed.liveSurface.kind !== snapshot.liveSurface.kind) {
+    throw new Error(`custom template round-trip changed liveSurface kind from ${snapshot.liveSurface.kind} to ${reparsed.liveSurface.kind}`);
+  }
+  if (reparsed.assemblyRequestId !== snapshot.assemblyRequestId) {
+    throw new Error(`custom template round-trip changed assemblyRequestId from ${snapshot.assemblyRequestId} to ${reparsed.assemblyRequestId}`);
+  }
+
+  return reparsed;
 }
 
 function requiredReplayComponentManifest(

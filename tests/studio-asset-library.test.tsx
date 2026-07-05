@@ -1,8 +1,10 @@
 import React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import type { GameAssemblyProfile } from "@playcraft/contracts";
 import { GameAssemblyProfileSchema } from "@playcraft/contracts";
 import { localAssetEditCatalog } from "@playcraft/assets";
+import { createBuilderCommandHandler } from "../packages/builder/src/index.js";
 import {
   createProfileLibraryAssetReplacements,
   sortingBinAssetCatalog,
@@ -680,10 +682,10 @@ describe("studio asset library", () => {
     expect(profile).toBeDefined();
     const customProfile = {
       ...profile!,
-      assemblyRequestId: "request.custom-toy-memory",
+      assemblyRequestId: "request.custom.toy-memory",
       template: {
         schemaVersion: profile!.schemaVersion,
-        id: "template.custom-toy-memory",
+        id: "template.custom.toy-memory",
         version: "1.0.0",
         kind: "game-template-snapshot",
         displayName: "Custom Toy Memory",
@@ -725,11 +727,46 @@ describe("studio asset library", () => {
             accent: "#fbcfe8"
           }
         },
-        assemblyRequestId: "request.custom-toy-memory"
+        assemblyRequestId: "request.custom.toy-memory"
       }
     };
 
     expect(createProfileLibraryAssetReplacements(customProfile)["card:toy-1-a"]?.altText).toBe("toy 1 sprite");
+  });
+
+  it("round-trips a custom-namespaced template through assemble + export + service.import-profile + replay", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const customSnapshotId = "template.custom.toy-via-service";
+    const customProfileId = "profile.custom.toy-via-service";
+    const customRequestId = "request.custom.toy-via-service";
+    const customSessionId = "session.custom.toy-via-service";
+    const customProfile = {
+      ...profile!,
+      id: customProfileId,
+      validation: {
+        ...profile!.validation,
+        id: `validation.${customProfileId}`,
+        profileId: customProfileId
+      },
+      assemblyRequestId: customRequestId,
+      template: {
+        ...profile!.template!,
+        id: customSnapshotId,
+        assemblyRequestId: customRequestId
+      }
+    };
+    const builderService = createBuilderCommandHandler();
+    const importedExecution = builderService.importProfile(customSessionId, customProfile);
+
+    expect(importedExecution.result.profile?.template?.id).toBe(customSnapshotId);
+    expect(importedExecution.result.profile?.id).toBe(customProfileId);
+    expect(importedExecution.result.preview?.activeTemplateId).toBe(customSnapshotId);
+    expect(importedExecution.result.preview?.activeComponentId).toBe("component.reveal-card-grid");
+    expect(() => createProfileLibraryAssetReplacements(importedExecution.result.profile!)).not.toThrow();
   });
 
   it("renders the Playcraft card back and replacement card sprites", async () => {

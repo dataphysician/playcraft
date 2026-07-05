@@ -1765,7 +1765,7 @@ describe("local Playcraft service", () => {
       assemblyRequestId: "request.service-custom-memory",
       template: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        id: "template.service-custom-memory",
+        id: "template.custom.service-memory",
         version: "1.0.0",
         kind: "game-template-snapshot",
         displayName: "Service Custom Memory",
@@ -1802,9 +1802,9 @@ describe("local Playcraft service", () => {
           defaultTokenStyle: {
             tokens: ["default"],
             background: "#fce7f3",
-            border: "#db2777",
-            foreground: "#831843",
-            accent: "#fbcfe8"
+              border: "#db2777",
+              foreground: "#831843",
+              accent: "#fbcfe8"
           }
         },
         assemblyRequestId: "request.service-custom-memory"
@@ -1829,9 +1829,9 @@ describe("local Playcraft service", () => {
       text: "Change the cards to toys"
     });
 
-    expect(imported.session?.activeTemplateId).toBe("template.service-custom-memory");
-    expect(updated.session?.activeTemplateId).toBe("template.service-custom-memory");
-    expect(updated.session?.profile?.template?.id).toBe("template.service-custom-memory");
+    expect(imported.session?.activeTemplateId).toBe("template.custom.service-memory");
+    expect(updated.session?.activeTemplateId).toBe("template.custom.service-memory");
+    expect(updated.session?.profile?.template?.id).toBe("template.custom.service-memory");
     expect(
       updated.session?.profile?.components.find((component) => component.renderCapability === "component:reveal-card-grid")?.props.cards
     ).toEqual(["toy-1-a", "toy-1-b", "toy-2-a", "toy-2-b"]);

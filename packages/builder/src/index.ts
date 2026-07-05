@@ -22,6 +22,7 @@ import {
   BuilderSessionSnapshotSchema,
   BuilderAssetEditSchema,
   BuilderTemplateIdSchema,
+  BuilderTemplateNamespaceSchema,
   BuilderToolDefinitionSchema,
   GameAssemblyProfileSchema,
   PLAYCRAFT_LOCAL_TIMESTAMP,
@@ -172,8 +173,10 @@ export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
 
   importProfile(sessionId: string, profileInput: GameAssemblyProfile, commandId = `builder-command.${sessionId}.import-profile`): BuilderExecutionResult {
     const session = this.getOrCreateSession(sessionId);
-    const profile = GameAssemblyProfileSchema.parse(profileInput);
-    const template = templateForProfile(profile);
+    const parsedProfile = GameAssemblyProfileSchema.parse(profileInput);
+    validateTemplateForImport(parsedProfile);
+    const profile = cloneGameAssemblyProfile(parsedProfile);
+    const template = customTemplateSnapshotFor(profile);
     const replay = replayProfile(profile, this.registries);
     const preview = previewForReplay(sessionId, template.id, profile, replay, session.preview);
 
@@ -604,6 +607,38 @@ function templateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSn
   return profile.template;
 }
 
+export function customTemplateSnapshotFor(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {
+  const parsed = GameAssemblyProfileSchema.parse(profile);
+  return parsed.template;
+}
+
+function validateTemplateForImport(profile: GameAssemblyProfile): void {
+  const snapshot = profile.template;
+  const parsedSnapshotId = BuilderTemplateIdSchema.parse(snapshot.id);
+
+  if (parsedSnapshotId.startsWith("template.custom.")) {
+    BuilderTemplateNamespaceSchema.parse(parsedSnapshotId);
+    return;
+  }
+
+  const bundled = TEMPLATE_BY_ID.get(parsedSnapshotId);
+  if (bundled) {
+    if (bundled.assemblyRequestId !== profile.assemblyRequestId || bundled.assemblyRequestId !== snapshot.assemblyRequestId) {
+      throw new Error(
+        `${parsedSnapshotId} collides with bundled template ${bundled.id}; re-imported profiles must reuse the bundled assemblyRequestId ${bundled.assemblyRequestId}`
+      );
+    }
+    return;
+  }
+
+  throw new Error(`${parsedSnapshotId} must start with template.custom. to import as a custom template`);
+}
+
+function cloneGameAssemblyProfile(profile: GameAssemblyProfile): GameAssemblyProfile {
+  const cloned = structuredClone(profile) as GameAssemblyProfile;
+  return GameAssemblyProfileSchema.parse(cloned);
+}
+
 function templateForBuildOrUpdate(
   session: BuilderSessionRecord,
   actionName: Extract<BuilderCommand["actionName"], "assemble-game" | "update-game">,
@@ -613,7 +648,16 @@ function templateForBuildOrUpdate(
     return templateForProfile(session.profile);
   }
 
-  return templateForId(templateId);
+  const bundled = TEMPLATE_BY_ID.get(templateId);
+  if (bundled) {
+    return bundled;
+  }
+
+  if (session.profile && session.templateId === templateId) {
+    return templateForProfile(session.profile);
+  }
+
+  throw new Error(`unknown game template ${templateId}`);
 }
 
 function requireBuildOrUpdateCommand(command: BuilderCommand): BuildOrUpdateCommand {

@@ -8,6 +8,7 @@ import {
   AssemblyValidationResultSchema,
   AssetGenerationRequestSchema,
   BuilderTemplateIdSchema,
+  BuilderTemplateNamespaceSchema,
   ComponentManifestSchema,
   DomainProfileSchema,
   FrontendToolDefinitionSchema,
@@ -20,12 +21,15 @@ import {
   RuleModuleDefinitionSchema,
   SafetyPolicyPackSchema,
   ThemePackSchema,
+  StableIdSchema,
+  VersionSchema,
   type AssetGenerationRequest,
   type BuilderTemplateId,
   type ComponentManifest,
   type DomainProfile,
   type FrontendToolDefinition,
   type GameAssemblyProfile,
+  type GameProfileTemplateSnapshot,
   type GameTemplateAssetEditOperation,
   type GameTemplateAssetPromptKind,
   type GameTemplateDefinition,
@@ -1046,6 +1050,39 @@ function templateSnapshotForProfileTemplate(template: MvpProfileTemplate, assemb
     liveSurface: template.liveSurface,
     assemblyRequestId
   });
+}
+
+export function buildCustomTemplateSnapshotFromProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {
+  const parsedProfile = GameAssemblyProfileSchema.parse(profile);
+  const existingSnapshot = parsedProfile.template;
+  const customId = customTemplateIdForProfile(parsedProfile.id, existingSnapshot.id);
+  BuilderTemplateNamespaceSchema.parse(customId);
+
+  return GameProfileTemplateSnapshotSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: customId,
+    version: VersionSchema.parse(existingSnapshot.version),
+    kind: "game-template-snapshot",
+    displayName: existingSnapshot.displayName,
+    displayLabel: existingSnapshot.displayLabel,
+    assetPromptKind: existingSnapshot.assetPromptKind,
+    assetEditOperations: existingSnapshot.assetEditOperations,
+    liveSurface: existingSnapshot.liveSurface,
+    assemblyRequestId: existingSnapshot.assemblyRequestId
+  });
+}
+
+function customTemplateIdForProfile(profileId: string, currentTemplateId: string): string {
+  if (currentTemplateId.startsWith("template.custom.")) {
+    return currentTemplateId;
+  }
+
+  const profileStem = profileId.replace(/^profile\./u, "");
+  const candidate = `template.custom.${profileStem}`;
+  const safe = candidate.replace(/[^a-z0-9.]/gu, "-");
+  StableIdSchema.parse(safe);
+  BuilderTemplateNamespaceSchema.parse(safe);
+  return safe;
 }
 
 function componentForManifest(manifest: ComponentManifest): TrustedReactComponent {

@@ -861,12 +861,12 @@ describe("builder session service", () => {
     expect(exported).toBeDefined();
     const customProfile = {
       ...exported!,
-      id: "profile.custom-template-memory",
-      validation: validationForProfile(exported!, "profile.custom-template-memory"),
-      assemblyRequestId: "request.custom-template-memory",
+      id: "profile.custom.template-memory",
+      validation: validationForProfile(exported!, "profile.custom.template-memory"),
+      assemblyRequestId: "request.custom.template-memory",
       template: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        id: "template.custom-template-memory",
+        id: "template.custom.template-memory",
         version: "1.0.0",
         kind: "game-template-snapshot",
         displayName: "Custom Template Memory",
@@ -908,21 +908,21 @@ describe("builder session service", () => {
             accent: "#fbcfe8"
           }
         },
-        assemblyRequestId: "request.custom-template-memory"
+        assemblyRequestId: "request.custom.template-memory"
       }
     };
 
     const target = new PlaycraftBuilderSessionService();
-    const imported = target.importProfile("session.custom-template", customProfile);
+    const imported = target.importProfile("session.custom.template", customProfile);
     const preview = target.execute(command({
       actionName: "preview-action",
       id: "builder-command.test.preview-custom-template",
       interaction: { action: "primary" },
-      sessionId: "session.custom-template",
+      sessionId: "session.custom.template",
       templateId: undefined
     }));
 
-    expect(imported.result.preview.activeTemplateId).toBe("template.custom-template-memory");
+    expect(imported.result.preview.activeTemplateId).toBe("template.custom.template-memory");
     expect(preview.result.preview.lastToolName).toBe("tool:reveal-card");
   });
 
@@ -932,12 +932,12 @@ describe("builder session service", () => {
     expect(exported).toBeDefined();
     const customProfile = {
       ...exported!,
-      id: "profile.custom-template-memory",
-      validation: validationForProfile(exported!, "profile.custom-template-memory"),
-      assemblyRequestId: "request.custom-template-memory",
+      id: "profile.custom.template-memory",
+      validation: validationForProfile(exported!, "profile.custom.template-memory"),
+      assemblyRequestId: "request.custom.template-memory",
       template: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        id: "template.custom-template-memory",
+        id: "template.custom.template-memory",
         version: "1.0.0",
         kind: "game-template-snapshot",
         displayName: "Custom Template Memory",
@@ -979,24 +979,24 @@ describe("builder session service", () => {
             accent: "#fbcfe8"
           }
         },
-        assemblyRequestId: "request.custom-template-memory"
+        assemblyRequestId: "request.custom.template-memory"
       }
     };
 
     const target = new PlaycraftBuilderSessionService();
-    target.importProfile("session.custom-template-update", customProfile);
+    target.importProfile("session.custom.template-update", customProfile);
     const updated = target.execute(command({
       actionName: "update-game",
       assetEdit: { theme: "toys" },
       id: "builder-command.test.update-custom-template",
-      sessionId: "session.custom-template-update",
-      templateId: "template.custom-template-memory"
+      sessionId: "session.custom.template-update",
+      templateId: "template.custom.template-memory"
     }));
 
-    expect(updated.result.preview.activeTemplateId).toBe("template.custom-template-memory");
-    expect(updated.result.profile?.template?.id).toBe("template.custom-template-memory");
+    expect(updated.result.preview.activeTemplateId).toBe("template.custom.template-memory");
+    expect(updated.result.profile?.template?.id).toBe("template.custom.template-memory");
     expect(cardsFor(updated.result.profile)).toEqual(["toy-1-a", "toy-1-b", "toy-2-a", "toy-2-b"]);
-    expect(updated.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("request.custom-template-memory"))).toBe(true);
+    expect(updated.events.some((event) => event.type === "ToolCall" && JSON.stringify(event.value).includes("request.custom.template-memory"))).toBe(true);
   });
 
   it("previews the template live-surface primary component when visual components render first", () => {
@@ -1176,6 +1176,139 @@ describe("builder session service", () => {
     expect(runBuilderCli(["import-profile", "--profile-json", "{}"], io)).toBe(1);
     expect(stderr.pop()).toMatch(/import-profile requires --session/u);
     expect(stdout).toEqual([]);
+  });
+
+  it("imports a profile whose template ID uses the template.custom namespace prefix", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const customProfile = {
+      ...exported!,
+      id: "profile.custom-namespace.memory",
+      validation: validationForProfile(exported!, "profile.custom-namespace.memory"),
+      assemblyRequestId: "request.custom-namespace.memory",
+      template: {
+        ...exported!.template,
+        id: "template.custom.namespace.memory",
+        assemblyRequestId: "request.custom-namespace.memory"
+      }
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+
+    expect(() => target.importProfile("session.custom-namespace-memory", customProfile)).not.toThrow();
+    expect(target.getSessionSnapshot("session.custom-namespace-memory").activeTemplateId).toBe("template.custom.namespace.memory");
+  });
+
+  it("rejects imported custom template IDs that collide with bundled template IDs", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const collisionProfile = {
+      ...exported!,
+      id: "profile.custom-collision.memory",
+      validation: validationForProfile(exported!, "profile.custom-collision.memory"),
+      assemblyRequestId: "request.custom-collision.memory",
+      template: {
+        ...exported!.template,
+        id: "template.memory-match",
+        assemblyRequestId: "request.custom-collision.memory"
+      }
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+
+    expect(() => target.importProfile("session.custom-collision-memory", collisionProfile)).toThrow(
+      /template\.memory-match collides with bundled template/u
+    );
+  });
+
+  it("accepts re-imported bundled profiles whose assemblyRequestId matches the bundled template", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const reimported = {
+      ...exported!,
+      id: "profile.reimported.memory",
+      validation: validationForProfile(exported!, "profile.reimported.memory")
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+
+    expect(() => target.importProfile("session.reimported-memory", reimported)).not.toThrow();
+  });
+
+  it("rejects imported custom template IDs that are not under the template.custom namespace and are not bundled", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const nonNamespacedProfile = {
+      ...exported!,
+      id: "profile.custom-non-namespaced.memory",
+      validation: validationForProfile(exported!, "profile.custom-non-namespaced.memory"),
+      assemblyRequestId: "request.custom-non-namespaced.memory",
+      template: {
+        ...exported!.template,
+        id: "template.not-a-real-template",
+        assemblyRequestId: "request.custom-non-namespaced.memory"
+      }
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+
+    expect(() => target.importProfile("session.custom-non-namespaced-memory", nonNamespacedProfile)).toThrow(
+      /template\.not-a-real-template must start with template\.custom\./u
+    );
+  });
+
+  it("round-trips imported profiles without mutating the original input", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match", assetEdit: { theme: "toys" } })).result.profile;
+    expect(exported).toBeDefined();
+    const originalSnapshot = JSON.parse(JSON.stringify(exported));
+    const target = new PlaycraftBuilderSessionService();
+    target.importProfile("session.round-trip", exported!);
+
+    expect(exported).toEqual(originalSnapshot);
+    const snapshot = target.getSessionSnapshot("session.round-trip");
+    expect(snapshot.activeTemplateId).toBe("template.memory-match");
+    expect(snapshot.profile?.template?.id).toBe("template.memory-match");
+    expect(snapshot.profile?.id).toBe(exported!.id);
+  });
+
+  it("preserves custom template ID and liveSurface when an imported profile is replayed", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const customTemplateId = "template.custom.toy-memory-preserved";
+    const customProfile = {
+      ...exported!,
+      id: "profile.custom-toy-memory-preserved",
+      validation: validationForProfile(exported!, "profile.custom-toy-memory-preserved"),
+      assemblyRequestId: "request.custom-toy-memory-preserved",
+      template: {
+        ...exported!.template,
+        id: customTemplateId,
+        assemblyRequestId: "request.custom-toy-memory-preserved"
+      }
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    const imported = target.importProfile("session.custom-toy-memory-preserved", customProfile);
+    const replayed = target.execute(command({
+      actionName: "preview-action",
+      id: "builder-command.test.preview-custom-template-preserved",
+      interaction: { action: "primary" },
+      sessionId: "session.custom-toy-memory-preserved",
+      templateId: undefined
+    }));
+
+    expect(imported.result.profile?.template?.id).toBe(customTemplateId);
+    expect(replayed.result.profile?.template?.id).toBe(customTemplateId);
+    expect(imported.result.preview.activeTemplateId).toBe(customTemplateId);
+    expect(replayed.result.preview.activeTemplateId).toBe(customTemplateId);
+    expect(imported.result.preview.activeComponentId).toBe("component.reveal-card-grid");
+    expect(replayed.result.preview.lastToolName).toBe("tool:reveal-card");
   });
 });
 

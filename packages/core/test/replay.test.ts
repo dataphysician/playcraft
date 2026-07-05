@@ -332,4 +332,50 @@ describe("saved profile replay", () => {
       /profile replay event sequences must be in ascending order/u
     );
   });
+
+  it("round-trips a custom template through export-import and returns a byte-equal snapshot modulo timestamps", async () => {
+    const { roundTripCustomTemplate } = await import("../src/index.js");
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const customProfile = {
+      ...saved,
+      id: "profile.round-trip.custom-memory",
+      validation: {
+        ...saved.validation,
+        id: "validation.profile.round-trip.custom-memory",
+        profileId: "profile.round-trip.custom-memory"
+      },
+      assemblyRequestId: "request.round-trip.custom-memory",
+      template: {
+        ...saved.template,
+        id: "template.custom.memory-roundtrip",
+        assemblyRequestId: "request.round-trip.custom-memory"
+      }
+    };
+
+    const result = roundTripCustomTemplate(customProfile, createDefaultRegistries());
+
+    expect(result.id).toBe("template.custom.memory-roundtrip");
+    expect(result.id.startsWith("template.custom.")).toBe(true);
+    expect(result.liveSurface.kind).toBe(customProfile.template.liveSurface.kind);
+    expect(result.liveSurface.componentCapabilities.primary).toBe(customProfile.template.liveSurface.componentCapabilities.primary);
+    expect(result.assemblyRequestId).toBe(customProfile.template.assemblyRequestId);
+    expect(JSON.stringify({
+      id: result.id,
+      displayName: result.displayName,
+      displayLabel: result.displayLabel,
+      assetPromptKind: result.assetPromptKind,
+      assetEditOperations: result.assetEditOperations,
+      liveSurface: result.liveSurface,
+      assemblyRequestId: result.assemblyRequestId
+    })).toEqual(JSON.stringify({
+      id: customProfile.template.id,
+      displayName: customProfile.template.displayName,
+      displayLabel: customProfile.template.displayLabel,
+      assetPromptKind: customProfile.template.assetPromptKind,
+      assetEditOperations: customProfile.template.assetEditOperations,
+      liveSurface: customProfile.template.liveSurface,
+      assemblyRequestId: customProfile.template.assemblyRequestId
+    }));
+  });
 });

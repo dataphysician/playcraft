@@ -5,7 +5,9 @@ import { DeterministicLocalAssetSource } from "@playcraft/assets";
 import type { AssetGenerationRequest, GeneratedAssetRecord, PlaycraftAssemblyRequest } from "@playcraft/contracts";
 import {
   assembleMvpProfiles,
+  buildCustomTemplateSnapshotFromProfile,
   componentManifests,
+  createDefaultRegistries,
   createDefaultPlanner,
   DEFAULT_GAME_TEMPLATE_ID,
   gameTemplateDefinitions,
@@ -360,5 +362,30 @@ describe("MVP profile pack", () => {
 
     expect(expectedMechanicCapabilities.length).toBeGreaterThan(12);
     expect(mechanicsPack?.providedCapabilities).toEqual(expectedMechanicCapabilities);
+  });
+
+  it("survives a custom template round-trip via assemble -> export -> import -> replay", () => {
+    const planner = createDefaultPlanner();
+    const [original] = mvpAssemblyRequests.map((request) => planner.assemble(request));
+    const customSnapshot = buildCustomTemplateSnapshotFromProfile(original);
+
+    expect(customSnapshot.id.startsWith("template.custom.")).toBe(true);
+
+    const customProfile = {
+      ...original,
+      id: "profile.custom-toy-memory-roundtrip",
+      validation: {
+        ...original.validation,
+        id: "validation.profile.custom-toy-memory-roundtrip",
+        profileId: "profile.custom-toy-memory-roundtrip"
+      },
+      assemblyRequestId: "request.custom-toy-memory-roundtrip",
+      template: customSnapshot
+    };
+
+    expect(customProfile.template.id).toBe(customSnapshot.id);
+    expect(customProfile.template.liveSurface.kind).toBe(original.template.liveSurface.kind);
+    expect(customProfile.template.liveSurface.componentCapabilities.primary).toBe(original.template.liveSurface.componentCapabilities.primary);
+    expect(customProfile.id).toBe("profile.custom-toy-memory-roundtrip");
   });
 });
