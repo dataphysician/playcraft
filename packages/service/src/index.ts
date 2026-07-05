@@ -203,7 +203,8 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
     requestSchema: "BuilderServiceRequestSchema",
     batchSchema: "BuilderServiceRequestBatchSchema",
     directHandler: "handleLocalServiceRequest",
-    directBatchHandler: "handleLocalServiceRequestBatch"
+    directBatchHandler: "handleLocalServiceRequestBatch",
+    requiredContracts: ["BuilderServiceRequestSchema", "BuilderServiceRequestBatchSchema", "BuilderServiceResponseSchema"]
   },
   transports: {
     local: "createLocalServiceTransport",

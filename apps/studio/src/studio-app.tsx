@@ -500,7 +500,8 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
             React.createElement("strong", null, "Exact envelopes"),
             React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.singleCommand} / ${catalog.service.exactEnvelope.batchCommand}`),
             React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.requestSchema} / ${catalog.service.exactEnvelope.batchSchema}`),
-            React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.directHandler} / ${catalog.service.exactEnvelope.directBatchHandler}`)
+            React.createElement("span", { style: shellStyles.catalogMeta }, `${catalog.service.exactEnvelope.directHandler} / ${catalog.service.exactEnvelope.directBatchHandler}`),
+            React.createElement("span", { style: shellStyles.catalogMeta }, `contracts: ${catalog.service.exactEnvelope.requiredContracts.join(", ")}`)
           ),
           React.createElement(
             "li",

@@ -248,7 +248,8 @@ describe("public contract schemas", () => {
             requestSchema: "BuilderServiceRequestSchema",
             batchSchema: "BuilderServiceRequestBatchSchema",
             directHandler: "handleLocalServiceRequest",
-            directBatchHandler: "handleLocalServiceRequestBatch"
+            directBatchHandler: "handleLocalServiceRequestBatch",
+            requiredContracts: ["BuilderServiceRequestSchema", "BuilderServiceRequestBatchSchema", "BuilderServiceResponseSchema"]
           },
           transports: {
             local: "createLocalServiceTransport",
@@ -439,6 +440,16 @@ describe("public contract schemas", () => {
           theme: "dinosaurs"
         }
       },
+      BuilderServiceRequestBatchSchema: [
+        {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-service-request.fixture.batch",
+          version: "1.0.0",
+          kind: "builder-service-request",
+          actionName: "assemble",
+          text: "memory game with dinosaurs"
+        }
+      ],
       BuilderServiceResponseSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-service-response.fixture",
@@ -505,7 +516,13 @@ describe("public contract schemas", () => {
       const result = schema.safeParse(fixtures[name as keyof typeof fixtures]);
       expect(result.success, `${name} should parse its fixture`).toBe(true);
       if (result.success) {
-        expect(result.data.schemaVersion).toBe(PLAYCRAFT_SCHEMA_VERSION);
+        if (Array.isArray(result.data)) {
+          expect(result.data.map((item: { schemaVersion?: string }) => item.schemaVersion)).toEqual(
+            result.data.map(() => PLAYCRAFT_SCHEMA_VERSION)
+          );
+        } else {
+          expect(result.data.schemaVersion).toBe(PLAYCRAFT_SCHEMA_VERSION);
+        }
       }
     }
   });

@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Exact Envelope Contract Discovery
+
+Milestone:
+- `BuilderServiceRequestBatchSchema` is now a named public contract and registry entry.
+- The service catalog exact-envelope metadata now publishes required contracts for direct request, batch request, and response handling.
+- The service CLI and Studio Developer catalog render exact-envelope required contracts for agent discovery.
+
+Supportive changes:
+- Contract fixtures validate `BuilderServiceRequestBatchSchema` through the public contract fixture loop.
+- Service CLI and Studio UI tests pin the exact-envelope contract list.
+- Source scans guard exact-envelope required contract rendering and docs mention exact-envelope required contracts.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps same-process request batches contract-addressable without hosted providers, generated runtime code, auth, database state, compatibility shims, or prose-only service envelope discovery.
+
 ## 2026-07-04 - Catalog Required Contract Rendering
 
 Milestone:

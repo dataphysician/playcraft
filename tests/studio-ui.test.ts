@@ -414,6 +414,7 @@ describe("studio UI", () => {
     expect(screen.getByText("request / request-batch")).toBeDefined();
     expect(screen.getByText("BuilderServiceRequestSchema / BuilderServiceRequestBatchSchema")).toBeDefined();
     expect(screen.getByText("handleLocalServiceRequest / handleLocalServiceRequestBatch")).toBeDefined();
+    expect(screen.getByText("contracts: BuilderServiceRequestSchema, BuilderServiceRequestBatchSchema, BuilderServiceResponseSchema")).toBeDefined();
     expect(screen.getByText("createHttpServiceTransport")).toBeDefined();
     expect(screen.getAllByText("fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("required: sessionId").length).toBeGreaterThanOrEqual(1);

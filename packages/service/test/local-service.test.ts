@@ -241,7 +241,8 @@ describe("local Playcraft service", () => {
         requestSchema: "BuilderServiceRequestSchema",
         batchSchema: "BuilderServiceRequestBatchSchema",
         directHandler: "handleLocalServiceRequest",
-        directBatchHandler: "handleLocalServiceRequestBatch"
+        directBatchHandler: "handleLocalServiceRequestBatch",
+        requiredContracts: ["BuilderServiceRequestSchema", "BuilderServiceRequestBatchSchema", "BuilderServiceResponseSchema"]
       },
       transports: {
         local: "createLocalServiceTransport",
@@ -1074,6 +1075,11 @@ describe("local Playcraft service", () => {
     });
     expect(catalog.service.exactEnvelope.batchCommand).toBe("request-batch");
     expect(catalog.service.exactEnvelope.directBatchHandler).toBe("handleLocalServiceRequestBatch");
+    expect(catalog.service.exactEnvelope.requiredContracts).toEqual([
+      "BuilderServiceRequestSchema",
+      "BuilderServiceRequestBatchSchema",
+      "BuilderServiceResponseSchema"
+    ]);
     expect(catalog.service.actions.find((action) => action.actionName === "assemble")?.request).toEqual({
       acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
       requiredFields: [],
@@ -1102,7 +1108,7 @@ describe("local Playcraft service", () => {
       "- Assemble [assemble] input: yes; session: optional; response: execution; fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit; required: none; one-of: text|moonshineTranscript; exclusive: none; forbidden: none",
       "  request: Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional.",
       "- Import Profile [import-profile] input: no; session: required; response: execution; fields: sessionId, profile, profileExport, assetEdit; required: sessionId; one-of: profile|profileExport; exclusive: profile|profileExport; forbidden: profileExport|assetEdit",
-      "exact envelopes: request/request-batch via BuilderServiceRequestSchema/BuilderServiceRequestBatchSchema",
+      "exact envelopes: request/request-batch via BuilderServiceRequestSchema/BuilderServiceRequestBatchSchema; contracts: BuilderServiceRequestSchema, BuilderServiceRequestBatchSchema, BuilderServiceResponseSchema",
       "service helpers: handleLocalServiceRequest/handleLocalServiceRequestBatch",
       "service transports: createLocalServiceTransport, createHttpServiceTransport, handleServiceHttpRequestBody",
       "asset edits: dinosaurs, toys, ocean animals, fruit",

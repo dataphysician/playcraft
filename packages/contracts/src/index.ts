@@ -124,6 +124,7 @@ export const PublicContractNameSchema = z.enum([
   "BuilderProfileExportSchema",
   "BuilderServiceExecutionSchema",
   "BuilderServiceRequestSchema",
+  "BuilderServiceRequestBatchSchema",
   "BuilderServiceResponseSchema"
 ]);
 export type PublicContractName = z.infer<typeof PublicContractNameSchema>;
@@ -810,7 +811,8 @@ export const BuilderServiceCatalogSchema = z
         requestSchema: z.literal("BuilderServiceRequestSchema"),
         batchSchema: z.literal("BuilderServiceRequestBatchSchema"),
         directHandler: z.literal("handleLocalServiceRequest"),
-        directBatchHandler: z.literal("handleLocalServiceRequestBatch")
+        directBatchHandler: z.literal("handleLocalServiceRequestBatch"),
+        requiredContracts: z.array(PublicContractNameSchema).min(2)
       })
       .strict(),
     transports: z
@@ -1212,6 +1214,7 @@ export const PublicContractSchemas: Record<PublicContractName, z.ZodTypeAny> = {
   BuilderProfileExportSchema,
   BuilderServiceExecutionSchema,
   BuilderServiceRequestSchema,
+  BuilderServiceRequestBatchSchema,
   BuilderServiceResponseSchema
 } as const;
 
