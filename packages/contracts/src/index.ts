@@ -885,8 +885,75 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
       planned: z.literal("server-catalog")
     })
     .strict()
-}).strict();
+}).strict()
+  .superRefine((value, context) => {
+    const acceptedSources = value.acceptedInputSources;
+    const optionSources = value.input.sourceOptions.map((option) => option.source);
+
+    addDuplicateBuilderInputSourceIssues(context, acceptedSources, ["acceptedInputSources"]);
+    addDuplicateBuilderInputSourceIssues(context, optionSources, ["input", "sourceOptions"]);
+
+    if (!acceptedSources.includes(value.input.defaultSource)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "catalog default input source must be listed in acceptedInputSources",
+        path: ["input", "defaultSource"]
+      });
+    }
+
+    if (!acceptedSources.includes(value.input.transcriptSource)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "catalog transcript input source must be listed in acceptedInputSources",
+        path: ["input", "transcriptSource"]
+      });
+    }
+
+    for (const source of optionSources) {
+      if (!acceptedSources.includes(source)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `catalog source option ${source} is not listed in acceptedInputSources`,
+          path: ["input", "sourceOptions"]
+        });
+      }
+    }
+
+    for (const source of acceptedSources) {
+      if (!optionSources.includes(source)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `accepted input source ${source} is missing a source option`,
+          path: ["input", "sourceOptions"]
+        });
+      }
+    }
+  });
 export type BuilderCatalog = z.infer<typeof BuilderCatalogSchema>;
+
+function addDuplicateBuilderInputSourceIssues(
+  context: z.RefinementCtx,
+  sources: z.infer<typeof BuilderInputSourceSchema>[],
+  path: Array<string | number>
+): void {
+  const seen = new Set<z.infer<typeof BuilderInputSourceSchema>>();
+  const duplicates = new Set<z.infer<typeof BuilderInputSourceSchema>>();
+
+  for (const source of sources) {
+    if (seen.has(source)) {
+      duplicates.add(source);
+    }
+    seen.add(source);
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `catalog input source ${duplicate} must be unique`,
+      path
+    });
+  }
+}
 
 export const BuilderAssetEditSchema = z
   .object({

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AssetContentTypeSchema,
+  BuilderCatalogSchema,
   BuilderInputRequestSchema,
   BuilderServiceRequestBatchSchema,
   BuilderServiceRequestSchema,
@@ -761,6 +762,136 @@ describe("public contract schemas", () => {
       localOnly: true,
       emittedEvents: ["builder:profile-ready"],
       requiredContracts: ["MissingContractSchema"]
+    }).success).toBe(false);
+  });
+
+  it("keeps builder catalog input source options aligned with accepted sources", () => {
+    const builderTool = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-tool.catalog-input-sources",
+      version: "1.0.0",
+      kind: "builder-tool",
+      toolName: "tool:assemble-game",
+      displayName: "Assemble game",
+      description: "Assemble a game from a registered template.",
+      actionName: "assemble-game",
+      argumentsSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        type: "object",
+        fields: {
+          templateId: { type: "string", required: true }
+        },
+        allowUnknown: false
+      },
+      argumentSummary: "args: templateId*:string",
+      acceptedInputSources: ["text", "moonshine-transcript"],
+      inputSourceSummary: "input: Text, Transcript",
+      localOnly: true,
+      emittedEvents: ["builder:profile-ready"],
+      requiredContracts: ["BuilderCommandSchema"]
+    };
+    const validCatalog = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-catalog.input-sources",
+      version: "1.0.0",
+      kind: "builder-catalog",
+      defaultTemplateId: "template.memory-match",
+      templates: gameTemplateDefinitions,
+      tools: [builderTool],
+      acceptedInputSources: ["text", "moonshine-transcript"],
+      input: {
+        defaultSource: "text",
+        transcriptSource: "moonshine-transcript",
+        noInputLabel: "none",
+        sourceOptions: [
+          {
+            source: "text",
+            displayLabel: "Text",
+            generatePlaceholder: "Memory game with dinosaurs",
+            updatePlaceholder: "Change the game or replace assets..."
+          },
+          {
+            source: "moonshine-transcript",
+            displayLabel: "Transcript",
+            generatePlaceholder: "Moonshine transcript: memory game with dinosaurs",
+            updatePlaceholder: "Moonshine transcript: change the game or replace assets"
+          }
+        ]
+      },
+      requestTips: {
+        availableGames: ["Memory Match"],
+        featuredGames: ["Memory Match"],
+        assetEdits: ["with dinosaurs"],
+        examples: ["Memory game with dinosaurs"],
+        summaryLines: ["Available games: Memory Match."]
+      },
+      service: {
+        actions: [
+          {
+            actionName: "catalog",
+            displayName: "Catalog",
+            requiresSession: false,
+            acceptsInput: false,
+            request: {
+              acceptedFields: [],
+              requiredFields: [],
+              requiredAnyOf: [],
+              exclusiveAnyOf: [],
+              forbiddenTogether: [],
+              summary: "No payload fields accepted."
+            },
+            responsePayload: "catalog"
+          }
+        ],
+        exactEnvelope: {
+          singleCommand: "request",
+          batchCommand: "request-batch",
+          requestSchema: "BuilderServiceRequestSchema",
+          batchSchema: "BuilderServiceRequestBatchSchema",
+          directHandler: "handleLocalServiceRequest",
+          directBatchHandler: "handleLocalServiceRequestBatch",
+          requiredContracts: ["BuilderServiceRequestSchema", "BuilderServiceResponseSchema"]
+        },
+        transports: {
+          local: "createLocalServiceTransport",
+          httpClient: "createHttpServiceTransport",
+          httpBody: "handleServiceHttpRequestBody"
+        }
+      },
+      sessions: {
+        defaultAssembleSessionId: "service.session",
+        sessionBoundActions: ["update"]
+      },
+      assetEdit: {
+        supported: true,
+        acceptedKeys: ["theme", "items"],
+        maxItems: 12,
+        localReplacementFolders: true,
+        freeformItemSuffixes: ["1", "2", "3"],
+        genericThemeTokens: [],
+        availableThemes: []
+      },
+      retrieval: {
+        current: "bundled-local",
+        planned: "server-catalog"
+      }
+    };
+
+    expect(BuilderCatalogSchema.safeParse(validCatalog).success).toBe(true);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      acceptedInputSources: ["text", "text", "moonshine-transcript"]
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      acceptedInputSources: ["text"]
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      input: {
+        ...validCatalog.input,
+        sourceOptions: validCatalog.input.sourceOptions.slice(0, 1)
+      }
     }).success).toBe(false);
   });
 

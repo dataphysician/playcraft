@@ -436,6 +436,9 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("BuilderInputSourceOptionSchema");
     expect(contractSource).toContain("noInputLabel: z.string()");
     expect(contractSource).toContain("sourceOptions: z.array(BuilderInputSourceOptionSchema)");
+    expect(contractSource).toContain("addDuplicateBuilderInputSourceIssues");
+    expect(contractSource).toContain("catalog default input source must be listed in acceptedInputSources");
+    expect(contractSource).toContain("accepted input source ${source} is missing a source option");
     expect(contractSource).toContain("inputSourceSummary: z.string()");
     expect(contractSource).toContain("argumentSummary: z.string()");
     expect(contractSource).not.toContain("BuilderToolPresentationSchema");
@@ -458,6 +461,7 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).toContain("selectedInputOption?.updatePlaceholder");
     expect(studioSource).not.toContain("const selectedInputOption = inputOptions.find((option) => option.source === inputSource);");
     expect(readSource("tests/studio-ui.test.ts")).toContain("rejects duplicate catalog input source options instead of using option order");
+    expect(readSource("packages/contracts/test/schemas.test.ts")).toContain("keeps builder catalog input source options aligned with accepted sources");
     expect(studioSource).not.toContain("requiredInputSourceOption");
     expect(studioSource).not.toContain("toolInputSourceSummary");
     expect(studioSource).not.toContain("toolArgumentsSummary");

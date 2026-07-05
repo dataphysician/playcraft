@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Catalog Input Sources Align With Options
+
+Milestone:
+- `BuilderCatalogSchema` now verifies that `acceptedInputSources` and `input.sourceOptions` describe the same text/Moonshine input surface.
+- Catalogs fail closed when input sources are duplicated, when the default or transcript source is not advertised, or when an accepted source lacks a rendered source option.
+
+Supportive changes:
+- Contract tests cover valid catalog input-source metadata plus duplicate, missing-accepted-source, and missing-option failures.
+- Source scans guard the catalog input-source alignment helpers and test coverage.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps the local text and Moonshine Streaming CPU input contract explicit for Studio, Mobile shell, CLI, and future server catalog retrieval without hosted providers, generated runtime code, auth, database state, compatibility shims, or source-list/order heuristics.
+
 ## 2026-07-05 - Maintained Docs Remove Legacy Conversation Vocabulary
 
 Milestone:
