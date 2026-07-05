@@ -1391,6 +1391,8 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("liveSurface.componentCapabilities.choice");
     expect(liveGameSource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");
     expect(liveGameSource).toContain("has multiple live surface components");
+    expect(liveGameSource).toContain("function singleValue");
+    expect(liveGameSource).not.toContain("return matches[0]");
     expect(liveGameSource).toContain("function LiveGameFailure");
     expect(liveGameSource).toContain('"data-testid": "live-game-error"');
     expect(liveGameSource).not.toContain("profile.components.find((component) => component.renderCapability === capability)");
@@ -1442,6 +1444,7 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("function validateTokenStylesForTokens");
     expect(liveGameSource).toContain("function tokenStyleMatchesForToken");
     expect(liveGameSource).toContain("maps to multiple token styles");
+    expect(liveGameSource).toContain("const tokenStyle = singleValue(matches) ?? tokenStyleCatalog.defaultStyle;");
     expect(liveGameSource).toContain("liveSurface.defaultTokenStyle");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App token styles instead of using style order");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App memory card ids instead of using deck order");

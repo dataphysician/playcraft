@@ -1318,7 +1318,7 @@ function optionalComponentByCapability(profile: GameAssemblyProfile, capability:
   if (matches.length > 1) {
     throw new Error(`profile ${profile.id} has multiple live surface components for ${capability}`);
   }
-  return matches[0];
+  return singleValue(matches);
 }
 
 function replacementForToken(
@@ -1458,7 +1458,7 @@ function profileAssetById(profile: GameAssemblyProfile, assetId: string): Genera
     throw new Error(`profile ${profile.id} has duplicate generated asset id ${assetId}`);
   }
 
-  return matches[0];
+  return singleValue(matches);
 }
 
 function duplicateStrings(values: string[]): string[] {
@@ -1694,7 +1694,7 @@ function colorForToken(
   if (matches.length > 1) {
     throw new Error(`live token ${token} maps to multiple token styles: ${matches.map(describeTokenStyle).join(", ")}`);
   }
-  const tokenStyle = matches[0] ?? tokenStyleCatalog.defaultStyle;
+  const tokenStyle = singleValue(matches) ?? tokenStyleCatalog.defaultStyle;
 
   return {
     background: tokenStyle.background,
@@ -1702,6 +1702,10 @@ function colorForToken(
     foreground: tokenStyle.foreground,
     accent: tokenStyle.accent
   };
+}
+
+function singleValue<TValue>(values: TValue[]): TValue | undefined {
+  return values.length === 1 ? values[0] : undefined;
 }
 
 function tokenStyleMatchesForToken(token: string, tokenStyleCatalog: TokenStyleCatalog): GameTemplateTokenStyle[] {

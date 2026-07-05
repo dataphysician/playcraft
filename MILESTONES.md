@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Runtime Matches
+
+Milestone:
+- Live App runtime selection now uses an explicit single-value helper for component, generated asset, and token-style matches.
+- Live App duplicate checks remain fail-closed while first-match return shortcuts are removed from runtime matching.
+
+Supportive changes:
+- Source scans guard the Live App single-value helper and block indexed match returns.
+- Existing Studio UI and asset library tests continue covering duplicate live surface components, generated assets, and token styles.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps the toddler Live App runtime local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match runtime selection.
+
 ## 2026-07-05 - Exact Studio Asset Replacement Matches
 
 Milestone:
