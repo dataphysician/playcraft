@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog Request Shape Discovery
+
+Milestone:
+- `BuilderCatalog.service.actions` now publishes accepted request fields, required fields, and required one-of field groups for each service action.
+- The service CLI catalog summary and Studio Developer catalog view render request-shape metadata from `catalog.service.actions`.
+- Agent clients can discover how to call `assemble`, `update`, `preview`, `get-session`, `export-profile`, `import-profile`, `catalog`, and `reset` before constructing exact service envelopes.
+
+Supportive changes:
+- Contract fixtures cover nested service action request metadata.
+- Service tests pin JSON catalog metadata for assemble/import and human CLI output for request fields.
+- Studio UI tests and source scans guard request field summaries across contracts, service catalog, CLI, Developer tab, and canonical docs.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps request-shape discovery local, contract-owned, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or UI-local service heuristics.
+
 ## 2026-07-04 - Catalog Service Facade Discovery
 
 Milestone:

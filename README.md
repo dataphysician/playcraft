@@ -41,7 +41,7 @@ pnpm --filter @playcraft/service exec playcraft-service assemble --transcript "S
 pnpm --filter @playcraft/service exec playcraft-service request-batch --request-json '[{"schemaVersion":"playcraft.v1","id":"builder-service-request.readme.assemble","version":"1.0.0","kind":"builder-service-request","actionName":"assemble","sessionId":"session.readme","text":"Memory game with dinosaurs"},{"schemaVersion":"playcraft.v1","id":"builder-service-request.readme.export","version":"1.0.0","kind":"builder-service-request","actionName":"export-profile","sessionId":"session.readme"}]' --json
 ```
 
-The catalog exposes bundled templates, callable builder tools, service facade actions, exact-envelope helpers, accepted input sources, profile get/export/import actions, and local replacement themes such as dinosaurs, toys, dolphins/ocean animals, and fruits. Use `request-batch` or `handleLocalServiceRequestBatch` when an agent workflow needs multiple validated service envelopes to share one local session.
+The catalog exposes bundled templates, callable builder tools, service facade actions, request field summaries, exact-envelope helpers, accepted input sources, profile get/export/import actions, and local replacement themes such as dinosaurs, toys, dolphins/ocean animals, and fruits. Use `request-batch` or `handleLocalServiceRequestBatch` when an agent workflow needs multiple validated service envelopes to share one local session.
 
 ## Architecture
 

@@ -415,6 +415,10 @@ describe("studio UI", () => {
     expect(screen.getByText("BuilderServiceRequestSchema / BuilderServiceRequestBatchSchema")).toBeDefined();
     expect(screen.getByText("handleLocalServiceRequest / handleLocalServiceRequestBatch")).toBeDefined();
     expect(screen.getByText("createHttpServiceTransport")).toBeDefined();
+    expect(screen.getAllByText("fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("required: sessionId").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("one-of: text|moonshineTranscript").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("request: Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional.")).toBeDefined();
     expect(screen.getAllByText("input: Text, Transcript").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("input: none").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/args: .*templateId\*:string/u).length).toBeGreaterThanOrEqual(1);

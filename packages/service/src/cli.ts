@@ -362,8 +362,9 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   io.stdout("service actions:");
   for (const action of catalog.service.actions) {
     io.stdout(
-      `- ${action.displayName} [${action.actionName}] input: ${action.acceptsInput ? "yes" : "no"}; session: ${action.requiresSession ? "required" : "optional"}; response: ${action.responsePayload}`
+      `- ${action.displayName} [${action.actionName}] input: ${action.acceptsInput ? "yes" : "no"}; session: ${action.requiresSession ? "required" : "optional"}; response: ${action.responsePayload}; fields: ${formatServiceRequestFields(action.request.acceptedFields)}; required: ${formatServiceRequestFields(action.request.requiredFields)}; one-of: ${formatServiceRequestAnyOf(action.request.requiredAnyOf)}`
     );
+    io.stdout(`  request: ${action.request.summary}`);
   }
   io.stdout(`exact envelopes: ${catalog.service.exactEnvelope.singleCommand}/${catalog.service.exactEnvelope.batchCommand} via ${catalog.service.exactEnvelope.requestSchema}/${catalog.service.exactEnvelope.batchSchema}`);
   io.stdout(`service helpers: ${catalog.service.exactEnvelope.directHandler}/${catalog.service.exactEnvelope.directBatchHandler}`);
@@ -373,6 +374,14 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   for (const line of catalog.requestTips.summaryLines) {
     io.stdout(`- ${line}`);
   }
+}
+
+function formatServiceRequestFields(fields: string[]): string {
+  return fields.length > 0 ? fields.join(", ") : "none";
+}
+
+function formatServiceRequestAnyOf(groups: string[][]): string {
+  return groups.length > 0 ? groups.map((group) => group.join("|")).join(", ") : "none";
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

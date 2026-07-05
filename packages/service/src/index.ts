@@ -76,14 +76,110 @@ export const LOCAL_SERVICE_INPUT_POLICY = {
 
 export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
   actions: [
-    { actionName: "catalog", displayName: "Catalog", requiresSession: false, acceptsInput: false, responsePayload: "catalog" },
-    { actionName: "assemble", displayName: "Assemble", requiresSession: false, acceptsInput: true, responsePayload: "execution" },
-    { actionName: "update", displayName: "Update", requiresSession: true, acceptsInput: true, responsePayload: "execution" },
-    { actionName: "preview", displayName: "Preview", requiresSession: true, acceptsInput: false, responsePayload: "execution" },
-    { actionName: "get-session", displayName: "Get Session", requiresSession: true, acceptsInput: false, responsePayload: "session" },
-    { actionName: "export-profile", displayName: "Export Profile", requiresSession: true, acceptsInput: false, responsePayload: "profileExport" },
-    { actionName: "import-profile", displayName: "Import Profile", requiresSession: true, acceptsInput: false, responsePayload: "execution" },
-    { actionName: "reset", displayName: "Reset", requiresSession: false, acceptsInput: false, responsePayload: "reset" }
+    {
+      actionName: "catalog",
+      displayName: "Catalog",
+      requiresSession: false,
+      acceptsInput: false,
+      request: {
+        acceptedFields: [],
+        requiredFields: [],
+        requiredAnyOf: [],
+        summary: "No payload fields accepted."
+      },
+      responsePayload: "catalog"
+    },
+    {
+      actionName: "assemble",
+      displayName: "Assemble",
+      requiresSession: false,
+      acceptsInput: true,
+      request: {
+        acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
+        requiredFields: [],
+        requiredAnyOf: [["text", "moonshineTranscript"]],
+        summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
+      },
+      responsePayload: "execution"
+    },
+    {
+      actionName: "update",
+      displayName: "Update",
+      requiresSession: true,
+      acceptsInput: true,
+      request: {
+        acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
+        requiredFields: ["sessionId"],
+        requiredAnyOf: [["text", "moonshineTranscript"]],
+        summary: "Requires sessionId plus text or a Moonshine transcript record; templateId, source, and assetEdit are optional."
+      },
+      responsePayload: "execution"
+    },
+    {
+      actionName: "preview",
+      displayName: "Preview",
+      requiresSession: true,
+      acceptsInput: false,
+      request: {
+        acceptedFields: ["sessionId"],
+        requiredFields: ["sessionId"],
+        requiredAnyOf: [],
+        summary: "Requires sessionId and accepts no input, template, asset, or profile payloads."
+      },
+      responsePayload: "execution"
+    },
+    {
+      actionName: "get-session",
+      displayName: "Get Session",
+      requiresSession: true,
+      acceptsInput: false,
+      request: {
+        acceptedFields: ["sessionId"],
+        requiredFields: ["sessionId"],
+        requiredAnyOf: [],
+        summary: "Requires sessionId and returns the current session snapshot."
+      },
+      responsePayload: "session"
+    },
+    {
+      actionName: "export-profile",
+      displayName: "Export Profile",
+      requiresSession: true,
+      acceptsInput: false,
+      request: {
+        acceptedFields: ["sessionId"],
+        requiredFields: ["sessionId"],
+        requiredAnyOf: [],
+        summary: "Requires sessionId and returns a portable profile export."
+      },
+      responsePayload: "profileExport"
+    },
+    {
+      actionName: "import-profile",
+      displayName: "Import Profile",
+      requiresSession: true,
+      acceptsInput: false,
+      request: {
+        acceptedFields: ["sessionId", "profile", "profileExport", "assetEdit"],
+        requiredFields: ["sessionId"],
+        requiredAnyOf: [["profile", "profileExport"]],
+        summary: "Requires sessionId plus exactly one profile or profileExport; top-level assetEdit is only accepted with profile imports."
+      },
+      responsePayload: "execution"
+    },
+    {
+      actionName: "reset",
+      displayName: "Reset",
+      requiresSession: false,
+      acceptsInput: false,
+      request: {
+        acceptedFields: [],
+        requiredFields: [],
+        requiredAnyOf: [],
+        summary: "No payload fields accepted."
+      },
+      responsePayload: "reset"
+    }
   ],
   exactEnvelope: {
     singleCommand: "request",

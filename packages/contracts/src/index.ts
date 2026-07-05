@@ -728,12 +728,35 @@ export const BuilderServiceActionNameSchema = z.enum([
 ]);
 export type BuilderServiceActionName = z.infer<typeof BuilderServiceActionNameSchema>;
 
+export const BuilderServiceRequestFieldNameSchema = z.enum([
+  "sessionId",
+  "text",
+  "source",
+  "moonshineTranscript",
+  "templateId",
+  "assetEdit",
+  "profile",
+  "profileExport"
+]);
+export type BuilderServiceRequestFieldName = z.infer<typeof BuilderServiceRequestFieldNameSchema>;
+
+export const BuilderServiceCatalogActionRequestSchema = z
+  .object({
+    acceptedFields: z.array(BuilderServiceRequestFieldNameSchema).default([]),
+    requiredFields: z.array(BuilderServiceRequestFieldNameSchema).default([]),
+    requiredAnyOf: z.array(z.array(BuilderServiceRequestFieldNameSchema).min(2)).default([]),
+    summary: z.string().min(1).max(240)
+  })
+  .strict();
+export type BuilderServiceCatalogActionRequest = z.infer<typeof BuilderServiceCatalogActionRequestSchema>;
+
 export const BuilderServiceCatalogActionSchema = z
   .object({
     actionName: BuilderServiceActionNameSchema,
     displayName: z.string().min(1).max(80),
     requiresSession: z.boolean(),
     acceptsInput: z.boolean(),
+    request: BuilderServiceCatalogActionRequestSchema,
     responsePayload: z.enum(["catalog", "execution", "session", "profileExport", "reset"])
   })
   .strict();

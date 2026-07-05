@@ -484,6 +484,10 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               React.createElement("span", { style: shellStyles.catalogMeta }, action.actionName),
               React.createElement("span", { style: shellStyles.catalogMeta }, `input: ${action.acceptsInput ? "yes" : "no"}`),
               React.createElement("span", { style: shellStyles.catalogMeta }, `session: ${action.requiresSession ? "required" : "optional"}`),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `fields: ${formatCatalogList(action.request.acceptedFields)}`),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `required: ${formatCatalogList(action.request.requiredFields)}`),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `one-of: ${formatCatalogAnyOf(action.request.requiredAnyOf)}`),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `request: ${action.request.summary}`),
               React.createElement("span", { style: shellStyles.catalogMeta }, `response: ${action.responsePayload}`)
             )
           ),
@@ -544,6 +548,14 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
       )
     )
   );
+}
+
+function formatCatalogList(values: string[]): string {
+  return values.length > 0 ? values.join(", ") : "none";
+}
+
+function formatCatalogAnyOf(groups: string[][]): string {
+  return groups.length > 0 ? groups.map((group) => group.join("|")).join(", ") : "none";
 }
 
 function ProfilePortabilityPanel({

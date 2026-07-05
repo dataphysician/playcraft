@@ -215,6 +215,12 @@ describe("public contract schemas", () => {
               displayName: "Assemble",
               requiresSession: false,
               acceptsInput: true,
+              request: {
+                acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
+                requiredFields: [],
+                requiredAnyOf: [["text", "moonshineTranscript"]],
+                summary: "Requires text or a Moonshine transcript record."
+              },
               responsePayload: "execution"
             },
             {
@@ -222,6 +228,12 @@ describe("public contract schemas", () => {
               displayName: "Export Profile",
               requiresSession: true,
               acceptsInput: false,
+              request: {
+                acceptedFields: ["sessionId"],
+                requiredFields: ["sessionId"],
+                requiredAnyOf: [],
+                summary: "Requires sessionId."
+              },
               responsePayload: "profileExport"
             }
           ],

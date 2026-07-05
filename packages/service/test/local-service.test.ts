@@ -66,14 +66,110 @@ describe("local Playcraft service", () => {
     });
     expect(catalog.service).toEqual({
       actions: [
-        { actionName: "catalog", displayName: "Catalog", requiresSession: false, acceptsInput: false, responsePayload: "catalog" },
-        { actionName: "assemble", displayName: "Assemble", requiresSession: false, acceptsInput: true, responsePayload: "execution" },
-        { actionName: "update", displayName: "Update", requiresSession: true, acceptsInput: true, responsePayload: "execution" },
-        { actionName: "preview", displayName: "Preview", requiresSession: true, acceptsInput: false, responsePayload: "execution" },
-        { actionName: "get-session", displayName: "Get Session", requiresSession: true, acceptsInput: false, responsePayload: "session" },
-        { actionName: "export-profile", displayName: "Export Profile", requiresSession: true, acceptsInput: false, responsePayload: "profileExport" },
-        { actionName: "import-profile", displayName: "Import Profile", requiresSession: true, acceptsInput: false, responsePayload: "execution" },
-        { actionName: "reset", displayName: "Reset", requiresSession: false, acceptsInput: false, responsePayload: "reset" }
+        {
+          actionName: "catalog",
+          displayName: "Catalog",
+          requiresSession: false,
+          acceptsInput: false,
+          request: {
+            acceptedFields: [],
+            requiredFields: [],
+            requiredAnyOf: [],
+            summary: "No payload fields accepted."
+          },
+          responsePayload: "catalog"
+        },
+        {
+          actionName: "assemble",
+          displayName: "Assemble",
+          requiresSession: false,
+          acceptsInput: true,
+          request: {
+            acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
+            requiredFields: [],
+            requiredAnyOf: [["text", "moonshineTranscript"]],
+            summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
+          },
+          responsePayload: "execution"
+        },
+        {
+          actionName: "update",
+          displayName: "Update",
+          requiresSession: true,
+          acceptsInput: true,
+          request: {
+            acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
+            requiredFields: ["sessionId"],
+            requiredAnyOf: [["text", "moonshineTranscript"]],
+            summary: "Requires sessionId plus text or a Moonshine transcript record; templateId, source, and assetEdit are optional."
+          },
+          responsePayload: "execution"
+        },
+        {
+          actionName: "preview",
+          displayName: "Preview",
+          requiresSession: true,
+          acceptsInput: false,
+          request: {
+            acceptedFields: ["sessionId"],
+            requiredFields: ["sessionId"],
+            requiredAnyOf: [],
+            summary: "Requires sessionId and accepts no input, template, asset, or profile payloads."
+          },
+          responsePayload: "execution"
+        },
+        {
+          actionName: "get-session",
+          displayName: "Get Session",
+          requiresSession: true,
+          acceptsInput: false,
+          request: {
+            acceptedFields: ["sessionId"],
+            requiredFields: ["sessionId"],
+            requiredAnyOf: [],
+            summary: "Requires sessionId and returns the current session snapshot."
+          },
+          responsePayload: "session"
+        },
+        {
+          actionName: "export-profile",
+          displayName: "Export Profile",
+          requiresSession: true,
+          acceptsInput: false,
+          request: {
+            acceptedFields: ["sessionId"],
+            requiredFields: ["sessionId"],
+            requiredAnyOf: [],
+            summary: "Requires sessionId and returns a portable profile export."
+          },
+          responsePayload: "profileExport"
+        },
+        {
+          actionName: "import-profile",
+          displayName: "Import Profile",
+          requiresSession: true,
+          acceptsInput: false,
+          request: {
+            acceptedFields: ["sessionId", "profile", "profileExport", "assetEdit"],
+            requiredFields: ["sessionId"],
+            requiredAnyOf: [["profile", "profileExport"]],
+            summary: "Requires sessionId plus exactly one profile or profileExport; top-level assetEdit is only accepted with profile imports."
+          },
+          responsePayload: "execution"
+        },
+        {
+          actionName: "reset",
+          displayName: "Reset",
+          requiresSession: false,
+          acceptsInput: false,
+          request: {
+            acceptedFields: [],
+            requiredFields: [],
+            requiredAnyOf: [],
+            summary: "No payload fields accepted."
+          },
+          responsePayload: "reset"
+        }
       ],
       exactEnvelope: {
         singleCommand: "request",
@@ -828,6 +924,18 @@ describe("local Playcraft service", () => {
     });
     expect(catalog.service.exactEnvelope.batchCommand).toBe("request-batch");
     expect(catalog.service.exactEnvelope.directBatchHandler).toBe("handleLocalServiceRequestBatch");
+    expect(catalog.service.actions.find((action) => action.actionName === "assemble")?.request).toEqual({
+      acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
+      requiredFields: [],
+      requiredAnyOf: [["text", "moonshineTranscript"]],
+      summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
+    });
+    expect(catalog.service.actions.find((action) => action.actionName === "import-profile")?.request).toEqual({
+      acceptedFields: ["sessionId", "profile", "profileExport", "assetEdit"],
+      requiredFields: ["sessionId"],
+      requiredAnyOf: [["profile", "profileExport"]],
+      summary: "Requires sessionId plus exactly one profile or profileExport; top-level assetEdit is only accepted with profile imports."
+    });
 
     expect(runLocalServiceCli(["catalog"], io)).toBe(0);
     expect(out).toEqual(expect.arrayContaining([
@@ -837,7 +945,8 @@ describe("local Playcraft service", () => {
       "- Assemble Game [tool:assemble-game -> assemble-game] input: Text, Transcript; args: assetEdit:object, input:object, sessionId:string, templateId*:string",
       "- Preview Action [tool:preview-action -> preview-action] input: none; args: interaction*:object, sessionId*:string",
       "service actions:",
-      "- Assemble [assemble] input: yes; session: optional; response: execution",
+      "- Assemble [assemble] input: yes; session: optional; response: execution; fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit; required: none; one-of: text|moonshineTranscript",
+      "  request: Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional.",
       "exact envelopes: request/request-batch via BuilderServiceRequestSchema/BuilderServiceRequestBatchSchema",
       "service helpers: handleLocalServiceRequest/handleLocalServiceRequestBatch",
       "service transports: createLocalServiceTransport, createHttpServiceTransport, handleServiceHttpRequestBody",
