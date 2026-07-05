@@ -99,7 +99,9 @@ describe("local Playcraft service", () => {
       required: true
     });
     expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.acceptedInputSources).toEqual(["text", "moonshine-transcript"]);
+    expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.inputSourceSummary).toBe("input: Text, Transcript");
     expect(catalog.tools.find((tool) => tool.actionName === "preview-action")?.acceptedInputSources).toEqual([]);
+    expect(catalog.tools.find((tool) => tool.actionName === "preview-action")?.inputSourceSummary).toBe("input: none");
     expect(catalog.tools.find((tool) => tool.actionName === "get-session")?.acceptedInputSources).toEqual([]);
     expect(catalog.tools.find((tool) => tool.actionName === "update-game")?.argumentsSchema.fields.sessionId).toEqual({
       type: "string",

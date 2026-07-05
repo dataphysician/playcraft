@@ -235,6 +235,7 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("noInputLabel: z.string()");
     expect(contractSource).toContain("sourceOptions: z.array(BuilderInputSourceOptionSchema)");
     expect(contractSource).toContain("toolPresentation: BuilderToolPresentationSchema");
+    expect(contractSource).toContain("inputSourceSummary: z.string()");
     expect(serviceSource).toContain("sourceOptions");
     expect(serviceSource).toContain("LOCAL_SERVICE_TOOL_PRESENTATION_POLICY");
     expect(serviceSource).toContain('noInputLabel: "none"');
@@ -243,12 +244,13 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).toContain('displayLabel: "Transcript"');
     expect(studioSource).toContain("catalog?.input.sourceOptions");
     expect(studioSource).toContain("catalog.toolPresentation");
-    expect(studioSource).toContain("requiredInputSourceOption");
-    expect(studioSource).toContain("input.noInputLabel");
+    expect(studioSource).toContain("tool.inputSourceSummary");
     expect(studioSource).toContain("option.displayLabel");
     expect(studioSource).toContain("selectedInputOption?.generatePlaceholder");
     expect(studioSource).toContain("selectedInputOption?.updatePlaceholder");
     expect(studioSource).toContain("presentation.noArgumentsLabel");
+    expect(studioSource).not.toContain("requiredInputSourceOption");
+    expect(studioSource).not.toContain("toolInputSourceSummary");
     expect(studioSource).not.toContain('sources.join(", ")');
     expect(studioSource).not.toContain('"input: none"');
     expect(studioSource).not.toContain('"no arguments"');
@@ -265,15 +267,16 @@ describe("import-light boundaries and source scans", () => {
     expect(cliSource).toContain("template.exampleRequest");
     expect(cliSource).toContain("template.requestAliasSummary");
     expect(cliSource).toContain("tool.displayName");
-    expect(cliSource).toContain("catalog.input.noInputLabel");
+    expect(cliSource).toContain("tool.inputSourceSummary");
     expect(cliSource).toContain("tool.argumentsSchema");
     expect(cliSource).toContain("catalog.toolPresentation.argumentsPrefix");
     expect(cliSource).toContain("catalog.toolPresentation.noArgumentsLabel");
-    expect(cliSource).toContain("requiredInputSourceOption");
     expect(cliSource).toContain("catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel)");
     expect(cliSource).not.toContain("catalog.templates.map((template) => template.id)");
     expect(cliSource).not.toContain("catalog.tools.map((tool) => tool.toolName)");
     expect(cliSource).not.toContain("requestAliases.slice(0, 3)");
+    expect(cliSource).not.toContain("requiredInputSourceOption");
+    expect(cliSource).not.toContain("toolInputSourceSummary");
     expect(cliSource).not.toContain('sources.join(", ")');
   });
 

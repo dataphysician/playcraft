@@ -69,6 +69,7 @@ describe("public contract schemas", () => {
         allowUnknown: false
       },
       acceptedInputSources: ["text", "moonshine-transcript"],
+      inputSourceSummary: "input: Text, Transcript",
       localOnly: true,
       emittedEvents: ["builder:profile-ready"],
       requiredContracts: ["BuilderCommandSchema", "GameTemplateDefinitionSchema"]
@@ -823,6 +824,7 @@ describe("public contract schemas", () => {
         allowUnknown: false
       },
       acceptedInputSources: ["text"],
+      inputSourceSummary: "input: Text",
       localOnly: true,
       emittedEvents: ["builder:profile-ready"],
       requiredContracts: ["BuilderCommandSchema"]

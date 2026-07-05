@@ -595,10 +595,23 @@ function builderTool(
     actionName,
     argumentsSchema: builderToolArgumentsSchema(actionName),
     acceptedInputSources,
+    inputSourceSummary: builderToolInputSourceSummary(acceptedInputSources),
     localOnly: true,
     emittedEvents: ["builder:command", "builder:profile-ready"],
     requiredContracts: ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"]
   });
+}
+
+function builderToolInputSourceSummary(sources: BuilderToolDefinition["acceptedInputSources"]): string {
+  if (sources.length === 0) {
+    return "input: none";
+  }
+
+  const labels: Record<BuilderToolDefinition["acceptedInputSources"][number], string> = {
+    text: "Text",
+    "moonshine-transcript": "Transcript"
+  };
+  return `input: ${sources.map((source) => labels[source]).join(", ")}`;
 }
 
 function builderToolArgumentsSchema(actionName: BuilderToolDefinition["actionName"]): JsonObjectSchemaDescriptor {

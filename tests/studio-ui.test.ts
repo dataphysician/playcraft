@@ -336,12 +336,16 @@ describe("studio UI", () => {
           tool.actionName === "preview-action"
             ? {
                 ...tool,
+                inputSourceSummary: "input: unavailable",
                 argumentsSchema: {
                   ...tool.argumentsSchema,
                   fields: {}
                 }
               }
-            : tool
+            : {
+                ...tool,
+                inputSourceSummary: tool.acceptedInputSources.length > 0 ? "input: Typed, Moon CPU" : "input: unavailable"
+              }
         ),
         input: {
           ...catalog.input,
@@ -534,9 +538,11 @@ describe("studio UI", () => {
     expect(screen.queryByLabelText("Chat history")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "toy-1-a" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "toy-1-a" }).textContent?.toLowerCase()).toContain("toy 1"));
     fireEvent.click(screen.getByRole("button", { name: "toy-1-b" }));
     await waitFor(() => expect(screen.getByText("1 of 2 pairs")).toBeDefined());
     fireEvent.click(screen.getByRole("button", { name: "toy-2-a" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "toy-2-a" }).textContent?.toLowerCase()).toContain("toy 2"));
     fireEvent.click(screen.getByRole("button", { name: "toy-2-b" }));
     await waitFor(() => expect(screen.getByText("All pairs found")).toBeDefined());
     await waitFor(() => {

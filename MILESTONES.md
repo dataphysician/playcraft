@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Publish Tool Input Source Summaries
+
+Milestone:
+- Builder tool definitions now include `inputSourceSummary` as the agent-facing input presentation field.
+- Builder and service catalogs publish text/Moonshine and no-input tool summaries directly on each tool.
+- Studio Developer tool catalog and service CLI now render `tool.inputSourceSummary` instead of rebuilding input labels from accepted source IDs.
+
+Supportive changes:
+- Contract, builder, service, Studio UI, and source-scan tests validate tool-owned input source summaries.
+- Source scans block the removed Studio and service CLI input-summary helpers from returning.
+- The memory-game asset-swap UI test now waits for first-card reveal state before clicking the matching card, avoiding a React batching race.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts packages/contracts/test/schemas.test.ts packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Keeps agent-facing tool input presentation contract-owned and forward-only without UI/CLI source-label reconstruction, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Publish Asset Edit Catalog Summaries
 
 Milestone:

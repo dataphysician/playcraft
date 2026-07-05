@@ -463,7 +463,7 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               { key: tool.id, style: shellStyles.catalogItem },
               React.createElement("strong", null, tool.toolName),
               React.createElement("span", { style: shellStyles.catalogMeta }, tool.actionName),
-              React.createElement("span", { style: shellStyles.catalogMeta }, toolInputSourceSummary(tool.acceptedInputSources, catalog.input)),
+              React.createElement("span", { style: shellStyles.catalogMeta }, tool.inputSourceSummary),
               React.createElement("span", { style: shellStyles.catalogMeta }, toolArgumentsSummary(tool.argumentsSchema.fields, catalog.toolPresentation))
             )
           )
@@ -516,29 +516,6 @@ function toolArgumentsSummary(
 ): string {
   const summary = Object.entries(fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
   return `${presentation.argumentsPrefix}: ${summary.length > 0 ? summary.join(", ") : presentation.noArgumentsLabel}`;
-}
-
-function toolInputSourceSummary(
-  sources: BuilderCatalog["tools"][number]["acceptedInputSources"],
-  input: BuilderCatalog["input"]
-): string {
-  if (sources.length === 0) {
-    return `input: ${input.noInputLabel}`;
-  }
-
-  return `input: ${sources.map((source) => requiredInputSourceOption(input, source).displayLabel).join(", ")}`;
-}
-
-function requiredInputSourceOption(
-  input: BuilderCatalog["input"],
-  source: BuilderInputSource
-): BuilderInputSourceOption {
-  const option = input.sourceOptions.find((candidate) => candidate.source === source);
-  if (!option) {
-    throw new Error(`catalog input source ${source} is missing display metadata`);
-  }
-
-  return option;
 }
 
 function ProfilePortabilityPanel({

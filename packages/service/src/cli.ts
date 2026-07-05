@@ -9,7 +9,6 @@ import {
   type BuilderAssetEdit,
   type BuilderCatalog,
   type BuilderInputSource,
-  type BuilderInputSourceOption,
   type BuilderProfileExport,
   type BuilderServiceExecution,
   type BuilderServiceRequest,
@@ -314,7 +313,7 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   io.stdout("tools:");
   for (const tool of catalog.tools) {
     io.stdout(
-      `- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${toolInputSourceSummary(catalog, tool.acceptedInputSources)}; ${toolArgumentsSummary(catalog, tool.argumentsSchema)}`
+      `- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${tool.inputSourceSummary}; ${toolArgumentsSummary(catalog, tool.argumentsSchema)}`
     );
   }
 
@@ -325,29 +324,9 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   }
 }
 
-function toolInputSourceSummary(
-  catalog: BuilderCatalog,
-  sources: BuilderCatalog["tools"][number]["acceptedInputSources"]
-): string {
-  if (sources.length === 0) {
-    return `input: ${catalog.input.noInputLabel}`;
-  }
-
-  return `input: ${sources.map((source) => requiredInputSourceOption(catalog, source).displayLabel).join(", ")}`;
-}
-
 function toolArgumentsSummary(catalog: BuilderCatalog, schema: JsonObjectSchemaDescriptor): string {
   const summary = Object.entries(schema.fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
   return `${catalog.toolPresentation.argumentsPrefix}: ${summary.length > 0 ? summary.join(", ") : catalog.toolPresentation.noArgumentsLabel}`;
-}
-
-function requiredInputSourceOption(catalog: BuilderCatalog, source: BuilderInputSource): BuilderInputSourceOption {
-  const option = catalog.input.sourceOptions.find((candidate) => candidate.source === source);
-  if (!option) {
-    throw new Error(`catalog input source ${source} is missing display metadata`);
-  }
-
-  return option;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

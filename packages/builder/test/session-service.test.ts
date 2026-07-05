@@ -73,7 +73,9 @@ describe("builder session service", () => {
       ["import-profile", "Import Profile"]
     ]);
     expect(tools.find((tool) => tool.actionName === "assemble-game")?.acceptedInputSources).toEqual(["text", "moonshine-transcript"]);
+    expect(tools.find((tool) => tool.actionName === "assemble-game")?.inputSourceSummary).toBe("input: Text, Transcript");
     expect(tools.find((tool) => tool.actionName === "preview-action")?.acceptedInputSources).toEqual([]);
+    expect(tools.find((tool) => tool.actionName === "preview-action")?.inputSourceSummary).toBe("input: none");
     expect(tools.find((tool) => tool.actionName === "export-profile")?.acceptedInputSources).toEqual([]);
     expect(tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId).toEqual({
       type: "string",
