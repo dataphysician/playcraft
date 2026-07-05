@@ -31,6 +31,12 @@ export const STUDIO_RUNTIME_POLICY = {
 
 export type StudioRuntimeEnv = Partial<Record<typeof STUDIO_RUNTIME_POLICY.serviceEndpointEnvName, string | undefined>>;
 
+export function studioRuntimeEnvFromServiceEndpoint(serviceEndpoint?: string): StudioRuntimeEnv {
+  return {
+    [STUDIO_RUNTIME_POLICY.serviceEndpointEnvName]: serviceEndpoint
+  };
+}
+
 export function serviceEndpointFromStudioRuntimeEnv(env: StudioRuntimeEnv): string | undefined {
   const serviceEndpoint = env[STUDIO_RUNTIME_POLICY.serviceEndpointEnvName]?.trim();
   return serviceEndpoint ? serviceEndpoint : undefined;

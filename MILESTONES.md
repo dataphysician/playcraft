@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Narrow Frontend Runtime Env Exposure
+
+Milestone:
+- Studio and Mobile app shells no longer pass the whole Vite `import.meta.env` object into runtime configuration.
+- App shells now expose only `VITE_PLAYCRAFT_SERVICE_URL` through a typed Studio runtime-env helper before endpoint parsing.
+- Production frontend bundles no longer embed unrelated `VITE_*` provider environment values from the developer shell.
+
+Supportive changes:
+- Studio runtime tests cover the new narrow env helper.
+- Source scans now reject passing the full `import.meta.env` object to the Studio endpoint parser.
+- Build-output scans cover Studio and Mobile `web-dist` bundles for removed provider names and env keys.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Generated Studio and Mobile `web-dist` scans returned no matches for removed provider env keys, removed hosted-stack identifiers, OpenAI API keys, or `sk-` shaped keys.
+- Source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps runtime endpoint configuration local and forward-only while preventing stale provider environment leakage in web bundles, without adding hosted providers, generated runtime code, auth, database state, or native shell work.
+
 ## 2026-07-04 - Expose Builder Profile CLI Tools
 
 Milestone:

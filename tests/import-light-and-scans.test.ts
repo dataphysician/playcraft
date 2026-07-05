@@ -597,11 +597,12 @@ describe("import-light boundaries and source scans", () => {
 
     expect(studioClientSource).toContain("STUDIO_RUNTIME_POLICY");
     expect(studioClientSource).toContain('serviceEndpointEnvName: "VITE_PLAYCRAFT_SERVICE_URL"');
+    expect(studioClientSource).toContain("studioRuntimeEnvFromServiceEndpoint");
     expect(studioClientSource).toContain("serviceEndpointFromStudioRuntimeEnv");
-    expect(studioAppSource).toContain("serviceEndpointFromStudioRuntimeEnv(import.meta.env)");
-    expect(mobileAppSource).toContain("serviceEndpointFromStudioRuntimeEnv(import.meta.env)");
-    expect(studioAppSource).not.toContain("import.meta.env.VITE_PLAYCRAFT_SERVICE_URL");
-    expect(mobileAppSource).not.toContain("import.meta.env.VITE_PLAYCRAFT_SERVICE_URL");
+    expect(studioAppSource).toContain("studioRuntimeEnvFromServiceEndpoint(import.meta.env.VITE_PLAYCRAFT_SERVICE_URL)");
+    expect(mobileAppSource).toContain("studioRuntimeEnvFromServiceEndpoint(import.meta.env.VITE_PLAYCRAFT_SERVICE_URL)");
+    expect(studioAppSource).not.toContain("serviceEndpointFromStudioRuntimeEnv(import.meta.env)");
+    expect(mobileAppSource).not.toContain("serviceEndpointFromStudioRuntimeEnv(import.meta.env)");
   });
 
   it("keeps Mobile shell client defaults policy-owned", () => {

@@ -21,7 +21,8 @@ import {
   createConfiguredStudioClient,
   createLocalStudioClient,
   createStudioClientFromServiceTransport,
-  serviceEndpointFromStudioRuntimeEnv
+  serviceEndpointFromStudioRuntimeEnv,
+  studioRuntimeEnvFromServiceEndpoint
 } from "../apps/studio/src/local-client.js";
 import { LiveGame } from "../apps/studio/src/live-game.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
@@ -76,6 +77,9 @@ describe("studio UI", () => {
     expect(serviceEndpointFromStudioRuntimeEnv({ VITE_PLAYCRAFT_SERVICE_URL: " http://127.0.0.1:8787/playcraft " })).toBe(
       "http://127.0.0.1:8787/playcraft"
     );
+    expect(studioRuntimeEnvFromServiceEndpoint(" http://127.0.0.1:8787/playcraft ")).toEqual({
+      VITE_PLAYCRAFT_SERVICE_URL: " http://127.0.0.1:8787/playcraft "
+    });
     expect(serviceEndpointFromStudioRuntimeEnv({ VITE_PLAYCRAFT_SERVICE_URL: " " })).toBeUndefined();
     expect(serviceEndpointFromStudioRuntimeEnv({})).toBeUndefined();
   });
