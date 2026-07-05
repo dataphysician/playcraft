@@ -424,6 +424,9 @@ describe("studio UI", () => {
     expect(screen.getAllByText("input: Text, Transcript").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("input: none").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/args: .*templateId\*:string/u).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("contracts: BuilderCommandSchema, BuilderInputRequestSchema, GameTemplateDefinitionSchema").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("contracts: BuilderCommandSchema, BuilderProfileExportSchema")).toBeDefined();
+    expect(screen.getByText("contracts: BuilderCommandSchema, GameAssemblyProfileSchema")).toBeDefined();
     expect(screen.getByText("Memory Match MVP")).toBeDefined();
     expect(screen.getByText("memory, memory game, memory match")).toBeDefined();
     expect(screen.getAllByText("dinosaurs").length).toBeGreaterThanOrEqual(2);

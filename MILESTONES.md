@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog Required Contract Rendering
+
+Milestone:
+- Builder CLI catalog summaries now render each tool's `requiredContracts`.
+- Service CLI catalog summaries now render the same required contract names from `catalog.tools`.
+- The Studio Developer catalog view now surfaces required contract dependencies for callable builder actions.
+
+Supportive changes:
+- Builder CLI, service CLI, and Studio UI tests verify required-contract text in agent-facing catalog views.
+- Source scans guard `tool.requiredContracts.join` usage in CLI catalog summaries and documented surfaced per-action required contracts.
+- Canonical docs now describe surfaced per-action required contracts as part of the tool catalog.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps required-contract discovery visible through local agent-facing surfaces without hosted providers, generated runtime code, auth, database state, compatibility shims, or UI-local contract dependency prose.
+
 ## 2026-07-04 - Public Contract Name Guard
 
 Milestone:

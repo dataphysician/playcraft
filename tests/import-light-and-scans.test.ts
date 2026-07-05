@@ -275,6 +275,8 @@ describe("import-light boundaries and source scans", () => {
     expect(cliSource).toContain("tool.displayName");
     expect(cliSource).toContain("tool.inputSourceSummary");
     expect(cliSource).toContain("tool.argumentSummary");
+    expect(cliSource).toContain("tool.requiredContracts.join");
+    expect(cliSource).toContain("contracts:");
     expect(cliSource).toContain("catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel)");
     expect(cliSource).not.toContain("catalog.templates.map((template) => template.id)");
     expect(cliSource).not.toContain("catalog.tools.map((tool) => tool.toolName)");
@@ -301,9 +303,9 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("PublicContractSchemas: Record<PublicContractName, z.ZodTypeAny>");
     expect(contractSource).not.toContain("requiredContracts: z.array(z.string().min(1)).min(1)");
     expect(contractSource).toContain("argumentSummary: z.string()");
-    expect(rootReadme).toContain("per-action required contracts");
-    expect(architecture).toContain("per-action required contracts");
-    expect(frameworkReadme).toContain("per-action required contracts");
+    expect(rootReadme).toContain("surfaced per-action required contracts");
+    expect(architecture).toContain("surfaced per-action required contracts");
+    expect(frameworkReadme).toContain("surfaced per-action required contracts");
     expect(builderSource).toContain("builderToolRequiredContracts");
     expect(builderSource).toContain('"export-profile": ["BuilderCommandSchema", "BuilderProfileExportSchema"]');
     expect(builderSource).toContain('"import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]');
@@ -319,6 +321,7 @@ describe("import-light boundaries and source scans", () => {
     expect(builderTestSource).toContain('"import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]');
     expect(builderTestSource).toContain("ALL_BUILDER_COMMAND_PAYLOAD_FIELDS");
     expect(builderTestSource).toContain("BuilderCommandSchema.safeParse");
+    expect(builderCliSource).toContain("tool.requiredContracts.join");
     expect(builderCliSource).toContain("writeCatalogSummary(handler.listTools(), handler.listTemplates(), io)");
     expect(builderCliSource).toContain("get-session|export-profile|import-profile");
     expect(builderCliSource).toContain('case "import-profile"');
@@ -326,6 +329,7 @@ describe("import-light boundaries and source scans", () => {
     expect(builderCliSource).toContain("import-profile requires --profile-json");
     expect(builderCliSource).toContain("tool.displayName");
     expect(builderCliSource).toContain("tool.argumentSummary");
+    expect(builderCliSource).toContain("contracts:");
     expect(builderCliSource).toContain("template.displayLabel");
     expect(builderCliSource).toContain("template.exampleRequest");
     expect(builderCliSource).toContain("template.requestAliasSummary");

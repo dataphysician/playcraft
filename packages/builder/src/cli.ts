@@ -201,7 +201,7 @@ function writeCatalogSummary(
 ): void {
   io.stdout("tools:");
   for (const tool of tools) {
-    io.stdout(`- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${tool.argumentSummary}`);
+    io.stdout(`- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${tool.argumentSummary}; contracts: ${tool.requiredContracts.join(", ")}`);
   }
 
   io.stdout("templates:");

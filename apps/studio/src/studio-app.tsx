@@ -464,7 +464,8 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               React.createElement("strong", null, tool.toolName),
               React.createElement("span", { style: shellStyles.catalogMeta }, tool.actionName),
               React.createElement("span", { style: shellStyles.catalogMeta }, tool.inputSourceSummary),
-              React.createElement("span", { style: shellStyles.catalogMeta }, tool.argumentSummary)
+              React.createElement("span", { style: shellStyles.catalogMeta }, tool.argumentSummary),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `contracts: ${tool.requiredContracts.join(", ")}`)
             )
           )
         )

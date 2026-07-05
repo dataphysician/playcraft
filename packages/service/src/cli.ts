@@ -355,7 +355,7 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   io.stdout("tools:");
   for (const tool of catalog.tools) {
     io.stdout(
-      `- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${tool.inputSourceSummary}; ${tool.argumentSummary}`
+      `- ${tool.displayName} [${tool.toolName} -> ${tool.actionName}] ${tool.inputSourceSummary}; ${tool.argumentSummary}; contracts: ${tool.requiredContracts.join(", ")}`
     );
   }
 

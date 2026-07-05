@@ -652,8 +652,8 @@ describe("builder session service", () => {
     expect(stderr).toEqual([]);
     expect(stdout).toEqual(expect.arrayContaining([
       "tools:",
-      "- Assemble Game [tool:assemble-game -> assemble-game] args: assetEdit:object, input:object, sessionId:string, templateId*:string",
-      "- Preview Action [tool:preview-action -> preview-action] args: interaction*:object, sessionId*:string",
+      "- Assemble Game [tool:assemble-game -> assemble-game] args: assetEdit:object, input:object, sessionId:string, templateId*:string; contracts: BuilderCommandSchema, BuilderInputRequestSchema, GameTemplateDefinitionSchema",
+      "- Preview Action [tool:preview-action -> preview-action] args: interaction*:object, sessionId*:string; contracts: BuilderCommandSchema, BuilderPreviewStateSchema",
       "templates:",
       "- Memory Match [template.memory-match] try: Memory game; aliases: memory, memory game, memory match"
     ]));
