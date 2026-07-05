@@ -434,6 +434,9 @@ describe("import-light boundaries and source scans", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
 
     expect(contractSource).toContain("BuilderInputSourceOptionSchema");
+    expect(contractSource).toContain("builderActionAcceptsInput");
+    expect(contractSource).toContain("builderToolInputSourceSummaryFor");
+    expect(contractSource).toContain("builder action ${value.actionName} must not accept text or transcript input");
     expect(contractSource).toContain("noInputLabel: z.string()");
     expect(contractSource).toContain("sourceOptions: z.array(BuilderInputSourceOptionSchema)");
     expect(contractSource).toContain("addDuplicateBuilderInputSourceIssues");
@@ -443,6 +446,7 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("argumentSummary: z.string()");
     expect(contractSource).not.toContain("BuilderToolPresentationSchema");
     expect(contractSource).not.toContain("toolPresentation");
+    expect(readSource("packages/contracts/test/schemas.test.ts")).toContain("keeps builder tool input source metadata aligned with action input ownership");
     expect(serviceSource).toContain("sourceOptions");
     expect(serviceSource).toContain('noInputLabel: "none"');
     expect(serviceSource).toContain('displayLabel: "Text"');

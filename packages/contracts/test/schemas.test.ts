@@ -733,8 +733,8 @@ describe("public contract schemas", () => {
         allowUnknown: false
       },
       argumentSummary: "args: templateId*:string",
-      acceptedInputSources: ["text"],
-      inputSourceSummary: "input: Text",
+      acceptedInputSources: ["text", "moonshine-transcript"],
+      inputSourceSummary: "input: Text, Transcript",
       localOnly: true,
       emittedEvents: ["builder:profile-ready"],
       requiredContracts: ["BuilderCommandSchema", "GameTemplateDefinitionSchema"]
@@ -757,11 +757,77 @@ describe("public contract schemas", () => {
         allowUnknown: false
       },
       argumentSummary: "args: templateId*:string",
-      acceptedInputSources: ["text"],
-      inputSourceSummary: "input: Text",
+      acceptedInputSources: ["text", "moonshine-transcript"],
+      inputSourceSummary: "input: Text, Transcript",
       localOnly: true,
       emittedEvents: ["builder:profile-ready"],
       requiredContracts: ["MissingContractSchema"]
+    }).success).toBe(false);
+  });
+
+  it("keeps builder tool input source metadata aligned with action input ownership", () => {
+    const validAssembleTool = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-tool.input-source.valid",
+      version: "1.0.0",
+      kind: "builder-tool",
+      toolName: "tool:assemble-game",
+      displayName: "Assemble game",
+      description: "Assemble a game from a registered template.",
+      actionName: "assemble-game",
+      argumentsSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        type: "object",
+        fields: {
+          templateId: { type: "string", required: true }
+        },
+        allowUnknown: false
+      },
+      argumentSummary: "args: templateId*:string",
+      acceptedInputSources: ["text", "moonshine-transcript"],
+      inputSourceSummary: "input: Text, Transcript",
+      localOnly: true,
+      emittedEvents: ["builder:profile-ready"],
+      requiredContracts: ["BuilderCommandSchema"]
+    };
+    const validNonInputTool = {
+      ...validAssembleTool,
+      id: "builder-tool.input-source.list",
+      toolName: "tool:list-builder-tools",
+      displayName: "List builder tools",
+      description: "List local builder tools.",
+      actionName: "list-builder-tools",
+      argumentsSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        type: "object",
+        fields: {},
+        allowUnknown: false
+      },
+      argumentSummary: "args: none",
+      acceptedInputSources: [],
+      inputSourceSummary: "input: none",
+      requiredContracts: ["BuilderToolDefinitionSchema"]
+    };
+
+    expect(PublicContractSchemas.BuilderToolDefinitionSchema.safeParse(validAssembleTool).success).toBe(true);
+    expect(PublicContractSchemas.BuilderToolDefinitionSchema.safeParse(validNonInputTool).success).toBe(true);
+    expect(PublicContractSchemas.BuilderToolDefinitionSchema.safeParse({
+      ...validAssembleTool,
+      acceptedInputSources: ["text", "text", "moonshine-transcript"]
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderToolDefinitionSchema.safeParse({
+      ...validAssembleTool,
+      acceptedInputSources: ["text"],
+      inputSourceSummary: "input: Text"
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderToolDefinitionSchema.safeParse({
+      ...validNonInputTool,
+      acceptedInputSources: ["text"],
+      inputSourceSummary: "input: Text"
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderToolDefinitionSchema.safeParse({
+      ...validAssembleTool,
+      inputSourceSummary: "input: Transcript, Text"
     }).success).toBe(false);
   });
 
@@ -1482,8 +1548,8 @@ describe("public contract schemas", () => {
         allowUnknown: false
       },
       argumentSummary: "args: templateId*:string",
-      acceptedInputSources: ["text"],
-      inputSourceSummary: "input: Text",
+      acceptedInputSources: ["text", "moonshine-transcript"],
+      inputSourceSummary: "input: Text, Transcript",
       localOnly: true,
       emittedEvents: ["builder:profile-ready"],
       requiredContracts: ["BuilderCommandSchema"]
@@ -1552,7 +1618,7 @@ describe("public contract schemas", () => {
           defaultTemplateId: "template.memory-match",
           templates: gameTemplateDefinitions,
           tools: [builderTool],
-          acceptedInputSources: ["text"],
+          acceptedInputSources: ["text", "moonshine-transcript"],
           assetEdit: {
             supported: true,
             acceptedKeys: ["theme"],

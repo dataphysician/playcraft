@@ -736,8 +736,55 @@ export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
   localOnly: z.boolean(),
   emittedEvents: z.array(CapabilityTagSchema).default([]),
   requiredContracts: z.array(PublicContractNameSchema).min(1)
-}).strict();
+}).strict()
+  .superRefine((value, context) => {
+    addDuplicateBuilderInputSourceIssues(context, value.acceptedInputSources, ["acceptedInputSources"]);
+
+    const acceptsInput = builderActionAcceptsInput(value.actionName);
+    if (acceptsInput) {
+      for (const source of BuilderInputSourceSchema.options) {
+        if (!value.acceptedInputSources.includes(source)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `builder input action ${value.actionName} must accept ${source}`,
+            path: ["acceptedInputSources"]
+          });
+        }
+      }
+    } else if (value.acceptedInputSources.length > 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `builder action ${value.actionName} must not accept text or transcript input`,
+        path: ["acceptedInputSources"]
+      });
+    }
+
+    const expectedSummary = builderToolInputSourceSummaryFor(value.acceptedInputSources);
+    if (value.inputSourceSummary !== expectedSummary) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `builder tool input source summary must be ${expectedSummary}`,
+        path: ["inputSourceSummary"]
+      });
+    }
+  });
 export type BuilderToolDefinition = z.infer<typeof BuilderToolDefinitionSchema>;
+
+function builderActionAcceptsInput(actionName: z.infer<typeof BuilderActionNameSchema>): boolean {
+  return actionName === "assemble-game" || actionName === "update-game";
+}
+
+function builderToolInputSourceSummaryFor(sources: z.infer<typeof BuilderInputSourceSchema>[]): string {
+  if (sources.length === 0) {
+    return "input: none";
+  }
+
+  const labels: Record<z.infer<typeof BuilderInputSourceSchema>, string> = {
+    text: "Text",
+    "moonshine-transcript": "Transcript"
+  };
+  return `input: ${sources.map((source) => labels[source]).join(", ")}`;
+}
 
 export const BuilderAssetEditCatalogEntrySchema = z
   .object({

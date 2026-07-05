@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Builder Tool Input Sources Are Action-Owned
+
+Milestone:
+- `BuilderToolDefinitionSchema` now validates input-source ownership by action: assemble/update tools must expose both local text and Moonshine transcript input, while preview/catalog/session/profile tools must expose no text input.
+- Tool input summaries now have to match the declared `acceptedInputSources`, preventing CLI and Studio catalogs from displaying contradictory input affordances.
+
+Supportive changes:
+- Contract tests cover valid assemble and preview tool metadata plus duplicate input sources, text-only assemble metadata, non-input tools advertising input, and mismatched summaries.
+- Source scans guard the action-owned input-source helper, summary helper, and test coverage.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps agent-facing builder tools explicit for the local text and Moonshine Streaming CPU input surface without hosted providers, generated runtime code, auth, database state, compatibility shims, or tool input-summary drift.
+
 ## 2026-07-05 - Catalog Input Sources Align With Options
 
 Milestone:
