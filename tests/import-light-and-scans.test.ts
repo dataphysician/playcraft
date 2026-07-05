@@ -569,7 +569,9 @@ describe("import-light boundaries and source scans", () => {
 
     expect(source).toContain("function textForServiceRequest(request: BuilderServiceRequest): string");
     expect(source).toContain("throw new Error(`${request.actionName} requests require text or a Moonshine transcript record`)");
+    expect(source).toContain("moonshine-transcript input requires a Moonshine transcript record");
     expect(source).not.toContain("request.moonshineTranscript?.text ?? request.text ?? \"\"");
+    expect(source).not.toContain("moonshineTranscript?.text ?? input.text");
   });
 
   it("keeps service execution results from preserving stale active template ids", () => {

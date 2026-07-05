@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Source-Owned Builder Input Text
+
+Milestone:
+- `createBuilderInputRequest` now branches by declared input source instead of using transcript/text precedence.
+- `moonshine-transcript` input construction fails explicitly when the Moonshine transcript record is missing.
+- Text input construction uses the supplied text directly and never borrows transcript text.
+
+Supportive changes:
+- Service tests continue to reject transcript-sourced requests without Moonshine transcript records.
+- Source scans block the removed `moonshineTranscript?.text ?? input.text` fallback expression.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps local text and Moonshine Streaming CPU inputs source-owned without hosted providers, generated runtime code, auth, database state, compatibility shims, or transcript/text precedence recovery.
+
 ## 2026-07-04 - Required Profile Template Snapshots Contract
 
 Milestone:

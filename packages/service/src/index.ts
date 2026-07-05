@@ -707,11 +707,15 @@ export function createBuilderInputRequest(input: {
   moonshineTranscript?: MoonshineTranscriptRecord;
   text: string;
 }): BuilderInputRequest {
-  const moonshineTranscript =
-    input.source === "moonshine-transcript"
-      ? input.moonshineTranscript
-      : undefined;
-  const text = moonshineTranscript?.text ?? input.text;
+  let moonshineTranscript: MoonshineTranscriptRecord | undefined;
+  let text = input.text;
+  if (input.source === "moonshine-transcript") {
+    if (!input.moonshineTranscript) {
+      throw new Error("moonshine-transcript input requires a Moonshine transcript record");
+    }
+    moonshineTranscript = input.moonshineTranscript;
+    text = moonshineTranscript.text;
+  }
 
   return BuilderInputRequestSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
