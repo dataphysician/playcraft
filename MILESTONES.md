@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Studio Timeline Selection
+
+Milestone:
+- Studio Developer timeline detail selection now uses an exact selected-id match instead of a first-match timeline lookup.
+- Duplicate selected timeline ids now render the existing unavailable state rather than showing the first duplicate event detail.
+
+Supportive changes:
+- Source scans guard filtered exact timeline lookup and block the old `session.timeline.find` selected-entry path.
+- Studio UI tests cover duplicate selected timeline ids without showing either duplicate detail.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Studio developer inspection local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match timeline selection.
+
 ## 2026-07-05 - Exact Live App Memory Card Lookup
 
 Milestone:

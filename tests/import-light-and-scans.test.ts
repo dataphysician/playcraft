@@ -831,12 +831,19 @@ describe("import-light boundaries and source scans", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
 
     expect(studioSource).toContain("function selectedTimelineEntry");
+    expect(studioSource).toContain("function singleValue");
+    expect(studioSource).toContain("const matches = session.timeline.filter((entry) => entry.id === selectedTimelineId);");
     expect(studioSource).toContain("function latestTimelineEntryId");
     expect(studioSource).toContain("function initialTimelineEntryId");
+    expect(studioSource).toContain("function timelineEntryRenderKey");
+    expect(studioSource).toContain("{ key: timelineEntryRenderKey(entry, index) }");
     expect(studioSource).toContain("Selected timeline event is not available.");
+    expect(studioSource).not.toContain("session.timeline.find((entry) => entry.id === selectedTimelineId)");
+    expect(studioSource).not.toContain("{ key: entry.id }");
     expect(studioSource).not.toContain("?? session?.timeline.at(-1)");
     expect(studioSource).not.toContain("timeline.at(-1)?.id");
     expect(studioSource).not.toContain("initialSession?.timeline[0]?.id");
+    expect(readSource("tests/studio-ui.test.ts")).toContain("does not show the first duplicate timeline detail for duplicate selected ids");
   });
 
   it("keeps service event serialization schema-first and non-coercive", () => {

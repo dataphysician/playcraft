@@ -563,6 +563,29 @@ describe("studio UI", () => {
     expect(screen.getByText(/tool:reveal-card/u)).toBeDefined();
   });
 
+  it("does not show the first duplicate timeline detail for duplicate selected ids", () => {
+    render(
+      React.createElement(StudioApp, {
+        client: createLocalStudioClient(),
+        initialSession: {
+          sessionId: "session.duplicate-timeline",
+          activeProfileId: profileA.id,
+          activeProfile: profileA,
+          timeline: [
+            timelineEntry("timeline.duplicate", "First duplicate timeline", "activity", profileA.id),
+            timelineEntry("timeline.duplicate", "Second duplicate timeline", "activity", profileA.id)
+          ]
+        }
+      })
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+
+    expect(screen.getByText("Selected timeline event is not available.")).toBeDefined();
+    expect(screen.queryByText("First duplicate timeline detail")).toBeNull();
+    expect(screen.queryByText("Second duplicate timeline detail")).toBeNull();
+  });
+
   it("assembles a profile, shows trusted preview metadata, updates it, and records preview interactions", async () => {
     const assembleFromIntent = vi.fn<StudioClient["assembleFromIntent"]>().mockResolvedValue({
       sessionId: "session.demo",

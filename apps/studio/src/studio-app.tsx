@@ -874,10 +874,10 @@ function TimelinePanel({
     React.createElement(
       "ol",
       { style: shellStyles.timelineList },
-      ...(session?.timeline.map((entry) =>
+      ...(session?.timeline.map((entry, index) =>
         React.createElement(
           "li",
-          { key: entry.id },
+          { key: timelineEntryRenderKey(entry, index) },
           React.createElement(
             "button",
             {
@@ -917,6 +917,10 @@ function latestTimelineEntryId(session: StudioSessionSnapshot): string | undefin
   return entry?.id;
 }
 
+function timelineEntryRenderKey(entry: StudioTimelineEntry, index: number): string {
+  return `${entry.id}:${index}`;
+}
+
 function selectedTimelineEntry(
   session: StudioSessionSnapshot | undefined,
   selectedTimelineId: string | undefined
@@ -925,12 +929,17 @@ function selectedTimelineEntry(
     return undefined;
   }
 
-  return session.timeline.find((entry) => entry.id === selectedTimelineId);
+  const matches = session.timeline.filter((entry) => entry.id === selectedTimelineId);
+  return singleValue(matches);
 }
 
 function primaryPreviewComponentKey(componentSummaries: TrustedPreviewComponentSummary[]): string | undefined {
   const primarySummaries = componentSummaries.filter((component) => component.isPrimaryPreviewSurface);
   return primarySummaries.length === 1 ? primarySummaries[0].componentKey : undefined;
+}
+
+function singleValue<TValue>(values: TValue[]): TValue | undefined {
+  return values.length === 1 ? values[0] : undefined;
 }
 
 function synchronousCatalog(client: StudioClient): BuilderCatalog | undefined {
