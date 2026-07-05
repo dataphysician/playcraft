@@ -304,11 +304,19 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps Studio service execution responses session-owned", () => {
     const source = readSource("apps/studio/src/local-client.ts");
+    const appSource = readSource("apps/studio/src/studio-app.tsx");
+    const typesSource = readSource("apps/studio/src/types.ts");
 
     expect(source).toContain("response did not include session snapshot");
     expect(source).toContain("response.session.activeProfileId");
+    expect(source).toContain("activeProfile: response.session.profile");
+    expect(typesSource).toContain("activeProfile?: GameAssemblyProfile");
+    expect(appSource).toContain("const activeProfile = session?.activeProfile");
     expect(source).not.toContain("response.session?.activeProfileId");
     expect(source).not.toContain("response.execution.result.profile?.id");
+    expect(appSource).not.toContain("function findActiveProfile");
+    expect(appSource).not.toContain("session.profiles.find((profile) => profile.id === session.activeProfileId)");
+    expect(appSource).not.toContain("session.profiles.at(-1)");
   });
 
   it("keeps Studio profile imports targeted to explicit active sessions", () => {

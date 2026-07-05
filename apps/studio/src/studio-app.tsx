@@ -45,7 +45,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const [profileImportText, setProfileImportText] = React.useState("");
   const [profileTransferStatus, setProfileTransferStatus] = React.useState<string | null>(null);
 
-  const activeProfile = session ? findActiveProfile(session) : undefined;
+  const activeProfile = session?.activeProfile;
   const selectedEntry = session?.timeline.find((entry) => entry.id === selectedTimelineId) ?? session?.timeline.at(-1);
   const componentSummaries = React.useMemo(() => {
     if (!activeProfile) {
@@ -181,13 +181,13 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
       setSession(nextSession);
       setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
       setActiveTab("developer");
-      setProfileTransferStatus(`Imported ${findActiveProfile(nextSession)?.profileName ?? "profile"}.`);
+      setProfileTransferStatus(`Imported ${nextSession.activeProfile?.profileName ?? "profile"}.`);
       setMessages((current) => [
         ...current,
         {
           id: `message.studio.${current.length + 1}`,
           speaker: "Studio",
-          text: `Imported ${findActiveProfile(nextSession)?.profileName ?? "profile"} from profile export.`
+          text: `Imported ${nextSession.activeProfile?.profileName ?? "profile"} from profile export.`
         }
       ]);
     } catch (cause) {
@@ -822,10 +822,6 @@ function TimelinePanel({
   );
 }
 
-function findActiveProfile(session: StudioSessionSnapshot): GameAssemblyProfile | undefined {
-  return session.profiles.find((profile) => profile.id === session.activeProfileId) ?? session.profiles.at(-1);
-}
-
 function synchronousCatalog(client: StudioClient): BuilderCatalog | undefined {
   if (!client.catalog) {
     return undefined;
@@ -844,7 +840,7 @@ function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
 }
 
 function chatSummaryForSession(mode: PendingCommand, session: StudioSessionSnapshot): string {
-  const profile = findActiveProfile(session);
+  const profile = session.activeProfile;
   const profileName = profile?.profileName ?? "game";
   const assetTheme = session.activeAssetEdit?.theme ?? session.activeAssetEdit?.items?.join(", ");
   const action = mode === "generate" ? "Generated" : "Updated";

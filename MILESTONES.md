@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Studio Active Profile Selection
+
+Milestone:
+- Studio sessions now carry `activeProfile` explicitly from the service session snapshot.
+- The Studio Live App and Developer views render `session.activeProfile` instead of inferring from profile-list order.
+- Stale or incomplete Studio sessions now fail closed instead of displaying the last available profile as active.
+
+Supportive changes:
+- Studio UI tests verify transport-backed clients populate the active profile and stale profile lists do not render as active games.
+- Source scans now block the removed `findActiveProfile` profile-list fallback and require `activeProfile` to come from `response.session.profile`.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key literal scan returned no matches.
+
+Constraint notes:
+- Keeps user-facing profile selection session-owned and forward-only without UI-local profile ordering heuristics, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Contract-Owned Builder Tool Presentation
 
 Milestone:

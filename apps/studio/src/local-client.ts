@@ -81,6 +81,7 @@ export function createStudioClientFromServiceTransport(options: {
       activeAssetEdit: response.session.activeAssetEdit,
       sessionId,
       activeProfileId: response.session.activeProfileId,
+      activeProfile: response.session.profile,
       profiles: Array.from(profiles.values()),
       timeline: [...timeline]
     };

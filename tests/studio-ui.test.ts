@@ -167,6 +167,7 @@ describe("studio UI", () => {
     });
     expect(requests[0]?.source).toBeUndefined();
     expect(session.activeProfileId).toBe("profile.sequence-repeat.mvp");
+    expect(session.activeProfile?.id).toBe("profile.sequence-repeat.mvp");
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.studio-client"))).toBe(true);
   });
 
@@ -445,6 +446,7 @@ describe("studio UI", () => {
     const assembleFromIntent = vi.fn<StudioClient["assembleFromIntent"]>().mockResolvedValue({
       sessionId: "session.demo",
       activeProfileId: profileA.id,
+      activeProfile: profileA,
       profiles: [profileA],
       timeline: [
         timelineEntry("timeline.1", "Run started", "lifecycle"),
@@ -455,6 +457,7 @@ describe("studio UI", () => {
     const requestChange = vi.fn<StudioClient["requestChange"]>().mockResolvedValue({
       sessionId: "session.demo",
       activeProfileId: profileB.id,
+      activeProfile: profileB,
       profiles: [profileA, profileB],
       timeline: [
         timelineEntry("timeline.1", "Run started", "lifecycle"),
@@ -532,21 +535,29 @@ describe("studio UI", () => {
     expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
     expect(screen.queryByLabelText("Chat history")).toBeNull();
 
-    fireEvent.click(toy1A);
-    fireEvent.click(toy1B);
+    fireEvent.click(screen.getByRole("button", { name: "toy-1-a" }));
+    fireEvent.click(screen.getByRole("button", { name: "toy-1-b" }));
     await waitFor(() => expect(screen.getByText("1 of 2 pairs")).toBeDefined());
-    fireEvent.click(toy2A);
-    fireEvent.click(toy2B);
+    fireEvent.click(screen.getByRole("button", { name: "toy-2-a" }));
+    fireEvent.click(screen.getByRole("button", { name: "toy-2-b" }));
     await waitFor(() => expect(screen.getByText("All pairs found")).toBeDefined());
     await waitFor(() => {
-      expect(toy1A.style.background).toBe(toy1B.style.background);
-      expect(toy2A.style.background).toBe(toy2B.style.background);
+      expect(screen.getByRole("button", { name: "toy-1-a" }).style.background).toBe(
+        screen.getByRole("button", { name: "toy-1-b" }).style.background
+      );
+      expect(screen.getByRole("button", { name: "toy-2-a" }).style.background).toBe(
+        screen.getByRole("button", { name: "toy-2-b" }).style.background
+      );
     });
-    expect(toy1A.style.borderColor).toBe(toy1B.style.borderColor);
-    expect(toy2A.style.borderColor).toBe(toy2B.style.borderColor);
-    expect(toy1A.style.background).not.toBe(toy2A.style.background);
-    expect(toy1A.textContent).toContain("T1");
-    expect(toy2A.textContent).toContain("T2");
+    const revealedToy1A = screen.getByRole("button", { name: "toy-1-a" });
+    const revealedToy1B = screen.getByRole("button", { name: "toy-1-b" });
+    const revealedToy2A = screen.getByRole("button", { name: "toy-2-a" });
+    const revealedToy2B = screen.getByRole("button", { name: "toy-2-b" });
+    expect(revealedToy1A.style.borderColor).toBe(revealedToy1B.style.borderColor);
+    expect(revealedToy2A.style.borderColor).toBe(revealedToy2B.style.borderColor);
+    expect(revealedToy1A.style.background).not.toBe(revealedToy2A.style.background);
+    expect(revealedToy1A.textContent).toContain("T1");
+    expect(revealedToy2A.textContent).toContain("T2");
 
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
     expect(await screen.findByLabelText("Chat history")).toBeDefined();
@@ -555,14 +566,16 @@ describe("studio UI", () => {
   });
 
   it("summarizes active asset edits from service session state instead of profile prompts", async () => {
+    const activeProfile = {
+      ...profileA,
+      assetRequests: []
+    };
     const client: StudioClient = {
       assembleFromIntent: () => ({
         activeAssetEdit: { theme: "dinosaurs" },
         activeProfileId: "profile.memory-match.mvp",
-        profiles: [{
-          ...profileA,
-          assetRequests: []
-        }],
+        activeProfile,
+        profiles: [activeProfile],
         sessionId: "session.summary",
         timeline: []
       }),
@@ -577,6 +590,29 @@ describe("studio UI", () => {
     fireEvent.click(await screen.findByRole("tab", { name: "Developer" }));
 
     expect(await screen.findByText("Generated Memory Match MVP with dinosaurs assets.")).toBeDefined();
+  });
+
+  it("does not infer the active profile from profile list order", () => {
+    const client: StudioClient = {
+      assembleFromIntent: () => {
+        throw new Error("not used");
+      },
+      requestChange: () => {
+        throw new Error("not used");
+      }
+    };
+    render(React.createElement(StudioApp, {
+      client,
+      initialSession: {
+        activeProfileId: profileA.id,
+        profiles: [profileA],
+        sessionId: "session.stale-active-profile",
+        timeline: []
+      }
+    }));
+
+    expect(screen.queryByText("Memory Match MVP")).toBeNull();
+    expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
   });
 
   it("uses explicit memory pairs instead of card id suffix heuristics", async () => {
