@@ -350,7 +350,19 @@ describe("builder session service", () => {
       },
       sessionId: "session.custom-memory-undercovered",
       templateId: "template.memory-match"
-    }))).toThrow(/memory-pairs requires at least 3 asset edit items for authored pairs/u);
+    }))).toThrow(/memory-pairs explicit asset edit items require exactly 3 items for authored pairs/u);
+  });
+
+  it("rejects explicit memory asset edits with unused extra items instead of dropping them", () => {
+    const service = new PlaycraftBuilderSessionService();
+
+    expect(() => service.execute(command({
+      templateId: "template.memory-match",
+      assetEdit: {
+        theme: "space",
+        items: ["rocket", "moon", "star"]
+      }
+    }))).toThrow(/memory-pairs explicit asset edit items require exactly 2 items for authored pairs/u);
   });
 
   it("keeps sorting targets in sync when asset edits rename items", () => {
@@ -400,6 +412,18 @@ describe("builder session service", () => {
     }))).toThrow(/sorting-items requires non-empty string array prop bins/u);
   });
 
+  it("rejects explicit sorting asset edits with unused extra items instead of dropping them", () => {
+    const service = new PlaycraftBuilderSessionService();
+
+    expect(() => service.execute(command({
+      templateId: "template.sorting",
+      assetEdit: {
+        theme: "custom toys",
+        items: ["red toy", "blue toy", "green toy"]
+      }
+    }))).toThrow(/sorting-items explicit asset edit items require exactly 2 items for bins red, blue/u);
+  });
+
   it("keeps sequence rounds in sync when asset edits rename tokens", () => {
     const service = new PlaycraftBuilderSessionService();
     const edited = service.execute(command({ templateId: "template.sequence-repeat", assetEdit: { theme: "gems" } }));
@@ -424,7 +448,19 @@ describe("builder session service", () => {
         theme: "custom gems",
         items: ["ruby", "sapphire"]
       }
-    }))).toThrow(/sequence-items requires at least 3 asset edit items for sequence tokens green, yellow, blue/u);
+    }))).toThrow(/sequence-items explicit asset edit items require exactly 3 items for sequence tokens green, yellow, blue/u);
+  });
+
+  it("rejects explicit sequence asset edits with unused extra items instead of dropping them", () => {
+    const service = new PlaycraftBuilderSessionService();
+
+    expect(() => service.execute(command({
+      templateId: "template.sequence-repeat",
+      assetEdit: {
+        theme: "custom gems",
+        items: ["ruby", "sapphire", "emerald", "opal"]
+      }
+    }))).toThrow(/sequence-items explicit asset edit items require exactly 3 items for sequence tokens green, yellow, blue/u);
   });
 
   it("rejects sequence asset edits when imported profiles do not author sequence props", () => {

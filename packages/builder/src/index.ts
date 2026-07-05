@@ -745,6 +745,7 @@ interface NormalizedAssetEdit {
   theme: string;
   singularTheme: string;
   items: string[];
+  itemsSource: "explicit" | "catalog" | "freeform";
 }
 
 function applyAssetEdit(
@@ -805,11 +806,13 @@ function normalizeAssetEdit(assetEdit: BuilderAssetEdit | undefined): Normalized
   const normalizedTheme = theme || items.join(" ");
   const singularTheme = singularize(normalizedTheme);
   const catalogEntry = assetEditCatalogEntryFor(normalizedTheme);
+  const itemsSource = parsedAssetEdit.items ? "explicit" : catalogEntry ? "catalog" : "freeform";
 
   return {
     theme: normalizedTheme,
     singularTheme,
-    items: items.length > 0 ? items : catalogEntry?.suggestedItems ?? freeformItemsForTheme(singularTheme)
+    items: items.length > 0 ? items : catalogEntry?.suggestedItems ?? freeformItemsForTheme(singularTheme),
+    itemsSource
   };
 }
 
@@ -850,7 +853,7 @@ function editComponentProps(
     case "sequence-items":
       const sourceSequence = requireStringArrayProp(props, "sequence", "sequence-items");
       const sourceRounds = requireStringMatrixProp(props, "rounds", "sequence-items");
-      const sequenceTokenMap = tokenMapForSequence([...sourceSequence, ...sourceRounds.flat()], edit.items);
+      const sequenceTokenMap = tokenMapForSequence([...sourceSequence, ...sourceRounds.flat()], edit);
       const sequence = remapSequenceTokens(sourceSequence, sequenceTokenMap);
       const rounds = remapSequenceRounds(sourceRounds, sequenceTokenMap);
       return {
@@ -912,7 +915,7 @@ function assetEditItemsForAssetRequests(
       const props = propsForAssetEditOperation(template, profile, "sequence-items");
       const sourceSequence = requireStringArrayProp(props, "sequence", "sequence-items");
       const sourceRounds = requireStringMatrixProp(props, "rounds", "sequence-items");
-      return requireAssetEditItemsForSequence(edit.items, [...sourceSequence, ...sourceRounds.flat()]);
+      return requireAssetEditItemsForSequence(edit, [...sourceSequence, ...sourceRounds.flat()]);
     }
     case "general-game":
       return edit.items;
@@ -947,6 +950,10 @@ function pairedCardIds(edit: NormalizedAssetEdit, pairCount: number): string[] {
 }
 
 function requireAssetEditItemsForMemoryPairs(edit: NormalizedAssetEdit, pairCount: number): string[] {
+  if (edit.itemsSource === "explicit" && edit.items.length !== pairCount) {
+    throw new Error(`memory-pairs explicit asset edit items require exactly ${pairCount} items for authored pairs`);
+  }
+
   if (edit.items.length < pairCount) {
     throw new Error(`memory-pairs requires at least ${pairCount} asset edit items for authored pairs`);
   }
@@ -1008,6 +1015,10 @@ function freeformItemsForTheme(singularTheme: string): string[] {
 }
 
 function requireAssetEditItemsForBins(edit: NormalizedAssetEdit, bins: string[]): string[] {
+  if (edit.itemsSource === "explicit" && edit.items.length !== bins.length) {
+    throw new Error(`sorting-items explicit asset edit items require exactly ${bins.length} items for bins ${bins.join(", ")}`);
+  }
+
   if (edit.items.length < bins.length) {
     throw new Error(`sorting-items requires at least ${bins.length} asset edit items for bins ${bins.join(", ")}`);
   }
@@ -1015,13 +1026,17 @@ function requireAssetEditItemsForBins(edit: NormalizedAssetEdit, bins: string[])
   return edit.items.slice(0, bins.length);
 }
 
-function requireAssetEditItemsForSequence(items: string[], tokens: string[]): string[] {
+function requireAssetEditItemsForSequence(edit: NormalizedAssetEdit, tokens: string[]): string[] {
   const uniqueTokens = uniqueStrings(tokens);
-  if (items.length < uniqueTokens.length) {
+  if (edit.itemsSource === "explicit" && edit.items.length !== uniqueTokens.length) {
+    throw new Error(`sequence-items explicit asset edit items require exactly ${uniqueTokens.length} items for sequence tokens ${uniqueTokens.join(", ")}`);
+  }
+
+  if (edit.items.length < uniqueTokens.length) {
     throw new Error(`sequence-items requires at least ${uniqueTokens.length} asset edit items for sequence tokens ${uniqueTokens.join(", ")}`);
   }
 
-  return items.slice(0, uniqueTokens.length);
+  return edit.items.slice(0, uniqueTokens.length);
 }
 
 function remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>): string[] {
@@ -1032,9 +1047,9 @@ function remapSequenceRounds(rounds: string[][], tokenMap: Map<string, string>):
   return rounds.map((round) => round.map((token) => tokenMap.get(token) ?? token));
 }
 
-function tokenMapForSequence(tokens: string[], items: string[]): Map<string, string> {
+function tokenMapForSequence(tokens: string[], edit: NormalizedAssetEdit): Map<string, string> {
   const uniqueTokens = uniqueStrings(tokens);
-  const sequenceItems = requireAssetEditItemsForSequence(items, tokens);
+  const sequenceItems = requireAssetEditItemsForSequence(edit, tokens);
 
   return new Map(uniqueTokens.map((token, index) => [token, sequenceItems[index]!]));
 }

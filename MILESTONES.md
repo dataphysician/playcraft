@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Explicit Asset Edit Items
+
+Milestone:
+- Builder asset edits now distinguish explicit agent-supplied item lists from catalog and freeform theme item pools.
+- Explicit `assetEdit.items` must match the authored profile shape exactly for memory pairs, sorting bins, and sequence tokens instead of silently dropping unused extras.
+
+Supportive changes:
+- Catalog and freeform themes can still provide broader local asset pools while profile-specific prompts and props select the needed subset.
+- Builder tests cover under-specified and over-specified explicit item lists, and source scans require explicit/catalog/freeform item-source handling.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps agent asset requests deterministic and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or silent loss of explicitly requested asset items.
+
 ## 2026-07-05 - Explicit Featured Request Tip Games
 
 Milestone:
