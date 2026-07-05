@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Explicit Studio Timeline Detail Selection
+
+Milestone:
+- Studio Developer timeline detail rendering now shows only the explicitly selected timeline event.
+- Stale or missing selected timeline ids now surface a visible status instead of falling back to the latest timeline event.
+
+Supportive changes:
+- Studio timeline selection now uses named initial, latest, and selected-entry helpers rather than inline timeline indexing fallbacks.
+- Source scans require the explicit timeline selection helpers and block latest-event detail fallback paths.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-stack exact scan confirmed no active removed hosted-runtime markers in source.
+- Studio timeline source scan confirmed explicit helpers and no latest-event detail fallback path.
+
+Constraint notes:
+- Keeps Studio timeline inspection explicit and fail-closed without hosted providers, generated runtime code, auth, database state, compatibility shims, or timeline event-order display fallbacks.
+
 ## 2026-07-04 - Fail-Closed Builder Preview Replay Events
 
 Milestone:

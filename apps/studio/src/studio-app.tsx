@@ -37,7 +37,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const [commandText, setCommandText] = React.useState("");
   const [inputSource, setInputSource] = React.useState<BuilderInputSource>("text");
   const [session, setSession] = React.useState<StudioSessionSnapshot | undefined>(initialSession);
-  const [selectedTimelineId, setSelectedTimelineId] = React.useState<string | undefined>(initialSession?.timeline[0]?.id);
+  const [selectedTimelineId, setSelectedTimelineId] = React.useState<string | undefined>(initialTimelineEntryId(initialSession));
   const [selectedComponentKey, setSelectedComponentKey] = React.useState<string | undefined>();
   const [activeTab, setActiveTab] = React.useState<StudioTab>("live");
   const [pending, setPending] = React.useState<PendingCommand | null>(null);
@@ -51,7 +51,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
   const activeProfile = session?.activeProfile;
   const activeProfileId = activeProfile?.id;
   const selectedComponentProfileIdRef = React.useRef<string | undefined>(activeProfileId);
-  const selectedEntry = session?.timeline.find((entry) => entry.id === selectedTimelineId) ?? session?.timeline.at(-1);
+  const selectedEntry = selectedTimelineEntry(session, selectedTimelineId);
   const componentSummaries = React.useMemo(() => {
     if (!activeProfile) {
       return [];
@@ -126,7 +126,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
 
       const speaker: ChatMessage["speaker"] = source === "moonshine-transcript" ? "Transcript" : "You";
       setSession(nextSession);
-      setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
+      setSelectedTimelineId(latestTimelineEntryId(nextSession));
       setCommandText("");
       setMessages((current) => [
         ...current,
@@ -188,7 +188,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
       const nextSession = await Promise.resolve(client.importProfile({ profileExport, sessionId: session.sessionId }));
       const importedProfile = requireSessionActiveProfile(nextSession, "import-profile");
       setSession(nextSession);
-      setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
+      setSelectedTimelineId(latestTimelineEntryId(nextSession));
       setActiveTab("developer");
       setProfileTransferStatus(`Imported ${importedProfile.profileName}.`);
       setMessages((current) => [
@@ -220,7 +220,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
         sessionId: session.sessionId
       }));
       setSession(nextSession);
-      setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
+      setSelectedTimelineId(latestTimelineEntryId(nextSession));
       setActiveTab("developer");
       setProfileTransferStatus("Ran service preview action.");
     } catch (cause) {
@@ -328,6 +328,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
             profileTransferStatus,
             selectedComponentKey,
             selectedEntry,
+            selectedTimelineId,
             session,
             onExportProfile: handleExportProfile,
             onImportProfile: handleImportProfile,
@@ -367,6 +368,7 @@ function DeveloperPanel({
   profileTransferStatus,
   selectedComponentKey,
   selectedEntry,
+  selectedTimelineId,
   session,
   onExportProfile,
   onImportProfile,
@@ -389,6 +391,7 @@ function DeveloperPanel({
   profileTransferStatus: string | null;
   selectedComponentKey: string | undefined;
   selectedEntry: StudioTimelineEntry | undefined;
+  selectedTimelineId: string | undefined;
   session: StudioSessionSnapshot | undefined;
   onExportProfile: () => void;
   onImportProfile: () => void;
@@ -440,6 +443,7 @@ function DeveloperPanel({
     React.createElement(TimelinePanel, {
       session,
       selectedEntry,
+      selectedTimelineId,
       onSelectTimeline
     })
   );
@@ -814,12 +818,16 @@ function ChatHistoryPanel({ messages }: { messages: ChatMessage[] }): React.Reac
 function TimelinePanel({
   session,
   selectedEntry,
+  selectedTimelineId,
   onSelectTimeline
 }: {
   session: StudioSessionSnapshot | undefined;
   selectedEntry: StudioTimelineEntry | undefined;
+  selectedTimelineId: string | undefined;
   onSelectTimeline: (timelineId: string) => void;
 }): React.ReactElement {
+  const hasTimelineEvents = Boolean(session?.timeline.length);
+
   return React.createElement(
     "aside",
     { style: shellStyles.rightRail },
@@ -852,8 +860,33 @@ function TimelinePanel({
           React.createElement("p", null, selectedEntry.timestamp),
           React.createElement("pre", { style: shellStyles.detailPre }, selectedEntry.detail)
         )
-      : React.createElement("div", { role: "status", style: shellStyles.emptyState }, "Timeline events will appear here.")
+      : React.createElement(
+          "div",
+          { role: "status", style: shellStyles.emptyState },
+          selectedTimelineId && hasTimelineEvents ? "Selected timeline event is not available." : "Timeline events will appear here."
+        )
   );
+}
+
+function initialTimelineEntryId(session: StudioSessionSnapshot | undefined): string | undefined {
+  const [entry] = session?.timeline ?? [];
+  return entry?.id;
+}
+
+function latestTimelineEntryId(session: StudioSessionSnapshot): string | undefined {
+  const [entry] = session.timeline.slice(-1);
+  return entry?.id;
+}
+
+function selectedTimelineEntry(
+  session: StudioSessionSnapshot | undefined,
+  selectedTimelineId: string | undefined
+): StudioTimelineEntry | undefined {
+  if (!session || !selectedTimelineId) {
+    return undefined;
+  }
+
+  return session.timeline.find((entry) => entry.id === selectedTimelineId);
 }
 
 function primaryPreviewComponentKey(componentSummaries: TrustedPreviewComponentSummary[]): string | undefined {

@@ -684,6 +684,18 @@ describe("import-light boundaries and source scans", () => {
     expect(studioSource).toContain("SERVICE_PREVIEW_INTERACTION");
   });
 
+  it("keeps Studio timeline detail selection explicit instead of latest-event fallback", () => {
+    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+
+    expect(studioSource).toContain("function selectedTimelineEntry");
+    expect(studioSource).toContain("function latestTimelineEntryId");
+    expect(studioSource).toContain("function initialTimelineEntryId");
+    expect(studioSource).toContain("Selected timeline event is not available.");
+    expect(studioSource).not.toContain("?? session?.timeline.at(-1)");
+    expect(studioSource).not.toContain("timeline.at(-1)?.id");
+    expect(studioSource).not.toContain("initialSession?.timeline[0]?.id");
+  });
+
   it("keeps service event serialization schema-first and non-coercive", () => {
     const source = readSource("packages/service/src/index.ts");
 
