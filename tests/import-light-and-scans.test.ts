@@ -709,6 +709,7 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("function renderRequestKey(request: ComponentRenderRequest): string");
     expect(source).toContain("return request.id;");
     expect(source).toContain("function renderRequestForSelectedKey");
+    expect(source).toContain("function singleValue");
     expect(source).toContain("renderRequests.filter((request) => renderRequestKey(request) === selectedComponentKey)");
     expect(source).toContain("has multiple trusted preview render requests for selected component");
     expect(source).toContain("function renderRequestForTemplatePrimary");
@@ -721,6 +722,7 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("renderRequestKey(candidate, index)");
     expect(source).not.toContain("return `${request.componentId}.${index}`");
     expect(source).not.toContain("replay.renderRequests[0]");
+    expect(source).not.toContain("return matches[0]");
     expect(studioSource).toContain("component.isPrimaryPreviewSurface");
     expect(studioSource).toContain("function primaryPreviewComponentKey");
     expect(studioSource).toContain("const primarySummaries = componentSummaries.filter((component) => component.isPrimaryPreviewSurface);");
@@ -1583,6 +1585,9 @@ describe("import-light boundaries and source scans", () => {
     expect(rendererSource).toContain("entry.manifest.renderCapability !== request.componentCapability");
     expect(rendererSource).toContain("function duplicateGeneratedAssetIds");
     expect(rendererSource).toContain("duplicate generated asset ids");
+    expect(previewSource).toContain("manifests.filter((candidate) => candidate.id === request.componentId && candidate.version === request.componentVersion)");
+    expect(previewSource).toContain("has multiple registered entries");
+    expect(previewSource).not.toContain("manifests.find((candidate)");
     expect(rendererSource).toContain("const duplicateAssetIds = duplicateGeneratedAssetIds(assetsParsed);");
     expect(readSource("packages/renderer/test/trusted-renderer.test.tsx")).toContain("rejects duplicate generated asset ids instead of binding asset order");
     expect(rendererSource).toContain("unknown asset bindings for ${manifest.id}");

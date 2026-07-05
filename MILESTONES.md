@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Trusted Preview Matches
+
+Milestone:
+- Trusted Preview now uses explicit single-value helpers for selected render request, primary render request, and component manifest lookup.
+- Developer preview matching keeps duplicate fail-closed checks while removing first-match return and manifest `.find` shortcuts.
+
+Supportive changes:
+- Source scans guard Trusted Preview single-value matching and filter-based manifest lookup.
+- Existing Studio UI tests continue covering duplicate primary previews, unavailable selected components, and duplicate component bindings.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Developer preview local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or first-match preview selection.
+
 ## 2026-07-05 - Exact Live App Runtime Matches
 
 Milestone:

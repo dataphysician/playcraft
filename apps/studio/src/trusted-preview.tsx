@@ -141,7 +141,7 @@ function renderRequestForSelectedKey(
     throw new Error(`profile ${profile.id} has multiple trusted preview render requests for selected component ${selectedComponentKey}`);
   }
 
-  return matches[0];
+  return singleValue(matches);
 }
 
 function renderRequestForTemplatePrimary(
@@ -153,11 +153,16 @@ function renderRequestForTemplatePrimary(
   if (matches.length > 1) {
     throw new Error(`profile ${profile.id} has multiple trusted preview primary render requests for ${primaryCapability}`);
   }
-  return matches[0];
+  return singleValue(matches);
 }
 
 function manifestForRenderRequest(request: ComponentRenderRequest) {
-  return manifests.find((candidate) => candidate.id === request.componentId && candidate.version === request.componentVersion);
+  const matches = manifests.filter((candidate) => candidate.id === request.componentId && candidate.version === request.componentVersion);
+  if (matches.length > 1) {
+    throw new Error(`trusted preview manifest ${request.componentId}@${request.componentVersion} has multiple registered entries`);
+  }
+
+  return singleValue(matches);
 }
 
 function requiredTrustedManifestForRenderRequest(request: ComponentRenderRequest): ComponentManifest {
@@ -167,6 +172,10 @@ function requiredTrustedManifestForRenderRequest(request: ComponentRenderRequest
   }
 
   return manifest;
+}
+
+function singleValue<TValue>(values: TValue[]): TValue | undefined {
+  return values.length === 1 ? values[0] : undefined;
 }
 
 function PreviewFailure({ failure }: { failure: TrustedRenderFailure["error"] }): React.ReactElement {
