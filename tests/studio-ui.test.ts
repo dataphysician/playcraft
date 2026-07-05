@@ -366,10 +366,6 @@ describe("studio UI", () => {
               updatePlaceholder: "Moonshine update from catalog"
             }
           ]
-        },
-        toolPresentation: {
-          argumentsPrefix: "params",
-          noArgumentsLabel: "empty"
         }
       }),
       assembleFromIntent() {

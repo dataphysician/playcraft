@@ -23,7 +23,6 @@ import {
   BuilderSessionSnapshotSchema,
   BuilderTemplateIdSchema,
   BuilderToolDefinitionSchema,
-  BuilderToolPresentationSchema,
   PLAYCRAFT_LOCAL_TIMESTAMP,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
@@ -33,7 +32,6 @@ import {
   type BuilderSessionSnapshot,
   type BuilderTemplateId,
   type BuilderToolDefinition,
-  type BuilderToolPresentation,
   type GameAssemblyProfile,
   type GameTemplateAssetEditOperation,
   type GameTemplateDefinition,
@@ -58,10 +56,10 @@ export const BUILDER_SESSION_POLICY = {
   defaultCatalogSessionId: "builder.cli"
 } as const;
 
-export const BUILDER_TOOL_PRESENTATION_POLICY: BuilderToolPresentation = BuilderToolPresentationSchema.parse({
-  argumentsPrefix: "args",
-  noArgumentsLabel: "none"
-});
+const BUILDER_ARGUMENT_SUMMARY_LABELS = {
+  empty: "none",
+  prefix: "args"
+} as const;
 
 export const BuilderPreviewPayloadSchema = z
   .object({
@@ -596,7 +594,7 @@ function builderTool(
     description,
     actionName,
     argumentsSchema,
-    argumentSummary: builderToolArgumentSummary(argumentsSchema, BUILDER_TOOL_PRESENTATION_POLICY),
+    argumentSummary: builderToolArgumentSummary(argumentsSchema),
     acceptedInputSources,
     inputSourceSummary: builderToolInputSourceSummary(acceptedInputSources),
     localOnly: true,
@@ -605,9 +603,9 @@ function builderTool(
   });
 }
 
-function builderToolArgumentSummary(schema: JsonObjectSchemaDescriptor, presentation: BuilderToolPresentation): string {
+function builderToolArgumentSummary(schema: JsonObjectSchemaDescriptor): string {
   const summary = Object.entries(schema.fields).map(([name, field]) => `${name}${field.required ? "*" : ""}:${field.type}`);
-  return `${presentation.argumentsPrefix}: ${summary.length > 0 ? summary.join(", ") : presentation.noArgumentsLabel}`;
+  return `${BUILDER_ARGUMENT_SUMMARY_LABELS.prefix}: ${summary.length > 0 ? summary.join(", ") : BUILDER_ARGUMENT_SUMMARY_LABELS.empty}`;
 }
 
 function builderToolInputSourceSummary(sources: BuilderToolDefinition["acceptedInputSources"]): string {

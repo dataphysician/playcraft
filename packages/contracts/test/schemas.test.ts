@@ -4,7 +4,6 @@ import {
   BuilderInputRequestSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
-  BuilderToolPresentationSchema,
   ComponentRenderRequestSchema,
   GameTemplateDefinitionSchema,
   InputModalitySchema,
@@ -183,10 +182,6 @@ describe("public contract schemas", () => {
               updatePlaceholder: "Moonshine transcript: change the game or replace assets"
             }
           ]
-        },
-        toolPresentation: {
-          argumentsPrefix: "args",
-          noArgumentsLabel: "none"
         },
         requestTips: {
           availableGames: ["Memory Match"],
@@ -538,25 +533,6 @@ describe("public contract schemas", () => {
     delete missingCapabilityRequest.componentCapability;
     expect(ComponentRenderRequestSchema.safeParse(missingCapabilityRequest).success).toBe(false);
     expect(ComponentRenderRequestSchema.safeParse({ ...request, fallbackPolicy: "skip-component" }).success).toBe(false);
-  });
-
-  it("validates builder tool presentation fragments without public-object wrappers", () => {
-    expect(
-      BuilderToolPresentationSchema.parse({
-        argumentsPrefix: "args",
-        noArgumentsLabel: "none"
-      })
-    ).toEqual({
-      argumentsPrefix: "args",
-      noArgumentsLabel: "none"
-    });
-    expect(
-      BuilderToolPresentationSchema.safeParse({
-        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        argumentsPrefix: "args",
-        noArgumentsLabel: "none"
-      }).success
-    ).toBe(false);
   });
 
   it("keeps builder command payload fields scoped to their actions", () => {

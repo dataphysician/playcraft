@@ -8,7 +8,6 @@ import {
 } from "@playcraft/contracts";
 import {
   BUILDER_SESSION_POLICY,
-  BUILDER_TOOL_PRESENTATION_POLICY,
   BuilderPreviewPayloadSchema,
   PlaycraftBuilderSessionService,
   createBuilderCommandHandler as createHandler
@@ -59,10 +58,6 @@ describe("builder session service", () => {
     const tools = createHandler().listTools();
 
     expect(tools.every((tool) => tool.argumentsSchema.schemaVersion === PLAYCRAFT_SCHEMA_VERSION)).toBe(true);
-    expect(BUILDER_TOOL_PRESENTATION_POLICY).toEqual({
-      argumentsPrefix: "args",
-      noArgumentsLabel: "none"
-    });
     expect(tools.map((tool) => [tool.actionName, tool.displayName])).toEqual([
       ["assemble-game", "Assemble Game"],
       ["update-game", "Update Game"],

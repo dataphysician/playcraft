@@ -202,9 +202,15 @@ function MemoryGame({
   const [revealed, setRevealed] = React.useState<string[]>([]);
   const [matched, setMatched] = React.useState<Set<string>>(() => new Set());
   const [moves, setMoves] = React.useState(0);
+  const didMountRef = React.useRef(false);
   const roundKey = `${profile.id}:${sourceCards.join("|")}:${JSON.stringify(cardPairs)}`;
 
   React.useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
     setRevealed([]);
     setMatched(new Set());
     setMoves(0);
@@ -351,8 +357,14 @@ function SortingGame({
   const placedCount = Object.keys(placements).length;
   const complete = items.length > 0 && placedCount === items.length;
   const score = Math.max(0, placedCount * 120 + streak * 15 - mistakes * 20);
+  const didMountRef = React.useRef(false);
 
   React.useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
     setSelectedItem(undefined);
     setPlacements({});
     setFeedback(undefined);

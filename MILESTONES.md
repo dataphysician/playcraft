@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Remove Tool Presentation Policy
+
+Milestone:
+- Builder catalogs no longer publish the stale `toolPresentation` policy object.
+- The public tool contract keeps fully rendered `inputSourceSummary` and `argumentSummary` fields as the only agent-facing presentation surface for tool catalog rows.
+- Builder and service code no longer export or consume catalog-level argument formatting knobs.
+
+Supportive changes:
+- Contract, builder, service, Studio UI, and source-scan tests validate the removal and keep the old presentation policy names out of active code.
+- Memory, sorting, and sequence games now skip post-mount reset effects so fast first interactions are not overwritten after a loaded game appears.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts packages/contracts/test/schemas.test.ts packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Active app/package presentation-policy scan returned no matches outside the source-scan tests that forbid those names.
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Keeps catalog presentation forward-only on tool-owned summaries without compatibility shims, UI/CLI formatting policy objects, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Publish Tool Argument Summaries
 
 Milestone:

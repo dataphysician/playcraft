@@ -698,14 +698,6 @@ export const BuilderSessionBoundServiceActionNameSchema = z.enum([
 ]);
 export type BuilderSessionBoundServiceActionName = z.infer<typeof BuilderSessionBoundServiceActionNameSchema>;
 
-export const BuilderToolPresentationSchema = z
-  .object({
-    argumentsPrefix: z.string().min(1).max(40),
-    noArgumentsLabel: z.string().min(1).max(80)
-  })
-  .strict();
-export type BuilderToolPresentation = z.infer<typeof BuilderToolPresentationSchema>;
-
 export const BuilderCatalogRequestTipsSchema = z
   .object({
     availableGames: z.array(z.string().min(1).max(80)).min(1),
@@ -730,7 +722,6 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
       sourceOptions: z.array(BuilderInputSourceOptionSchema).min(1)
     })
     .strict(),
-  toolPresentation: BuilderToolPresentationSchema,
   requestTips: BuilderCatalogRequestTipsSchema,
   sessions: z
     .object({

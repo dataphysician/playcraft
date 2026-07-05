@@ -59,10 +59,6 @@ describe("local Playcraft service", () => {
         }
       ]
     });
-    expect(catalog.toolPresentation).toEqual({
-      argumentsPrefix: "args",
-      noArgumentsLabel: "none"
-    });
     expect(catalog.sessions).toEqual({
       defaultAssembleSessionId: "service.session",
       sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
