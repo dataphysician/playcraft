@@ -34,6 +34,8 @@ describe("deterministic local asset source", () => {
     expect(localAssetEditCatalog.map((entry) => entry.theme)).toEqual(["dinosaurs", "toys", "dolphins", "fruits"]);
     expect(localAssetEditCatalog.map((entry) => entry.displayLabel)).toEqual(["dinosaurs", "toys", "ocean animals", "fruit"]);
     expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
+    expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.aliasSummary).toBe("dolphin, dolphins, ocean animals, ocean animal, sea animals, sea animal");
+    expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.suggestedItemSummary).toBe("dolphin-1, dolphin-2, dolphin-3");
     expect(localAssetEditCatalog.every((entry) => entry.suggestedItems.length > 0)).toBe(true);
     expect(localAssetEditGenericThemeTokens).toEqual(expect.arrayContaining(["asset", "assets", "card images", "theme"]));
     expect(localAssetEditIntentPatterns.map((entry) => entry.source)).toEqual([

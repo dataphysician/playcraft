@@ -680,6 +680,8 @@ export const BuilderAssetEditCatalogEntrySchema = z
     theme: z.string().min(1).max(80),
     displayLabel: z.string().min(1).max(80),
     aliases: z.array(z.string().min(1).max(80)).default([]),
+    aliasSummary: z.string().min(1).max(240),
+    suggestedItemSummary: z.string().min(1).max(240),
     suggestedItems: z.array(z.string().min(1).max(48)).default([])
   })
   .strict();

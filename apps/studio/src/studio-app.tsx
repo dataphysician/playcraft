@@ -500,8 +500,8 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               { key: entry.theme, style: shellStyles.catalogItem },
               React.createElement("strong", null, entry.displayLabel),
               React.createElement("span", { style: shellStyles.catalogMeta }, entry.theme),
-              React.createElement("span", { style: shellStyles.catalogMeta }, entry.aliases.join(", ")),
-              React.createElement("span", { style: shellStyles.catalogMeta }, entry.suggestedItems.join(", "))
+              React.createElement("span", { style: shellStyles.catalogMeta }, entry.aliasSummary),
+              React.createElement("span", { style: shellStyles.catalogMeta }, entry.suggestedItemSummary)
             )
           )
         )

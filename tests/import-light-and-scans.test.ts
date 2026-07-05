@@ -634,9 +634,15 @@ describe("import-light boundaries and source scans", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
 
     expect(contractSource).toContain("displayLabel");
+    expect(contractSource).toContain("aliasSummary");
+    expect(contractSource).toContain("suggestedItemSummary");
     expect(studioSource).toContain("catalog.requestTips.summaryLines");
+    expect(studioSource).toContain("entry.aliasSummary");
+    expect(studioSource).toContain("entry.suggestedItemSummary");
     expect(studioSource).not.toContain("preferredAssetThemeLabel");
     expect(studioSource).not.toContain("alias.includes");
+    expect(studioSource).not.toContain("entry.aliases.join");
+    expect(studioSource).not.toContain("entry.suggestedItems.join");
   });
 
   it("keeps builder tool display names explicit instead of description-derived", () => {

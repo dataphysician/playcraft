@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Publish Asset Edit Catalog Summaries
+
+Milestone:
+- Asset edit catalog entries now include contract-owned alias and suggested-item summaries.
+- The local asset catalog publishes those summaries alongside theme, aliases, and suggested replacement item IDs.
+- Studio Developer asset levers now read `entry.aliasSummary` and `entry.suggestedItemSummary` instead of joining catalog arrays locally.
+
+Supportive changes:
+- Contract and asset-source tests validate the new asset-edit presentation fields.
+- Source scans block Studio-local asset alias and suggested-item joins from returning.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/assets/test/local-asset-source.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Keeps asset replacement levers catalog-owned and forward-only for local UI/CLI/API clients without UI-local presentation joins, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Publish Template Alias Summaries
 
 Milestone:
