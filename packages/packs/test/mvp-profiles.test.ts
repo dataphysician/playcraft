@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import type { PlaycraftAssemblyRequest } from "@playcraft/contracts";
+import { DeterministicLocalAssetSource } from "@playcraft/assets";
+import type { AssetGenerationRequest, GeneratedAssetRecord, PlaycraftAssemblyRequest } from "@playcraft/contracts";
 import {
   assembleMvpProfiles,
   componentManifests,
@@ -19,6 +20,14 @@ const fixtureByProfileId: Record<string, string> = {
   "profile.sorting.mvp": "../../../examples/profiles/sorting.json",
   "profile.sequence-repeat.mvp": "../../../examples/profiles/sequence-repeat.json"
 };
+
+class DuplicateAssetSource extends DeterministicLocalAssetSource {
+  override generateBatch(requests: AssetGenerationRequest[]): GeneratedAssetRecord[] {
+    const generated = super.generateBatch(requests);
+    const [first] = generated;
+    return first ? [...generated, first] : generated;
+  }
+}
 
 describe("MVP profile pack", () => {
   it("assembles 20+ template profiles from registries and deterministic local tools", () => {
@@ -134,6 +143,14 @@ describe("MVP profile pack", () => {
     );
     expect(profileC.components.find((component) => component.renderCapability === "component:sequence-pad")?.assetBindings.illustration).toBe(
       profileC.assets.find((asset) => asset.requestId === "asset-request.profile.sequence-repeat.mvp")?.assetId
+    );
+  });
+
+  it("rejects duplicate generated assets for a request instead of binding asset order", () => {
+    const planner = createDefaultPlanner({ assetSource: new DuplicateAssetSource() });
+
+    expect(() => planner.assemble(mvpAssemblyRequests[0]!)).toThrow(
+      /template\.memory-match received multiple generated assets for request asset-request\.profile\.memory-match\.mvp/u
     );
   });
 

@@ -1515,12 +1515,15 @@ function requiredGeneratedAssetForRequestId(
   assets: GeneratedAssetRecord[],
   requestId: string
 ): GeneratedAssetRecord {
-  const asset = assets.find((candidate) => candidate.requestId === requestId);
-  if (!asset) {
+  const matches = assets.filter((candidate) => candidate.requestId === requestId);
+  if (matches.length === 0) {
     throw new Error(`${template.id} did not receive a generated asset for request ${requestId}`);
   }
+  if (matches.length > 1) {
+    throw new Error(`${template.id} received multiple generated assets for request ${requestId}: ${matches.map((asset) => asset.assetId).join(", ")}`);
+  }
 
-  return asset;
+  return matches[0];
 }
 
 function validAssemblyResult(profileId: string) {

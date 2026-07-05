@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Pack Generated Asset Binding
+
+Milestone:
+- Pack profile assembly now requires generated assets to resolve to exactly one record per asset request id.
+- Bundled game profiles no longer bind whichever generated asset appears first when an asset source returns duplicate request ids.
+
+Supportive changes:
+- Pack tests inject a duplicate-producing local asset source and verify assembly fails closed.
+- Source scans block first-match generated asset request lookup from returning.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps pack asset binding request-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or generated asset order inference.
+
 ## 2026-07-05 - Exact Builder Asset Catalog Matches
 
 Milestone:
