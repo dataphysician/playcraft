@@ -1015,10 +1015,15 @@ describe("import-light boundaries and source scans", () => {
   it("keeps Studio request tips catalog-owned instead of app-composed", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");
+    const packSource = readSource("packages/packs/src/index.ts");
     const serviceSource = readSource("packages/service/src/index.ts");
 
     expect(contractSource).toContain("BuilderCatalogRequestTipsSchema");
     expect(contractSource).toContain("exampleRequest");
+    expect(packSource).toContain("exampleRequest: input.exampleRequest");
+    expect(packSource).not.toContain("exampleRequest?: string");
+    expect(packSource).not.toContain("sentenceCase");
+    expect(packSource).not.toContain("input.aliases[0]");
     expect(serviceSource).toContain("requestTipsForCatalog");
     expect(serviceSource).toContain("requestTips: requestTipsForCatalog");
     expect(serviceSource).toContain("LOCAL_SERVICE_REQUEST_TIP_EXAMPLES");

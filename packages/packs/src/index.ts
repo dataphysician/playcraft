@@ -433,6 +433,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Shape Memory",
     label: "Shape memory cards",
     aliases: ["shape memory", "shape match cards", "matching shapes", "find shape pairs"],
+    exampleRequest: "Shape memory game",
     prompt: "friendly shape cards for a child-safe memory game",
     title: "Shape pairs",
     pairItems: ["circle", "star"],
@@ -444,6 +445,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Color Memory",
     label: "Color memory cards",
     aliases: ["color memory", "color match cards", "matching colors", "find color pairs"],
+    exampleRequest: "Color memory game",
     prompt: "friendly color cards for a child-safe memory game",
     title: "Color pairs",
     pairItems: ["red", "blue"],
@@ -455,6 +457,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Number Memory",
     label: "Number memory cards",
     aliases: ["number memory", "number match cards", "matching numbers", "find number pairs"],
+    exampleRequest: "Number memory game",
     prompt: "friendly number cards for a child-safe memory game",
     title: "Number pairs",
     pairItems: ["number-1", "number-2", "number-3"],
@@ -466,6 +469,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Letter Memory",
     label: "Letter memory cards",
     aliases: ["letter memory", "letter match cards", "matching letters", "find letter pairs"],
+    exampleRequest: "Letter memory game",
     prompt: "friendly letter cards for a child-safe memory game",
     title: "Letter pairs",
     pairItems: ["letter-a", "letter-b"],
@@ -477,6 +481,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Emotion Match",
     label: "Emotion matching cards",
     aliases: ["emotion match", "feeling pairs", "matching feelings", "happy sad pairs"],
+    exampleRequest: "Emotion matching game",
     prompt: "friendly feeling cards for a child-safe memory game",
     title: "Feeling pairs",
     pairItems: ["happy", "calm"],
@@ -488,6 +493,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Sound Picture Match",
     label: "Sound picture matching cards",
     aliases: ["sound picture match", "sound picture pairs", "match sounds to pictures"],
+    exampleRequest: "Sound picture matching game",
     prompt: "friendly sound picture cards for a child-safe matching game",
     title: "Sound picture pairs",
     pairItems: ["bell", "drum"],
@@ -499,6 +505,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Color Sorting",
     label: "Sort toys by color",
     aliases: ["color sorting", "sort by color", "put colors in bins"],
+    exampleRequest: "Sort toys by color",
     prompt: "simple colorful toys for a child-safe color sorting game",
     title: "Color sort",
     promptText: "Put each toy in the matching color bin.",
@@ -514,6 +521,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Shape Sorting",
     label: "Sort shapes by shape",
     aliases: ["shape sorting", "sort by shape", "put shapes in bins"],
+    exampleRequest: "Sort shapes by shape",
     prompt: "simple friendly shapes for a child-safe shape sorting game",
     title: "Shape sort",
     promptText: "Put each shape in the matching bin.",
@@ -529,6 +537,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Size Sorting",
     label: "Sort objects by size",
     aliases: ["size sorting", "sort big and small", "big small bins"],
+    exampleRequest: "Sort big and small objects",
     prompt: "friendly big and small objects for a child-safe sorting game",
     title: "Size sort",
     promptText: "Put each object in the big or small bin.",
@@ -544,6 +553,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Habitat Sorting",
     label: "Sort animals by home",
     aliases: ["habitat sorting", "animal homes", "sort animals by home"],
+    exampleRequest: "Sort animals by home",
     prompt: "friendly animals and homes for a child-safe sorting game",
     title: "Animal homes",
     promptText: "Move each animal to its home.",
@@ -559,6 +569,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Food Sorting",
     label: "Sort foods by group",
     aliases: ["food sorting", "sort foods", "fruit vegetable bins"],
+    exampleRequest: "Sort foods by group",
     prompt: "friendly food pictures for a child-safe sorting game",
     title: "Food sort",
     promptText: "Put each food in the matching group.",
@@ -574,6 +585,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Clean Up Sorting",
     label: "Sort toys for clean up",
     aliases: ["clean up sorting", "toy clean up", "sort toys into baskets"],
+    exampleRequest: "Sort toys for clean up",
     prompt: "friendly toy baskets for a child-safe clean up sorting game",
     title: "Clean up sort",
     promptText: "Put each toy in the right basket.",
@@ -589,6 +601,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Color Pattern",
     label: "Repeat a color pattern",
     aliases: ["color pattern", "repeat colors", "copy color pattern"],
+    exampleRequest: "Repeat a color pattern",
     prompt: "soft color buttons for a child-safe pattern game",
     title: "Color pattern",
     promptText: "Tap the colors in the same order.",
@@ -603,6 +616,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Rhythm Repeat",
     label: "Repeat a rhythm",
     aliases: ["rhythm repeat", "copy rhythm", "repeat beat pattern"],
+    exampleRequest: "Repeat a rhythm pattern",
     prompt: "friendly drum buttons for a child-safe rhythm repeat game",
     title: "Rhythm repeat",
     promptText: "Tap the rhythm pattern.",
@@ -617,6 +631,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Count Along",
     label: "Repeat a counting pattern",
     aliases: ["count along", "counting pattern", "repeat numbers"],
+    exampleRequest: "Repeat a counting pattern",
     prompt: "friendly number buttons for a child-safe counting pattern game",
     title: "Count along",
     promptText: "Tap the numbers in order.",
@@ -631,6 +646,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Daily Routine",
     label: "Repeat a daily routine",
     aliases: ["daily routine", "routine sequence", "morning routine pattern"],
+    exampleRequest: "Repeat a daily routine",
     prompt: "friendly routine icons for a child-safe sequence game",
     title: "Daily routine",
     promptText: "Tap the routine steps in order.",
@@ -645,6 +661,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Movement Pattern",
     label: "Repeat a movement pattern",
     aliases: ["movement pattern", "copy movement", "repeat actions"],
+    exampleRequest: "Repeat a movement pattern",
     prompt: "friendly movement icons for a child-safe pattern game",
     title: "Movement pattern",
     promptText: "Tap the action cards in order.",
@@ -659,6 +676,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Animal Sound Pattern",
     label: "Repeat animal sound pattern",
     aliases: ["animal sound pattern", "repeat animal sounds", "copy animal sounds"],
+    exampleRequest: "Repeat an animal sound pattern",
     prompt: "friendly animal sound buttons for a child-safe sequence game",
     title: "Animal sounds",
     promptText: "Tap the animal sounds in order.",
@@ -673,6 +691,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Picture Word Match",
     label: "Match pictures and words",
     aliases: ["picture word match", "match picture words", "word picture pairs"],
+    exampleRequest: "Match pictures and words",
     prompt: "friendly picture and word cards for a child-safe matching game",
     title: "Picture word pairs",
     pairItems: ["picture", "word"],
@@ -684,6 +703,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Pattern Sorting",
     label: "Sort objects by pattern",
     aliases: ["pattern sorting", "sort stripes and dots", "pattern bins"],
+    exampleRequest: "Sort stripes and dots",
     prompt: "friendly patterned objects for a child-safe sorting game",
     title: "Pattern sort",
     promptText: "Put each object with the matching pattern.",
@@ -699,6 +719,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     displayLabel: "Shape Pattern",
     label: "Repeat a shape pattern",
     aliases: ["shape pattern", "repeat shapes", "copy shape pattern"],
+    exampleRequest: "Repeat a shape pattern",
     prompt: "friendly shape buttons for a child-safe pattern game",
     title: "Shape pattern",
     promptText: "Tap the shapes in the same order.",
@@ -1487,7 +1508,7 @@ interface MvpProfileTemplate {
 function memoryTemplate(input: {
   aliases: string[];
   displayLabel: string;
-  exampleRequest?: string;
+  exampleRequest: string;
   label: string;
   name: string;
   pairItems: string[];
@@ -1507,7 +1528,7 @@ function memoryTemplate(input: {
     capabilityTags: [`game:${input.slug}`, "mechanic:match-pairs"],
     requestAliases: input.aliases,
     requestAliasSummary: requestAliasSummary(input.aliases),
-    exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
+    exampleRequest: input.exampleRequest,
     assetPromptKind: "memory-cards",
     assetEditOperations: memoryAssetEditOperations,
     liveSurface: {
@@ -1549,7 +1570,7 @@ function sortingTemplate(input: {
   aliases: string[];
   bins: string[];
   displayLabel: string;
-  exampleRequest?: string;
+  exampleRequest: string;
   hint: string;
   items: string[];
   label: string;
@@ -1571,7 +1592,7 @@ function sortingTemplate(input: {
     capabilityTags: [`game:${input.slug}`, "mechanic:sort-into-bins"],
     requestAliases: input.aliases,
     requestAliasSummary: requestAliasSummary(input.aliases),
-    exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
+    exampleRequest: input.exampleRequest,
     assetPromptKind: "sorting-game",
     assetEditOperations: sortingAssetEditOperations,
     liveSurface: {
@@ -1613,7 +1634,7 @@ function sortingTemplate(input: {
 function sequenceTemplate(input: {
   aliases: string[];
   displayLabel: string;
-  exampleRequest?: string;
+  exampleRequest: string;
   items: string[];
   label: string;
   name: string;
@@ -1635,7 +1656,7 @@ function sequenceTemplate(input: {
     capabilityTags: [`game:${input.slug}`, "mechanic:sequence-repeat"],
     requestAliases: input.aliases,
     requestAliasSummary: requestAliasSummary(input.aliases),
-    exampleRequest: input.exampleRequest ?? sentenceCase(input.aliases[0] ?? input.label),
+    exampleRequest: input.exampleRequest,
     assetPromptKind: "sequence-buttons",
     assetEditOperations: sequenceAssetEditOperations,
     liveSurface: {
@@ -1690,10 +1711,6 @@ function pairedCards(items: string[]): { cards: string[]; pairs: Record<string, 
     cards.map((card, index) => [card, `pair-${Math.floor(index / 2) + 1}`])
   );
   return { cards, pairs };
-}
-
-function sentenceCase(value: string): string {
-  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
 }
 
 function requestAliasSummary(aliases: string[]): string {

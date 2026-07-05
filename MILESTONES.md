@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Authored Pack Template Examples
+
+Milestone:
+- Reusable MVP template helpers now require authored `exampleRequest` text for every game template instance.
+- Pack examples no longer fall back to sentence-casing the first request alias when new memory, sorting, or sequence templates are added.
+
+Supportive changes:
+- Every helper-created bundled toddler game template now provides explicit example request copy.
+- Source scans block optional helper examples, `sentenceCase`, and first-alias-derived example text in packs.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps agent-facing template catalog copy authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or alias-derived text heuristics.
+
 ## 2026-07-05 - Versioned Trusted Render Requests
 
 Milestone:
