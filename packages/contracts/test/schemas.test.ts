@@ -157,7 +157,7 @@ describe("public contract schemas", () => {
         inputId: "builder-input.fixture",
         source: "moonshine-transcript",
         text: "memory game with dinosaurs",
-        transcription: {
+        moonshineConfig: {
           engine: "moonshine-streaming",
           runtime: "cpu",
           localOnly: true
@@ -1000,7 +1000,7 @@ describe("public contract schemas", () => {
         inputId: "builder-input.test.missing-transcript",
         source: "moonshine-transcript",
         text: "memory game with dinosaurs",
-        transcription: {
+        moonshineConfig: {
           engine: "moonshine-streaming",
           runtime: "cpu",
           localOnly: true

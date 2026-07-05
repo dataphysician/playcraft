@@ -678,22 +678,22 @@ export const BuilderInputRequestSchema = PublicContractBaseSchema.extend({
   inputId: StableIdSchema,
   source: BuilderInputSourceSchema,
   text: z.string().min(1).max(500),
-  transcription: MoonshineTranscriptionConfigSchema.optional(),
+  moonshineConfig: MoonshineTranscriptionConfigSchema.optional(),
   moonshineTranscript: MoonshineTranscriptRecordSchema.optional(),
   receivedAt: z.string().datetime(),
   metadata: z.record(JsonValueSchema).default({})
 }).strict()
-  .refine((value) => value.source !== "moonshine-transcript" || Boolean(value.transcription), {
-    message: "Moonshine transcripts must declare the local transcription config",
-    path: ["transcription"]
+  .refine((value) => value.source !== "moonshine-transcript" || Boolean(value.moonshineConfig), {
+    message: "Moonshine transcripts must declare the local Moonshine config",
+    path: ["moonshineConfig"]
   })
   .refine((value) => value.source !== "moonshine-transcript" || Boolean(value.moonshineTranscript), {
     message: "moonshine-transcript input requires a Moonshine transcript record",
     path: ["moonshineTranscript"]
   })
-  .refine((value) => value.source !== "text" || (!value.transcription && !value.moonshineTranscript), {
-    message: "text input must not include Moonshine transcription config or transcript records",
-    path: ["transcription"]
+  .refine((value) => value.source !== "text" || (!value.moonshineConfig && !value.moonshineTranscript), {
+    message: "text input must not include Moonshine config or transcript records",
+    path: ["moonshineConfig"]
   })
   .refine((value) => !value.moonshineTranscript || value.source === "moonshine-transcript", {
     message: "Moonshine transcript records require moonshine-transcript source",

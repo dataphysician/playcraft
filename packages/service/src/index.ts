@@ -722,7 +722,7 @@ export function createBuilderInputRequest(input: {
     inputId: `builder-input.local.${input.sequence}`,
     source: input.source,
     text,
-    transcription: input.source === "moonshine-transcript" ? MOONSHINE_STREAMING_CPU_TRANSCRIPTION : undefined,
+    moonshineConfig: input.source === "moonshine-transcript" ? MOONSHINE_STREAMING_CPU_TRANSCRIPTION : undefined,
     moonshineTranscript,
     receivedAt: PLAYCRAFT_LOCAL_TIMESTAMP,
     metadata: {

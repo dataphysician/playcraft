@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Moonshine-Named Builder Input Config
+
+Milestone:
+- `BuilderInputRequestSchema` now exposes `moonshineConfig` instead of a generic `transcription` field.
+- Local service builder input construction now emits the Moonshine-named config when the input source is `moonshine-transcript`.
+
+Supportive changes:
+- Contract fixtures and Studio UI assertions now validate `moonshineConfig`.
+- Source scans pin the Moonshine-named field and block the removed generic builder-input transcription field.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Exact Tavus source scan returned no matches; removed-provider/key scan returned only guard/planning references.
+
+Constraint notes:
+- Keeps the input contract Moonshine Streaming CPU-specific without hosted providers, generated runtime code, auth, database state, compatibility shims, or generic speech/transcription abstractions.
+
 ## 2026-07-04 - Moonshine Terminology In UI Tests
 
 Milestone:

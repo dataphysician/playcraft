@@ -106,11 +106,11 @@ describe("studio UI", () => {
     expect(text.templateId).toBe("template.sorting");
     expect(text.resolution.templateDecision.matchedRequestAliases).toContain("sort");
     expect(text.input.source).toBe("text");
-    expect(text.input.transcription).toBeUndefined();
+    expect(text.input.moonshineConfig).toBeUndefined();
     expect(moonshine.templateId).toBe("template.sequence-repeat");
     expect(moonshine.resolution.templateDecision.matchedRequestAliases).toContain("pattern");
     expect(moonshine.assetEdit?.theme).toBe("gems");
-    expect(moonshine.input.transcription).toEqual({
+    expect(moonshine.input.moonshineConfig).toEqual({
       engine: "moonshine-streaming",
       runtime: "cpu",
       localOnly: true
