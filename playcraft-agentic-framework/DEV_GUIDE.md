@@ -299,7 +299,72 @@ The exact paths can change, but the gates cannot.
 - Keep the Tauri Mobile-facing shell as a thin webview adapter over the Studio client contract.
 - Keep native permissions empty until a platform capability strictly requires a bridge.
 
-## 13. Development Rules
+## 13. Building Custom Templates and Workflows
+
+Custom templates extend the local planner with namespaced recipes without
+touching bundled MVP templates. Custom workflows chain builder actions into
+graph files that the CLI and MCP server both accept.
+
+### Custom templates
+
+Custom template recipes live in `examples/profiles/custom-*.json`:
+
+- [`examples/profiles/custom-toy-memory.json`](../examples/profiles/custom-toy-memory.json)
+- [`examples/profiles/custom-dolphin-sorting.json`](../examples/profiles/custom-dolphin-sorting.json)
+- [`examples/profiles/custom-fruit-sequence.json`](../examples/profiles/custom-fruit-sequence.json)
+
+Each fixture is a complete `GameAssemblyProfile` produced by the deterministic
+planner from a `template.custom.<slug>` request. The corresponding template
+ids (`template.custom.toy-memory`, `template.custom.dolphin-sorting`,
+`template.custom.fruit-sequence`) live in the custom template pack and are
+discoverable through `playcraft-service catalog --json`. To add a new custom
+recipe:
+
+1. Declare a `GameTemplateDefinition` with `id: "template.custom.<slug>"` and a
+   unique `game:custom-<slug>` capability tag in both `capabilityTags` and
+   `requestedCapabilities`. The custom tag wins planner selection against the
+   bundled MVP recipes.
+2. Provide `requestAliases`, `liveSurface` (component capabilities, asset
+   replacement sources, explicit token styles, and a default token style),
+   `assetEditOperations`, and `assetPromptKind` so Studio/Mobile renderers do
+   not invent local palettes.
+3. Generate the profile fixture with the deterministic planner and commit it
+   under `examples/profiles/custom-<slug>.json` so round-trip and replay tests
+   have a stable input.
+4. Verify the namespace with `BuilderTemplateNamespaceSchema.parse(id)`:
+   only ids under the `template.custom.*` prefix are accepted.
+
+The fixture generation pattern and planner constraints are documented in
+T19's notepad entries.
+
+### Custom workflows
+
+Workflow graph JSON lives in `examples/workflows/`:
+
+- [`examples/workflows/assemble-preview-export.json`](../examples/workflows/assemble-preview-export.json) — linear 3-node example.
+- [`examples/workflows/assemble-with-custom-template.json`](../examples/workflows/assemble-with-custom-template.json) — linear graph using a `template.custom.*` recipe.
+- [`examples/workflows/parallel-assemble-three.json`](../examples/workflows/parallel-assemble-three.json) — fan-out of three independent `assemble` nodes merging into a tail node.
+- [`examples/workflows/conditional-export-only-on-success.json`](../examples/workflows/conditional-export-only-on-success.json) — `condition`-based skip on the export node.
+
+To add a new example workflow:
+
+1. Build a `WorkflowGraph` JSON object with `schemaVersion: "playcraft.v1"`,
+   `kind: "workflow-graph"`, `version`, a stable `id` (under 96 characters),
+   `nodes`, `edges`, and `startNodeId`. Node ids and `startNodeId` must match
+   `StableIdSchema`. Each node's `actionName` must be one of the
+   `BuilderServiceActionName` values.
+2. Keep the graph under the 20-node cap. Cycles, dangling edge references,
+   and malformed `condition` strings are rejected at parse time, so a quick
+   `WorkflowGraphSchema.parse(json)` is enough validation for a fixture.
+3. Save the file under `examples/workflows/<slug>.json`.
+4. Add a parse + run test to `tests/workflow-examples.test.ts` so the
+   example is exercised by both `WorkflowGraphSchema` and the
+   `run-workflow` CLI in CI.
+5. Document the pattern in `playcraft-agentic-framework/WORKFLOWS.md`
+   alongside the existing linear, parallel, conditional, and error-handling
+   entries.
+
+## 14. Development Rules
 
 - Contracts before integrations.
 - Deterministic local asset sources before server retrieval.

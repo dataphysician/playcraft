@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "workflow-graph.examples.conditional-export",
+  "version": "1.0.0",
+  "kind": "workflow-graph",
+  "nodes": [
+    {
+      "id": "node-assemble",
+      "actionName": "assemble",
+      "payload": {
+        "sessionId": "session.examples.conditional",
+        "text": "Memory game with dinosaurs"
+      },
+      "dependsOn": []
+    },
+    {
+      "id": "node-preview",
+      "actionName": "preview",
+      "payload": {
+        "sessionId": "session.examples.conditional",
+        "interaction": { "action": "primary" }
+      },
+      "dependsOn": ["node-assemble"],
+      "continueOnError": true
+    },
+    {
+      "id": "node-export",
+      "actionName": "export-profile",
+      "payload": {
+        "sessionId": "session.examples.conditional",
+        "success": "true"
+      },
+      "dependsOn": ["node-preview"],
+      "condition": "payload.success == \"true\""
+    }
+  ],
+  "edges": [
+    { "from": "node-assemble", "to": "node-preview" },
+    { "from": "node-preview", "to": "node-export" }
+  ],
+  "startNodeId": "node-assemble"
+}

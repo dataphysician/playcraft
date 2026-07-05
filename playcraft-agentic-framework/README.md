@@ -29,6 +29,33 @@ AG-UI is the standard outer protocol for agent/frontend interaction. Playcraft o
 | [DEV_GUIDE.md](DEV_GUIDE.md) | Lightweight implementation guide, package boundaries, contracts, tests, and milestones. |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Protocol boundaries, AG-UI mapping, registries, replay, trusted runtime, and pack model. |
 | [ROADMAP.md](ROADMAP.md) | Lightweight v1, middleweight path, and heavyweight non-goals. |
+| [MCP_API.md](MCP_API.md) | MCP-compatible HTTP surface for the local Playcraft service. |
+| [WORKFLOWS.md](WORKFLOWS.md) | Workflow graph schema, patterns, CLI and MCP entry points, best practices. |
+| [AGENT_SAFETY.md](AGENT_SAFETY.md) | Hard safety guardrails for agent-facing surfaces. |
+
+## Using Playcraft as an Agent Backend
+
+Playcraft is designed to be driven by a coding agent. Three documents cover
+the agent-facing surfaces:
+
+- [MCP_API.md](MCP_API.md) — the MCP-compatible HTTP server (`/playcraft/catalog`,
+  `/playcraft/tools/list`, `/playcraft/tools/call`), the seven-tool allowlist,
+  and ownership enforcement. Use this when integrating with an MCP-aware
+  coding agent or any HTTP-capable client.
+- [WORKFLOWS.md](WORKFLOWS.md) — workflow graphs (`WorkflowGraphSchema`),
+  patterns (linear, parallel, conditional, error handling), the
+  `playcraft-service run-workflow` CLI, and the `execute-workflow` MCP tool.
+  Use this when an agent needs to chain multiple builder actions in a single
+  local session.
+- [AGENT_SAFETY.md](AGENT_SAFETY.md) — hard guardrails: local-only constraint,
+  no authentication, no database, no network execution, and the allowlist of
+  seven builder tools. Every agent integration must respect these constraints.
+
+Agents that need a local HTTP service should run
+`playcraft-service-http` and call the MCP routes. Agents that need to script
+multi-step flows should read the workflow graph examples in
+`examples/workflows/` and reuse the `execute-workflow` MCP tool or the
+`run-workflow` CLI.
 
 ## Lightweight V1
 

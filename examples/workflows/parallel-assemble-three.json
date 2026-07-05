@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "workflow-graph.examples.parallel-three",
+  "version": "1.0.0",
+  "kind": "workflow-graph",
+  "nodes": [
+    {
+      "id": "node-catalog",
+      "actionName": "catalog",
+      "payload": {},
+      "dependsOn": []
+    },
+    {
+      "id": "node-assemble-memory",
+      "actionName": "assemble",
+      "payload": {
+        "sessionId": "session.examples.parallel.memory",
+        "templateId": "template.memory-match",
+        "text": "Memory match game"
+      },
+      "dependsOn": ["node-catalog"],
+      "parallel": true
+    },
+    {
+      "id": "node-assemble-sorting",
+      "actionName": "assemble",
+      "payload": {
+        "sessionId": "session.examples.parallel.sorting",
+        "templateId": "template.sorting",
+        "text": "Sorting game"
+      },
+      "dependsOn": ["node-catalog"],
+      "parallel": true
+    },
+    {
+      "id": "node-assemble-sequence",
+      "actionName": "assemble",
+      "payload": {
+        "sessionId": "session.examples.parallel.sequence",
+        "templateId": "template.sequence-repeat",
+        "text": "Sequence repeat game"
+      },
+      "dependsOn": ["node-catalog"],
+      "parallel": true
+    },
+    {
+      "id": "node-catalog-tail",
+      "actionName": "catalog",
+      "payload": {},
+      "dependsOn": [
+        "node-assemble-memory",
+        "node-assemble-sorting",
+        "node-assemble-sequence"
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "node-catalog", "to": "node-assemble-memory" },
+    { "from": "node-catalog", "to": "node-assemble-sorting" },
+    { "from": "node-catalog", "to": "node-assemble-sequence" },
+    { "from": "node-assemble-memory", "to": "node-catalog-tail" },
+    { "from": "node-assemble-sorting", "to": "node-catalog-tail" },
+    { "from": "node-assemble-sequence", "to": "node-catalog-tail" }
+  ],
+  "startNodeId": "node-catalog"
+}

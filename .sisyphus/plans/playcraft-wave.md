@@ -2062,7 +2062,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `packages/packs/src/index.ts`, `examples/profiles/custom-*.json`, `packages/packs/test/custom-templates.test.ts`
   - Pre-commit: `pnpm exec vitest run packages/packs/test/`
 
-- [ ] 20. Tool composition examples + docs
+- [x] 20. Tool composition examples + docs
 
   **What to do**:
   - Create `examples/workflows/`:
