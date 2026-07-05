@@ -1405,6 +1405,13 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).toContain("setReplacement(replacements, `${source.namespace}:${token}`, sprite);");
     expect(assetLibrarySource).not.toContain("setReplacement(replacements, token, sprite);");
     expect(assetLibrarySource).not.toContain("setReplacement(replacements, pairKey, sprite);");
+    expect(assetLibrarySource).toContain("const exactMatches = candidates.filter((sprite) => normalized === sprite.id);");
+    expect(assetLibrarySource).toContain("maps to multiple local sprites");
+    expect(assetLibrarySource).toContain("const ordinalMatches = candidates.filter((sprite) => ordinal !== undefined && ordinalForIdentifier(sprite.id) === ordinal);");
+    expect(assetLibrarySource).toContain("maps to multiple ordinal local sprites");
+    expect(assetLibrarySource).not.toContain("const exact = candidates.find((sprite) => normalized === sprite.id)");
+    expect(assetLibrarySource).not.toContain("const ordinalMatch = candidates.find((sprite) => ordinal !== undefined && ordinalForIdentifier(sprite.id) === ordinal)");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects item replacements that resolve to multiple ordinal local sprites");
     expect(liveGameSource).toContain("replacements.get(`card:${card.id}`)");
     expect(liveGameSource).toContain("return replacements?.get(`${namespace}:${token}`);");
     expect(liveGameSource).not.toContain("replacements.get(card.id)");

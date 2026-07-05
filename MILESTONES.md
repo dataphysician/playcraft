@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Local Sprite Replacement Matches
+
+Milestone:
+- Studio local asset replacement now rejects exact or ordinal sprite lookups that match more than one local sprite.
+- Profiles that activate multiple local replacement folders no longer substitute whichever item sprite appears first.
+
+Supportive changes:
+- Studio asset-library tests cover ambiguous ordinal item sprite replacement across multiple active theme folders.
+- Source scans block first-match exact and ordinal sprite lookup from returning.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps edit-aware Live App asset substitution explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or local sprite order inference.
+
 ## 2026-07-05 - Exact Trusted Preview Selected Keys
 
 Milestone:

@@ -162,6 +162,42 @@ describe("studio asset library", () => {
     expect(replacements["item:red toy"]).toBeUndefined();
   });
 
+  it("rejects item replacements that resolve to multiple ordinal local sprites", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Sorting game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const ambiguousOrdinalProfile = {
+      ...profile!,
+      assetRequests: profile!.assetRequests.map((request) => ({
+        ...request,
+        metadata: {
+          ...request.metadata,
+          assetEditTheme: ["toys", "dinosaurs"]
+        }
+      })),
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:sort-bins"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                items: ["item-1"],
+                targets: {
+                  "item-1": "red"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    expect(() => createProfileLibraryAssetReplacements(ambiguousOrdinalProfile)).toThrow(
+      /asset replacement token item-1 maps to multiple ordinal local sprites/u
+    );
+  });
+
   it("ignores bare token asset replacements in the Live App renderer", async () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });

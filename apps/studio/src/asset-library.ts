@@ -301,13 +301,21 @@ function spriteForIdentifier(identifier: string, themeFolders: string[]): Replac
   }
 
   const candidates = themeSprites;
-  const exact = candidates.find((sprite) => normalized === sprite.id);
+  const exactMatches = candidates.filter((sprite) => normalized === sprite.id);
+  if (exactMatches.length > 1) {
+    throw new Error(`asset replacement token ${identifier} maps to multiple local sprites: ${exactMatches.map((sprite) => `${sprite.theme}/${sprite.id}`).join(", ")}`);
+  }
+  const [exact] = exactMatches;
   if (exact) {
     return exact;
   }
 
   const ordinal = ordinalForIdentifier(normalized);
-  const ordinalMatch = candidates.find((sprite) => ordinal !== undefined && ordinalForIdentifier(sprite.id) === ordinal);
+  const ordinalMatches = candidates.filter((sprite) => ordinal !== undefined && ordinalForIdentifier(sprite.id) === ordinal);
+  if (ordinalMatches.length > 1) {
+    throw new Error(`asset replacement token ${identifier} maps to multiple ordinal local sprites: ${ordinalMatches.map((sprite) => `${sprite.theme}/${sprite.id}`).join(", ")}`);
+  }
+  const [ordinalMatch] = ordinalMatches;
   if (ordinalMatch) {
     return ordinalMatch;
   }
