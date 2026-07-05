@@ -59,6 +59,7 @@ export const DEFAULT_SAFETY_POLICY_ID = "safety.child-friendly";
 export const DEFAULT_THEME_ID = "theme.bright-calm";
 export const DEFAULT_PLANNER_ID = "planner.deterministic.mvp";
 export const DEFAULT_GAME_TEMPLATE_ID: BuilderTemplateId = BuilderTemplateIdSchema.parse("template.memory-match");
+type TemplateInputModality = "touch" | "pointer" | "keyboard";
 export const memoryPairTokenStyles: GameTemplateTokenStyle[] = [
   { tokens: ["pair-1"], background: "#fee2e2", border: "#ef4444", foreground: "#7f1d1d", accent: "#fecaca" },
   { tokens: ["pair-2"], background: "#dbeafe", border: "#2563eb", foreground: "#1e3a8a", accent: "#bfdbfe" },
@@ -292,6 +293,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     profileId: "profile.memory-match.mvp",
     profileName: "Memory Match MVP",
     assetPrompt: "friendly starter card illustrations for a child-safe memory match game",
+    primaryInputModality: "touch",
     mechanicCapabilities: ["mechanic:tap-to-reveal", "mechanic:match-pairs", "feedback:celebration"],
     mechanicEventBindings: memoryMechanicEventBindings,
     componentMechanicCapabilities: {
@@ -346,6 +348,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     profileId: "profile.sorting.mvp",
     profileName: "Sorting MVP",
     assetPrompt: "simple colorful shapes for a child-safe sorting game",
+    primaryInputModality: "touch",
     mechanicCapabilities: ["mechanic:tap-to-select", "mechanic:sort-into-bins", "support:retry", "support:hint"],
     mechanicEventBindings: sortingMechanicEventBindings,
     componentMechanicCapabilities: {
@@ -412,6 +415,7 @@ const mvpTemplates: MvpProfileTemplate[] = [
     profileId: "profile.sequence-repeat.mvp",
     profileName: "Sequence Repeat MVP",
     assetPrompt: "soft glowing buttons for a child-safe sequence repeat game",
+    primaryInputModality: "touch",
     mechanicCapabilities: ["mechanic:sequence-repeat", "mechanic:tap-to-select", "feedback:celebration"],
     mechanicEventBindings: sequenceMechanicEventBindings,
     componentMechanicCapabilities: {
@@ -864,12 +868,13 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
   }));
 
   const mechanics = template.mechanicCapabilities.map((capability, index) => {
+    const modality = requiredTemplateTargetModality(template, context.request.targetModalities);
     const selected = requireSelected(context.registries.mechanics.select({
       capabilityTags: [capability],
       domainProfileId: domain.id,
       safetyPolicyId: safety.id,
       ageBand: context.request.ageBand,
-      modality: context.request.targetModalities[0]
+      modality
     }));
     const eventBindings = requiredMechanicEventBindings(template, capability, selected.emitsEvents);
     return {
@@ -1450,6 +1455,14 @@ function requiredMechanicEventBindings(template: MvpProfileTemplate, capability:
   return eventBindings;
 }
 
+function requiredTemplateTargetModality(template: MvpProfileTemplate, requestedModalities: TemplateInputModality[]): TemplateInputModality {
+  if (!requestedModalities.includes(template.primaryInputModality)) {
+    throw new Error(`${template.id} requires target modality ${template.primaryInputModality}`);
+  }
+
+  return template.primaryInputModality;
+}
+
 function requiredComponentRenderMechanicBindingId(
   template: MvpProfileTemplate,
   componentCapability: string,
@@ -1565,6 +1578,7 @@ interface MvpProfileTemplate {
   profileId: string;
   profileName: string;
   assetPrompt: string;
+  primaryInputModality: TemplateInputModality;
   mechanicCapabilities: string[];
   mechanicEventBindings: Record<string, Record<string, string>>;
   componentMechanicCapabilities: Record<string, string[]>;
@@ -1616,6 +1630,7 @@ function memoryTemplate(input: {
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
+    primaryInputModality: "touch",
     mechanicCapabilities: ["mechanic:tap-to-reveal", "mechanic:match-pairs", "feedback:celebration"],
     mechanicEventBindings: memoryMechanicEventBindings,
     componentMechanicCapabilities: {
@@ -1684,6 +1699,7 @@ function sortingTemplate(input: {
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
+    primaryInputModality: "touch",
     mechanicCapabilities: ["mechanic:tap-to-select", "mechanic:sort-into-bins", "support:retry", "support:hint"],
     mechanicEventBindings: sortingMechanicEventBindings,
     componentMechanicCapabilities: {
@@ -1764,6 +1780,7 @@ function sequenceTemplate(input: {
     profileId: `profile.${input.slug}.mvp`,
     profileName: input.name,
     assetPrompt: input.prompt,
+    primaryInputModality: "touch",
     mechanicCapabilities: ["mechanic:sequence-repeat", "mechanic:tap-to-select", "feedback:celebration"],
     mechanicEventBindings: sequenceMechanicEventBindings,
     componentMechanicCapabilities: {

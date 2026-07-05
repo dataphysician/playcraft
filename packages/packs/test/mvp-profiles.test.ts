@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import type { PlaycraftAssemblyRequest } from "@playcraft/contracts";
 import {
   assembleMvpProfiles,
   componentManifests,
@@ -270,6 +271,24 @@ describe("MVP profile pack", () => {
     expect(mechanicDefinitions.flatMap((mechanic) => mechanic.supportedModalities)).not.toContain(removedModality);
     expect(gameTemplateDefinitions.flatMap((template) => template.supportedModalities)).not.toContain("audio");
     expect(gameTemplateDefinitions.flatMap((template) => template.supportedModalities)).not.toContain(removedModality);
+  });
+
+  it("uses template-authored primary modality instead of target modality order", () => {
+    const planner = createDefaultPlanner();
+    const baseline = planner.assemble(mvpAssemblyRequests[0]!);
+    const reversedModalitiesRequest: PlaycraftAssemblyRequest = {
+      ...mvpAssemblyRequests[0]!,
+      id: "request.memory-match.reversed-modalities",
+      targetModalities: ["pointer", "touch"]
+    };
+    const unsupportedModalityRequest: PlaycraftAssemblyRequest = {
+      ...mvpAssemblyRequests[0]!,
+      id: "request.memory-match.pointer-only",
+      targetModalities: ["pointer"]
+    };
+
+    expect(planner.assemble(reversedModalitiesRequest).mechanics).toEqual(baseline.mechanics);
+    expect(() => planner.assemble(unsupportedModalityRequest)).toThrow(/template\.memory-match requires target modality touch/u);
   });
 
   it("keeps trusted component interaction tools single-emitter", () => {

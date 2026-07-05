@@ -291,6 +291,7 @@ describe("import-light boundaries and source scans", () => {
   it("keeps play input modalities separate from audio asset content", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");
+    const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
     expect(contractSource).toContain('InputModalitySchema = z.enum(["touch", "pointer", "keyboard"])');
     expect(contractSource).toContain('AssetContentTypeSchema = z.enum(["image", "audio", "animation", "text"])');
@@ -300,6 +301,11 @@ describe("import-light boundaries and source scans", () => {
     expect(packSource).not.toContain('["touch", "pointer", "audio"]');
     expect(packSource).not.toContain('["audio", "touch"]');
     expect(packSource).not.toContain("audio:prompted");
+    expect(packSource).toContain("primaryInputModality: \"touch\"");
+    expect(packSource).toContain("function requiredTemplateTargetModality");
+    expect(packSource).toContain("requires target modality ${template.primaryInputModality}");
+    expect(packSource).not.toContain("context.request.targetModalities[0]");
+    expect(packTestSource).toContain("uses template-authored primary modality instead of target modality order");
   });
 
   it("keeps transcript input sources Moonshine-explicit", () => {

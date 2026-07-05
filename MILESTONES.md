@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Authored Template Input Modality
+
+Milestone:
+- MVP template assembly now selects mechanics through a template-authored primary input modality.
+- Mechanic selection no longer depends on the first entry in `PlaycraftAssemblyRequest.targetModalities`.
+
+Supportive changes:
+- Pack tests prove reversed modality order still assembles the same mechanics and pointer-only requests fail for touch-authored templates.
+- Source scans require `requiredTemplateTargetModality` and block `context.request.targetModalities[0]`.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps toddler play input explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or request-array-order modality inference.
+
 ## 2026-07-05 - Stable Trusted Preview Component Keys
 
 Milestone:
