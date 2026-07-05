@@ -33,6 +33,7 @@ describe("deterministic local asset source", () => {
   it("publishes the shared local asset edit catalog used by service and Studio", () => {
     expect(localAssetEditCatalog.map((entry) => entry.theme)).toEqual(["dinosaurs", "toys", "dolphins", "fruits"]);
     expect(localAssetEditCatalog.map((entry) => entry.displayLabel)).toEqual(["dinosaurs", "toys", "ocean animals", "fruit"]);
+    expect(localAssetEditCatalog.map((entry) => entry.localReplacementFolder)).toEqual(["dinosaurs", "toys", "dolphins", "fruits"]);
     expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
     expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.aliasSummary).toBe("dolphin, dolphins, ocean animals, ocean animal, sea animals, sea animal");
     expect(localAssetEditCatalog.find((entry) => entry.theme === "dolphins")?.suggestedItemSummary).toBe("dolphin-1, dolphin-2, dolphin-3");

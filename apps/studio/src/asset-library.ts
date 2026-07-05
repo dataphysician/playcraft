@@ -248,9 +248,11 @@ function valuesMatchTheme(values: string[], theme: string): boolean {
 function themeTerms(theme: string): string[] {
   const normalized = normalizeText(theme);
   const singular = singularize(normalized);
-  const catalogEntry = localAssetEditCatalog.find((entry) => entry.theme === theme);
+  const catalogEntry = localAssetEditCatalog.find((entry) =>
+    entry.theme === theme || entry.localReplacementFolder === theme
+  );
 
-  return uniqueStrings([normalized, singular, ...(catalogEntry?.aliases ?? [])]);
+  return uniqueStrings([normalized, singular, catalogEntry?.theme, catalogEntry?.displayLabel, ...(catalogEntry?.aliases ?? [])].filter((entry): entry is string => Boolean(entry)));
 }
 
 function spriteForIdentifier(identifier: string, themeFolders: string[], index: number): ReplacementSprite | undefined {

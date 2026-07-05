@@ -369,7 +369,7 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   io.stdout(`exact envelopes: ${catalog.service.exactEnvelope.singleCommand}/${catalog.service.exactEnvelope.batchCommand} via ${catalog.service.exactEnvelope.requestSchema}/${catalog.service.exactEnvelope.batchSchema}; contracts: ${catalog.service.exactEnvelope.requiredContracts.join(", ")}`);
   io.stdout(`service helpers: ${catalog.service.exactEnvelope.directHandler}/${catalog.service.exactEnvelope.directBatchHandler}`);
   io.stdout(`service transports: ${catalog.service.transports.local}, ${catalog.service.transports.httpClient}, ${catalog.service.transports.httpBody}`);
-  io.stdout(`asset edits: ${catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel).join(", ")}`);
+  io.stdout(`asset edits: ${catalog.assetEdit.availableThemes.map((entry) => `${entry.displayLabel} [folder: ${entry.localReplacementFolder}]`).join(", ")}`);
   io.stdout("request tips:");
   for (const line of catalog.requestTips.summaryLines) {
     io.stdout(`- ${line}`);

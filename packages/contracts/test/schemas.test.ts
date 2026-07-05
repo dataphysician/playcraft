@@ -271,6 +271,7 @@ describe("public contract schemas", () => {
             {
               theme: "dinosaurs",
               displayLabel: "dinosaurs",
+              localReplacementFolder: "dinosaurs",
               aliases: ["dinosaur", "dinosaurs"],
               aliasSummary: "dinosaur, dinosaurs",
               suggestedItemSummary: "dinosaur-1, dinosaur-2",

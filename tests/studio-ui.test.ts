@@ -432,6 +432,7 @@ describe("studio UI", () => {
     expect(screen.getByText("memory, memory game, memory match")).toBeDefined();
     expect(screen.getAllByText("dinosaurs").length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText("ocean animals")).toBeDefined();
+    expect(screen.getByText("folder: dolphins")).toBeDefined();
     expect(screen.getByText("dinosaur-1, dinosaur-2, dinosaur-3")).toBeDefined();
   });
 

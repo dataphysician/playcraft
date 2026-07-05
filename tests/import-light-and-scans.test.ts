@@ -284,7 +284,7 @@ describe("import-light boundaries and source scans", () => {
     expect(cliSource).toContain("tool.argumentSummary");
     expect(cliSource).toContain("tool.requiredContracts.join");
     expect(cliSource).toContain("contracts:");
-    expect(cliSource).toContain("catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel)");
+    expect(cliSource).toContain("catalog.assetEdit.availableThemes.map((entry) => `${entry.displayLabel} [folder: ${entry.localReplacementFolder}]`)");
     expect(cliSource).not.toContain("catalog.templates.map((template) => template.id)");
     expect(cliSource).not.toContain("catalog.tools.map((tool) => tool.toolName)");
     expect(cliSource).not.toContain("requestAliases.slice(0, 3)");
@@ -392,15 +392,28 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps local asset edit theme metadata shared through the assets package", () => {
     const builderSource = readSource("packages/builder/src/index.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const assetSource = readSource("packages/assets/src/index.ts");
+    const rootReadme = readSource("README.md");
+    const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
+    const serviceCliSource = readSource("packages/service/src/cli.ts");
     const serviceSource = readSource("packages/service/src/index.ts");
+    const studioSource = readSource("apps/studio/src/studio-app.tsx");
     const studioAssetLibrarySource = readSource("apps/studio/src/asset-library.ts");
 
+    expect(contractSource).toContain("localReplacementFolder: z.string().min");
+    expect(assetSource).toContain("localReplacementFolder: input.localReplacementFolder ?? input.theme");
+    expect(rootReadme).toContain("local replacement themes and folders");
+    expect(devGuide).toContain("bundled local replacement themes/items/folders");
     expect(builderSource).toContain("localAssetEditCatalog");
     expect(builderSource).toContain("assetEditCatalogEntryFor");
     expect(builderSource).toContain("catalogEntry?.suggestedItems");
     expect(builderSource).not.toContain("defaultItemsForTheme");
     expect(serviceSource).toContain('from "@playcraft/assets"');
+    expect(serviceCliSource).toContain("entry.localReplacementFolder");
+    expect(studioSource).toContain("entry.localReplacementFolder");
     expect(studioAssetLibrarySource).toContain('from "@playcraft/assets"');
+    expect(studioAssetLibrarySource).toContain("entry.localReplacementFolder === theme");
     expect(studioAssetLibrarySource).toContain("request.metadata.assetEditTheme");
     expect(studioAssetLibrarySource).toContain("request.metadata.assetEditItems");
     expect(studioAssetLibrarySource).not.toContain("values.add(request.prompt)");

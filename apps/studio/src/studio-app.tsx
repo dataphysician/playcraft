@@ -544,6 +544,7 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               { key: entry.theme, style: shellStyles.catalogItem },
               React.createElement("strong", null, entry.displayLabel),
               React.createElement("span", { style: shellStyles.catalogMeta }, entry.theme),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `folder: ${entry.localReplacementFolder}`),
               React.createElement("span", { style: shellStyles.catalogMeta }, entry.aliasSummary),
               React.createElement("span", { style: shellStyles.catalogMeta }, entry.suggestedItemSummary)
             )

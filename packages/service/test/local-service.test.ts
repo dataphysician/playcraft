@@ -259,11 +259,13 @@ describe("local Playcraft service", () => {
         expect.objectContaining({
           theme: "dinosaurs",
           displayLabel: "dinosaurs",
+          localReplacementFolder: "dinosaurs",
           suggestedItems: ["dinosaur-1", "dinosaur-2", "dinosaur-3"]
         }),
         expect.objectContaining({
           theme: "dolphins",
           displayLabel: "ocean animals",
+          localReplacementFolder: "dolphins",
           aliases: expect.arrayContaining(["ocean animals"])
         })
       ])
@@ -1062,6 +1064,12 @@ describe("local Playcraft service", () => {
       "ocean animals",
       "fruit"
     ]);
+    expect(catalog.assetEdit.availableThemes.map((entry) => entry.localReplacementFolder)).toEqual([
+      "dinosaurs",
+      "toys",
+      "dolphins",
+      "fruits"
+    ]);
     expect(catalog.assetEdit.availableThemes.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
     expect(catalog.requestTips).toEqual({
       availableGames: expect.arrayContaining(["Memory Match", "Sorting", "Sequence Repeat"]),
@@ -1111,7 +1119,7 @@ describe("local Playcraft service", () => {
       "exact envelopes: request/request-batch via BuilderServiceRequestSchema/BuilderServiceRequestBatchSchema; contracts: BuilderServiceRequestSchema, BuilderServiceRequestBatchSchema, BuilderServiceResponseSchema",
       "service helpers: handleLocalServiceRequest/handleLocalServiceRequestBatch",
       "service transports: createLocalServiceTransport, createHttpServiceTransport, handleServiceHttpRequestBody",
-      "asset edits: dinosaurs, toys, ocean animals, fruit",
+      "asset edits: dinosaurs [folder: dinosaurs], toys [folder: toys], ocean animals [folder: dolphins], fruit [folder: fruits]",
       "request tips:",
       "- Available games: Memory Match, Sorting, Sequence Repeat, Shape Memory, Color Memory, plus 19 more.",
       "- Asset edits: with dinosaurs, with toys, with ocean animals, with fruit.",

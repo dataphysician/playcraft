@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Local Asset Folder Discovery
+
+Milestone:
+- `BuilderAssetEditCatalogEntry` now publishes `localReplacementFolder` for each cataloged asset theme.
+- The shared local asset edit catalog supplies folder names alongside labels, aliases, and suggested items.
+- Service CLI catalog summaries and the Studio Developer asset lever panel now render replacement folder names for agents.
+
+Supportive changes:
+- Studio asset lookup resolves catalog aliases through `localReplacementFolder` instead of assuming theme IDs always equal folder names.
+- Contract, asset, service, Studio UI, and source-scan tests pin folder discovery.
+- README and DEV guide describe local replacement themes/items/folders as catalog-discoverable.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/assets/test/local-asset-source.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Makes edit-aware local asset folders agent-discoverable without hosted providers, generated runtime code, auth, database state, compatibility shims, or Studio-only asset-folder conventions.
+
 ## 2026-07-04 - Registry Compatibility Contract Lookup
 
 Milestone:

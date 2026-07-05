@@ -91,12 +91,14 @@ export const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
 function assetEditCatalogEntry(input: {
   aliases: string[];
   displayLabel: string;
+  localReplacementFolder?: string;
   suggestedItems: string[];
   theme: string;
 }): BuilderAssetEditCatalogEntry {
   return BuilderAssetEditCatalogEntrySchema.parse({
     ...input,
     aliasSummary: input.aliases.join(", "),
+    localReplacementFolder: input.localReplacementFolder ?? input.theme,
     suggestedItemSummary: input.suggestedItems.join(", ")
   });
 }
