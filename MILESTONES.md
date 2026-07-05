@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Replay Event Sequences
+
+Milestone:
+- Core profile validation now rejects duplicate replay event sequence numbers before saved profile replay.
+- Saved replay logs no longer accept ambiguous event ordering from repeated numeric sequence positions.
+
+Supportive changes:
+- Core replay tests cover duplicate saved profile replay event sequences while keeping event ids unique.
+- Source scans guard replay event sequence validation beside replay event identity validation.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps replay ordering profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or duplicate saved replay event sequence positions.
+
 ## 2026-07-05 - Exact Core Replay Event IDs
 
 Milestone:

@@ -497,6 +497,11 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
     errors.push(schemaIssue(["replay", "eventLog"], "duplicate_replay_event_id", `profile ${profile.id} has duplicate replay event ids: ${duplicateReplayEventIds.join(", ")}`, "error"));
   }
 
+  const duplicateReplayEventSequences = duplicateStrings(profile.replay.eventLog.map((event) => String(event.sequence)));
+  if (duplicateReplayEventSequences.length > 0) {
+    errors.push(schemaIssue(["replay", "eventLog"], "duplicate_replay_event_sequence", `profile ${profile.id} has duplicate replay event sequences: ${duplicateReplayEventSequences.join(", ")}`, "error"));
+  }
+
   const mechanicBindingIds = new Set(profile.mechanics.map((mechanic) => mechanic.bindingId));
   const assetIds = new Set(profile.assets.map((asset) => asset.assetId));
 

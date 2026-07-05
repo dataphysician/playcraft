@@ -188,4 +188,26 @@ describe("saved profile replay", () => {
       new RegExp(`profile profile\\.memory-match\\.mvp has duplicate replay event ids: ${saved.replay.eventLog[0]!.id.replace(/\./gu, "\\.")}`, "u")
     );
   });
+
+  it("fails closed when saved profile replay events contain duplicate event sequences", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const duplicateReplaySequenceProfile = {
+      ...saved,
+      replay: {
+        ...saved.replay,
+        eventLog: [
+          ...saved.replay.eventLog,
+          {
+            ...saved.replay.eventLog[0]!,
+            id: `${saved.replay.eventLog[0]!.id}.duplicate`
+          }
+        ]
+      }
+    };
+
+    expect(() => replayProfile(duplicateReplaySequenceProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate replay event sequences: ${saved.replay.eventLog[0]!.sequence}`, "u")
+    );
+  });
 });
