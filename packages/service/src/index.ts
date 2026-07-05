@@ -32,7 +32,8 @@ import {
   type GameTemplateDefinition,
   type JsonValue,
   type MoonshineTranscriptRecord,
-  type MoonshineTranscriptSegment
+  type MoonshineTranscriptSegment,
+  type SseFrame
 } from "@playcraft/contracts";
 import {
   localAssetEditCatalog,
@@ -49,6 +50,7 @@ import {
   type BuilderExecutionResult
 } from "@playcraft/builder";
 import { DEFAULT_GAME_TEMPLATE_ID, gameTemplateDefinitions } from "@playcraft/packs";
+import { agUiEventToSseFrame, type AgUiEventLike } from "./sse.js";
 
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
 export { localAssetEditCatalog } from "@playcraft/assets";
@@ -566,11 +568,48 @@ export class LocalPlaycraftService {
       profile: snapshot.profile
     };
   }
+
+  async *stream(request: BuilderServiceRequest): AsyncIterable<SseFrame> {
+    const validated = BuilderServiceRequestSchema.parse(request);
+
+    try {
+      const response = this.handle(validated);
+
+      if (response.execution) {
+        let sequence = 0;
+        for (const event of response.execution.events) {
+          yield agUiEventToSseFrame(event as unknown as AgUiEventLike, sequence);
+          sequence += 1;
+        }
+        return;
+      }
+
+      const runId = streamRunId();
+      yield { kind: "sse-run-started", runId, sequence: 0, payload: { runId } };
+      yield {
+        kind: "sse-custom",
+        runId,
+        sequence: 1,
+        payload: response as unknown as JsonValue
+      };
+      yield { kind: "sse-run-finished", runId, sequence: 2, payload: { runId } };
+    } catch (error) {
+      const runId = streamRunId();
+      const message = error instanceof Error ? error.message : String(error);
+      yield { kind: "sse-run-started", runId, sequence: 0, payload: { runId } };
+      yield { kind: "sse-run-error", runId, sequence: 1, payload: { message } };
+      yield { kind: "sse-run-finished", runId, sequence: 2, payload: { runId } };
+    }
+  }
 }
 
 interface LocalSessionState {
   activeAssetEdit?: BuilderAssetEdit;
   activeTemplateId: BuilderTemplateId;
+}
+
+function streamRunId(): string {
+  return `stream.${Date.now().toString(36)}.${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function requestTipsForCatalog(

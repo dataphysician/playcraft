@@ -5,13 +5,14 @@ declare const process: {
 };
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { PLAYCRAFT_SCHEMA_VERSION } from "@playcraft/contracts";
+import { PLAYCRAFT_SCHEMA_VERSION, BuilderServiceRequestSchema, type BuilderServiceRequest } from "@playcraft/contracts";
 import {
   createLocalPlaycraftService,
   handleServiceHttpRequestBody,
   type BuilderServiceHttpResponse,
   type LocalPlaycraftService
 } from "./index.js";
+import { createSseResponse } from "./sse.js";
 
 export interface PlaycraftHttpServerOptions {
   maxBodyBytes?: number;
@@ -29,6 +30,7 @@ export const PLAYCRAFT_HTTP_SERVICE_POLICY = {
   defaultMaxBodyBytes: 1024 * 1024,
   defaultPort: 8787,
   defaultRoute: "/playcraft",
+  defaultStreamSuffix: "/stream",
   urlParseBase: "http://127.0.0.1"
 } as const;
 
@@ -100,6 +102,7 @@ async function handleHttpRequest(input: {
   service: LocalPlaycraftService;
 }): Promise<void> {
   const url = new URL(input.request.url ?? "/", PLAYCRAFT_HTTP_SERVICE_POLICY.urlParseBase);
+  const streamPath = `${input.route}${PLAYCRAFT_HTTP_SERVICE_POLICY.defaultStreamSuffix}`;
 
   if (input.request.method === "GET" && url.pathname === "/health") {
     writeResponse(input.response, {
@@ -113,6 +116,11 @@ async function handleHttpRequest(input: {
         ok: true
       })
     });
+    return;
+  }
+
+  if (url.pathname === streamPath) {
+    await handleStreamRoute(input, url);
     return;
   }
 
@@ -149,6 +157,154 @@ async function handleHttpRequest(input: {
 
   const body = await readRequestBody(input.request, input.maxBodyBytes);
   writeResponse(input.response, handleServiceHttpRequestBody(body, input.service));
+}
+
+async function handleStreamRoute(
+  input: { request: IncomingMessage; response: ServerResponse; service: LocalPlaycraftService },
+  url: URL
+): Promise<void> {
+  if (input.request.method !== "GET") {
+    writeResponse(input.response, {
+      status: 405,
+      headers: {
+        "allow": "GET",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        kind: "builder-service-error",
+        message: "SSE stream endpoint requires GET"
+      })
+    });
+    return;
+  }
+
+  const acceptHeader = headerValue(input.request, "accept") ?? "";
+  if (!acceptHeader.toLowerCase().includes("text/event-stream")) {
+    writeResponse(input.response, {
+      status: 406,
+      headers: {
+        "accept": "text/event-stream",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        kind: "builder-service-error",
+        message: "SSE stream endpoint requires Accept: text/event-stream"
+      })
+    });
+    return;
+  }
+
+  let requestInput: BuilderServiceRequest;
+  try {
+    requestInput = buildStreamRequest(url.searchParams);
+  } catch (error) {
+    writeResponse(input.response, {
+      status: 400,
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        kind: "builder-service-error",
+        message: error instanceof Error ? error.message : String(error)
+      })
+    });
+    return;
+  }
+
+  const sseResponse = createSseResponse(() => input.service.stream(requestInput));
+  await streamWebResponseToNode(sseResponse, input.response);
+}
+
+function buildStreamRequest(params: URLSearchParams): BuilderServiceRequest {
+  const actionName = params.get("action");
+  if (!actionName) {
+    throw new Error("SSE stream endpoint requires action query parameter");
+  }
+
+  const request: Record<string, unknown> = {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: params.get("id") ?? `builder-service-request.stream.${Date.now().toString(36)}.${Math.random().toString(36).slice(2, 8)}`,
+    version: "1.0.0",
+    kind: "builder-service-request",
+    actionName
+  };
+
+  for (const field of ["sessionId", "text", "source", "templateId"] as const) {
+    const value = params.get(field);
+    if (value !== null) {
+      request[field] = value;
+    }
+  }
+
+  for (const field of ["moonshineTranscript", "assetEdit", "interaction"] as const) {
+    const raw = params.get(field);
+    if (raw !== null) {
+      try {
+        request[field] = JSON.parse(raw) as unknown;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`SSE stream ${field} must be valid JSON: ${message}`);
+      }
+    }
+  }
+
+  return BuilderServiceRequestSchema.parse(request);
+}
+
+async function streamWebResponseToNode(webResponse: Response, nodeResponse: ServerResponse): Promise<void> {
+  const headers: Record<string, string> = {};
+  webResponse.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+  nodeResponse.writeHead(webResponse.status, headers);
+
+  if (!webResponse.body) {
+    nodeResponse.end();
+    return;
+  }
+
+  const reader = webResponse.body.getReader();
+  let finished = false;
+  const finalize = (): void => {
+    if (!finished) {
+      finished = true;
+      nodeResponse.end();
+    }
+  };
+  nodeResponse.on("close", finalize);
+  nodeResponse.on("error", finalize);
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        break;
+      }
+      const flushed = nodeResponse.write(value);
+      if (!flushed) {
+        await new Promise<void>((resolve) => {
+          nodeResponse.once("drain", resolve);
+        });
+      }
+    }
+    if (!finished) {
+      finished = true;
+      nodeResponse.end();
+    }
+  } catch (error) {
+    nodeResponse.destroy(error instanceof Error ? error : new Error(String(error)));
+  }
+}
+
+function headerValue(request: IncomingMessage, name: string): string | undefined {
+  const value = request.headers[name.toLowerCase()];
+  if (Array.isArray(value)) {
+    return value.join(", ");
+  }
+  return value;
 }
 
 function readRequestBody(request: IncomingMessage, maxBodyBytes: number): Promise<string> {

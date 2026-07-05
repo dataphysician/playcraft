@@ -1527,6 +1527,7 @@ describe("local Playcraft service", () => {
       defaultMaxBodyBytes: 1024 * 1024,
       defaultPort: 8787,
       defaultRoute: "/playcraft",
+      defaultStreamSuffix: "/stream",
       urlParseBase: "http://127.0.0.1"
     });
 
