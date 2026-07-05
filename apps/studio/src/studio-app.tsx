@@ -186,16 +186,17 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
     try {
       const profileExport = BuilderProfileExportSchema.parse(JSON.parse(text));
       const nextSession = await Promise.resolve(client.importProfile({ profileExport, sessionId: session.sessionId }));
+      const importedProfile = requireSessionActiveProfile(nextSession, "import-profile");
       setSession(nextSession);
       setSelectedTimelineId(nextSession.timeline.at(-1)?.id);
       setActiveTab("developer");
-      setProfileTransferStatus(`Imported ${nextSession.activeProfile?.profileName ?? "profile"}.`);
+      setProfileTransferStatus(`Imported ${importedProfile.profileName}.`);
       setMessages((current) => [
         ...current,
         {
           id: `message.studio.${current.length + 1}`,
           speaker: "Studio",
-          text: `Imported ${nextSession.activeProfile?.profileName ?? "profile"} from profile export.`
+          text: `Imported ${importedProfile.profileName} from profile export.`
         }
       ]);
     } catch (cause) {
@@ -873,11 +874,19 @@ function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
 }
 
 function chatSummaryForSession(mode: PendingCommand, session: StudioSessionSnapshot): string {
-  const profile = session.activeProfile;
-  const profileName = profile?.profileName ?? "game";
+  const profile = requireSessionActiveProfile(session, mode);
+  const profileName = profile.profileName;
   const assetTheme = session.activeAssetEdit?.theme ?? session.activeAssetEdit?.items?.join(", ");
   const action = mode === "generate" ? "Generated" : "Updated";
   return `${action} ${profileName}${assetTheme ? ` with ${assetTheme} assets` : ""}.`;
+}
+
+function requireSessionActiveProfile(session: StudioSessionSnapshot, actionName: string): GameAssemblyProfile {
+  if (!session.activeProfile) {
+    throw new Error(`${actionName} response did not include active profile`);
+  }
+
+  return session.activeProfile;
 }
 
 function requestTipLines(catalog: BuilderCatalog | undefined): string[] {

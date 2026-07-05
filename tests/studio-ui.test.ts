@@ -807,6 +807,49 @@ describe("studio UI", () => {
     expect(await screen.findByRole("button", { name: "dinosaur-1-a" })).toBeDefined();
   });
 
+  it("rejects imported Studio sessions without active profile payloads", async () => {
+    const exportSource = createLocalPlaycraftService();
+    const assembled = exportSource.assemble({
+      sessionId: "session.profile-export-source",
+      text: "Memory game with dinosaurs"
+    });
+    const profileExport = exportSource.exportProfile(assembled.result.sessionId);
+    const client: StudioClient = {
+      assembleFromIntent: () => {
+        throw new Error("not used");
+      },
+      importProfile: () => ({
+        activeProfileId: profileExport.profile.id,
+        sessionId: "session.import-target",
+        timeline: []
+      }),
+      requestChange: () => {
+        throw new Error("not used");
+      }
+    };
+
+    render(React.createElement(StudioApp, {
+      client,
+      initialSession: {
+        activeProfileId: profileB.id,
+        activeProfile: profileB,
+        sessionId: "session.import-target",
+        timeline: []
+      }
+    }));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
+    fireEvent.change(screen.getByLabelText("Import profile export JSON"), {
+      target: {
+        value: JSON.stringify(BuilderProfileExportSchema.parse(profileExport))
+      }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Import Profile" }));
+
+    expect(await screen.findByText("import-profile response did not include active profile")).toBeDefined();
+    expect(screen.queryByText("Imported profile.")).toBeNull();
+  });
+
   it("validates pasted profile exports before importing them in the Studio UI", async () => {
     render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
 

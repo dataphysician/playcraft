@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Concrete Studio Success Profiles
+
+Milestone:
+- Studio generate/update success summaries now require a concrete active profile.
+- Studio profile import success messages now require the imported session to include an active profile payload.
+- Removed generic `"game"` and `"profile"` success-name fallbacks from the Studio command/import path.
+
+Supportive changes:
+- Studio UI tests reject imported sessions that omit active profile payloads.
+- Source scans guard the active-profile requirement and block generic success-name fallbacks from returning.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Studio active-profile source scan confirmed `requireSessionActiveProfile` usage and no generic profile-name fallback.
+
+Constraint notes:
+- Keeps user-facing Studio command/import success states profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or vague active-profile recovery.
+
 ## 2026-07-04 - Template-Owned Builder Preview Run IDs
 
 Milestone:
