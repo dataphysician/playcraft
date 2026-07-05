@@ -44,7 +44,8 @@ const ALL_SERVICE_REQUEST_FIELDS: BuilderServiceRequestFieldName[] = [
   "assetEdit",
   "interaction",
   "profile",
-  "profileExport"
+  "profileExport",
+  "workflow"
 ];
 
 type ServiceRequestFixture = BuilderServiceRequest & Partial<Record<BuilderServiceRequestFieldName, unknown>>;
@@ -76,7 +77,23 @@ function serviceRequestFieldSamples(input: {
     sessionId: "session.catalog-schema.sample",
     source: "text",
     templateId: "template.memory-match",
-    text: "Memory game with dinosaurs"
+    text: "Memory game with dinosaurs",
+    workflow: {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "workflow-graph.test.catalog-schema-sample",
+      version: "1.0.0",
+      kind: "workflow-graph",
+      nodes: [
+        {
+          id: "node-catalog",
+          actionName: "catalog",
+          payload: {},
+          dependsOn: []
+        }
+      ],
+      edges: [],
+      startNodeId: "node-catalog"
+    }
   };
 }
 
@@ -247,6 +264,21 @@ describe("local Playcraft service", () => {
             summary: "No payload fields accepted."
           },
           responsePayload: "reset"
+        },
+        {
+          actionName: "execute-workflow",
+          displayName: "Execute Workflow",
+          requiresSession: false,
+          acceptsInput: false,
+          request: {
+            acceptedFields: ["sessionId", "workflow"],
+            requiredFields: ["workflow"],
+            requiredAnyOf: [],
+            exclusiveAnyOf: [],
+            forbiddenTogether: [],
+            summary: "Requires a deterministic workflow graph; runs up to 20 nodes in topological order, executes each via the same service envelope, and emits AG-UI events per node."
+          },
+          responsePayload: "execution"
         }
       ],
       exactEnvelope: {
@@ -370,6 +402,32 @@ describe("local Playcraft service", () => {
         text: "Memory game with dinosaurs"
       }),
       catalog: serviceRequestFixture("catalog", {}),
+      "execute-workflow": serviceRequestFixture("execute-workflow", {
+        workflow: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "workflow-graph.test.catalog-schema-minimal",
+          version: "1.0.0",
+          kind: "workflow-graph",
+          nodes: [
+            {
+              id: "node-catalog",
+              actionName: "catalog",
+              payload: {},
+              dependsOn: []
+            },
+            {
+              id: "node-assemble",
+              actionName: "assemble",
+              payload: { sessionId: "session.catalog-schema", text: "Memory game with dinosaurs" },
+              dependsOn: ["node-catalog"]
+            }
+          ],
+          edges: [
+            { from: "node-catalog", to: "node-assemble" }
+          ],
+          startNodeId: "node-catalog"
+        }
+      }),
       "export-profile": serviceRequestFixture("export-profile", {
         sessionId: "session.catalog-schema"
       }),

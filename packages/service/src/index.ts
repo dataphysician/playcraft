@@ -8,19 +8,23 @@ import {
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
   BuilderSessionSnapshotSchema,
+  BuilderPreviewStateSchema,
   JsonValueSchema,
   MoonshineTranscriptRecordSchema,
   PLAYCRAFT_LOCAL_TIMESTAMP,
   PLAYCRAFT_SCHEMA_VERSION,
+  WorkflowGraphSchema,
   type BuilderAssetEdit,
   type BuilderAssetEditCatalogEntry,
   type BuilderCatalog,
   type BuilderServiceCatalog,
   type BuilderCommand,
+  type BuilderCommandResult,
   type BuilderInputRequest,
   type BuilderInputSource,
   type BuilderIntentResolution,
   type BuilderPreviewInteraction,
+  type BuilderPreviewState,
   type BuilderProfileExport,
   type BuilderServiceExecution,
   type BuilderServiceRequest,
@@ -51,6 +55,9 @@ import {
 } from "@playcraft/builder";
 import { DEFAULT_GAME_TEMPLATE_ID, gameTemplateDefinitions } from "@playcraft/packs";
 import { agUiEventToSseFrame, type AgUiEventLike } from "./sse.js";
+import { executeWorkflowSync as executeWorkflowGraphSync } from "./workflow/executor.js";
+export { executeWorkflow, executeWorkflowSse, executeWorkflowSync } from "./workflow/executor.js";
+export { WorkflowGraphSchema, WorkflowNodeSchema, WorkflowEdgeSchema, WorkflowConditionSchema, WORKFLOW_NODE_CAP } from "./workflow/schema.js";
 
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
 export { localAssetEditCatalog } from "@playcraft/assets";
@@ -222,6 +229,21 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         summary: "No payload fields accepted."
       },
       responsePayload: "reset"
+    },
+    {
+      actionName: "execute-workflow",
+      displayName: "Execute Workflow",
+      requiresSession: false,
+      acceptsInput: false,
+      request: {
+        acceptedFields: ["sessionId", "workflow"],
+        requiredFields: ["workflow"],
+        requiredAnyOf: [],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
+        summary: "Requires a deterministic workflow graph; runs up to 20 nodes in topological order, executes each via the same service envelope, and emits AG-UI events per node."
+      },
+      responsePayload: "execution"
     }
   ],
   exactEnvelope: {
@@ -405,6 +427,81 @@ export class LocalPlaycraftService {
     this.sessionState.clear();
   }
 
+  executeWorkflow(requestInput: BuilderServiceRequest): BuilderServiceResponse {
+    const request = BuilderServiceRequestSchema.parse(requestInput);
+    if (request.actionName !== "execute-workflow") {
+      throw new Error(`executeWorkflow() received unexpected action ${request.actionName}`);
+    }
+    if (!request.workflow) {
+      throw new Error("execute-workflow requires a workflow graph");
+    }
+
+    const sessionId = request.sessionId ?? this.catalog().sessions.defaultAssembleSessionId;
+    const graph = WorkflowGraphSchema.parse(request.workflow);
+    const events: JsonValue[] = [];
+    let commandResult: BuilderExecutionResult["result"] | undefined;
+
+    for (const workflowEvent of executeWorkflowGraphSync(graph, { send: (request) => this.handle(request) }, sessionId)) {
+      if (workflowEvent.kind === "node-finished") {
+        events.push(toJsonValue({
+          type: "ToolResult",
+          toolName: workflowEvent.toolName,
+          nodeId: workflowEvent.nodeId,
+          runId: workflowEvent.runId,
+          result: workflowEvent.result
+        }));
+      } else if (workflowEvent.kind === "node-failed") {
+        events.push(toJsonValue({
+          type: "ToolResult",
+          toolName: workflowEvent.toolName,
+          nodeId: workflowEvent.nodeId,
+          runId: workflowEvent.runId,
+          error: workflowEvent.error
+        }));
+      } else if (workflowEvent.kind === "node-skipped") {
+        events.push(toJsonValue({
+          type: "ToolResult",
+          toolName: workflowEvent.toolName,
+          nodeId: workflowEvent.nodeId,
+          runId: workflowEvent.runId,
+          skipped: true,
+          reason: workflowEvent.reason
+        }));
+      } else if (workflowEvent.kind === "node-started") {
+        events.push(toJsonValue({
+          type: "ToolCall",
+          toolName: workflowEvent.toolName,
+          nodeId: workflowEvent.nodeId,
+          runId: workflowEvent.runId,
+          args: workflowEvent.args
+        }));
+      } else if (workflowEvent.kind === "workflow-finished") {
+        events.push(toJsonValue({
+          type: "RunFinished",
+          runId: workflowEvent.runId,
+          graphId: workflowEvent.graphId,
+          executed: workflowEvent.executed,
+          skipped: workflowEvent.skipped,
+          failed: workflowEvent.failed,
+          success: workflowEvent.success
+        }));
+        commandResult = buildWorkflowCommandResult(workflowEvent.runId, sessionId, workflowEvent.executed.length);
+      }
+    }
+
+    if (!commandResult) {
+      throw new Error("workflow executor finished without emitting a workflow-finished event");
+    }
+
+    return serviceResponse(request, {
+      execution: BuilderServiceExecutionSchema.parse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        result: commandResult,
+        events
+      })
+    });
+  }
+
   handle(requestInput: BuilderServiceRequest): BuilderServiceResponse {
     const request = BuilderServiceRequestSchema.parse(requestInput);
 
@@ -415,6 +512,10 @@ export class LocalPlaycraftService {
     if (request.actionName === "reset") {
       this.reset();
       return serviceResponse(request, { reset: true });
+    }
+
+    if (request.actionName === "execute-workflow") {
+      return this.executeWorkflow(request);
     }
 
     if (request.actionName === "get-session") {
@@ -1185,6 +1286,24 @@ function serializeExecution(output: BuilderExecutionResult): BuilderServiceExecu
     result: output.result,
     events: output.events.map((event) => toJsonValue(event))
   });
+}
+
+function buildWorkflowCommandResult(commandId: string, sessionId: string, executedNodeCount: number): BuilderCommandResult {
+  const preview: BuilderPreviewState = BuilderPreviewStateSchema.parse({
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    sessionId,
+    renderedComponentIds: [],
+    interactionCount: executedNodeCount
+  });
+  return {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: `builder-command-result.workflow.${commandId}`,
+    version: "1.0.0",
+    kind: "builder-command-result",
+    commandId: `builder-command.workflow.${commandId}`,
+    sessionId,
+    preview
+  };
 }
 
 function serviceResponse(

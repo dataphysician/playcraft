@@ -785,7 +785,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `apps/studio/src/local-client.ts`, `apps/mobile-shell/src/mobile-client.ts`, `tests/studio-sse-client.test.tsx`
   - Pre-commit: `pnpm exec vitest run tests/`
 
-- [ ] 7. Tool composition workflow graph schema + executor
+- [x] 7. Tool composition workflow graph schema + executor
 
   **What to do**:
   - Add to `packages/service/src/workflow/`:

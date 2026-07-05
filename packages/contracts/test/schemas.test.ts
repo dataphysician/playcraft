@@ -124,7 +124,7 @@ function builderToolCatalogFixture() {
 
 function serviceCatalogFixture() {
   const action = (
-    actionName: "catalog" | "assemble" | "update" | "preview" | "reset" | "get-session" | "export-profile" | "import-profile",
+    actionName: "catalog" | "assemble" | "update" | "preview" | "reset" | "get-session" | "export-profile" | "import-profile" | "execute-workflow",
     request: {
       acceptedFields: string[];
       requiredFields: string[];
@@ -173,6 +173,10 @@ function serviceCatalogFixture() {
         requiredAnyOf: [["profile", "profileExport"]],
         exclusiveAnyOf: [["profile", "profileExport"]],
         forbiddenTogether: [["profileExport", "assetEdit"]]
+      }, "execution"),
+      action("execute-workflow", {
+        acceptedFields: ["sessionId", "workflow"],
+        requiredFields: ["workflow"]
       }, "execution")
     ],
     exactEnvelope: {

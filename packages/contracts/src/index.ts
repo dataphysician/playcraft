@@ -1020,7 +1020,8 @@ export const BuilderServiceActionNameSchema = z.enum([
   "reset",
   "get-session",
   "export-profile",
-  "import-profile"
+  "import-profile",
+  "execute-workflow"
 ]);
 export type BuilderServiceActionName = z.infer<typeof BuilderServiceActionNameSchema>;
 
@@ -1033,7 +1034,8 @@ export const BuilderServiceRequestFieldNameSchema = z.enum([
   "assetEdit",
   "interaction",
   "profile",
-  "profileExport"
+  "profileExport",
+  "workflow"
 ]);
 export type BuilderServiceRequestFieldName = z.infer<typeof BuilderServiceRequestFieldNameSchema>;
 
@@ -1125,7 +1127,7 @@ export const BuilderServiceCatalogActionSchema = z
       });
     }
 
-    if (!expectedRequiresSession && value.actionName !== "assemble" && value.request.acceptedFields.includes("sessionId")) {
+    if (!expectedRequiresSession && value.actionName !== "assemble" && value.actionName !== "execute-workflow" && value.request.acceptedFields.includes("sessionId")) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: `service action ${value.actionName} must not accept sessionId`,
@@ -1193,6 +1195,7 @@ function serviceActionResponsePayload(
   > = {
     assemble: "execution",
     catalog: "catalog",
+    "execute-workflow": "execution",
     "export-profile": "profileExport",
     "get-session": "session",
     "import-profile": "execution",
@@ -1466,13 +1469,25 @@ export const WorkflowEdgeSchema = z
   .strict();
 export type WorkflowEdge = z.infer<typeof WorkflowEdgeSchema>;
 
+export const WorkflowConditionSchema = z
+  .string()
+  .min(1)
+  .max(240)
+  .regex(
+    /^(?:payload\.[A-Za-z0-9_-]+(?:\.(?:length|count|size))?\s*(?:==|!=)\s*(?:"(?:[^"\\\n]|\\.)*"|-?\d+(?:\.\d+)?|true|false|null)|len\(\s*payload\.[A-Za-z0-9_-]+(?:\.(?:length|count|size))?\s*\)\s*(?:==|!=|>=|<=|>|<)\s*-?\d+(?:\.\d+)?)\s*$/u,
+    "workflow conditions must be simple payload equality or length comparisons"
+  );
+export type WorkflowCondition = z.infer<typeof WorkflowConditionSchema>;
+
 export const WorkflowNodeSchema = z
   .object({
     id: StableIdSchema,
     actionName: BuilderServiceActionNameSchema,
     payload: z.record(JsonValueSchema).default({}),
     dependsOn: z.array(StableIdSchema).default([]),
-    condition: z.string().min(1).optional(),
+    condition: WorkflowConditionSchema.optional(),
+    parallel: z.boolean().default(false),
+    cascade: z.boolean().default(true),
     continueOnError: z.boolean().default(false)
   })
   .strict();
@@ -2223,7 +2238,8 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   assetEdit: BuilderAssetEditSchema.optional(),
   interaction: BuilderPreviewInteractionSchema.optional(),
   profile: GameAssemblyProfileSchema.optional(),
-  profileExport: BuilderProfileExportSchema.optional()
+  profileExport: BuilderProfileExportSchema.optional(),
+  workflow: WorkflowGraphSchema.optional()
 }).strict()
   .refine((value) => !["update", "preview", "get-session", "export-profile", "import-profile"].includes(value.actionName) || Boolean(value.sessionId), {
     message: "update, preview, get-session, export-profile, and import-profile requests require sessionId",
@@ -2292,6 +2308,14 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   .refine((value) => value.actionName !== "import-profile" || !value.profileExport || !value.assetEdit, {
     message: "profileExport imports carry asset edits in the export; top-level assetEdit is only accepted with profile imports",
     path: ["assetEdit"]
+  })
+  .refine((value) => value.actionName !== "execute-workflow" || Boolean(value.workflow), {
+    message: "execute-workflow requests require a workflow graph payload",
+    path: ["workflow"]
+  })
+  .refine((value) => value.actionName === "execute-workflow" || !value.workflow, {
+    message: "workflow graphs are only accepted by execute-workflow requests",
+    path: ["workflow"]
   });
 export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
 

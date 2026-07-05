@@ -54,6 +54,15 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-07-05T19:08:43.366Z"
+    },
+    "todo:7": {
+      "task_key": "todo:7",
+      "task_label": "7",
+      "task_title": "Tool composition workflow graph schema + executor",
+      "session_id": "ses_0cc33f386ffezg62jajXGfO6zv",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-07-05T20:05:29.487Z"
     }
   }
 }
