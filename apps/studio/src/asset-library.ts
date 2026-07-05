@@ -114,9 +114,6 @@ export function createProfileLibraryAssetReplacements(
 
   for (const source of template.liveSurface.assetReplacementSources) {
     const component = componentForReplacementSource(profile, template, source);
-    if (!component) {
-      continue;
-    }
 
     if (source.pairMapProp) {
       addPairedTokenReplacements(replacements, component, source, themeFolders);
@@ -137,13 +134,16 @@ function componentForReplacementSource(
   profile: GameAssemblyProfile,
   template: GameProfileTemplateSnapshot,
   source: GameTemplateAssetReplacementSource
-): ComponentBinding | undefined {
+): ComponentBinding {
   const capability = template.liveSurface.componentCapabilities[source.componentRole];
   if (!capability) {
-    return undefined;
+    throw new Error(`profile ${profile.id} asset replacement source ${source.componentRole}:${source.prop} is missing a live surface component capability`);
   }
 
   const matches = profile.components.filter((component) => component.renderCapability === capability);
+  if (matches.length === 0) {
+    throw new Error(`profile ${profile.id} is missing asset replacement component for ${capability}`);
+  }
   if (matches.length > 1) {
     throw new Error(`profile ${profile.id} has multiple asset replacement components for ${capability}`);
   }

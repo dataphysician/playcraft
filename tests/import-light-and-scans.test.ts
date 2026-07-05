@@ -1450,8 +1450,13 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).toContain("template.liveSurface.assetReplacementSources");
     expect(assetLibrarySource).toContain("componentForReplacementSource");
     expect(assetLibrarySource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");
+    expect(assetLibrarySource).toContain("asset replacement source ${source.componentRole}:${source.prop} is missing a live surface component capability");
+    expect(assetLibrarySource).toContain("is missing asset replacement component for ${capability}");
     expect(assetLibrarySource).toContain("has multiple asset replacement components");
+    expect(assetLibrarySource).not.toContain("if (!component) {\n      continue;");
     expect(assetLibrarySource).not.toContain("profile.components.find((component) => component.renderCapability === capability)");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects asset replacement sources without a declared live surface component capability");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects asset replacement sources whose component is missing from the profile");
     expect(assetLibrarySource).toContain("const matches = sortingBinAssetCatalog.filter((entry)");
     expect(assetLibrarySource).toContain("maps to multiple local bin assets");
     expect(assetLibrarySource).not.toContain("const asset = sortingBinAssetCatalog.find((entry)");

@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Asset Replacement Sources
+
+Milestone:
+- Studio local asset replacement now requires every template asset replacement source to resolve to a declared live surface component capability and exactly one profile component.
+- Asset replacement source metadata no longer silently skips missing roles or missing profile components.
+
+Supportive changes:
+- Studio asset-library tests cover missing source role capabilities and missing source components.
+- Source scans guard the fail-closed asset replacement source resolver and block silent source skipping.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps local asset replacement template-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or skipped replacement source metadata.
+
 ## 2026-07-05 - Exact Live App Sorting Targets
 
 Milestone:

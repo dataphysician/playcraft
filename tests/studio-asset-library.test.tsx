@@ -137,6 +137,51 @@ describe("studio asset library", () => {
     expect(() => createProfileLibraryAssetReplacements(duplicateProfile)).toThrow(/multiple asset replacement components/u);
   });
 
+  it("rejects asset replacement sources without a declared live surface component capability", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const missingRoleCapabilityProfile = {
+      ...profile!,
+      template: {
+        ...profile!.template,
+        liveSurface: {
+          ...profile!.template.liveSurface,
+          assetReplacementSources: [
+            ...profile!.template.liveSurface.assetReplacementSources,
+            {
+              componentRole: "choice" as const,
+              prop: "items",
+              namespace: "choice" as const
+            }
+          ]
+        }
+      }
+    };
+
+    expect(() => createProfileLibraryAssetReplacements(missingRoleCapabilityProfile)).toThrow(
+      /asset replacement source choice:items is missing a live surface component capability/u
+    );
+  });
+
+  it("rejects asset replacement sources whose component is missing from the profile", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const missingComponentProfile = {
+      ...profile!,
+      components: profile!.components.filter((component) => component.renderCapability !== "component:reveal-card-grid")
+    };
+
+    expect(() => createProfileLibraryAssetReplacements(missingComponentProfile)).toThrow(
+      /missing asset replacement component for component:reveal-card-grid/u
+    );
+  });
+
   it("exposes validated local sprite URLs through profile replacements", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toys" });
@@ -508,7 +553,7 @@ describe("studio asset library", () => {
 
     render(React.createElement(LiveGame, { profile: missingChoiceCapabilityProfile }));
 
-    expect(screen.getByTestId("live-game-error").textContent).toContain("sequence surface is missing required authored choice component capability");
+    expect(screen.getByTestId("live-game-error").textContent).toContain("asset replacement source choice:items is missing a live surface component capability");
     expect(screen.queryByRole("button", { name: "gem-1" })).toBeNull();
   });
 
