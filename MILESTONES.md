@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Builder Catalog Tools Are Complete
+
+Milestone:
+- `BuilderCatalogSchema` now requires every builder tool action to appear exactly once, preventing incomplete or duplicate agent tool catalogs from reaching CLI, API, Studio, Mobile shell, or future server retrieval clients.
+- Valid catalog fixtures now carry the complete builder tool surface instead of partial one-tool catalogs.
+
+Supportive changes:
+- Contract tests cover missing and duplicate builder tool actions alongside the existing catalog input-source alignment checks.
+- Source scans guard builder tool action uniqueness and completeness helpers.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps the local agent-facing tool surface complete and reusable for toddler mini-game assembly without hosted providers, generated runtime code, auth, database state, compatibility shims, or partial builder tool catalogs.
+
 ## 2026-07-05 - Service Catalogs Are Complete And Session-Aligned
 
 Milestone:

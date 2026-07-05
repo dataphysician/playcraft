@@ -1151,10 +1151,22 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
     const acceptedSources = value.acceptedInputSources;
     const optionSources = value.input.sourceOptions.map((option) => option.source);
     const sessionBoundActions = value.sessions.sessionBoundActions;
+    const toolActionNames = value.tools.map((tool) => tool.actionName);
 
     addDuplicateBuilderInputSourceIssues(context, acceptedSources, ["acceptedInputSources"]);
     addDuplicateBuilderInputSourceIssues(context, optionSources, ["input", "sourceOptions"]);
     addDuplicateSessionBoundActionIssues(context, sessionBoundActions, ["sessions", "sessionBoundActions"]);
+    addDuplicateBuilderActionIssues(context, toolActionNames, ["tools"]);
+
+    for (const actionName of BuilderActionNameSchema.options) {
+      if (!toolActionNames.includes(actionName)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `builder catalog must include tool action ${actionName}`,
+          path: ["tools"]
+        });
+      }
+    }
 
     if (!acceptedSources.includes(value.input.defaultSource)) {
       context.addIssue({
@@ -1236,6 +1248,30 @@ function addDuplicateBuilderInputSourceIssues(
     context.addIssue({
       code: z.ZodIssueCode.custom,
       message: `catalog input source ${duplicate} must be unique`,
+      path
+    });
+  }
+}
+
+function addDuplicateBuilderActionIssues(
+  context: z.RefinementCtx,
+  actionNames: z.infer<typeof BuilderActionNameSchema>[],
+  path: Array<string | number>
+): void {
+  const seen = new Set<z.infer<typeof BuilderActionNameSchema>>();
+  const duplicates = new Set<z.infer<typeof BuilderActionNameSchema>>();
+
+  for (const actionName of actionNames) {
+    if (seen.has(actionName)) {
+      duplicates.add(actionName);
+    }
+    seen.add(actionName);
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `builder catalog tool action ${duplicate} must be unique`,
       path
     });
   }

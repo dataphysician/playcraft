@@ -33,6 +33,83 @@ import {
   themePacks
 } from "@playcraft/packs";
 
+function builderToolFixtureFor(
+  actionName: "assemble-game" | "update-game" | "preview-action" | "list-builder-tools" | "get-session" | "export-profile" | "import-profile"
+) {
+  const toolNameByAction = {
+    "assemble-game": "tool:assemble-game",
+    "update-game": "tool:update-game",
+    "preview-action": "tool:preview-action",
+    "list-builder-tools": "tool:list-builder-tools",
+    "get-session": "tool:get-session",
+    "export-profile": "tool:export-profile",
+    "import-profile": "tool:import-profile"
+  } as const;
+  const displayNameByAction = {
+    "assemble-game": "Assemble Game",
+    "update-game": "Update Game",
+    "preview-action": "Preview Action",
+    "list-builder-tools": "List Builder Tools",
+    "get-session": "Get Session",
+    "export-profile": "Export Profile",
+    "import-profile": "Import Profile"
+  } as const;
+  const requiredContractsByAction = {
+    "assemble-game": ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"],
+    "update-game": ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"],
+    "preview-action": ["BuilderCommandSchema", "BuilderPreviewStateSchema"],
+    "list-builder-tools": ["BuilderToolDefinitionSchema", "GameTemplateDefinitionSchema"],
+    "get-session": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema"],
+    "export-profile": ["BuilderCommandSchema", "BuilderProfileExportSchema"],
+    "import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]
+  } as const;
+  const acceptsInput = actionName === "assemble-game" || actionName === "update-game";
+
+  return {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: `builder-tool.fixture.${actionName}`,
+    version: "1.0.0",
+    kind: "builder-tool",
+    toolName: toolNameByAction[actionName],
+    displayName: displayNameByAction[actionName],
+    description: `${displayNameByAction[actionName]} fixture.`,
+    actionName,
+    argumentsSchema: {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      type: "object",
+      fields: acceptsInput
+        ? {
+            assetEdit: { type: "object", required: false },
+            input: { type: "object", required: false },
+            sessionId: { type: "string", required: actionName === "update-game" },
+            templateId: { type: "string", required: true }
+          }
+        : {},
+      allowUnknown: false
+    },
+    argumentSummary: acceptsInput
+      ? `args: assetEdit:object, input:object, sessionId${actionName === "update-game" ? "*" : ""}:string, templateId*:string`
+      : "args: none",
+    acceptedInputSources: acceptsInput ? ["text", "moonshine-transcript"] : [],
+    inputSourceSummary: acceptsInput ? "input: Text, Transcript" : "input: none",
+    localOnly: true,
+    emittedEvents: ["builder:profile-ready"],
+    requiredContracts: requiredContractsByAction[actionName]
+  };
+}
+
+function builderToolCatalogFixture() {
+  return [
+    builderToolFixtureFor("assemble-game"),
+    builderToolFixtureFor("update-game"),
+    builderToolFixtureFor("preview-action"),
+    builderToolFixtureFor("list-builder-tools"),
+    builderToolFixtureFor("get-session"),
+    builderToolFixtureFor("export-profile"),
+    builderToolFixtureFor("import-profile")
+  ];
+}
+
 function serviceCatalogFixture() {
   const action = (
     actionName: "catalog" | "assemble" | "update" | "preview" | "reset" | "get-session" | "export-profile" | "import-profile",
@@ -128,33 +205,7 @@ describe("public contract schemas", () => {
       ...envelope,
       runId: undefined
     }).success).toBe(false);
-    const builderToolFixture = {
-      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-      id: "builder-tool.fixture",
-      version: "1.0.0",
-      kind: "builder-tool",
-      toolName: "tool:assemble-game",
-      displayName: "Assemble game",
-      description: "Assemble a game from a registered template.",
-      actionName: "assemble-game",
-      argumentsSchema: {
-        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        type: "object",
-        fields: {
-          assetEdit: { type: "object", required: false },
-          input: { type: "object", required: false },
-          sessionId: { type: "string", required: false },
-          templateId: { type: "string", required: true }
-        },
-        allowUnknown: false
-      },
-      argumentSummary: "args: assetEdit:object, input:object, sessionId:string, templateId*:string",
-      acceptedInputSources: ["text", "moonshine-transcript"],
-      inputSourceSummary: "input: Text, Transcript",
-      localOnly: true,
-      emittedEvents: ["builder:profile-ready"],
-      requiredContracts: ["BuilderCommandSchema", "GameTemplateDefinitionSchema"]
-    };
+    const builderToolFixture = builderToolFixtureFor("assemble-game");
     const moonshineTranscriptRecord = {
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: "moonshine-transcript.fixture",
@@ -255,7 +306,7 @@ describe("public contract schemas", () => {
         kind: "builder-catalog",
         defaultTemplateId: "template.memory-match",
         templates: gameTemplateDefinitions,
-        tools: [builderToolFixture],
+        tools: builderToolCatalogFixture(),
         acceptedInputSources: ["text", "moonshine-transcript"],
         input: {
           defaultSource: "text",
@@ -857,30 +908,6 @@ describe("public contract schemas", () => {
   });
 
   it("keeps builder catalog input source options aligned with accepted sources", () => {
-    const builderTool = {
-      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-      id: "builder-tool.catalog-input-sources",
-      version: "1.0.0",
-      kind: "builder-tool",
-      toolName: "tool:assemble-game",
-      displayName: "Assemble game",
-      description: "Assemble a game from a registered template.",
-      actionName: "assemble-game",
-      argumentsSchema: {
-        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        type: "object",
-        fields: {
-          templateId: { type: "string", required: true }
-        },
-        allowUnknown: false
-      },
-      argumentSummary: "args: templateId*:string",
-      acceptedInputSources: ["text", "moonshine-transcript"],
-      inputSourceSummary: "input: Text, Transcript",
-      localOnly: true,
-      emittedEvents: ["builder:profile-ready"],
-      requiredContracts: ["BuilderCommandSchema"]
-    };
     const validCatalog = {
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: "builder-catalog.input-sources",
@@ -888,7 +915,7 @@ describe("public contract schemas", () => {
       kind: "builder-catalog",
       defaultTemplateId: "template.memory-match",
       templates: gameTemplateDefinitions,
-      tools: [builderTool],
+      tools: builderToolCatalogFixture(),
       acceptedInputSources: ["text", "moonshine-transcript"],
       input: {
         defaultSource: "text",
@@ -937,6 +964,14 @@ describe("public contract schemas", () => {
     };
 
     expect(BuilderCatalogSchema.safeParse(validCatalog).success).toBe(true);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      tools: validCatalog.tools.filter((tool) => tool.actionName !== "export-profile")
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      tools: [...validCatalog.tools, validCatalog.tools[0]]
+    }).success).toBe(false);
     expect(BuilderCatalogSchema.safeParse({
       ...validCatalog,
       acceptedInputSources: ["text", "text", "moonshine-transcript"]
