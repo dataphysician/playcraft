@@ -288,7 +288,11 @@ describe("import-light boundaries and source scans", () => {
 
     expect(packSource).toContain("const illustrationRequestId");
     expect(packSource).toContain("requiredGeneratedAssetForRequestId");
+    expect(packSource).toContain("function singleValue");
+    expect(packSource).toContain("function requireSingleValue");
+    expect(packSource).toContain("return requireSingleValue(matches, `generated asset for request ${requestId}`);");
     expect(packSource).toContain("received multiple generated assets for request");
+    expect(packSource).not.toContain("return matches[0]");
     expect(packSource).not.toContain("const asset = assets.find((candidate) => candidate.requestId === requestId)");
     expect(packSource).not.toContain("const illustration = assets[0].assetId");
     expect(packTestSource).toContain("rejects duplicate generated assets for a request instead of binding asset order");

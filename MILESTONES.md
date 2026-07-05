@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Pack Generated Asset Selection
+
+Milestone:
+- Pack profile assembly now resolves generated assets by request id through explicit single-value helpers instead of returning an indexed match.
+- Generated asset binding keeps missing and duplicate request-id checks fail-closed while removing positional match extraction.
+
+Supportive changes:
+- Source scans guard pack single-value helpers and block `return matches[0]` in generated asset binding.
+- Existing pack tests continue covering duplicate generated assets for a request and request-id-bound component asset bindings.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps pack profile assembly local, exact, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or indexed generated-asset selection.
+
 ## 2026-07-05 - Exact Studio Primary Preview Key
 
 Milestone:

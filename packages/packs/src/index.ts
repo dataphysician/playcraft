@@ -1523,7 +1523,19 @@ function requiredGeneratedAssetForRequestId(
     throw new Error(`${template.id} received multiple generated assets for request ${requestId}: ${matches.map((asset) => asset.assetId).join(", ")}`);
   }
 
-  return matches[0];
+  return requireSingleValue(matches, `generated asset for request ${requestId}`);
+}
+
+function singleValue<TValue>(values: TValue[]): TValue | undefined {
+  return values.length === 1 ? values[0] : undefined;
+}
+
+function requireSingleValue<TValue>(values: TValue[], label: string): TValue {
+  const value = singleValue(values);
+  if (value === undefined) {
+    throw new Error(`${label} requires exactly one value`);
+  }
+  return value;
 }
 
 function validAssemblyResult(profileId: string) {
