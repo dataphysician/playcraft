@@ -1788,7 +1788,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
 
 ### Wave 4 — Integration + Examples (4 tasks)
 
-- [ ] 17. MCP HTTP endpoints (GET /catalog, POST /tools/list, POST /tools/call)
+- [x] 17. MCP HTTP endpoints (GET /catalog, POST /tools/list, POST /tools/call)
 
   **What to do**:
   - In `packages/service/src/http-server.ts`:

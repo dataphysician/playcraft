@@ -650,7 +650,17 @@ export class LocalPlaycraftService {
       return undefined;
     }
 
-    const snapshot = this.getSession(request.sessionId);
+    return this.checkSessionExpiry(request.sessionId);
+  }
+
+  /**
+   * Returns a `session-expired` error when the tracked ownership for `sessionId`
+   * is past its `expiresAt` timestamp. Sessions without ownership are treated as
+   * non-expired (legacy/test fixture compatibility). The MCP HTTP endpoint uses
+   * this for ownership enforcement on `POST /playcraft/tools/call`.
+   */
+  checkSessionExpiry(sessionId: string): BuilderServiceError | undefined {
+    const snapshot = this.getSession(sessionId);
     if (!snapshot.ownership) {
       return undefined;
     }
@@ -659,9 +669,9 @@ export class LocalPlaycraftService {
     if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) {
       return BuilderServiceErrorSchema.parse({
         kind: "session-expired",
-        sessionId: request.sessionId,
+        sessionId,
         ownerId: snapshot.ownership.ownerId,
-        message: `session ${request.sessionId} expired at ${snapshot.ownership.expiresAt}`
+        message: `session ${sessionId} expired at ${snapshot.ownership.expiresAt}`
       });
     }
 

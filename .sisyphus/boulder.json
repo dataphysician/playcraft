@@ -108,6 +108,15 @@
       "agent": "Sisyphus-Junior",
       "category": "visual-engineering",
       "updated_at": "2026-07-05T22:45:54.158Z"
+    },
+    "todo:17": {
+      "task_key": "todo:17",
+      "task_label": "17",
+      "task_title": "MCP HTTP endpoints (GET /catalog, POST /tools/list, POST /tools/call)",
+      "session_id": "ses_0cb734766ffeSm7giEExN8jNf1",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-07-05T23:21:43.942Z"
     }
   }
 }
