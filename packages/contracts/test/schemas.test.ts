@@ -974,6 +974,25 @@ describe("public contract schemas", () => {
     }).success).toBe(false);
     expect(BuilderCatalogSchema.safeParse({
       ...validCatalog,
+      defaultTemplateId: "template.missing"
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      templates: [...validCatalog.templates, validCatalog.templates[0]]
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      templates: validCatalog.templates.map((template, index) =>
+        index === 0
+          ? {
+              ...template,
+              localFirst: false
+            }
+          : template
+      )
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
       acceptedInputSources: ["text", "text", "moonshine-transcript"]
     }).success).toBe(false);
     expect(BuilderCatalogSchema.safeParse({

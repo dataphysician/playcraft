@@ -1152,11 +1152,31 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
     const optionSources = value.input.sourceOptions.map((option) => option.source);
     const sessionBoundActions = value.sessions.sessionBoundActions;
     const toolActionNames = value.tools.map((tool) => tool.actionName);
+    const templateIds = value.templates.map((template) => template.id);
 
     addDuplicateBuilderInputSourceIssues(context, acceptedSources, ["acceptedInputSources"]);
     addDuplicateBuilderInputSourceIssues(context, optionSources, ["input", "sourceOptions"]);
     addDuplicateSessionBoundActionIssues(context, sessionBoundActions, ["sessions", "sessionBoundActions"]);
     addDuplicateBuilderActionIssues(context, toolActionNames, ["tools"]);
+    addDuplicateBuilderTemplateIssues(context, templateIds, ["templates"]);
+
+    if (!templateIds.includes(value.defaultTemplateId)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `catalog default template ${value.defaultTemplateId} must be included in templates`,
+        path: ["defaultTemplateId"]
+      });
+    }
+
+    for (const template of value.templates) {
+      if (!template.localFirst) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `catalog template ${template.id} must be localFirst`,
+          path: ["templates"]
+        });
+      }
+    }
 
     for (const actionName of BuilderActionNameSchema.options) {
       if (!toolActionNames.includes(actionName)) {
@@ -1272,6 +1292,30 @@ function addDuplicateBuilderActionIssues(
     context.addIssue({
       code: z.ZodIssueCode.custom,
       message: `builder catalog tool action ${duplicate} must be unique`,
+      path
+    });
+  }
+}
+
+function addDuplicateBuilderTemplateIssues(
+  context: z.RefinementCtx,
+  templateIds: z.infer<typeof BuilderTemplateIdSchema>[],
+  path: Array<string | number>
+): void {
+  const seen = new Set<z.infer<typeof BuilderTemplateIdSchema>>();
+  const duplicates = new Set<z.infer<typeof BuilderTemplateIdSchema>>();
+
+  for (const templateId of templateIds) {
+    if (seen.has(templateId)) {
+      duplicates.add(templateId);
+    }
+    seen.add(templateId);
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `builder catalog template ${duplicate} must be unique`,
       path
     });
   }

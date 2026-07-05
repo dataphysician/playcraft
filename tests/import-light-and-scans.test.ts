@@ -439,6 +439,9 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("builder action ${value.actionName} must not accept text or transcript input");
     expect(contractSource).toContain("addDuplicateBuilderActionIssues");
     expect(contractSource).toContain("builder catalog must include tool action ${actionName}");
+    expect(contractSource).toContain("addDuplicateBuilderTemplateIssues");
+    expect(contractSource).toContain("catalog default template ${value.defaultTemplateId} must be included in templates");
+    expect(contractSource).toContain("catalog template ${template.id} must be localFirst");
     expect(contractSource).toContain("noInputLabel: z.string()");
     expect(contractSource).toContain("sourceOptions: z.array(BuilderInputSourceOptionSchema)");
     expect(contractSource).toContain("addDuplicateBuilderInputSourceIssues");

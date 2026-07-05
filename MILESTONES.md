@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Builder Catalog Templates Are Local And Addressable
+
+Milestone:
+- `BuilderCatalogSchema` now requires `defaultTemplateId` to reference a listed template, template IDs to be unique, and all catalog templates to be `localFirst`.
+- Catalog validation now rejects missing defaults, duplicate templates, and non-local template entries before CLI/API/UI clients use the catalog.
+
+Supportive changes:
+- Contract tests cover missing default template references, duplicate template IDs, and non-local template entries alongside complete tool catalog checks.
+- Source scans guard template uniqueness, default-template reachability, and local-first catalog requirements.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps template selection explicit and local-first for agentic toddler mini-game assembly without hosted providers, generated runtime code, auth, database state, compatibility shims, or unreachable default templates.
+
 ## 2026-07-05 - Builder Catalog Tools Are Complete
 
 Milestone:
