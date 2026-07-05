@@ -1,5 +1,22 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Explicit Service Request Tip Examples
+
+Milestone:
+- Service catalog request-tip examples are now authored in an explicit local policy keyed by template id.
+- The catalog no longer pairs the first three templates with asset themes by list index or modulo arithmetic.
+
+Supportive changes:
+- Service/source tests continue to assert the same user-facing tips while source scans block the old index-derived example path and removed `sentenceCase` helper.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+
+Constraint notes:
+- Keeps agent-facing catalog guidance local, explicit, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or asset-theme order-derived examples.
+
 ## 2026-07-05 - Authored Memory Template Pair Counts
 
 Milestone:

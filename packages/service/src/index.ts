@@ -76,6 +76,21 @@ export const LOCAL_SERVICE_INPUT_POLICY = {
   ]
 } as const;
 
+export const LOCAL_SERVICE_REQUEST_TIP_EXAMPLES = [
+  {
+    templateId: "template.memory-match",
+    request: "Memory game with dinosaurs"
+  },
+  {
+    templateId: "template.sorting",
+    request: "Sorting game with toys"
+  },
+  {
+    templateId: "template.sequence-repeat",
+    request: "Sequence repeat with ocean animals"
+  }
+] as const;
+
 export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
   actions: [
     {
@@ -558,11 +573,10 @@ function requestTipsForCatalog(
   const visibleGames = availableGames.slice(0, 5);
   const hiddenGameCount = Math.max(0, availableGames.length - visibleGames.length);
   const assetEdits = assetThemes.map((entry) => `with ${entry.displayLabel}`);
-  const examples = templates.slice(0, 3).map((template, index) => {
-    const assetEdit = assetEdits[index % Math.max(assetEdits.length, 1)];
-    const request = sentenceCase(template.exampleRequest);
-    return assetEdit ? `${request} ${assetEdit}` : request;
-  });
+  const templateIds = new Set(templates.map((template) => template.id));
+  const examples = LOCAL_SERVICE_REQUEST_TIP_EXAMPLES
+    .filter((entry) => templateIds.has(entry.templateId))
+    .map((entry) => entry.request);
 
   return {
     availableGames,
@@ -574,10 +588,6 @@ function requestTipsForCatalog(
       `Try: ${examples.join("; ")}.`
     ]
   };
-}
-
-function sentenceCase(value: string): string {
-  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
 }
 
 export function createLocalPlaycraftService(handler?: BuilderCommandHandler): LocalPlaycraftService {

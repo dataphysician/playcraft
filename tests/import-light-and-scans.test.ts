@@ -1021,6 +1021,12 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("exampleRequest");
     expect(serviceSource).toContain("requestTipsForCatalog");
     expect(serviceSource).toContain("requestTips: requestTipsForCatalog");
+    expect(serviceSource).toContain("LOCAL_SERVICE_REQUEST_TIP_EXAMPLES");
+    expect(serviceSource).toContain('templateId: "template.memory-match"');
+    expect(serviceSource).toContain('request: "Memory game with dinosaurs"');
+    expect(serviceSource).not.toContain("assetEdits[index % Math.max(assetEdits.length, 1)]");
+    expect(serviceSource).not.toContain("templates.slice(0, 3).map((template, index)");
+    expect(serviceSource).not.toContain("function sentenceCase");
     expect(studioSource).toContain("catalog.requestTips.summaryLines");
     expect(studioSource).not.toContain("preferredTemplateAlias");
     expect(studioSource).not.toMatch(/requestAliases\)\)/u);
