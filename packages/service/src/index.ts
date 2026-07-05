@@ -4,6 +4,7 @@ import {
   BuilderIntentResolutionSchema,
   BuilderProfileExportSchema,
   BuilderServiceExecutionSchema,
+  BuilderServiceRequestBatchSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
   BuilderSessionSnapshotSchema,
@@ -21,6 +22,7 @@ import {
   type BuilderProfileExport,
   type BuilderServiceExecution,
   type BuilderServiceRequest,
+  type BuilderServiceRequestBatch,
   type BuilderServiceResponse,
   type BuilderSessionSnapshot,
   type BuilderTemplateId,
@@ -314,6 +316,10 @@ export class LocalPlaycraftService {
     });
   }
 
+  handleBatch(requestInputs: BuilderServiceRequestBatch): BuilderServiceResponse[] {
+    return BuilderServiceRequestBatchSchema.parse(requestInputs).map((request) => this.handle(request));
+  }
+
   private resolveInput(sessionId: string, input: LocalBuilderInput): ResolvedBuilderInputCommand {
     this.inputCounter += 1;
     const state = this.sessionState.get(sessionId);
@@ -479,6 +485,13 @@ export function handleLocalServiceRequest(
   service = createLocalPlaycraftService()
 ): BuilderServiceResponse {
   return service.handle(request);
+}
+
+export function handleLocalServiceRequestBatch(
+  requests: BuilderServiceRequestBatch,
+  service = createLocalPlaycraftService()
+): BuilderServiceResponse[] {
+  return service.handleBatch(requests);
 }
 
 export function resolveBuilderInputCommand(input: {

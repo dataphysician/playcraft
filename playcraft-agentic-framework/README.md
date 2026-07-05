@@ -42,7 +42,7 @@ The v1 target is intentionally small and local-first:
 - Trusted React renderer for registered components only.
 - Replay harness for saved `GameAssemblyProfile` records.
 - Three MVP profiles: memory match, sorting, and sequence repeat.
-- Local service facade with validated `BuilderServiceRequest` and `BuilderServiceResponse` envelopes for text requests and `MoonshineTranscriptRecord` inputs from Moonshine Streaming CPU transcript records.
+- Local service facade with validated `BuilderServiceRequest`, `BuilderServiceRequestBatchSchema`, and `BuilderServiceResponse` contracts for text requests and `MoonshineTranscriptRecord` inputs from Moonshine Streaming CPU transcript records.
 - In-process and HTTP JSON service transports over the same request/response envelope, including a local `playcraft-service-http` server.
 - Studio and Tauri Mobile-facing shells that default to the in-process local service and can call the HTTP service by setting `VITE_PLAYCRAFT_SERVICE_URL`.
 - `playcraft-service` CLI surface for catalog, assemble, update, preview, get-session, export-profile, import-profile, reset, raw `BuilderServiceRequest` envelopes and request batches, `--transcript` Moonshine transcript input, and asset-edit requests with callable argument schemas, catalog-driven template aliases, and discoverable local replacement themes.

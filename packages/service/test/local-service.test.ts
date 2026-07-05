@@ -19,6 +19,7 @@ import {
   createMoonshineTranscriptRecord,
   handleServiceHttpRequestBody,
   handleLocalServiceRequest,
+  handleLocalServiceRequestBatch,
   resolveBuilderInputCommand
 } from "../src/index.js";
 import { runLocalServiceCli } from "../src/cli.js";
@@ -1264,6 +1265,34 @@ describe("local Playcraft service", () => {
     expect(responses[1]?.profileExport?.sessionId).toBe("session.cli-batch");
     expect(responses[1]?.profileExport?.profile.id).toBe("profile.memory-match.mvp");
     expect(err).toEqual([]);
+  });
+
+  it("lets agents submit same-process service request batches through the local API helper", () => {
+    const responses = handleLocalServiceRequestBatch([
+      {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.api-batch-assemble",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        sessionId: "session.api-batch",
+        text: "Sort shapes by color with fruits"
+      },
+      {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.api-batch-export",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "export-profile",
+        sessionId: "session.api-batch"
+      }
+    ]);
+
+    expect(responses.map((response) => response.actionName)).toEqual(["assemble", "export-profile"]);
+    expect(responses[0]?.execution?.result.profile?.id).toBe("profile.sorting.mvp");
+    expect(responses[1]?.profileExport?.sessionId).toBe("session.api-batch");
+    expect(responses[1]?.profileExport?.assetEdit?.theme).toBe("fruits");
+    expect(responses[1]?.profileExport?.profile.id).toBe("profile.sorting.mvp");
   });
 
   it("rejects invalid exact service request envelopes through the CLI schema", () => {

@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Promote Service Request Batch Contract
+
+Milestone:
+- `BuilderServiceRequestBatchSchema` now validates non-empty arrays of exact service request envelopes.
+- The local service exposes `handleBatch` and `handleLocalServiceRequestBatch` so API callers can share one same-process session across assemble/export workflows.
+- The service CLI now parses `request-batch` payloads through the shared contract instead of owning ad hoc array validation.
+
+Supportive changes:
+- Contract tests cover valid request batches, empty-batch rejection, and invalid-envelope rejection inside a batch.
+- Service tests prove the local API helper shares state across assemble then export.
+- Canonical docs and source scans now pin the shared batch schema and API helper alongside the CLI batch command.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps multi-step agent workflows contract-shaped and local without adding persistence, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Align Framework Tool Surface Docs
 
 Milestone:

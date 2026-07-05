@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AssetContentTypeSchema,
   BuilderInputRequestSchema,
+  BuilderServiceRequestBatchSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
   GameAssemblyProfileSchema,
@@ -827,6 +828,44 @@ describe("public contract schemas", () => {
           }
         }
       }).success
+    ).toBe(false);
+  });
+
+  it("validates non-empty batches of exact service request envelopes", () => {
+    expect(
+      BuilderServiceRequestBatchSchema.parse([
+        {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-service-request-batch.test.assemble",
+          version: "1.0.0",
+          kind: "builder-service-request",
+          actionName: "assemble",
+          sessionId: "session.batch-contract",
+          text: "Memory game with dinosaurs"
+        },
+        {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-service-request-batch.test.export",
+          version: "1.0.0",
+          kind: "builder-service-request",
+          actionName: "export-profile",
+          sessionId: "session.batch-contract"
+        }
+      ]).map((request) => request.actionName)
+    ).toEqual(["assemble", "export-profile"]);
+
+    expect(BuilderServiceRequestBatchSchema.safeParse([]).success).toBe(false);
+    expect(
+      BuilderServiceRequestBatchSchema.safeParse([
+        {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-service-request-batch.test.invalid-catalog",
+          version: "1.0.0",
+          kind: "builder-service-request",
+          actionName: "catalog",
+          text: "Memory game with dinosaurs"
+        }
+      ]).success
     ).toBe(false);
   });
 

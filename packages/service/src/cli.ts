@@ -2,6 +2,7 @@ declare const process: { argv: string[]; exit(code?: number): never };
 
 import {
   BuilderProfileExportSchema,
+  BuilderServiceRequestBatchSchema,
   BuilderServiceRequestSchema,
   BuilderTemplateIdSchema,
   GameAssemblyProfileSchema,
@@ -252,7 +253,7 @@ function parseServiceRequestBatchJson(value: string | undefined): BuilderService
     throw new Error("request-batch command requires --request-json");
   }
 
-  return BuilderServiceRequestSchema.array().min(1).parse(JSON.parse(value));
+  return BuilderServiceRequestBatchSchema.parse(JSON.parse(value));
 }
 
 function rejectNonEnvelopeFlags(args: ParsedArgs, commandName: "request" | "request-batch"): void {

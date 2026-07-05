@@ -629,21 +629,32 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps service CLI stateful examples on exact request batches", () => {
     const cliSource = readSource("packages/service/src/cli.ts");
+    const contractSource = readSource("packages/contracts/src/index.ts");
     const rootReadme = readSource("README.md");
     const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
     const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
     const frameworkReadme = readSource("playcraft-agentic-framework/README.md");
     const prd = readSource("playcraft-agentic-framework/PRD.md");
+    const serviceSource = readSource("packages/service/src/index.ts");
 
+    expect(contractSource).toContain("BuilderServiceRequestBatchSchema");
+    expect(contractSource).toContain("z.array(BuilderServiceRequestSchema).min(1)");
+    expect(serviceSource).toContain("handleLocalServiceRequestBatch");
+    expect(serviceSource).toContain("BuilderServiceRequestBatchSchema.parse");
     expect(cliSource).toContain("request-batch");
     expect(cliSource).toContain("parseServiceRequestBatchJson");
     expect(cliSource).toContain("rejectNonEnvelopeFlags");
     expect(cliSource).toContain("only accepts --request-json and --json");
-    expect(cliSource).toContain("BuilderServiceRequestSchema.array().min(1)");
+    expect(cliSource).toContain("BuilderServiceRequestBatchSchema.parse");
+    expect(cliSource).not.toContain("BuilderServiceRequestSchema.array().min(1)");
     expect(rootReadme).toContain("playcraft-service request-batch");
+    expect(rootReadme).toContain("handleLocalServiceRequestBatch");
     expect(devGuide).toContain("playcraft-service request-batch");
+    expect(devGuide).toContain("BuilderServiceRequestBatchSchema");
+    expect(devGuide).toContain("handleLocalServiceRequestBatch");
     expect(frameworkReadme).toContain("request batches");
-    expect(architecture).toContain("same-process request batches");
+    expect(architecture).toContain("same-process `BuilderServiceRequestBatchSchema` request batches");
+    expect(architecture).toContain("BuilderServiceRequestBatchSchema");
     expect(`${rootReadme}\n${devGuide}`).not.toMatch(/export-profile\s+--(?:text|transcript|asset-theme|asset-item)/u);
     expect(`${frameworkReadme}\n${architecture}\n${devGuide}\n${prd}`).toContain("export-profile");
     expect(`${frameworkReadme}\n${architecture}\n${devGuide}\n${prd}`).toContain("import-profile");

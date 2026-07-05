@@ -1006,6 +1006,9 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
   });
 export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
 
+export const BuilderServiceRequestBatchSchema = z.array(BuilderServiceRequestSchema).min(1);
+export type BuilderServiceRequestBatch = z.infer<typeof BuilderServiceRequestBatchSchema>;
+
 export const BuilderServiceResponseSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-service-response"),
   requestId: StableIdSchema,
