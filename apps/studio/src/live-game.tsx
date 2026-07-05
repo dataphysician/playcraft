@@ -176,6 +176,7 @@ function LiveGameForProfile({
         const component = requiredComponentByCapability(profileParsed, liveSurface.componentCapabilities.primary);
         validateMemorySurfaceProps(profileParsed.id, component, tokenStyleCatalog);
         return React.createElement(MemoryGame, {
+          key: liveGameComponentKey(profileParsed, component),
           profile: profileParsed,
           component,
           replacements,
@@ -187,6 +188,7 @@ function LiveGameForProfile({
         const component = requiredComponentByCapability(profileParsed, liveSurface.componentCapabilities.primary);
         validateSortingSurfaceProps(profileParsed.id, component, tokenStyleCatalog);
         return React.createElement(SortingGame, {
+          key: liveGameComponentKey(profileParsed, component),
           profile: profileParsed,
           component,
           replacements,
@@ -199,6 +201,7 @@ function LiveGameForProfile({
         const choiceComponent = requiredSequenceChoiceComponent(profileParsed, liveSurface);
         validateSequenceSurfaceProps(profileParsed.id, sequenceComponent, choiceComponent, tokenStyleCatalog);
         return React.createElement(SequenceGame, {
+          key: liveGameComponentKey(profileParsed, sequenceComponent, choiceComponent),
           profile: profileParsed,
           sequenceComponent,
           choiceComponent,
@@ -1135,6 +1138,20 @@ function CompletionPanel({
 
 function liveTemplateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {
   return profile.template;
+}
+
+function liveGameComponentKey(profile: GameAssemblyProfile, ...components: ComponentBinding[]): string {
+  return [
+    profile.id,
+    ...components.map((component) =>
+      [
+        component.bindingId,
+        component.renderCapability,
+        JSON.stringify(component.props),
+        JSON.stringify(component.assetBindings)
+      ].join(":")
+    )
+  ].join("|");
 }
 
 function tokenStyleCatalogForSurface(liveSurface: GameTemplateLiveSurface): TokenStyleCatalog {

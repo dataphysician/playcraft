@@ -116,6 +116,46 @@ describe("saved profile replay", () => {
     );
   });
 
+  it("fails closed when saved profile assets reference unknown asset requests", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const unknownRequestProfile = {
+      ...saved,
+      assets: [
+        {
+          ...saved.assets[0]!,
+          requestId: "asset-request.missing"
+        }
+      ]
+    };
+
+    expect(() => replayProfile(unknownRequestProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile generated asset ${saved.assets[0]!.assetId.replace(/\./gu, "\\.")} must reference a profile asset request`, "u")
+    );
+  });
+
+  it("fails closed when saved component asset bindings reference unknown generated assets", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const unknownAssetProfile = {
+      ...saved,
+      components: [
+        {
+          ...saved.components[0]!,
+          assetBindings: {
+            ...saved.components[0]!.assetBindings,
+            illustration: "asset.missing"
+          }
+        },
+        ...saved.components.slice(1)
+      ]
+    };
+
+    expect(() => replayProfile(unknownAssetProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile component ${saved.components[0]!.bindingId.replace(/\./gu, "\\.")} asset binding illustration must reference a profile generated asset`, "u")
+    );
+  });
+
   it("fails closed when saved profile mechanics contain duplicate binding ids", () => {
     const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
     const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
@@ -131,6 +171,46 @@ describe("saved profile replay", () => {
 
     expect(() => replayProfile(duplicateMechanicProfile, createDefaultRegistries())).toThrow(
       new RegExp(`profile mechanic binding ${saved.mechanics[0]!.bindingId.replace(/\./gu, "\\.")} must be unique`, "u")
+    );
+  });
+
+  it("fails closed when saved component mechanic bindings reference unknown profile mechanics", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const unknownMechanicProfile = {
+      ...saved,
+      components: [
+        {
+          ...saved.components[0]!,
+          mechanicBindingIds: [...saved.components[0]!.mechanicBindingIds, "mechanic.missing"]
+        },
+        ...saved.components.slice(1)
+      ]
+    };
+
+    expect(() => replayProfile(unknownMechanicProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile component ${saved.components[0]!.bindingId.replace(/\./gu, "\\.")} mechanic binding mechanic\\.missing must reference a profile mechanic`, "u")
+    );
+  });
+
+  it("fails closed when saved component render mechanics are not attached to the component", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const unattachedMechanic = saved.mechanics.find((mechanic) => !saved.components[0]!.mechanicBindingIds.includes(mechanic.bindingId));
+    expect(unattachedMechanic).toBeDefined();
+    const unattachedRenderProfile = {
+      ...saved,
+      components: [
+        {
+          ...saved.components[0]!,
+          renderMechanicBindingId: unattachedMechanic!.bindingId
+        },
+        ...saved.components.slice(1)
+      ]
+    };
+
+    expect(() => replayProfile(unattachedRenderProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile component ${saved.components[0]!.bindingId.replace(/\./gu, "\\.")} render mechanic binding ${unattachedMechanic!.bindingId.replace(/\./gu, "\\.")} must be attached to the component`, "u")
     );
   });
 

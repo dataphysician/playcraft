@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Profile Internal References Are Schema-Owned
+
+Milestone:
+- `GameAssemblyProfileSchema` now rejects components whose mechanic bindings do not reference profile mechanics, render mechanic bindings that are not attached to the component, generated assets without profile asset requests, and component asset bindings that point outside the profile asset set.
+- Core validation no longer carries separate profile-internal mechanic-reference checks or orphan asset warnings after profile schema parsing.
+
+Supportive changes:
+- Contract tests cover invalid component mechanic references, unattached render mechanics, orphan generated assets, and component asset bindings to missing generated assets.
+- Core replay tests now expect those malformed saved profiles to fail at the public profile contract boundary.
+- Live App game surfaces now remount from explicit component props and asset bindings, so same-template asset swaps do not carry stale game state across generated profiles.
+- Source scans guard the schema-owned reference checks and reject the removed late core branches.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden stale removed-provider exact scan
+- full ignored-path legacy transcript/provider scan
+
+Constraint notes:
+- Keeps saved profiles self-contained for local agent-driven toddler mini-game assembly while preserving manifest-specific asset binding validation in core and renderer layers.
+
 ## 2026-07-05 - Profile Binding Identities Are Schema-Owned
 
 Milestone:

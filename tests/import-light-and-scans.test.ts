@@ -337,7 +337,11 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("renderMechanicBindingId: StableIdSchema");
     expect(coreSource).toContain("mechanicBindingId: component.renderMechanicBindingId");
     expect(coreSource).not.toContain("mechanicBindingId: component.mechanicBindingIds[0]");
-    expect(coreSource).toContain("render mechanic binding");
+    expect(contractSource).toContain("profile component ${component.bindingId} mechanic binding ${bindingId} must reference a profile mechanic");
+    expect(contractSource).toContain("profile component ${component.bindingId} render mechanic binding ${component.renderMechanicBindingId} must reference a profile mechanic");
+    expect(contractSource).toContain("profile component ${component.bindingId} render mechanic binding ${component.renderMechanicBindingId} must be attached to the component");
+    expect(coreSource).not.toContain("missing_mechanic_binding");
+    expect(coreSource).not.toContain("unsupported_mechanic_binding");
     expect(contractSource).toContain("profileDuplicateStrings(value.mechanics.map((mechanic) => mechanic.bindingId))");
     expect(contractSource).toContain("profile mechanic binding ${duplicate} must be unique");
     expect(coreSource).not.toContain("duplicate_mechanic_binding_id");
@@ -352,6 +356,8 @@ describe("import-light boundaries and source scans", () => {
     expect(packTestSource).toContain("renderMechanicBindingId");
     expect(packTestSource).toContain("mechanicBindingIds");
     expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile mechanics contain duplicate binding ids");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved component mechanic bindings reference unknown profile mechanics");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved component render mechanics are not attached to the component");
   });
 
   it("keeps play input modalities separate from audio asset content", () => {
@@ -1609,18 +1615,26 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).not.toContain("gameTemplateDefinitions.find");
     expect(liveGameSource).toContain("GameAssemblyProfileSchema.safeParse(profile)");
     expect(liveGameSource).toContain("saved profile failed schema validation");
+    expect(liveGameSource).toContain("function liveGameComponentKey");
+    expect(liveGameSource).toContain("key: liveGameComponentKey(profileParsed, component)");
     expect(liveGameSource).toContain("function profileAssetById");
     expect(liveGameSource).not.toContain("function requireUniqueProfileAssetIds");
     expect(contractSource).toContain("profileDuplicateStrings(value.assetRequests.map((request) => request.requestId))");
     expect(contractSource).toContain("profile asset request ${duplicate} must be unique");
     expect(contractSource).toContain("profileDuplicateStrings(value.assets.map((asset) => asset.assetId))");
     expect(contractSource).toContain("profile generated asset ${duplicate} must be unique");
+    expect(contractSource).toContain("profile generated asset ${asset.assetId} must reference a profile asset request");
+    expect(contractSource).toContain("profile component ${component.bindingId} asset binding ${binding} must reference a profile generated asset");
     expect(readSource("packages/core/src/index.ts")).not.toContain("duplicate_asset_id");
     expect(readSource("packages/core/src/index.ts")).not.toContain("const duplicateAssetIds = duplicateStrings(profile.assets.map((asset) => asset.assetId));");
     expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile assets contain duplicate generated asset ids");
     expect(readSource("packages/core/src/index.ts")).not.toContain("duplicate_asset_request_id");
     expect(readSource("packages/core/src/index.ts")).not.toContain("const duplicateAssetRequestIds = duplicateStrings(profile.assetRequests.map((request) => request.requestId));");
+    expect(readSource("packages/core/src/index.ts")).not.toContain("orphan_asset");
+    expect(readSource("packages/core/src/index.ts")).not.toContain("asset ${asset.assetId} has no matching request");
     expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile asset requests contain duplicate request ids");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile assets reference unknown asset requests");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved component asset bindings reference unknown generated assets");
     expect(liveGameSource).toContain("const matches = profile.assets.filter((entry) => entry.assetId === assetId);");
     expect(liveGameSource).not.toContain("profile.assets.find((entry) => entry.assetId === assetId)");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate generated asset ids instead of using asset order");

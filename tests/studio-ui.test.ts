@@ -1181,6 +1181,9 @@ describe("studio UI", () => {
 
     const profile = {
       ...profileC,
+      assetRequests: [...profileC.assetRequests, ...profileA.assetRequests],
+      assets: [...profileC.assets, ...profileA.assets],
+      mechanics: [...profileC.mechanics, ...profileA.mechanics],
       components: [memoryComponent!, ...profileC.components]
     };
 

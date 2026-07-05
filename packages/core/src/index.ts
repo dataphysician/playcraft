@@ -480,26 +480,11 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
     }
   }
 
-  const mechanicBindingIds = new Set(profile.mechanics.map((mechanic) => mechanic.bindingId));
-  const assetIds = new Set(profile.assets.map((asset) => asset.assetId));
-
   for (const [index, component] of profile.components.entries()) {
     const manifest = registries.components.get(component.componentId, component.version);
     if (!manifest) {
       errors.push(schemaIssue(["components", index], "missing_registry_reference", `component ${component.componentId}@${component.version} is not registered`, "error"));
       continue;
-    }
-
-    for (const bindingId of component.mechanicBindingIds) {
-      if (!mechanicBindingIds.has(bindingId)) {
-        errors.push(schemaIssue(["components", index, "mechanicBindingIds"], "missing_mechanic_binding", `mechanic binding ${bindingId} does not exist`, "error"));
-      }
-    }
-    if (!mechanicBindingIds.has(component.renderMechanicBindingId)) {
-      errors.push(schemaIssue(["components", index, "renderMechanicBindingId"], "missing_mechanic_binding", `render mechanic binding ${component.renderMechanicBindingId} does not exist`, "error"));
-    }
-    if (!component.mechanicBindingIds.includes(component.renderMechanicBindingId)) {
-      errors.push(schemaIssue(["components", index, "renderMechanicBindingId"], "unsupported_mechanic_binding", `render mechanic binding ${component.renderMechanicBindingId} is not attached to component ${component.bindingId}`, "error"));
     }
 
     if (manifest.renderCapability !== component.renderCapability) {
@@ -518,15 +503,9 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
       }
 
       const assetId = component.assetBindings[requirement.binding];
-      if (!assetId || !assetIds.has(assetId)) {
+      if (!assetId) {
         errors.push(schemaIssue(["components", index, "assetBindings", requirement.binding], "missing_asset", `required asset binding ${requirement.binding} is missing`, "error"));
       }
-    }
-  }
-
-  for (const [index, asset] of profile.assets.entries()) {
-    if (!profile.assetRequests.some((request) => request.requestId === asset.requestId)) {
-      warnings.push(schemaIssue(["assets", index], "orphan_asset", `asset ${asset.assetId} has no matching request`, "warning"));
     }
   }
 

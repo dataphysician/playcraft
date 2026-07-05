@@ -641,6 +641,10 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
     path: ["validation", "profileId"]
   })
   .superRefine((value, context) => {
+    const mechanicBindingIds = new Set(value.mechanics.map((mechanic) => mechanic.bindingId));
+    const assetRequestIds = new Set(value.assetRequests.map((request) => request.requestId));
+    const assetIds = new Set(value.assets.map((asset) => asset.assetId));
+
     for (const duplicate of profileDuplicateStrings(value.mechanics.map((mechanic) => mechanic.bindingId))) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -679,6 +683,62 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
         message: `profile generated asset ${duplicate} must be unique`,
         path: ["assets"]
       });
+    }
+
+    for (const [index, asset] of value.assets.entries()) {
+      if (!assetRequestIds.has(asset.requestId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `profile generated asset ${asset.assetId} must reference a profile asset request`,
+          path: ["assets", index, "requestId"]
+        });
+      }
+    }
+
+    for (const [index, component] of value.components.entries()) {
+      for (const duplicate of profileDuplicateStrings(component.mechanicBindingIds)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `profile component ${component.bindingId} mechanic binding ${duplicate} must be unique`,
+          path: ["components", index, "mechanicBindingIds"]
+        });
+      }
+
+      for (const bindingId of component.mechanicBindingIds) {
+        if (!mechanicBindingIds.has(bindingId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `profile component ${component.bindingId} mechanic binding ${bindingId} must reference a profile mechanic`,
+            path: ["components", index, "mechanicBindingIds"]
+          });
+        }
+      }
+
+      if (!mechanicBindingIds.has(component.renderMechanicBindingId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `profile component ${component.bindingId} render mechanic binding ${component.renderMechanicBindingId} must reference a profile mechanic`,
+          path: ["components", index, "renderMechanicBindingId"]
+        });
+      }
+
+      if (!component.mechanicBindingIds.includes(component.renderMechanicBindingId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `profile component ${component.bindingId} render mechanic binding ${component.renderMechanicBindingId} must be attached to the component`,
+          path: ["components", index, "renderMechanicBindingId"]
+        });
+      }
+
+      for (const [binding, assetId] of Object.entries(component.assetBindings)) {
+        if (!assetIds.has(assetId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `profile component ${component.bindingId} asset binding ${binding} must reference a profile generated asset`,
+            path: ["components", index, "assetBindings", binding]
+          });
+        }
+      }
     }
 
     for (const duplicate of profileDuplicateStrings(value.replay.eventLog.map((event) => event.id))) {

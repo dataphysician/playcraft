@@ -807,6 +807,82 @@ describe("public contract schemas", () => {
     ).toBe(false);
   });
 
+  it("requires profiles to keep component and asset references internal", () => {
+    const profile = assembleMvpProfiles()[0];
+    expect(profile).toBeDefined();
+    const component = profile!.components[0];
+    expect(component).toBeDefined();
+    const unattachedMechanic = profile!.mechanics.find((mechanic) => !component!.mechanicBindingIds.includes(mechanic.bindingId));
+    expect(unattachedMechanic).toBeDefined();
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        assets: [
+          {
+            ...profile!.assets[0]!,
+            requestId: "asset-request.missing"
+          }
+        ]
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        components: [
+          {
+            ...component!,
+            mechanicBindingIds: [...component!.mechanicBindingIds, component!.mechanicBindingIds[0]!]
+          },
+          ...profile!.components.slice(1)
+        ]
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        components: [
+          {
+            ...component!,
+            mechanicBindingIds: [...component!.mechanicBindingIds, "mechanic.missing"]
+          },
+          ...profile!.components.slice(1)
+        ]
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        components: [
+          {
+            ...component!,
+            renderMechanicBindingId: unattachedMechanic!.bindingId
+          },
+          ...profile!.components.slice(1)
+        ]
+      }).success
+    ).toBe(false);
+
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        components: [
+          {
+            ...component!,
+            assetBindings: {
+              ...component!.assetBindings,
+              illustration: "asset.missing"
+            }
+          },
+          ...profile!.components.slice(1)
+        ]
+      }).success
+    ).toBe(false);
+  });
+
   it("requires profiles to carry exactly one live surface component per authored capability", () => {
     const profile = assembleMvpProfiles()[0];
     expect(profile).toBeDefined();
