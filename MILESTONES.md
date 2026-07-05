@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Support Profile Template Snapshots
+
+Milestone:
+- Game assembly profiles can now carry an optional `game-template-snapshot` contract for custom, agent-authored profiles.
+- Builder imports use a profile-carried template snapshot when the profile is not backed by a bundled assembly request.
+- Studio live rendering and local asset replacement lookup prefer the profile template snapshot before consulting bundled templates.
+
+Supportive changes:
+- Contract tests validate matching template snapshots and reject mismatched profile/template assembly request IDs.
+- Builder tests keep unknown assembly imports fail-closed unless a template snapshot is present, then prove preview uses the custom template ID and frontend tool contract.
+- Studio asset-library tests prove local sprites can be mapped through a custom template snapshot without bundled template lookup.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/builder/test/session-service.test.ts tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts tests/studio-ui.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Active-code component-heuristic scan returned no matches outside source-scan assertions.
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Moves custom profile support forward through explicit contracts instead of component-set inference, profile-ID branching, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Require Metadata-Owned Asset Replacements
 
 Milestone:

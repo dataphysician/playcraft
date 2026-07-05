@@ -33,6 +33,7 @@ import {
   type BuilderTemplateId,
   type BuilderToolDefinition,
   type GameAssemblyProfile,
+  type GameProfileTemplateSnapshot,
   type GameTemplateAssetEditOperation,
   type GameTemplateDefinition,
   type GeneratedAssetRecord,
@@ -564,11 +565,15 @@ function templateForId(templateId: BuilderTemplateId): GameTemplateDefinition {
   return template;
 }
 
-function templateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition {
+function templateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | GameProfileTemplateSnapshot {
+  if (profile.template) {
+    return profile.template;
+  }
+
   const template = gameTemplateDefinitions.find((entry) => entry.assemblyRequestId === profile.assemblyRequestId);
 
   if (!template) {
-    throw new Error(`profile ${profile.id} assembly request ${profile.assemblyRequestId} is not backed by a known game template contract`);
+    throw new Error(`profile ${profile.id} assembly request ${profile.assemblyRequestId} is not backed by a bundled game template or profile template snapshot`);
   }
 
   return template;
@@ -809,7 +814,7 @@ function editComponentProps(
   }
 }
 
-function promptForAssetEdit(template: GameTemplateDefinition, edit: NormalizedAssetEdit): string {
+function promptForAssetEdit(template: GameTemplateDefinition | GameProfileTemplateSnapshot, edit: NormalizedAssetEdit): string {
   switch (template.assetPromptKind) {
     case "memory-cards":
       return `child-safe ${edit.theme} memory card illustrations for paired cards ${pairedCardIds(edit).join(", ")}`;

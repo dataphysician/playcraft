@@ -382,31 +382,6 @@ export const ComponentBindingSchema = z
   .strict();
 export type ComponentBinding = z.infer<typeof ComponentBindingSchema>;
 
-export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
-  kind: z.literal("game-assembly-profile"),
-  profileName: z.string().min(1),
-  assemblyRequestId: StableIdSchema,
-  domainProfile: z.object({ id: StableIdSchema, version: VersionSchema }).strict(),
-  safetyPolicy: z.object({ id: StableIdSchema, version: VersionSchema }).strict(),
-  theme: z.object({ id: StableIdSchema, version: VersionSchema }).strict(),
-  mechanics: z.array(MechanicBindingSchema).min(1),
-  rules: z.array(RuleBindingSchema).min(1),
-  components: z.array(ComponentBindingSchema).min(1),
-  assetRequests: z.array(AssetGenerationRequestSchema).default([]),
-  assets: z.array(GeneratedAssetRecordSchema).default([]),
-  replay: z
-    .object({
-      deterministicSeed: z.string().min(1),
-      plannerId: StableIdSchema,
-      plannerVersion: VersionSchema,
-      unsupportedSeedRequests: z.array(StableIdSchema).default([]),
-      eventLog: z.array(PlaycraftEventRecordSchema).default([])
-    })
-    .strict(),
-  validation: AssemblyValidationResultSchema
-}).strict();
-export type GameAssemblyProfile = z.infer<typeof GameAssemblyProfileSchema>;
-
 export const PlaycraftPayloadTypeSchema = z
   .string()
   .min(3)
@@ -568,6 +543,48 @@ export const GameTemplateDefinitionSchema = PublicContractBaseSchema.extend({
     .strict()
 }).strict();
 export type GameTemplateDefinition = z.infer<typeof GameTemplateDefinitionSchema>;
+
+export const GameProfileTemplateSnapshotSchema = PublicContractBaseSchema.extend({
+  id: BuilderTemplateIdSchema,
+  kind: z.literal("game-template-snapshot"),
+  displayName: z.string().min(1),
+  displayLabel: z.string().min(1).max(80),
+  assetPromptKind: GameTemplateAssetPromptKindSchema,
+  assetEditOperations: z.array(GameTemplateAssetEditOperationSchema).min(1),
+  liveSurface: GameTemplateLiveSurfaceSchema,
+  assemblyRequestId: StableIdSchema
+}).strict();
+export type GameProfileTemplateSnapshot = z.infer<typeof GameProfileTemplateSnapshotSchema>;
+
+export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
+  kind: z.literal("game-assembly-profile"),
+  profileName: z.string().min(1),
+  assemblyRequestId: StableIdSchema,
+  template: GameProfileTemplateSnapshotSchema.optional(),
+  domainProfile: z.object({ id: StableIdSchema, version: VersionSchema }).strict(),
+  safetyPolicy: z.object({ id: StableIdSchema, version: VersionSchema }).strict(),
+  theme: z.object({ id: StableIdSchema, version: VersionSchema }).strict(),
+  mechanics: z.array(MechanicBindingSchema).min(1),
+  rules: z.array(RuleBindingSchema).min(1),
+  components: z.array(ComponentBindingSchema).min(1),
+  assetRequests: z.array(AssetGenerationRequestSchema).default([]),
+  assets: z.array(GeneratedAssetRecordSchema).default([]),
+  replay: z
+    .object({
+      deterministicSeed: z.string().min(1),
+      plannerId: StableIdSchema,
+      plannerVersion: VersionSchema,
+      unsupportedSeedRequests: z.array(StableIdSchema).default([]),
+      eventLog: z.array(PlaycraftEventRecordSchema).default([])
+    })
+    .strict(),
+  validation: AssemblyValidationResultSchema
+}).strict()
+  .refine((value) => !value.template || value.template.assemblyRequestId === value.assemblyRequestId, {
+    message: "profile template snapshot must match assemblyRequestId",
+    path: ["template", "assemblyRequestId"]
+  });
+export type GameAssemblyProfile = z.infer<typeof GameAssemblyProfileSchema>;
 
 export const BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"]);
 export type BuilderInputSource = z.infer<typeof BuilderInputSourceSchema>;
@@ -1076,6 +1093,7 @@ export const PublicContractSchemas: Record<string, z.ZodTypeAny> = {
   PlaycraftAgUiEventEnvelopeSchema,
   PlaycraftEventRecordSchema,
   PackManifestSchema,
+  GameProfileTemplateSnapshotSchema,
   GameTemplateDefinitionSchema,
   MoonshineTranscriptRecordSchema,
   BuilderInputRequestSchema,

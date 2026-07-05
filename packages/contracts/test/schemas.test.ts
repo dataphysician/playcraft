@@ -4,6 +4,8 @@ import {
   BuilderInputRequestSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
+  GameAssemblyProfileSchema,
+  GameProfileTemplateSnapshotSchema,
   ComponentRenderRequestSchema,
   GameTemplateDefinitionSchema,
   InputModalitySchema,
@@ -131,6 +133,18 @@ describe("public contract schemas", () => {
       PlaycraftAgUiEventEnvelopeSchema: envelope,
       PlaycraftEventRecordSchema: profile.replay.eventLog[0],
       PackManifestSchema: packManifests[0],
+      GameProfileTemplateSnapshotSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: gameTemplateDefinitions[0].id,
+        version: "1.0.0",
+        kind: "game-template-snapshot",
+        displayName: gameTemplateDefinitions[0].displayName,
+        displayLabel: gameTemplateDefinitions[0].displayLabel,
+        assetPromptKind: gameTemplateDefinitions[0].assetPromptKind,
+        assetEditOperations: gameTemplateDefinitions[0].assetEditOperations,
+        liveSurface: gameTemplateDefinitions[0].liveSurface,
+        assemblyRequestId: gameTemplateDefinitions[0].assemblyRequestId
+      },
       GameTemplateDefinitionSchema: gameTemplateDefinitions[0],
       MoonshineTranscriptRecordSchema: moonshineTranscriptRecord,
       BuilderInputRequestSchema: {
@@ -496,6 +510,42 @@ describe("public contract schemas", () => {
     };
 
     expect(GameTemplateDefinitionSchema.safeParse(missingAccent).success).toBe(false);
+  });
+
+  it("allows profiles to carry matching custom template snapshots", () => {
+    const template = gameTemplateDefinitions[0];
+    const profile = assembleMvpProfiles()[0];
+    expect(profile).toBeDefined();
+    const templateSnapshot = GameProfileTemplateSnapshotSchema.parse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "template.custom-memory",
+      version: "1.0.0",
+      kind: "game-template-snapshot",
+      displayName: "Custom Memory",
+      displayLabel: "Custom Memory",
+      assetPromptKind: template.assetPromptKind,
+      assetEditOperations: template.assetEditOperations,
+      liveSurface: template.liveSurface,
+      assemblyRequestId: "request.custom-memory"
+    });
+
+    expect(
+      GameAssemblyProfileSchema.parse({
+        ...profile!,
+        assemblyRequestId: "request.custom-memory",
+        template: templateSnapshot
+      }).template?.id
+    ).toBe("template.custom-memory");
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        assemblyRequestId: "request.custom-memory",
+        template: {
+          ...templateSnapshot,
+          assemblyRequestId: "request.other"
+        }
+      }).success
+    ).toBe(false);
   });
 
   it("keeps render requests strict and identified", () => {

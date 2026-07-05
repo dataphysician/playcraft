@@ -93,6 +93,51 @@ describe("studio asset library", () => {
     expect(createProfileLibraryAssetReplacements(staleProfile)["card:toy-1-a"]).toBeUndefined();
   });
 
+  it("maps local sprites through profile-carried custom template snapshots", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const customProfile = {
+      ...profile!,
+      assemblyRequestId: "request.custom-toy-memory",
+      template: {
+        schemaVersion: profile!.schemaVersion,
+        id: "template.custom-toy-memory",
+        version: "1.0.0",
+        kind: "game-template-snapshot",
+        displayName: "Custom Toy Memory",
+        displayLabel: "Custom Toy Memory",
+        assetPromptKind: "memory-cards",
+        assetEditOperations: [
+          {
+            componentCapability: "component:reveal-card-grid",
+            operation: "memory-pairs"
+          }
+        ],
+        liveSurface: {
+          kind: "memory",
+          componentCapabilities: {
+            primary: "component:reveal-card-grid"
+          },
+          assetReplacementSources: [
+            {
+              componentRole: "primary",
+              prop: "cards",
+              namespace: "card",
+              pairMapProp: "pairs"
+            }
+          ],
+          tokenStyles: []
+        },
+        assemblyRequestId: "request.custom-toy-memory"
+      }
+    };
+
+    expect(createProfileLibraryAssetReplacements(customProfile)["card:toy-1-a"]?.altText).toBe("toy 1 sprite");
+  });
+
   it("renders the Playcraft card back and replacement card sprites", async () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });

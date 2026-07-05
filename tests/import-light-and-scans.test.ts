@@ -386,6 +386,8 @@ describe("import-light boundaries and source scans", () => {
   it("keeps imported profile template selection tied to assembly request contracts", () => {
     const source = readSource("packages/builder/src/index.ts");
 
+    expect(source).toContain("if (profile.template)");
+    expect(source).toContain("return profile.template");
     expect(source).toContain("entry.assemblyRequestId === profile.assemblyRequestId");
     expect(source).not.toContain("profileComponentIds");
     expect(source).not.toContain("requiredComponentIds.every");
@@ -797,7 +799,9 @@ describe("import-light boundaries and source scans", () => {
     const packSource = readSource("packages/packs/src/index.ts");
 
     expect(contractSource).toContain("GameTemplateAssetReplacementSourceSchema");
+    expect(contractSource).toContain("GameProfileTemplateSnapshotSchema");
     expect(packSource).toContain("assetReplacementSources");
+    expect(assetLibrarySource).toContain("profile.template ?? gameTemplateDefinitions.find");
     expect(assetLibrarySource).toContain("template.liveSurface.assetReplacementSources");
     expect(assetLibrarySource).toContain("componentForReplacementSource");
     expect(assetLibrarySource).not.toContain('component.renderCapability === "component:reveal-card-grid"');

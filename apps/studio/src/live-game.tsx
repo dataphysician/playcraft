@@ -2,6 +2,7 @@ import React from "react";
 import type {
   ComponentBinding,
   GameAssemblyProfile,
+  GameProfileTemplateSnapshot,
   GameTemplateDefinition,
   GameTemplateLiveSurface,
   GameTemplateTokenStyle,
@@ -1083,8 +1084,8 @@ function CompletionPanel({
   );
 }
 
-function liveTemplateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | undefined {
-  return gameTemplateDefinitions.find((template) => template.assemblyRequestId === profile.assemblyRequestId);
+function liveTemplateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | GameProfileTemplateSnapshot | undefined {
+  return profile.template ?? gameTemplateDefinitions.find((template) => template.assemblyRequestId === profile.assemblyRequestId);
 }
 
 function requiredComponentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding {

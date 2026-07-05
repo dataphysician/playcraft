@@ -3,6 +3,7 @@ import type {
   GameAssemblyProfile,
   GameTemplateAssetReplacementNamespace,
   GameTemplateAssetReplacementSource,
+  GameProfileTemplateSnapshot,
   GameTemplateDefinition,
   JsonValue
 } from "@playcraft/contracts";
@@ -133,13 +134,13 @@ export function createProfileLibraryAssetReplacements(
   return replacements;
 }
 
-function liveTemplateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | undefined {
-  return gameTemplateDefinitions.find((template) => template.assemblyRequestId === profile.assemblyRequestId);
+function liveTemplateForProfile(profile: GameAssemblyProfile): GameTemplateDefinition | GameProfileTemplateSnapshot | undefined {
+  return profile.template ?? gameTemplateDefinitions.find((template) => template.assemblyRequestId === profile.assemblyRequestId);
 }
 
 function componentForReplacementSource(
   profile: GameAssemblyProfile,
-  template: GameTemplateDefinition,
+  template: GameTemplateDefinition | GameProfileTemplateSnapshot,
   source: GameTemplateAssetReplacementSource
 ): ComponentBinding | undefined {
   const capability = template.liveSurface.componentCapabilities[source.componentRole];

@@ -308,7 +308,7 @@ describe("builder session service", () => {
     expect(preview.result.preview.lastToolName).toBe("tool:reveal-card");
   });
 
-  it("rejects profile imports with unknown assembly contracts even when components match", () => {
+  it("rejects profile imports with unknown assembly contracts without template snapshots", () => {
     const source = new PlaycraftBuilderSessionService();
     const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
     expect(exported).toBeDefined();
@@ -321,6 +321,61 @@ describe("builder session service", () => {
     const target = new PlaycraftBuilderSessionService();
 
     expect(() => target.importProfile("session.unknown-assembly", unknownAssemblyProfile)).toThrow(/assembly request request\.custom-memory/u);
+  });
+
+  it("imports custom template snapshots without bundled assembly contracts", () => {
+    const source = new PlaycraftBuilderSessionService();
+    const exported = source.execute(command({ templateId: "template.memory-match" })).result.profile;
+    expect(exported).toBeDefined();
+    const customProfile = {
+      ...exported!,
+      id: "profile.custom-template-memory",
+      assemblyRequestId: "request.custom-template-memory",
+      template: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "template.custom-template-memory",
+        version: "1.0.0",
+        kind: "game-template-snapshot",
+        displayName: "Custom Template Memory",
+        displayLabel: "Custom Memory",
+        assetPromptKind: "memory-cards",
+        assetEditOperations: [
+          {
+            componentCapability: "component:reveal-card-grid",
+            operation: "memory-pairs"
+          }
+        ],
+        liveSurface: {
+          kind: "memory",
+          componentCapabilities: {
+            primary: "component:reveal-card-grid"
+          },
+          assetReplacementSources: [
+            {
+              componentRole: "primary",
+              prop: "cards",
+              namespace: "card",
+              pairMapProp: "pairs"
+            }
+          ],
+          tokenStyles: []
+        },
+        assemblyRequestId: "request.custom-template-memory"
+      }
+    };
+
+    const target = new PlaycraftBuilderSessionService();
+    const imported = target.importProfile("session.custom-template", customProfile);
+    const preview = target.execute(command({
+      actionName: "preview-action",
+      id: "builder-command.test.preview-custom-template",
+      interaction: { action: "primary" },
+      sessionId: "session.custom-template",
+      templateId: undefined
+    }));
+
+    expect(imported.result.preview.activeTemplateId).toBe("template.custom-template-memory");
+    expect(preview.result.preview.lastToolName).toBe("tool:reveal-card");
   });
 
   it("previews the first interactive component when visual components render first", () => {
