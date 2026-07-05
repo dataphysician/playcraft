@@ -319,6 +319,10 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   }
 
   io.stdout(`asset edits: ${catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel).join(", ")}`);
+  io.stdout("request tips:");
+  for (const line of catalog.requestTips.summaryLines) {
+    io.stdout(`- ${line}`);
+  }
 }
 
 function toolInputSourceSummary(

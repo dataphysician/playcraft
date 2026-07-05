@@ -852,29 +852,7 @@ function requestTipLines(catalog: BuilderCatalog | undefined): string[] {
     return ["Available games: loading catalog.", "Asset edits: loading catalog.", "Try: loading catalog."];
   }
 
-  const games = catalog.templates.map((template) => template.displayLabel);
-  const displayedGames = games.slice(0, 5);
-  const moreGames = Math.max(0, games.length - displayedGames.length);
-  const assetThemes = catalog.assetEdit.availableThemes.map((entry) => entry.displayLabel);
-  const examples = catalog.templates.slice(0, 3).map((template, index) => {
-    const request = sentenceCase(template.exampleRequest);
-    const theme = assetThemes[index % Math.max(assetThemes.length, 1)];
-    return theme ? `${request} with ${theme}` : request;
-  });
-
-  return [
-    `Available games: ${joinList(displayedGames)}${moreGames > 0 ? `, plus ${moreGames} more` : ""}.`,
-    `Asset edits: ${joinList(assetThemes.map((theme) => `with ${theme}`))}.`,
-    `Try: ${examples.join("; ")}.`
-  ];
-}
-
-function sentenceCase(value: string): string {
-  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
-}
-
-function joinList(values: string[]): string {
-  return values.join(", ");
+  return catalog.requestTips.summaryLines;
 }
 
 function ProfileSummaryPanel({ profile }: { profile: GameAssemblyProfile }): React.ReactElement {

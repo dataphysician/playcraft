@@ -790,6 +790,16 @@ describe("local Playcraft service", () => {
       "fruit"
     ]);
     expect(catalog.assetEdit.availableThemes.find((entry) => entry.theme === "dolphins")?.aliases).toContain("ocean animals");
+    expect(catalog.requestTips).toEqual({
+      availableGames: expect.arrayContaining(["Memory Match", "Sorting", "Sequence Repeat"]),
+      assetEdits: ["with dinosaurs", "with toys", "with ocean animals", "with fruit"],
+      examples: ["Memory game with dinosaurs", "Sorting game with toys", "Sequence repeat with ocean animals"],
+      summaryLines: [
+        "Available games: Memory Match, Sorting, Sequence Repeat, Shape Memory, Color Memory, plus 19 more.",
+        "Asset edits: with dinosaurs, with toys, with ocean animals, with fruit.",
+        "Try: Memory game with dinosaurs; Sorting game with toys; Sequence repeat with ocean animals."
+      ]
+    });
 
     expect(runLocalServiceCli(["catalog"], io)).toBe(0);
     expect(out).toEqual(expect.arrayContaining([
@@ -798,7 +808,11 @@ describe("local Playcraft service", () => {
       "tools:",
       "- Assemble Game [tool:assemble-game -> assemble-game] input: Text, Transcript; args: assetEdit:object, input:object, sessionId:string, templateId*:string",
       "- Preview Action [tool:preview-action -> preview-action] input: none; args: interaction*:object, sessionId*:string",
-      "asset edits: dinosaurs, toys, ocean animals, fruit"
+      "asset edits: dinosaurs, toys, ocean animals, fruit",
+      "request tips:",
+      "- Available games: Memory Match, Sorting, Sequence Repeat, Shape Memory, Color Memory, plus 19 more.",
+      "- Asset edits: with dinosaurs, with toys, with ocean animals, with fruit.",
+      "- Try: Memory game with dinosaurs; Sorting game with toys; Sequence repeat with ocean animals."
     ]));
     out.length = 0;
 

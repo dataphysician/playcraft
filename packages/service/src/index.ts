@@ -27,6 +27,7 @@ import {
   type BuilderTemplateId,
   type BuilderToolPresentation,
   type GameAssemblyProfile,
+  type GameTemplateDefinition,
   type JsonValue,
   type MoonshineTranscriptRecord,
   type MoonshineTranscriptSegment
@@ -140,6 +141,7 @@ export class LocalPlaycraftService {
       acceptedInputSources: ["text", "moonshine-transcript"],
       input: LOCAL_SERVICE_INPUT_POLICY,
       toolPresentation: LOCAL_SERVICE_TOOL_PRESENTATION_POLICY,
+      requestTips: requestTipsForCatalog(this.handler.listTemplates(), localAssetEditCatalog),
       sessions: LOCAL_SERVICE_SESSION_POLICY,
       assetEdit: {
         supported: true,
@@ -376,6 +378,36 @@ export class LocalPlaycraftService {
 interface LocalSessionState {
   activeAssetEdit?: BuilderAssetEdit;
   activeTemplateId?: BuilderTemplateId;
+}
+
+function requestTipsForCatalog(
+  templates: GameTemplateDefinition[],
+  assetThemes: BuilderAssetEditCatalogEntry[]
+): BuilderCatalog["requestTips"] {
+  const availableGames = templates.map((template) => template.displayLabel);
+  const visibleGames = availableGames.slice(0, 5);
+  const hiddenGameCount = Math.max(0, availableGames.length - visibleGames.length);
+  const assetEdits = assetThemes.map((entry) => `with ${entry.displayLabel}`);
+  const examples = templates.slice(0, 3).map((template, index) => {
+    const assetEdit = assetEdits[index % Math.max(assetEdits.length, 1)];
+    const request = sentenceCase(template.exampleRequest);
+    return assetEdit ? `${request} ${assetEdit}` : request;
+  });
+
+  return {
+    availableGames,
+    assetEdits,
+    examples,
+    summaryLines: [
+      `Available games: ${visibleGames.join(", ")}${hiddenGameCount > 0 ? `, plus ${hiddenGameCount} more` : ""}.`,
+      `Asset edits: ${assetEdits.join(", ")}.`,
+      `Try: ${examples.join("; ")}.`
+    ]
+  };
+}
+
+function sentenceCase(value: string): string {
+  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
 }
 
 export function createLocalPlaycraftService(handler?: BuilderCommandHandler): LocalPlaycraftService {

@@ -701,6 +701,16 @@ export const BuilderToolPresentationSchema = z
   .strict();
 export type BuilderToolPresentation = z.infer<typeof BuilderToolPresentationSchema>;
 
+export const BuilderCatalogRequestTipsSchema = z
+  .object({
+    availableGames: z.array(z.string().min(1).max(80)).min(1),
+    assetEdits: z.array(z.string().min(1).max(80)).min(1),
+    examples: z.array(z.string().min(1).max(160)).min(1),
+    summaryLines: z.array(z.string().min(1).max(240)).min(1)
+  })
+  .strict();
+export type BuilderCatalogRequestTips = z.infer<typeof BuilderCatalogRequestTipsSchema>;
+
 export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-catalog"),
   defaultTemplateId: BuilderTemplateIdSchema,
@@ -716,6 +726,7 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
     })
     .strict(),
   toolPresentation: BuilderToolPresentationSchema,
+  requestTips: BuilderCatalogRequestTipsSchema,
   sessions: z
     .object({
       defaultAssembleSessionId: StableIdSchema,

@@ -592,14 +592,20 @@ describe("import-light boundaries and source scans", () => {
     expect(source).not.toContain("response.execution ?? response.session");
   });
 
-  it("keeps Studio request examples catalog-owned instead of alias-inferred", () => {
+  it("keeps Studio request tips catalog-owned instead of app-composed", () => {
     const studioSource = readSource("apps/studio/src/studio-app.tsx");
     const contractSource = readSource("packages/contracts/src/index.ts");
+    const serviceSource = readSource("packages/service/src/index.ts");
 
+    expect(contractSource).toContain("BuilderCatalogRequestTipsSchema");
     expect(contractSource).toContain("exampleRequest");
-    expect(studioSource).toContain("template.exampleRequest");
+    expect(serviceSource).toContain("requestTipsForCatalog");
+    expect(serviceSource).toContain("requestTips: requestTipsForCatalog");
+    expect(studioSource).toContain("catalog.requestTips.summaryLines");
     expect(studioSource).not.toContain("preferredTemplateAlias");
     expect(studioSource).not.toMatch(/requestAliases\)\)/u);
+    expect(studioSource).not.toContain("catalog.templates.slice(0, 3)");
+    expect(studioSource).not.toContain("Math.max(assetThemes.length");
   });
 
   it("keeps Studio game tip labels catalog-owned instead of suffix-stripped", () => {
@@ -609,7 +615,7 @@ describe("import-light boundaries and source scans", () => {
 
     expect(contractSource).toContain("displayLabel");
     expect(packSource).toContain("displayLabel: template.displayLabel");
-    expect(studioSource).toContain("template.displayLabel");
+    expect(studioSource).toContain("catalog.requestTips.summaryLines");
     expect(studioSource).not.toContain("displayGameName");
     expect(studioSource).not.toContain("replace(/\\s+MVP");
     expect(packSource).not.toContain("displayLabelForTemplateName");
@@ -621,7 +627,7 @@ describe("import-light boundaries and source scans", () => {
     const contractSource = readSource("packages/contracts/src/index.ts");
 
     expect(contractSource).toContain("displayLabel");
-    expect(studioSource).toContain("entry.displayLabel");
+    expect(studioSource).toContain("catalog.requestTips.summaryLines");
     expect(studioSource).not.toContain("preferredAssetThemeLabel");
     expect(studioSource).not.toContain("alias.includes");
   });

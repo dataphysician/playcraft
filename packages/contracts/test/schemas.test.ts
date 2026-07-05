@@ -186,6 +186,16 @@ describe("public contract schemas", () => {
           argumentsPrefix: "args",
           noArgumentsLabel: "none"
         },
+        requestTips: {
+          availableGames: ["Memory Match"],
+          assetEdits: ["with dinosaurs"],
+          examples: ["Memory game with dinosaurs"],
+          summaryLines: [
+            "Available games: Memory Match.",
+            "Asset edits: with dinosaurs.",
+            "Try: Memory game with dinosaurs."
+          ]
+        },
         sessions: {
           defaultAssembleSessionId: "service.session",
           sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]

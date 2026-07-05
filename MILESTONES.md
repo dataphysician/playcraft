@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Publish Catalog-Owned Request Tips
+
+Milestone:
+- Builder catalogs now expose structured request tips for available games, asset edits, and example requests.
+- The local Playcraft service owns request-tip summary lines used by Studio and CLI clients.
+- Studio request-tip tooltips now render `catalog.requestTips.summaryLines` instead of composing game/theme examples locally.
+
+Supportive changes:
+- Service CLI catalog output includes a `request tips` block backed by the same catalog contract.
+- Contract, service, Studio UI, and source-scan tests cover catalog-owned request tips.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Keeps request guidance reusable and contract-shaped for UI, CLI, and future server catalogs without app-local tip composition, hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Remove Studio Profile History Cache
 
 Milestone:
