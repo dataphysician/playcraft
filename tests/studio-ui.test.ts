@@ -624,6 +624,7 @@ describe("studio UI", () => {
     expect(screen.getByRole("button", { name: /component\.reveal-card-grid/u })).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.celebration-overlay/u })).toBeDefined();
     expect(screen.getByText("tools: tool:reveal-card")).toBeDefined();
+    expect(screen.getByText("events: frontend:revealed")).toBeDefined();
     expect(screen.getAllByText("events: none").length).toBeGreaterThanOrEqual(1);
 
     fireEvent.click(screen.getByRole("button", { name: /component\.celebration-overlay/u }));

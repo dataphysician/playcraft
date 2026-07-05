@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Split Render Tool Names From Events
+
+Milestone:
+- Component render requests now carry callable `emittedToolNames` separately from frontend `expectedEmittedEvents`.
+- Core replay populates tool names from manifest tool identifiers and expected events from authored tool event tags, while builder preview uses only `emittedToolNames` for tool calls.
+
+Supportive changes:
+- Studio trusted preview summaries now read tool names from replay render requests and continue displaying authored expected events.
+- Source scans guard the split contract and block deriving expected events from tool names.
+- Core and Studio tests verify `tool:reveal-card` remains the callable tool while `frontend:revealed` is the expected frontend event.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden removed-provider exact scan
+
+Constraint notes:
+- Keeps render interaction contracts explicit, local, and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or tool/event naming conflation.
+
 ## 2026-07-05 - Authored Pack Tool Events
 
 Milestone:

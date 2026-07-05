@@ -571,11 +571,11 @@ function renderRequestForTemplatePrimary(profile: GameAssemblyProfile, replay: R
 }
 
 function requireSinglePreviewToolName(renderRequest: ReplayResult["renderRequests"][number]): string {
-  if (renderRequest.expectedEmittedEvents.length !== 1) {
+  if (renderRequest.emittedToolNames.length !== 1) {
     throw new Error(`interactive render request ${renderRequest.id} must declare exactly one emitted tool`);
   }
 
-  return renderRequest.expectedEmittedEvents.at(0)!;
+  return renderRequest.emittedToolNames.at(0)!;
 }
 
 export function createBuilderCommandHandler(): BuilderCommandHandler {

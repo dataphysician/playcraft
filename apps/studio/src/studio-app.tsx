@@ -1035,6 +1035,11 @@ function ComponentInventoryPanel({
               "span",
               { style: shellStyles.componentToolLine },
               component.interactionSummary
+            ),
+            React.createElement(
+              "span",
+              { style: shellStyles.componentToolLine },
+              component.expectedEventSummary
             )
           )
         )

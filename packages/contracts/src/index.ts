@@ -365,6 +365,7 @@ export const ComponentRenderRequestSchema = PublicContractBaseSchema.extend({
   mechanicBindingId: StableIdSchema,
   props: z.record(JsonValueSchema),
   assetBindings: z.record(StableIdSchema).default({}),
+  emittedToolNames: z.array(CapabilityTagSchema).default([]),
   expectedEmittedEvents: z.array(CapabilityTagSchema).default([]),
   fallbackPolicy: z.literal("fail-closed")
 }).strict();

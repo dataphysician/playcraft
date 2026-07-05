@@ -33,12 +33,14 @@ describe("saved profile replay", () => {
     expect(result.profile.replay.plannerId).toBe("planner.deterministic.mvp");
   });
 
-  it("carries component manifest emitted tool names into render requests", () => {
+  it("carries component manifest tool names and emitted events into render requests", () => {
     const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
     const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
     const result = replayProfile(saved, createDefaultRegistries());
 
-    expect(result.renderRequests[0]?.expectedEmittedEvents).toContain("tool:reveal-card");
+    expect(result.renderRequests[0]?.emittedToolNames).toContain("tool:reveal-card");
+    expect(result.renderRequests[0]?.expectedEmittedEvents).toContain("frontend:revealed");
+    expect(result.renderRequests[0]?.expectedEmittedEvents).not.toContain("tool:reveal-card");
   });
 
   it("fails closed when replay cannot load a component manifest for emitted tool metadata", () => {

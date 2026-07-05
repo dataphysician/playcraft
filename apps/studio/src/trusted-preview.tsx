@@ -24,6 +24,7 @@ export interface TrustedPreviewComponentSummary {
   mechanicBindingId: string;
   isPrimaryPreviewSurface: boolean;
   emittedToolNames: string[];
+  expectedEventSummary: string;
   interactionSummary: string;
   expectedEmittedEvents: string[];
 }
@@ -37,10 +38,10 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
   const primaryCapability = profile.template.liveSurface.componentCapabilities.primary;
 
   return replay.renderRequests.map((request) => {
-    const manifest = requiredTrustedManifestForRenderRequest(request);
+    requiredTrustedManifestForRenderRequest(request);
     const componentId = request.componentId;
     const componentCapability = request.componentCapability;
-    const emittedToolNames = manifest.emittedTools.map((tool) => tool.toolName);
+    const emittedToolNames = [...request.emittedToolNames];
 
     return {
       componentKey: renderRequestKey(request),
@@ -49,10 +50,17 @@ export function getTrustedPreviewComponents(profile: GameAssemblyProfile): Trust
       mechanicBindingId: request.mechanicBindingId,
       isPrimaryPreviewSurface: componentCapability === primaryCapability,
       emittedToolNames,
+      expectedEventSummary: expectedEventSummaryFor(request.expectedEmittedEvents),
       interactionSummary: interactionSummaryFor(emittedToolNames, request.expectedEmittedEvents),
       expectedEmittedEvents: [...request.expectedEmittedEvents]
     };
   });
+}
+
+function expectedEventSummaryFor(expectedEmittedEvents: string[]): string {
+  return expectedEmittedEvents.length > 0
+    ? `events: ${expectedEmittedEvents.join(", ")}`
+    : "events: none";
 }
 
 function interactionSummaryFor(toolNames: string[], expectedEmittedEvents: string[]): string {
@@ -60,9 +68,7 @@ function interactionSummaryFor(toolNames: string[], expectedEmittedEvents: strin
     return `tools: ${toolNames.join(", ")}`;
   }
 
-  return expectedEmittedEvents.length > 0
-    ? `events: ${expectedEmittedEvents.join(", ")}`
-    : "events: none";
+  return expectedEventSummaryFor(expectedEmittedEvents);
 }
 
 export function TrustedPreview({ profile, selectedComponentKey, onInteraction }: TrustedPreviewProps): React.ReactElement {

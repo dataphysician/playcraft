@@ -797,6 +797,7 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain('command.interaction?.action ?? "primary"');
     expect(builderSource).toContain("function requireSinglePreviewToolName");
     expect(builderSource).toContain("must declare exactly one emitted tool");
+    expect(builderSource).toContain("renderRequest.emittedToolNames.length !== 1");
     expect(builderSource).not.toContain("renderRequest.expectedEmittedEvents[0]");
     expect(builderSource).toContain("function renderRequestForTemplatePrimary");
     expect(builderSource).toContain("profile.template.liveSurface.componentCapabilities.primary");
@@ -1639,7 +1640,10 @@ describe("import-light boundaries and source scans", () => {
     expect(previewSource).toContain("candidate.id === request.componentId && candidate.version === request.componentVersion");
     expect(previewSource).toContain("function requiredTrustedManifestForRenderRequest");
     expect(previewSource).toContain("trusted preview manifest ${request.componentId}@${request.componentVersion} is not registered");
-    expect(previewSource).toContain("const emittedToolNames = manifest.emittedTools.map((tool) => tool.toolName)");
+    expect(previewSource).toContain("const emittedToolNames = [...request.emittedToolNames];");
+    expect(previewSource).toContain("function expectedEventSummaryFor");
+    expect(previewSource).toContain("expectedEventSummary: expectedEventSummaryFor(request.expectedEmittedEvents)");
+    expect(previewSource).not.toContain("const emittedToolNames = manifest.emittedTools.map((tool) => tool.toolName)");
     expect(previewSource).not.toContain("manifest?.emittedTools");
     expect(previewSource).not.toContain("request.componentCapability ??");
     expect(previewSource).not.toContain("manifest?.renderCapability");
@@ -1653,9 +1657,12 @@ describe("import-light boundaries and source scans", () => {
 
     expect(coreSource).toContain("function requiredReplayComponentManifest");
     expect(coreSource).toContain("saved profile ${profile.id} cannot replay missing component manifest ${componentId}@${version}");
-    expect(coreSource).toContain("expectedEmittedEvents: manifest.emittedTools.map");
+    expect(coreSource).toContain("emittedToolNames: manifest.emittedTools.map((toolDefinition) => toolDefinition.toolName)");
+    expect(coreSource).toContain("expectedEmittedEvents: manifest.emittedTools.flatMap((toolDefinition) => toolDefinition.emittedEvents)");
+    expect(coreSource).not.toContain("expectedEmittedEvents: manifest.emittedTools.map((toolDefinition) => toolDefinition.toolName)");
     expect(coreSource).not.toContain("expectedEmittedEvents: manifest?.emittedTools.map");
     expect(coreSource).not.toContain("expectedEmittedEvents: manifest?.emittedTools.map((toolDefinition) => toolDefinition.toolName) ?? []");
+    expect(replayTestSource).toContain("carries component manifest tool names and emitted events into render requests");
     expect(replayTestSource).toContain("fails closed when replay cannot load a component manifest for emitted tool metadata");
   });
 
@@ -1664,8 +1671,10 @@ describe("import-light boundaries and source scans", () => {
     const previewSource = readSource("apps/studio/src/trusted-preview.tsx");
 
     expect(previewSource).toContain("interactionSummaryFor");
+    expect(previewSource).toContain("expectedEventSummary");
     expect(previewSource).toContain("expectedEmittedEvents.join");
     expect(appSource).toContain("component.interactionSummary");
+    expect(appSource).toContain("component.expectedEventSummary");
     expect(appSource).not.toContain('"display-only"');
     expect(appSource).not.toContain("component.emittedToolNames.length > 0 ? component.emittedToolNames.join");
   });

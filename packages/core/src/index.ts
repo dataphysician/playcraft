@@ -423,7 +423,8 @@ export function replayProfile(profileInput: unknown, registries: PlaycraftRegist
         mechanicBindingId: component.renderMechanicBindingId,
         props: component.props,
         assetBindings: component.assetBindings,
-        expectedEmittedEvents: manifest.emittedTools.map((toolDefinition) => toolDefinition.toolName),
+        emittedToolNames: manifest.emittedTools.map((toolDefinition) => toolDefinition.toolName),
+        expectedEmittedEvents: manifest.emittedTools.flatMap((toolDefinition) => toolDefinition.emittedEvents),
         fallbackPolicy: "fail-closed"
       });
     }),
