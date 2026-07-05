@@ -1238,6 +1238,12 @@ describe("local Playcraft service", () => {
     expect(runLocalServiceCli(["assemble", "--source", "moonshine-transcript", "--text", "Memory game"], io)).toBe(1);
     expect(err.pop()).toMatch(/requires --transcript/u);
 
+    expect(runLocalServiceCli(["assemble", "--text", "Memory game", "--transcript", "Sort shapes by color"], io)).toBe(1);
+    expect(err.pop()).toMatch(/either --text or --transcript/u);
+
+    expect(runLocalServiceCli(["assemble", "--source", "text", "--transcript", "Memory game"], io)).toBe(1);
+    expect(err.pop()).toMatch(/text source requires --text/u);
+
     const outputCount = out.length;
     expect(runLocalServiceCli(["assemble", "--template", "memory-match", "--text", "Memory game"], io)).toBe(1);
     expect(out).toHaveLength(outputCount);

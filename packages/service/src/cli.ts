@@ -179,16 +179,22 @@ function serviceRequest(
   idSuffix: string = commandName
 ): BuilderServiceRequest {
   const transcriptText = args.transcriptText?.trim();
-  const text = transcriptText || args.text?.trim();
+  const text = args.text?.trim();
   const inputCommand = commandName === "assemble" || commandName === "update";
-  if (!inputCommand && (text || args.source)) {
+  if (!inputCommand && (text || transcriptText || args.source)) {
     throw new Error(`${commandName} does not accept input flags; call assemble or update first, then pass --session`);
   }
   if (!inputCommand && commandName !== "import-profile" && args.assetEdit) {
     throw new Error(`${commandName} does not accept asset edit flags; call assemble, update, or import-profile`);
   }
-  if (inputCommand && !text) {
+  if (inputCommand && !text && !transcriptText) {
     throw new Error("assemble and update require --text or --transcript");
+  }
+  if (inputCommand && text && transcriptText) {
+    throw new Error("assemble and update accept either --text or --transcript, not both");
+  }
+  if (inputCommand && args.source === "text" && transcriptText) {
+    throw new Error("text source requires --text; use --source moonshine-transcript with --transcript");
   }
   if (inputCommand && args.source === "moonshine-transcript" && !transcriptText) {
     throw new Error("moonshine-transcript source requires --transcript so the CLI can send a Moonshine transcript record");
@@ -217,7 +223,7 @@ function serviceRequest(
         })
       : undefined;
     request.templateId = args.templateId;
-    request.text = text || undefined;
+    request.text = text;
   }
 
   if (commandName === "import-profile") {

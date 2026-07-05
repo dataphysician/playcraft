@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Single-Source Service CLI Input Payloads
+
+Milestone:
+- Service CLI assemble/update now accepts either `--text` or `--transcript`, not both.
+- CLI transcript input no longer seeds `request.text` from transcript text.
+- Conflicting `--source text --transcript` requests now fail before service request construction.
+
+Supportive changes:
+- Service CLI tests cover mixed text/transcript rejection and source/transcript conflict rejection.
+- Source scans guard the old transcript-text coalescing and `text || undefined` request assignment.
+
+Validation:
+- `pnpm --filter @playcraft/service test`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps the agent-facing service CLI input contract explicit for text or local Moonshine Streaming CPU transcripts without hosted providers, generated runtime code, auth, database state, compatibility shims, or dual-source payload ambiguity.
+
 ## 2026-07-04 - Single-Source Studio Input Payloads
 
 Milestone:
