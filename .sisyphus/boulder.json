@@ -90,6 +90,15 @@
       "agent": "Sisyphus-Junior",
       "category": "visual-engineering",
       "updated_at": "2026-07-05T21:54:52.201Z"
+    },
+    "todo:15": {
+      "task_key": "todo:15",
+      "task_label": "15",
+      "task_title": "Mobile shell parity for new surfaces",
+      "session_id": "ses_0cbb1cc9dffeUahRSfyGqgOPA5",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-07-05T22:10:15.131Z"
     }
   }
 }

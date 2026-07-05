@@ -1594,7 +1594,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   - Files: `apps/studio/src/states/**`, `apps/studio/src/studio-app.tsx`, `tests/studio-states.test.tsx`
   - Pre-commit: `pnpm exec vitest run tests/studio-states.test.tsx`
 
-- [ ] 15. Mobile shell parity for new surfaces
+- [x] 15. Mobile shell parity for new surfaces
 
   **What to do**:
   - Verify `apps/mobile-shell/src/mobile-client.ts` reuses Studio SSE transport (T6)

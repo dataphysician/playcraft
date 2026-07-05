@@ -14,7 +14,7 @@ import {
 } from "@playcraft/contracts";
 import { executeWorkflowSse } from "@playcraft/service";
 import { createLocalPlaycraftService } from "@playcraft/service";
-import { LiveGame, type LiveGameInteraction } from "./live-game.js";
+import { LiveGame, type AudioCue, type LiveGameInteraction } from "./live-game.js";
 import {
   TrustedPreview,
   getTrustedPreviewComponents,
@@ -29,6 +29,7 @@ import { RunInspector, type RunInspectorProps } from "./components/RunInspector.
 export interface StudioAppProps {
   client: StudioClient;
   initialSession?: StudioSessionSnapshot;
+  onAudioCue?: (cue: AudioCue) => void;
 }
 
 type StudioTab = "live" | "developer";
@@ -42,7 +43,7 @@ interface ChatMessage {
   text: string;
 }
 
-export function StudioApp({ client, initialSession }: StudioAppProps): React.ReactElement {
+export function StudioApp({ client, initialSession, onAudioCue }: StudioAppProps): React.ReactElement {
   const [commandText, setCommandText] = React.useState("");
   const [inputSource, setInputSource] = React.useState<BuilderInputSource>("text");
   const [session, setSession] = React.useState<StudioSessionSnapshot | undefined>(initialSession);
@@ -371,7 +372,7 @@ export function StudioApp({ client, initialSession }: StudioAppProps): React.Rea
       "section",
       { style: shellStyles.content },
       activeTab === "live"
-        ? React.createElement(LiveGame, { profile: activeProfile, onInteraction: handleInteraction })
+        ? React.createElement(LiveGame, { profile: activeProfile, onInteraction: handleInteraction, onAudioCue })
         : React.createElement(DeveloperPanel, {
             activeProfile,
             canExportProfile: Boolean(client.exportProfile),
