@@ -607,10 +607,13 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps Mobile shell client defaults policy-owned", () => {
     const source = readSource("apps/mobile-shell/src/mobile-client.ts");
+    const mobileReadme = readSource("apps/mobile-shell/src-tauri/README.md");
 
     expect(source).toContain("MOBILE_SHELL_CLIENT_POLICY");
     expect(source).toContain("MOBILE_SHELL_CLIENT_POLICY.defaultSessionId");
     expect(source).toContain("MOBILE_SHELL_CLIENT_POLICY.defaultTimelineIdPrefix");
+    expect(mobileReadme).toContain("profile export");
+    expect(mobileReadme).toContain("profile import");
     expect(source).not.toContain('defaultSessionId: "mobile.session",\n    serviceEndpoint');
     expect(source).not.toContain('timelineIdPrefix: "mobile.timeline"');
   });

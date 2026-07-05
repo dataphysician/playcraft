@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Prove Mobile Profile Tool Surface
+
+Milestone:
+- The Tauri Mobile-facing shell now has test coverage for profile export, profile import, and preview actions through the shared Studio service client.
+- Mobile profile import is verified into a separate local session before running a service preview action against the imported profile.
+- The Mobile shell README now names profile export/import as part of the local Playcraft builder tool surface.
+
+Supportive changes:
+- Mobile shell tests assert profile exports preserve dinosaur asset edits from text input.
+- Mobile shell tests assert imported sessions keep the mobile timeline prefix and emit import plus reveal-card tool events.
+- Source scans guard the Mobile shell documentation against omitting profile export/import from the local tool surface.
+
+Validation:
+- `pnpm test tests/mobile-shell.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps the Mobile shell aligned with the reusable local builder service contract without adding hosted providers, generated runtime code, auth, database state, native permissions, or compatibility shims.
+
 ## 2026-07-04 - Narrow Frontend Runtime Env Exposure
 
 Milestone:

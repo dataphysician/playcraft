@@ -103,6 +103,32 @@ describe("Tauri mobile shell", () => {
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.mobile-client"))).toBe(true);
   });
 
+  it("uses mobile Studio client profile export, import, and preview tools", async () => {
+    const client = createMobileShellStudioClient();
+    const assembled = await Promise.resolve(client.assembleFromIntent({
+      idea: "Memory game with dinosaurs",
+      source: "text"
+    }));
+    const exported = await Promise.resolve(client.exportProfile?.(assembled.sessionId));
+
+    expect(exported?.sessionId).toBe(MOBILE_SHELL_CLIENT_POLICY.defaultSessionId);
+    expect(exported?.profile.id).toBe("profile.memory-match.mvp");
+    expect(exported?.profile.assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
+
+    const imported = await Promise.resolve(client.importProfile?.({
+      profileExport: exported!,
+      sessionId: "mobile.session.imported"
+    }));
+    const previewed = await Promise.resolve(client.previewAction?.("mobile.session.imported"));
+
+    expect(imported?.sessionId).toBe("mobile.session.imported");
+    expect(imported?.activeProfileId).toBe("profile.memory-match.mvp");
+    expect(imported?.timeline.some((entry) => entry.detail.includes("tool:import-profile"))).toBe(true);
+    expect(previewed?.activeProfileId).toBe("profile.memory-match.mvp");
+    expect(previewed?.timeline.some((entry) => entry.title === "ToolCall" && entry.detail.includes("tool:reveal-card"))).toBe(true);
+    expect(previewed?.timeline.every((entry) => entry.id.startsWith(`${MOBILE_SHELL_CLIENT_POLICY.defaultTimelineIdPrefix}.`))).toBe(true);
+  });
+
   it("can target the local HTTP service endpoint instead of the in-process transport", async () => {
     const requestedUrls: string[] = [];
     vi.stubGlobal("fetch", async (url: unknown, init: { body?: unknown } = {}) => {
