@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Strict Result Template State
+
+Milestone:
+- Local service execution persistence now requires builder results to carry `preview.activeTemplateId`.
+- Missing active template ids now fail at the service boundary instead of preserving stale session template state.
+- Session state remains driven by the latest validated execution result rather than previous fallback state.
+
+Supportive changes:
+- Service tests cover a custom builder handler that omits `activeTemplateId`.
+- Source scans guard `refreshSessionStateFromResult` against reintroducing the stale-template fallback.
+
+Validation:
+- `pnpm --filter @playcraft/service test`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps local service sessions explicit without hosted providers, generated runtime code, auth, database state, compatibility shims, or stale profile/game state fallback.
+
 ## 2026-07-04 - Strict Service Input Text
 
 Milestone:

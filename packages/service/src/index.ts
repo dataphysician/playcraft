@@ -509,7 +509,7 @@ export class LocalPlaycraftService {
     const existing = this.sessionState.get(sessionId);
     this.sessionState.set(sessionId, {
       activeAssetEdit: existing?.activeAssetEdit,
-      activeTemplateId: result.preview.activeTemplateId ?? existing?.activeTemplateId
+      activeTemplateId: requireResultTemplateId(result)
     });
   }
 }
@@ -1044,6 +1044,14 @@ function serviceRequestSessionId(request: BuilderServiceRequest): string {
   }
 
   return request.sessionId;
+}
+
+function requireResultTemplateId(result: BuilderExecutionResult["result"]): BuilderTemplateId {
+  if (!result.preview.activeTemplateId) {
+    throw new Error(`${result.commandId} result preview requires activeTemplateId`);
+  }
+
+  return result.preview.activeTemplateId;
 }
 
 function mergeSessionState(snapshot: BuilderSessionSnapshot, state: LocalSessionState | undefined): BuilderSessionSnapshot {

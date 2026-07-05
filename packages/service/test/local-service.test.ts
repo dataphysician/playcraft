@@ -519,6 +519,43 @@ describe("local Playcraft service", () => {
     ).toThrow(/non-plain object/u);
   });
 
+  it("rejects builder results that omit active template ids instead of preserving prior session state", () => {
+    const baseHandler = createBuilderCommandHandler();
+    const handler: BuilderCommandHandler = {
+      assembleTemplates: (...args) => baseHandler.assembleTemplates(...args),
+      getSessionSnapshot: (...args) => baseHandler.getSessionSnapshot(...args),
+      importProfile: (...args) => baseHandler.importProfile(...args),
+      listTemplates: () => baseHandler.listTemplates(),
+      listTools: () => baseHandler.listTools(),
+      execute(command) {
+        const output = baseHandler.execute(command);
+        const preview = { ...output.result.preview };
+        delete preview.activeTemplateId;
+        return {
+          ...output,
+          result: {
+            ...output.result,
+            preview
+          }
+        };
+      }
+    };
+    const service = createLocalPlaycraftService(handler);
+
+    expect(() =>
+      service.handle({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.missing-template-result",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        sessionId: "session.missing-template-result",
+        source: "text",
+        text: "Memory game with dinosaurs"
+      })
+    ).toThrow(/requires activeTemplateId/u);
+  });
+
   it("rejects transcript-sourced service requests without Moonshine transcript records", () => {
     const service = createLocalPlaycraftService();
 
