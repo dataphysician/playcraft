@@ -164,6 +164,8 @@ function LiveGameForProfile({
   }
 
   try {
+    requireUniqueProfileAssetIds(profile);
+
     switch (liveSurface.kind) {
       case "memory":
         return React.createElement(MemoryGame, {
@@ -1224,8 +1226,35 @@ function resolveComponentAsset(
     return replacement;
   }
 
-  const asset = assetId ? profile.assets.find((entry) => entry.assetId === assetId) : undefined;
+  const asset = assetId ? profileAssetById(profile, assetId) : undefined;
   return asset ? replacementFromAsset(asset) : undefined;
+}
+
+function profileAssetById(profile: GameAssemblyProfile, assetId: string): GeneratedAssetRecord | undefined {
+  const matches = profile.assets.filter((entry) => entry.assetId === assetId);
+  if (matches.length > 1) {
+    throw new Error(`profile ${profile.id} has duplicate generated asset id ${assetId}`);
+  }
+
+  return matches[0];
+}
+
+function requireUniqueProfileAssetIds(profile: GameAssemblyProfile): void {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const asset of profile.assets) {
+    if (seen.has(asset.assetId)) {
+      duplicates.add(asset.assetId);
+      continue;
+    }
+
+    seen.add(asset.assetId);
+  }
+
+  if (duplicates.size > 0) {
+    throw new Error(`profile ${profile.id} has duplicate generated asset ids: ${[...duplicates].join(", ")}`);
+  }
 }
 
 function replacementFromAsset(asset: GeneratedAssetRecord): AssetReplacement {

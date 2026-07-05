@@ -250,6 +250,28 @@ describe("studio asset library", () => {
     expect(screen.getByTestId("live-game-error").textContent).toContain("multiple live surface components");
   });
 
+  it("rejects duplicate generated asset ids instead of using asset order", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const duplicateAssetProfile = {
+      ...profile!,
+      assets: [
+        ...profile!.assets,
+        {
+          ...profile!.assets[0]
+        }
+      ]
+    };
+
+    render(React.createElement(LiveGame, { profile: duplicateAssetProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("duplicate generated asset ids");
+    expect(screen.getByTestId("live-game-error").textContent).toContain(profile!.assets[0]!.assetId);
+  });
+
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toybox" });

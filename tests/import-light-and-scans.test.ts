@@ -1396,6 +1396,12 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("return profile.template");
     expect(liveGameSource).not.toContain("@playcraft/packs");
     expect(liveGameSource).not.toContain("gameTemplateDefinitions.find");
+    expect(liveGameSource).toContain("function profileAssetById");
+    expect(liveGameSource).toContain("function requireUniqueProfileAssetIds");
+    expect(liveGameSource).toContain("duplicate generated asset ids");
+    expect(liveGameSource).toContain("const matches = profile.assets.filter((entry) => entry.assetId === assetId);");
+    expect(liveGameSource).not.toContain("profile.assets.find((entry) => entry.assetId === assetId)");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate generated asset ids instead of using asset order");
     expect(assetLibrarySource).toContain("template.liveSurface.assetReplacementSources");
     expect(assetLibrarySource).toContain("componentForReplacementSource");
     expect(assetLibrarySource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");

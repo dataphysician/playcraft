@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Generated Assets
+
+Milestone:
+- Live App generated component artwork now requires profile asset ids to be unique.
+- Imported/custom profiles with duplicate generated asset ids fail closed instead of rendering whichever asset appears first.
+
+Supportive changes:
+- Studio asset-library tests cover duplicate generated asset ids in the Live App renderer.
+- Source scans block first-match generated asset lookup from returning.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Live App generated artwork profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or generated asset order inference.
+
 ## 2026-07-05 - Exact Sorting Bin Asset Aliases
 
 Milestone:
