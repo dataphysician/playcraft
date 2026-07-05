@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Fail-Closed Studio Transcript Source Mismatch
+
+Milestone:
+- Studio service clients now reject Moonshine transcript records when callers explicitly mark the request source as text.
+- The Studio transport boundary no longer silently rewrites contradictory text-source transcript input into a transcript request.
+
+Supportive changes:
+- Studio UI tests prove mismatched text source plus transcript records fail before transport send.
+- Source scans pin the Studio client mismatch guard in the Moonshine-explicit input contract.
+
+Validation:
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps user-facing Studio input source contracts explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or silent text/transcript source coercion.
+
 ## 2026-07-05 - Exact Asset Edit Operation Components
 
 Milestone:

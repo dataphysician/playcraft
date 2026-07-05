@@ -354,8 +354,11 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain('moonshineTranscript ? "moonshine-transcript"');
     expect(readSource("apps/studio/src/local-client.ts")).toContain('source: "moonshine-transcript"');
     expect(readSource("apps/studio/src/local-client.ts")).toContain("function serviceInputPayloadForClientInput");
+    expect(readSource("apps/studio/src/local-client.ts")).toContain('input.source && input.source !== "moonshine-transcript"');
+    expect(readSource("apps/studio/src/local-client.ts")).toContain("Moonshine transcript records require moonshine-transcript source");
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain("text: moonshineTranscript?.text ?? input.idea");
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain("text: moonshineTranscript?.text ?? input.changeRequest");
+    expect(readSource("tests/studio-ui.test.ts")).toContain("rejects contradictory text source and Moonshine transcript records before transport");
     expect(readSource("packages/contracts/src/index.ts")).toContain("Moonshine transcript records require moonshine-transcript source");
     expect(readSource("packages/service/src/index.ts")).toContain("moonshineConfig: input.source === \"moonshine-transcript\"");
     expect(readSource("packages/service/src/index.ts")).toContain("MOONSHINE_STREAMING_CPU_CONFIG");

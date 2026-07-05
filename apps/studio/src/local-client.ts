@@ -207,6 +207,10 @@ function moonshineTranscriptForClientInput(input: {
   text: string;
 }): MoonshineTranscriptRecord | undefined {
   if (input.moonshineTranscript) {
+    if (input.source && input.source !== "moonshine-transcript") {
+      throw new Error("Moonshine transcript records require moonshine-transcript source");
+    }
+
     return input.moonshineTranscript;
   }
 

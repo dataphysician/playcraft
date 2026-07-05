@@ -175,6 +175,26 @@ describe("studio UI", () => {
     expect(session.timeline.some((entry) => entry.detail.includes("moonshine-transcript.test.studio-client"))).toBe(true);
   });
 
+  it("rejects contradictory text source and Moonshine transcript records before transport", () => {
+    const send = vi.fn();
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.text-source-mismatch",
+      text: "Memory game with dinosaurs"
+    });
+    const client = createStudioClientFromServiceTransport({
+      defaultSessionId: "studio.transcript-source-mismatch",
+      timelineIdPrefix: "timeline.transcript-source-mismatch",
+      transport: { send }
+    });
+
+    expect(() => client.assembleFromIntent({
+      idea: "Memory game with toys",
+      moonshineTranscript: transcript,
+      source: "text"
+    })).toThrow(/Moonshine transcript records require moonshine-transcript source/u);
+    expect(send).not.toHaveBeenCalled();
+  });
+
   it("uses Studio client policy defaults for transport-backed clients", async () => {
     const requests: BuilderServiceRequest[] = [];
     const client = createStudioClientFromServiceTransport({
