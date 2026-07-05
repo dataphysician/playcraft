@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Pack Requirement Lookup
+
+Milestone:
+- Pack template metadata now resolves mechanic capabilities, rule categories, and component capabilities through exact-one authored pack matches.
+- Duplicate pack entries fail closed instead of letting template required ids come from whichever definition appears first.
+
+Supportive changes:
+- Pack tests verify exported template required ids resolve back to exactly one authored mechanic, rule, and component definition.
+- Source scans block first-match pack requirement lookup from returning.
+
+Validation:
+- `pnpm test packages/packs/test/mvp-profiles.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps template catalog requirements explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or pack definition order inference.
+
 ## 2026-07-05 - Fail-Closed Studio Transcript Source Mismatch
 
 Milestone:

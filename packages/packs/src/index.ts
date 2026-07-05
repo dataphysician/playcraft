@@ -1817,25 +1817,37 @@ function pairedCards(items: string[]): { cards: string[]; pairs: Record<string, 
 }
 
 function findMechanicByCapability(capability: string): MechanicDefinition {
-  const mechanic = mechanicDefinitions.find((entry) => entry.capabilityTags.includes(capability));
-  if (!mechanic) {
+  const matches = mechanicDefinitions.filter((entry) => entry.capabilityTags.includes(capability));
+  if (matches.length === 0) {
     throw new Error(`missing mechanic capability ${capability}`);
   }
+  if (matches.length > 1) {
+    throw new Error(`duplicate mechanic capability ${capability}`);
+  }
+  const [mechanic] = matches;
   return mechanic;
 }
 
 function findRuleByCategory(category: string): RuleModuleDefinition {
-  const ruleEntry = ruleModuleDefinitions.find((entry) => entry.category === category);
-  if (!ruleEntry) {
+  const matches = ruleModuleDefinitions.filter((entry) => entry.category === category);
+  if (matches.length === 0) {
     throw new Error(`missing rule category ${category}`);
   }
+  if (matches.length > 1) {
+    throw new Error(`duplicate rule category ${category}`);
+  }
+  const [ruleEntry] = matches;
   return ruleEntry;
 }
 
 function findComponentByCapability(capability: string): ComponentManifest {
-  const componentEntry = componentManifests.find((entry) => entry.renderCapability === capability);
-  if (!componentEntry) {
+  const matches = componentManifests.filter((entry) => entry.renderCapability === capability);
+  if (matches.length === 0) {
     throw new Error(`missing component capability ${capability}`);
   }
+  if (matches.length > 1) {
+    throw new Error(`duplicate component capability ${capability}`);
+  }
+  const [componentEntry] = matches;
   return componentEntry;
 }

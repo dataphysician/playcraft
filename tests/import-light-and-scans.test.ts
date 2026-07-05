@@ -246,6 +246,19 @@ describe("import-light boundaries and source scans", () => {
     expect(packTestSource).toContain("expectedMechanicCapabilities.length).toBeGreaterThan(12)");
   });
 
+  it("keeps template requirement lookup exact instead of first pack match", () => {
+    const packSource = readSource("packages/packs/src/index.ts");
+    const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
+
+    expect(packSource).toContain("duplicate mechanic capability ${capability}");
+    expect(packSource).toContain("duplicate rule category ${category}");
+    expect(packSource).toContain("duplicate component capability ${capability}");
+    expect(packSource).not.toContain("mechanicDefinitions.find((entry) => entry.capabilityTags.includes(capability))");
+    expect(packSource).not.toContain("ruleModuleDefinitions.find((entry) => entry.category === category)");
+    expect(packSource).not.toContain("componentManifests.find((entry) => entry.renderCapability === capability)");
+    expect(packTestSource).toContain("resolves template requirements through exactly one authored pack entry");
+  });
+
   it("keeps trusted component tool emission single-tool explicit", () => {
     const packSource = readSource("packages/packs/src/index.ts");
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");

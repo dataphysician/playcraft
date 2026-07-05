@@ -10,7 +10,8 @@ import {
   gameTemplateDefinitions,
   mechanicDefinitions,
   packManifests,
-  mvpAssemblyRequests
+  mvpAssemblyRequests,
+  ruleModuleDefinitions
 } from "@playcraft/packs";
 
 const fixtureByProfileId: Record<string, string> = {
@@ -237,6 +238,22 @@ describe("MVP profile pack", () => {
     expect(gameTemplateDefinitions.find((template) => template.id === "template.color-sorting")?.requestAliasSummary).toBe(
       "color sorting, sort by color, put colors in bins"
     );
+  });
+
+  it("resolves template requirements through exactly one authored pack entry", () => {
+    for (const template of gameTemplateDefinitions) {
+      for (const mechanicId of template.requiredMechanicIds) {
+        expect(mechanicDefinitions.filter((entry) => entry.id === mechanicId).map((entry) => entry.id)).toHaveLength(1);
+      }
+
+      for (const ruleId of template.requiredRuleIds) {
+        expect(ruleModuleDefinitions.filter((entry) => entry.id === ruleId).map((entry) => entry.id)).toHaveLength(1);
+      }
+
+      for (const componentId of template.requiredComponentIds) {
+        expect(componentManifests.filter((entry) => entry.id === componentId).map((entry) => entry.id)).toHaveLength(1);
+      }
+    }
   });
 
   it("keeps memory template card counts authored by pair items instead of truncating to two pairs", () => {
