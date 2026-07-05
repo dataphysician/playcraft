@@ -5,14 +5,23 @@ import {
   type BuilderCatalog,
   type BuilderInputSource,
   type BuilderProfileExport,
+  type BuilderPreviewState,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
+  type BuilderSessionSnapshot,
   type GameAssemblyProfile,
   type JsonValue,
-  type MoonshineTranscriptRecord
+  type MoonshineTranscriptRecord,
+  type SseFrame
 } from "@playcraft/contracts";
 
-import { createHttpServiceTransport, createLocalServiceTransport, createMoonshineTranscriptRecord, type BuilderServiceTransport } from "@playcraft/service";
+import {
+  createHttpServiceTransport,
+  createLocalServiceTransport,
+  createMoonshineTranscriptRecord,
+  type BuilderServiceTransport
+} from "@playcraft/service";
+import { parseSseFrame } from "../../../packages/service/src/sse.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry, StudioTimelineKind } from "./types.js";
 
 export interface ConfiguredStudioClientOptions {
@@ -30,6 +39,10 @@ export const STUDIO_RUNTIME_POLICY = {
   serviceEndpointEnvName: "VITE_PLAYCRAFT_SERVICE_URL"
 } as const;
 
+export const STUDIO_SSE_PATH_POLICY = {
+  streamPathSuffix: "/stream"
+} as const;
+
 export type StudioRuntimeEnv = Partial<Record<typeof STUDIO_RUNTIME_POLICY.serviceEndpointEnvName, string | undefined>>;
 
 export function studioRuntimeEnvFromServiceEndpoint(serviceEndpoint?: string): StudioRuntimeEnv {
@@ -43,13 +56,88 @@ export function serviceEndpointFromStudioRuntimeEnv(env: StudioRuntimeEnv): stri
   return serviceEndpoint ? serviceEndpoint : undefined;
 }
 
+export function isSseServiceEndpoint(endpoint: string): boolean {
+  return endpoint.includes(STUDIO_SSE_PATH_POLICY.streamPathSuffix);
+}
+
+export class SseStreamError extends Error {
+  readonly timeline: readonly SseFrame[];
+
+  constructor(message: string, timeline: readonly SseFrame[]) {
+    super(message);
+    this.name = "SseStreamError";
+    this.timeline = timeline;
+  }
+}
+
+export interface BuilderServiceSseFetchResponse {
+  body: ReadableStream<Uint8Array> | null;
+  ok: boolean;
+  status: number;
+}
+
+export type BuilderServiceSseFetch = (
+  url: string,
+  init: {
+    method: "GET";
+    headers: Record<string, string>;
+  }
+) => Promise<BuilderServiceSseFetchResponse>;
+
+export interface CreateSseServiceTransportInput {
+  endpoint: string;
+  fetch?: BuilderServiceSseFetch;
+}
+
+export function createSseServiceTransport(input: CreateSseServiceTransportInput): BuilderServiceTransport {
+  const fetcher = input.fetch ?? defaultSseFetch;
+  const timeline: SseFrame[] = [];
+
+  return {
+    async send(request: BuilderServiceRequest): Promise<BuilderServiceResponse> {
+      timeline.length = 0;
+
+      const url = buildSseRequestUrl(input.endpoint, request);
+
+      const response = await fetcher(url, {
+        method: "GET",
+        headers: {
+          accept: "text/event-stream"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`builder service SSE HTTP ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error("builder service SSE response missing body");
+      }
+
+      for (const frame of await readSseFrames(response.body)) {
+        timeline.push(frame);
+        if (frame.kind === "sse-run-error") {
+          throw new SseStreamError(frame.payload.message, [...timeline]);
+        }
+      }
+
+      return reconcileFrames(request, timeline);
+    }
+  };
+}
+
 export function createConfiguredStudioClient(options: ConfiguredStudioClientOptions = {}): StudioClient {
   const serviceEndpoint = options.serviceEndpoint?.trim();
+  const transport: BuilderServiceTransport = serviceEndpoint
+    ? isSseServiceEndpoint(serviceEndpoint)
+      ? createSseServiceTransport({ endpoint: serviceEndpoint })
+      : createHttpServiceTransport({ endpoint: serviceEndpoint })
+    : createLocalServiceTransport();
 
   return createStudioClientFromServiceTransport({
     defaultSessionId: options.defaultSessionId,
     timelineIdPrefix: options.timelineIdPrefix,
-    transport: serviceEndpoint ? createHttpServiceTransport({ endpoint: serviceEndpoint }) : createLocalServiceTransport()
+    transport
   });
 }
 
@@ -324,4 +412,185 @@ function profileIdForEvent(event: StudioAgUiEvent): string | undefined {
   }
   const profileId = event.value.profileId;
   return typeof profileId === "string" ? profileId : undefined;
+}
+
+function buildSseRequestUrl(endpoint: string, request: BuilderServiceRequest): string {
+  const url = new URL(endpoint);
+  url.searchParams.set("action", request.actionName);
+
+  if (request.sessionId) {
+    url.searchParams.set("sessionId", request.sessionId);
+  }
+  if (request.text) {
+    url.searchParams.set("text", request.text);
+  }
+  if (request.source) {
+    url.searchParams.set("source", request.source);
+  }
+  if (request.templateId) {
+    url.searchParams.set("templateId", request.templateId);
+  }
+  if (request.moonshineTranscript) {
+    url.searchParams.set("moonshineTranscript", JSON.stringify(request.moonshineTranscript));
+  }
+  if (request.assetEdit) {
+    url.searchParams.set("assetEdit", JSON.stringify(request.assetEdit));
+  }
+  if (request.interaction) {
+    url.searchParams.set("interaction", JSON.stringify(request.interaction));
+  }
+
+  return url.toString();
+}
+
+async function readSseFrames(body: ReadableStream<Uint8Array>): Promise<SseFrame[]> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const frames: SseFrame[] = [];
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) {
+      if (buffer.trim().length > 0) {
+        frames.push(parseSseFrame(buffer));
+      }
+      break;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    let boundary = buffer.indexOf("\n\n");
+    while (boundary !== -1) {
+      const chunk = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      frames.push(parseSseFrame(chunk));
+      boundary = buffer.indexOf("\n\n");
+    }
+  }
+
+  return frames;
+}
+
+function defaultSseFetch(
+  url: string,
+  init: { headers: Record<string, string>; method: "GET" }
+): Promise<BuilderServiceSseFetchResponse> {
+  const fetcher = (globalThis as { fetch?: (url: string, init: unknown) => Promise<BuilderServiceSseFetchResponse> }).fetch;
+  if (!fetcher) {
+    return Promise.reject(new Error("SSE service transport requires a fetch implementation"));
+  }
+
+  return fetcher(url, init);
+}
+
+function reconcileFrames(
+  request: BuilderServiceRequest,
+  frames: readonly SseFrame[]
+): BuilderServiceResponse {
+  const events: JsonValue[] = [];
+  let lastResponse: BuilderServiceResponse | undefined;
+
+  for (const frame of frames) {
+    switch (frame.kind) {
+      case "sse-run-started":
+        events.push({
+          type: "RunStarted",
+          eventId: `event.${frame.runId}.${frame.sequence}`,
+          runId: frame.runId,
+          timestamp: "",
+          value: { runId: frame.payload.runId }
+        });
+        break;
+      case "sse-tool-call":
+        events.push({
+          type: "ToolCall",
+          eventId: `event.${frame.runId}.${frame.sequence}`,
+          runId: frame.runId,
+          timestamp: "",
+          value: { toolName: frame.payload.toolName, args: frame.payload.args }
+        });
+        break;
+      case "sse-tool-result":
+        events.push({
+          type: "ToolResult",
+          eventId: `event.${frame.runId}.${frame.sequence}`,
+          runId: frame.runId,
+          timestamp: "",
+          value: { toolName: frame.payload.toolName, result: frame.payload.result }
+        });
+        break;
+      case "sse-custom": {
+        const payload = frame.payload;
+        if (isBuilderServiceResponseShape(payload)) {
+          lastResponse = payload;
+        } else {
+          events.push(payload);
+        }
+        break;
+      }
+      case "sse-run-finished":
+        events.push({
+          type: "RunFinished",
+          eventId: `event.${frame.runId}.${frame.sequence}`,
+          runId: frame.runId,
+          timestamp: "",
+          value: { runId: frame.payload.runId }
+        });
+        break;
+      case "sse-run-error":
+        break;
+    }
+  }
+
+  if (lastResponse) {
+    return lastResponse;
+  }
+
+  return {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    id: `builder-service-response.${request.id}`,
+    version: "1.0.0",
+    kind: "builder-service-response",
+    requestId: request.id,
+    actionName: request.actionName,
+    execution: {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      result: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: `builder-command-result.${request.id}`,
+        version: "1.0.0",
+        kind: "builder-command-result",
+        commandId: `builder-command.${request.id}`,
+        sessionId: request.sessionId ?? `${request.id}.session`,
+        preview: emptyPreviewFor(request)
+      },
+      events
+    },
+    session: {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      kind: "builder-session-snapshot",
+      sessionId: request.sessionId ?? `${request.id}.session`,
+      updatedAt: "2026-07-05T00:00:00.000Z",
+      preview: emptyPreviewFor(request)
+    }
+  };
+}
+
+function emptyPreviewFor(request: BuilderServiceRequest): BuilderPreviewState {
+  const sessionId = request.sessionId ?? `${request.id}.session`;
+  return {
+    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+    sessionId,
+    renderedComponentIds: [],
+    interactionCount: 0
+  };
+}
+
+function isBuilderServiceResponseShape(value: JsonValue | unknown): value is BuilderServiceResponse {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const candidate = value as Record<string, unknown>;
+  return candidate.kind === "builder-service-response"
+    && typeof candidate.actionName === "string"
+    && typeof candidate.requestId === "string";
 }
