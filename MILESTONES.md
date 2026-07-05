@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Require Metadata-Owned Asset Replacements
+
+Milestone:
+- Studio local replacement folders now resolve from builder-authored `assetEditTheme` and `assetEditItems` metadata only.
+- Prompt text and component props no longer influence which local sprite folder is selected for edit-aware assets.
+- Asset replacement remains driven by template-owned replacement sources after the metadata-selected folder is known.
+
+Supportive changes:
+- Asset-library tests now prove stripped metadata prevents local toy sprite substitution even when prompts and profile props still mention toys.
+- Source scans block prompt-derived and component-prop-derived replacement folder selection from returning.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts tests/studio-ui.test.ts packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Asset replacement source scan returned no active-code matches for prompt or component-prop folder selection.
+- Removed-provider/key source scan across app, package, test, milestone, framework, and README sources returned no matches.
+
+Constraint notes:
+- Keeps edit-aware replacement selection forward-only on local builder metadata without stale prompt heuristics, component-prop folder inference, hosted providers, generated runtime code, auth, or database state.
+
 ## 2026-07-04 - Remove Tool Presentation Policy
 
 Milestone:

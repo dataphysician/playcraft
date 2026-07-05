@@ -218,13 +218,6 @@ function themeFoldersForProfile(profile: GameAssemblyProfile): string[] {
   for (const request of profile.assetRequests) {
     addMetadataValue(values, request.metadata.assetEditTheme);
     addMetadataValue(values, request.metadata.assetEditItems);
-    values.add(request.prompt);
-  }
-
-  for (const component of profile.components) {
-    for (const value of Object.values(component.props)) {
-      addMetadataValue(values, value);
-    }
   }
 
   const availableThemes = uniqueStrings(replacementSprites.map((sprite) => sprite.theme));

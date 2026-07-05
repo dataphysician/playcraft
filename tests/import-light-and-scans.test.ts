@@ -367,6 +367,10 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain("defaultItemsForTheme");
     expect(serviceSource).toContain('from "@playcraft/assets"');
     expect(studioAssetLibrarySource).toContain('from "@playcraft/assets"');
+    expect(studioAssetLibrarySource).toContain("request.metadata.assetEditTheme");
+    expect(studioAssetLibrarySource).toContain("request.metadata.assetEditItems");
+    expect(studioAssetLibrarySource).not.toContain("values.add(request.prompt)");
+    expect(studioAssetLibrarySource).not.toContain("Object.values(component.props)");
     expect(studioAssetLibrarySource).not.toContain("const aliases: Record");
     expect(studioAssetLibrarySource).not.toContain('dolphins: ["dolphin"');
   });

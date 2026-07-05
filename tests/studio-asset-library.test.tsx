@@ -75,6 +75,24 @@ describe("studio asset library", () => {
     expect(createProfileLibraryAssetReplacements(profile!)["card:toybox-1-a"]).toBeUndefined();
   });
 
+  it("requires builder-authored asset edit metadata before mapping local replacement folders", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with toys" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const staleProfile = {
+      ...profile!,
+      assetRequests: profile!.assetRequests.map((request) => ({
+        ...request,
+        metadata: {}
+      }))
+    };
+
+    expect(staleProfile.assetRequests.some((request) => request.prompt.includes("toys"))).toBe(true);
+    expect(createProfileLibraryAssetReplacements(staleProfile)["card:toy-1-a"]).toBeUndefined();
+  });
+
   it("renders the Playcraft card back and replacement card sprites", async () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
