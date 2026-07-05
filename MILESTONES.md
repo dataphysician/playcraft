@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Generated Asset IDs
+
+Milestone:
+- Core profile validation now rejects duplicate generated asset ids before saved profile replay.
+- Replay no longer lets duplicate asset identity pass through set-based asset binding checks.
+
+Supportive changes:
+- Core replay tests cover duplicate saved profile generated asset ids.
+- Source scans guard the core duplicate asset-id validation alongside Live App and renderer duplicate checks.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps generated asset identity profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or set-masked duplicate assets.
+
 ## 2026-07-05 - Exact Core Component Asset Bindings
 
 Milestone:

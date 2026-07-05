@@ -1444,6 +1444,9 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("function profileAssetById");
     expect(liveGameSource).toContain("function requireUniqueProfileAssetIds");
     expect(liveGameSource).toContain("duplicate generated asset ids");
+    expect(readSource("packages/core/src/index.ts")).toContain("duplicate_asset_id");
+    expect(readSource("packages/core/src/index.ts")).toContain("const duplicateAssetIds = duplicateStrings(profile.assets.map((asset) => asset.assetId));");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile assets contain duplicate generated asset ids");
     expect(liveGameSource).toContain("const matches = profile.assets.filter((entry) => entry.assetId === assetId);");
     expect(liveGameSource).not.toContain("profile.assets.find((entry) => entry.assetId === assetId)");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate generated asset ids instead of using asset order");

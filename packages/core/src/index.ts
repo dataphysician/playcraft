@@ -467,6 +467,11 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
     }
   }
 
+  const duplicateAssetIds = duplicateStrings(profile.assets.map((asset) => asset.assetId));
+  if (duplicateAssetIds.length > 0) {
+    errors.push(schemaIssue(["assets"], "duplicate_asset_id", `profile ${profile.id} has duplicate generated asset ids: ${duplicateAssetIds.join(", ")}`, "error"));
+  }
+
   const mechanicBindingIds = new Set(profile.mechanics.map((mechanic) => mechanic.bindingId));
   const assetIds = new Set(profile.assets.map((asset) => asset.assetId));
 
@@ -518,6 +523,22 @@ export function validateGameAssemblyProfile(profileInput: unknown, registries: P
   }
 
   return validationResult(profile.id, errors.length === 0, errors, warnings);
+}
+
+function duplicateStrings(values: string[]): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const value of values) {
+    if (seen.has(value)) {
+      duplicates.add(value);
+      continue;
+    }
+
+    seen.add(value);
+  }
+
+  return [...duplicates];
 }
 
 export function createPlaycraftEvent(input: Omit<PlaycraftEventRecord, "schemaVersion" | "version" | "kind">): PlaycraftEventRecord {

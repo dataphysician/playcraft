@@ -77,4 +77,22 @@ describe("saved profile replay", () => {
       /component profile\.memory-match\.mvp\.component\.1 has unknown asset bindings: stale/u
     );
   });
+
+  it("fails closed when saved profile assets contain duplicate generated asset ids", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const duplicateAssetProfile = {
+      ...saved,
+      assets: [
+        ...saved.assets,
+        {
+          ...saved.assets[0]!
+        }
+      ]
+    };
+
+    expect(() => replayProfile(duplicateAssetProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate generated asset ids: ${saved.assets[0]!.assetId.replace(/\./gu, "\\.")}`, "u")
+    );
+  });
 });
