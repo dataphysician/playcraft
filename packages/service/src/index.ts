@@ -219,7 +219,7 @@ export interface LocalBuilderInput {
   source?: BuilderInputSource;
   moonshineTranscript?: MoonshineTranscriptRecord;
   templateId?: BuilderTemplateId;
-  text: string;
+  text?: string;
 }
 
 export interface ResolvedBuilderInputCommand {
@@ -643,9 +643,9 @@ export function resolveBuilderInputCommand(input: {
   source: BuilderInputSource;
   moonshineTranscript?: MoonshineTranscriptRecord;
   templateId?: BuilderTemplateId;
-  text: string;
+  text?: string;
 }): ResolvedBuilderInputCommand {
-  const commandText = input.text.trim();
+  const commandText = textForBuilderInputSource(input);
   const request = createBuilderInputRequest({
     sequence: input.sequence,
     source: input.source,
@@ -705,17 +705,10 @@ export function createBuilderInputRequest(input: {
   sequence: number;
   source: BuilderInputSource;
   moonshineTranscript?: MoonshineTranscriptRecord;
-  text: string;
+  text?: string;
 }): BuilderInputRequest {
-  let moonshineTranscript: MoonshineTranscriptRecord | undefined;
-  let text = input.text;
-  if (input.source === "moonshine-transcript") {
-    if (!input.moonshineTranscript) {
-      throw new Error("moonshine-transcript input requires a Moonshine transcript record");
-    }
-    moonshineTranscript = input.moonshineTranscript;
-    text = moonshineTranscript.text;
-  }
+  const text = textForBuilderInputSource(input);
+  const moonshineTranscript = input.source === "moonshine-transcript" ? input.moonshineTranscript : undefined;
 
   return BuilderInputRequestSchema.parse({
     schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -733,6 +726,30 @@ export function createBuilderInputRequest(input: {
       ...(moonshineTranscript ? { moonshineTranscriptId: moonshineTranscript.transcriptId } : {})
     }
   });
+}
+
+function textForBuilderInputSource(input: {
+  source: BuilderInputSource;
+  moonshineTranscript?: MoonshineTranscriptRecord;
+  text?: string;
+}): string {
+  if (input.source === "moonshine-transcript") {
+    if (!input.moonshineTranscript) {
+      throw new Error("moonshine-transcript input requires a Moonshine transcript record");
+    }
+
+    return input.moonshineTranscript.text;
+  }
+
+  if (input.moonshineTranscript) {
+    throw new Error("text input must not include Moonshine transcript records");
+  }
+
+  if (!input.text) {
+    throw new Error("text input requires text");
+  }
+
+  return input.text.trim();
 }
 
 export const MOONSHINE_STREAMING_CPU_TRANSCRIPTION = {

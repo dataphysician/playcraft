@@ -570,12 +570,18 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps service input text normalization free of empty-string fallback", () => {
     const source = readSource("packages/service/src/index.ts");
+    const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
+    const studioTestSource = readSource("tests/studio-ui.test.ts");
 
     expect(source).toContain("function textForServiceRequest(request: BuilderServiceRequest): string");
+    expect(source).toContain("function textForBuilderInputSource");
     expect(source).toContain("throw new Error(`${request.actionName} requests require text or a Moonshine transcript record`)");
     expect(source).toContain("moonshine-transcript input requires a Moonshine transcript record");
+    expect(source).toContain("text input must not include Moonshine transcript records");
+    expect(serviceTestSource).toContain("keeps direct local input source ownership explicit");
     expect(source).not.toContain("request.moonshineTranscript?.text ?? request.text ?? \"\"");
     expect(source).not.toContain("moonshineTranscript?.text ?? input.text");
+    expect(`${serviceTestSource}\n${studioTestSource}`).not.toContain("text: transcript.text");
   });
 
   it("keeps service execution results from preserving stale active template ids", () => {

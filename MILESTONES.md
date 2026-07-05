@@ -1,5 +1,31 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Source-Owned Direct Local Inputs
+
+Milestone:
+- `LocalBuilderInput` and `resolveBuilderInputCommand` now accept transcript-owned input without duplicated plain text.
+- Direct local text input rejects Moonshine transcript records instead of accepting mixed source payloads.
+- Direct local `moonshine-transcript` input requires a Moonshine transcript record before builder input construction.
+
+Supportive changes:
+- Service tests assemble through the direct local API with transcript-only payloads for transcript source.
+- Service tests cover direct API rejection for transcript source without records and text source with transcript records.
+- Source scans block direct test fixtures from reintroducing `text: transcript.text` duplication.
+
+Validation:
+- `pnpm test packages/service/test/local-service.test.ts`
+- `pnpm test tests/studio-ui.test.ts`
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps direct local API text and Moonshine Streaming CPU inputs source-owned without hosted providers, generated runtime code, auth, database state, compatibility shims, or transcript/text duplication.
+
 ## 2026-07-04 - Explicit Transcript Service Source
 
 Milestone:

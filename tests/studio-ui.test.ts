@@ -100,8 +100,7 @@ describe("studio UI", () => {
       activeTemplateId: "template.memory-match",
       sequence: 2,
       source: "moonshine-transcript",
-      moonshineTranscript: transcript,
-      text: transcript.text
+      moonshineTranscript: transcript
     });
 
     expect(text.templateId).toBe("template.sorting");

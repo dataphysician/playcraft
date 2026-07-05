@@ -431,8 +431,7 @@ describe("local Playcraft service", () => {
     });
     const assembled = service.assemble({
       source: "moonshine-transcript",
-      moonshineTranscript: transcript,
-      text: transcript.text
+      moonshineTranscript: transcript
     });
     const updated = service.update({
       sessionId: assembled.result.sessionId,
@@ -620,6 +619,27 @@ describe("local Playcraft service", () => {
         text: "Memory game with dinosaurs"
       })
     ).toThrow(/Moonshine transcript record/u);
+  });
+
+  it("keeps direct local input source ownership explicit", () => {
+    const service = createLocalPlaycraftService();
+    const transcript = createMoonshineTranscriptRecord({
+      id: "moonshine-transcript.test.direct-source",
+      text: "Memory game with dinosaurs"
+    });
+
+    expect(() =>
+      service.assemble({
+        source: "moonshine-transcript"
+      })
+    ).toThrow(/moonshine-transcript input requires a Moonshine transcript record/u);
+
+    expect(() =>
+      service.assemble({
+        source: "text",
+        moonshineTranscript: transcript
+      })
+    ).toThrow(/text input must not include Moonshine transcript records/u);
   });
 
   it("rejects input payloads on no-input service actions", () => {
