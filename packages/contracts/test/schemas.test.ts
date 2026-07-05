@@ -4,6 +4,7 @@ import {
   BuilderCatalogSchema,
   BuilderInputRequestSchema,
   BuilderServiceCatalogActionSchema,
+  BuilderServiceCatalogSchema,
   BuilderServiceRequestBatchSchema,
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema,
@@ -31,6 +32,76 @@ import {
   safetyPolicyPacks,
   themePacks
 } from "@playcraft/packs";
+
+function serviceCatalogFixture() {
+  const action = (
+    actionName: "catalog" | "assemble" | "update" | "preview" | "reset" | "get-session" | "export-profile" | "import-profile",
+    request: {
+      acceptedFields: string[];
+      requiredFields: string[];
+      requiredAnyOf?: string[][];
+      exclusiveAnyOf?: string[][];
+      forbiddenTogether?: string[][];
+    },
+    responsePayload: "catalog" | "execution" | "session" | "profileExport" | "reset"
+  ) => ({
+    actionName,
+    displayName: actionName,
+    requiresSession: ["update", "preview", "get-session", "export-profile", "import-profile"].includes(actionName),
+    acceptsInput: ["assemble", "update"].includes(actionName),
+    request: {
+      requiredAnyOf: [],
+      exclusiveAnyOf: [],
+      forbiddenTogether: [],
+      summary: "Contract fixture.",
+      ...request
+    },
+    responsePayload
+  });
+
+  return {
+    actions: [
+      action("catalog", { acceptedFields: [], requiredFields: [] }, "catalog"),
+      action("assemble", {
+        acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
+        requiredFields: [],
+        requiredAnyOf: [["text", "moonshineTranscript"]],
+        exclusiveAnyOf: [["text", "moonshineTranscript"]]
+      }, "execution"),
+      action("update", {
+        acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
+        requiredFields: ["sessionId"],
+        requiredAnyOf: [["text", "moonshineTranscript"]],
+        exclusiveAnyOf: [["text", "moonshineTranscript"]]
+      }, "execution"),
+      action("preview", { acceptedFields: ["sessionId", "interaction"], requiredFields: ["sessionId", "interaction"] }, "execution"),
+      action("reset", { acceptedFields: [], requiredFields: [] }, "reset"),
+      action("get-session", { acceptedFields: ["sessionId"], requiredFields: ["sessionId"] }, "session"),
+      action("export-profile", { acceptedFields: ["sessionId"], requiredFields: ["sessionId"] }, "profileExport"),
+      action("import-profile", {
+        acceptedFields: ["sessionId", "profile", "profileExport", "assetEdit"],
+        requiredFields: ["sessionId"],
+        requiredAnyOf: [["profile", "profileExport"]],
+        exclusiveAnyOf: [["profile", "profileExport"]],
+        forbiddenTogether: [["profileExport", "assetEdit"]]
+      }, "execution")
+    ],
+    exactEnvelope: {
+      singleCommand: "request",
+      batchCommand: "request-batch",
+      requestSchema: "BuilderServiceRequestSchema",
+      batchSchema: "BuilderServiceRequestBatchSchema",
+      directHandler: "handleLocalServiceRequest",
+      directBatchHandler: "handleLocalServiceRequestBatch",
+      requiredContracts: ["BuilderServiceRequestSchema", "BuilderServiceRequestBatchSchema", "BuilderServiceResponseSchema"]
+    },
+    transports: {
+      local: "createLocalServiceTransport",
+      httpClient: "createHttpServiceTransport",
+      httpBody: "handleServiceHttpRequestBody"
+    }
+  };
+}
 
 describe("public contract schemas", () => {
   it("validates every public contract fixture", () => {
@@ -216,54 +287,7 @@ describe("public contract schemas", () => {
             "Try: Memory game with dinosaurs."
           ]
         },
-        service: {
-          actions: [
-            {
-              actionName: "assemble",
-              displayName: "Assemble",
-              requiresSession: false,
-              acceptsInput: true,
-              request: {
-                acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
-                requiredFields: [],
-                requiredAnyOf: [["text", "moonshineTranscript"]],
-                exclusiveAnyOf: [["text", "moonshineTranscript"]],
-                forbiddenTogether: [],
-                summary: "Requires text or a Moonshine transcript record."
-              },
-              responsePayload: "execution"
-            },
-            {
-              actionName: "export-profile",
-              displayName: "Export Profile",
-              requiresSession: true,
-              acceptsInput: false,
-              request: {
-                acceptedFields: ["sessionId"],
-                requiredFields: ["sessionId"],
-                requiredAnyOf: [],
-                exclusiveAnyOf: [],
-                forbiddenTogether: [],
-                summary: "Requires sessionId."
-              },
-              responsePayload: "profileExport"
-            }
-          ],
-          exactEnvelope: {
-            singleCommand: "request",
-            batchCommand: "request-batch",
-            requestSchema: "BuilderServiceRequestSchema",
-            batchSchema: "BuilderServiceRequestBatchSchema",
-            directHandler: "handleLocalServiceRequest",
-            directBatchHandler: "handleLocalServiceRequestBatch",
-            requiredContracts: ["BuilderServiceRequestSchema", "BuilderServiceRequestBatchSchema", "BuilderServiceResponseSchema"]
-          },
-          transports: {
-            local: "createLocalServiceTransport",
-            httpClient: "createHttpServiceTransport",
-            httpBody: "handleServiceHttpRequestBody"
-          }
-        },
+        service: serviceCatalogFixture(),
         sessions: {
           defaultAssembleSessionId: "service.session",
           sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
@@ -892,42 +916,10 @@ describe("public contract schemas", () => {
         examples: ["Memory game with dinosaurs"],
         summaryLines: ["Available games: Memory Match."]
       },
-      service: {
-        actions: [
-          {
-            actionName: "catalog",
-            displayName: "Catalog",
-            requiresSession: false,
-            acceptsInput: false,
-            request: {
-              acceptedFields: [],
-              requiredFields: [],
-              requiredAnyOf: [],
-              exclusiveAnyOf: [],
-              forbiddenTogether: [],
-              summary: "No payload fields accepted."
-            },
-            responsePayload: "catalog"
-          }
-        ],
-        exactEnvelope: {
-          singleCommand: "request",
-          batchCommand: "request-batch",
-          requestSchema: "BuilderServiceRequestSchema",
-          batchSchema: "BuilderServiceRequestBatchSchema",
-          directHandler: "handleLocalServiceRequest",
-          directBatchHandler: "handleLocalServiceRequestBatch",
-          requiredContracts: ["BuilderServiceRequestSchema", "BuilderServiceResponseSchema"]
-        },
-        transports: {
-          local: "createLocalServiceTransport",
-          httpClient: "createHttpServiceTransport",
-          httpBody: "handleServiceHttpRequestBody"
-        }
-      },
+      service: serviceCatalogFixture(),
       sessions: {
         defaultAssembleSessionId: "service.session",
-        sessionBoundActions: ["update"]
+        sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
       },
       assetEdit: {
         supported: true,
@@ -958,6 +950,20 @@ describe("public contract schemas", () => {
       input: {
         ...validCatalog.input,
         sourceOptions: validCatalog.input.sourceOptions.slice(0, 1)
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      sessions: {
+        ...validCatalog.sessions,
+        sessionBoundActions: ["update", "update", "preview", "get-session", "export-profile", "import-profile"]
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      sessions: {
+        ...validCatalog.sessions,
+        sessionBoundActions: ["update", "preview", "get-session", "export-profile"]
       }
     }).success).toBe(false);
   });
@@ -1028,6 +1034,20 @@ describe("public contract schemas", () => {
         ...validPreviewAction.request,
         requiredFields: ["sessionId", "templateId"]
       }
+    }).success).toBe(false);
+  });
+
+  it("keeps service catalogs complete and action-unique", () => {
+    const validServiceCatalog = serviceCatalogFixture();
+
+    expect(BuilderServiceCatalogSchema.safeParse(validServiceCatalog).success).toBe(true);
+    expect(BuilderServiceCatalogSchema.safeParse({
+      ...validServiceCatalog,
+      actions: validServiceCatalog.actions.filter((entry) => entry.actionName !== "reset")
+    }).success).toBe(false);
+    expect(BuilderServiceCatalogSchema.safeParse({
+      ...validServiceCatalog,
+      actions: [...validServiceCatalog.actions, validServiceCatalog.actions[0]]
     }).success).toBe(false);
   });
 

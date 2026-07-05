@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Service Catalogs Are Complete And Session-Aligned
+
+Milestone:
+- `BuilderServiceCatalogSchema` now requires every service action to appear exactly once, preventing incomplete or duplicate service catalogs from reaching CLI, Studio, Mobile shell, or future server retrieval clients.
+- `BuilderCatalogSchema` now validates `sessions.sessionBoundActions` against the session-required service actions, including duplicate and missing session-bound action failures.
+
+Supportive changes:
+- Contract tests cover complete service catalogs, missing actions, duplicate actions, duplicate session-bound actions, and missing session-bound actions.
+- Source scans guard service catalog action uniqueness and session-bound alignment helpers.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps the local service catalog complete, explicit, and reusable for agent/CLI/API/UI assembly flows without hosted providers, generated runtime code, auth, database state, compatibility shims, or partial action catalogs.
+
 ## 2026-07-05 - Service Catalog Actions Are Action-Owned
 
 Milestone:

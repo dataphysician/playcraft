@@ -1055,8 +1055,46 @@ export const BuilderServiceCatalogSchema = z
       })
       .strict()
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    const actionNames = value.actions.map((action) => action.actionName);
+    addDuplicateServiceActionIssues(context, actionNames, ["actions"]);
+
+    for (const actionName of BuilderServiceActionNameSchema.options) {
+      if (!actionNames.includes(actionName)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `service catalog must include action ${actionName}`,
+          path: ["actions"]
+        });
+      }
+    }
+  });
 export type BuilderServiceCatalog = z.infer<typeof BuilderServiceCatalogSchema>;
+
+function addDuplicateServiceActionIssues(
+  context: z.RefinementCtx,
+  actionNames: z.infer<typeof BuilderServiceActionNameSchema>[],
+  path: Array<string | number>
+): void {
+  const seen = new Set<z.infer<typeof BuilderServiceActionNameSchema>>();
+  const duplicates = new Set<z.infer<typeof BuilderServiceActionNameSchema>>();
+
+  for (const actionName of actionNames) {
+    if (seen.has(actionName)) {
+      duplicates.add(actionName);
+    }
+    seen.add(actionName);
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `service catalog action ${duplicate} must be unique`,
+      path
+    });
+  }
+}
 
 export const BuilderCatalogRequestTipsSchema = z
   .object({
@@ -1112,9 +1150,11 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
   .superRefine((value, context) => {
     const acceptedSources = value.acceptedInputSources;
     const optionSources = value.input.sourceOptions.map((option) => option.source);
+    const sessionBoundActions = value.sessions.sessionBoundActions;
 
     addDuplicateBuilderInputSourceIssues(context, acceptedSources, ["acceptedInputSources"]);
     addDuplicateBuilderInputSourceIssues(context, optionSources, ["input", "sourceOptions"]);
+    addDuplicateSessionBoundActionIssues(context, sessionBoundActions, ["sessions", "sessionBoundActions"]);
 
     if (!acceptedSources.includes(value.input.defaultSource)) {
       context.addIssue({
@@ -1151,6 +1191,29 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
         });
       }
     }
+
+    for (const actionName of BuilderSessionBoundServiceActionNameSchema.options) {
+      if (!sessionBoundActions.includes(actionName)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `catalog session-bound actions must include ${actionName}`,
+          path: ["sessions", "sessionBoundActions"]
+        });
+      }
+    }
+
+    const serviceSessionActions = value.service.actions
+      .filter((action) => action.requiresSession)
+      .map((action) => action.actionName);
+    for (const actionName of serviceSessionActions) {
+      if (!sessionBoundActions.includes(actionName as z.infer<typeof BuilderSessionBoundServiceActionNameSchema>)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `service session action ${actionName} must be listed in sessionBoundActions`,
+          path: ["sessions", "sessionBoundActions"]
+        });
+      }
+    }
   });
 export type BuilderCatalog = z.infer<typeof BuilderCatalogSchema>;
 
@@ -1173,6 +1236,30 @@ function addDuplicateBuilderInputSourceIssues(
     context.addIssue({
       code: z.ZodIssueCode.custom,
       message: `catalog input source ${duplicate} must be unique`,
+      path
+    });
+  }
+}
+
+function addDuplicateSessionBoundActionIssues(
+  context: z.RefinementCtx,
+  actionNames: z.infer<typeof BuilderSessionBoundServiceActionNameSchema>[],
+  path: Array<string | number>
+): void {
+  const seen = new Set<z.infer<typeof BuilderSessionBoundServiceActionNameSchema>>();
+  const duplicates = new Set<z.infer<typeof BuilderSessionBoundServiceActionNameSchema>>();
+
+  for (const actionName of actionNames) {
+    if (seen.has(actionName)) {
+      duplicates.add(actionName);
+    }
+    seen.add(actionName);
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `session-bound service action ${duplicate} must be unique`,
       path
     });
   }
