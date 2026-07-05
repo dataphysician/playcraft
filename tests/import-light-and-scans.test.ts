@@ -1192,6 +1192,14 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).not.toContain("gameTemplateDefinitions.find");
     expect(assetLibrarySource).toContain("template.liveSurface.assetReplacementSources");
     expect(assetLibrarySource).toContain("componentForReplacementSource");
+    expect(assetLibrarySource).toContain("setReplacement(replacements, `${namespace}:${token}`, sprite);");
+    expect(assetLibrarySource).toContain("setReplacement(replacements, `${source.namespace}:${token}`, sprite);");
+    expect(assetLibrarySource).not.toContain("setReplacement(replacements, token, sprite);");
+    expect(assetLibrarySource).not.toContain("setReplacement(replacements, pairKey, sprite);");
+    expect(liveGameSource).toContain("replacements.get(`card:${card.id}`)");
+    expect(liveGameSource).toContain("return replacements?.get(`${namespace}:${token}`);");
+    expect(liveGameSource).not.toContain("replacements.get(card.id)");
+    expect(liveGameSource).not.toContain("replacements?.get(token)");
     expect(assetLibrarySource).not.toContain('component.renderCapability === "component:reveal-card-grid"');
     expect(assetLibrarySource).not.toContain('component.renderCapability === "component:sort-bins"');
     expect(assetLibrarySource).not.toContain('component.renderCapability === "component:choice-grid"');

@@ -63,8 +63,31 @@ describe("studio asset library", () => {
     expect(profile).toBeDefined();
     const replacements = createProfileLibraryAssetReplacements(profile!);
     expect(replacements["card:toy-1-a"]?.altText).toBe("toy 1 sprite");
+    expect(replacements["toy-1-a"]).toBeUndefined();
     expect(typeof replacements["card:toy-1-a"]?.uri).toBe("string");
     expect(replacements["card:toy-1-a"]?.uri.length).toBeGreaterThan(0);
+  });
+
+  it("ignores bare token asset replacements in the Live App renderer", async () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    render(React.createElement(LiveGame, {
+      assetReplacements: {
+        "dinosaur-1-a": {
+          altText: "bare dinosaur replacement",
+          uri: "data:image/png;base64,AAAA"
+        }
+      },
+      profile: profile!
+    }));
+
+    fireEvent.click(await screen.findByRole("button", { name: "dinosaur-1-a" }));
+
+    expect(screen.queryByRole("img", { name: "bare dinosaur replacement" })).toBeNull();
+    expect(await screen.findByRole("img", { name: "dinosaur 1 sprite" })).toBeDefined();
   });
 
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {

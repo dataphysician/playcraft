@@ -163,7 +163,6 @@ function addTokenReplacements(
       continue;
     }
 
-    setReplacement(replacements, token, sprite);
     setReplacement(replacements, `${namespace}:${token}`, sprite);
   }
 }
@@ -187,10 +186,8 @@ function addPairedTokenReplacements(
       continue;
     }
 
-    setReplacement(replacements, pairKey, sprite);
     setReplacement(replacements, `${source.namespace}:${pairKey}`, sprite);
     for (const token of pairTokens) {
-      setReplacement(replacements, token, sprite);
       setReplacement(replacements, `${source.namespace}:${token}`, sprite);
     }
   }

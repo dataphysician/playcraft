@@ -289,7 +289,7 @@ function MemoryGame({
       "div",
       { style: liveStyles.memoryBoard },
       ...deck.map((card, index) => {
-        const cardReplacement = replacements.get(`card:${card.id}`) ?? replacements.get(card.id);
+        const cardReplacement = replacements.get(`card:${card.id}`);
         const pairVisual = pairVisuals.get(card.pairKey) ?? colorForToken(card.pairKey, tokenStyleCatalog);
         const shown = revealed.includes(card.id) || matched.has(card.pairKey);
         return React.createElement(
@@ -1119,7 +1119,7 @@ function replacementForToken(
   replacements: AssetReplacementLookup | undefined,
   namespace: "choice" | "item"
 ): AssetReplacement | undefined {
-  return replacements?.get(`${namespace}:${token}`) ?? replacements?.get(token);
+  return replacements?.get(`${namespace}:${token}`);
 }
 
 function stringArrayProp(props: Record<string, JsonValue>, key: string): string[] {

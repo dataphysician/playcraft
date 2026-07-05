@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Namespaced Live App Asset Replacements
+
+Milestone:
+- Studio local asset library now publishes token replacement sprites only under template-authored namespaces such as `card:`, `item:`, and `choice:`.
+- Live App token rendering now consumes namespaced token replacements only and no longer falls back to bare token keys.
+
+Supportive changes:
+- Studio asset-library tests verify local sprites are not exposed under bare token keys.
+- Live App tests verify caller-provided bare card replacements are ignored when a namespaced local replacement exists.
+- Source scans block bare token replacement publishing and consumption from returning.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Asset replacement namespace source scan confirmed no bare token publishing or consumption paths.
+
+Constraint notes:
+- Keeps Live App asset substitution template-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or bare-token replacement heuristics.
+
 ## 2026-07-04 - Concrete Studio Success Profiles
 
 Milestone:
