@@ -955,7 +955,17 @@ describe("public contract schemas", () => {
         localReplacementFolders: true,
         freeformItemSuffixes: ["1", "2", "3"],
         genericThemeTokens: [],
-        availableThemes: []
+        availableThemes: [
+          {
+            theme: "dinosaurs",
+            displayLabel: "dinosaurs",
+            localReplacementFolder: "dinosaurs",
+            aliases: ["dinosaur", "dinosaurs"],
+            aliasSummary: "dinosaur, dinosaurs",
+            suggestedItemSummary: "dinosaur-1, dinosaur-2",
+            suggestedItems: ["dinosaur-1", "dinosaur-2"]
+          }
+        ]
       },
       retrieval: {
         current: "bundled-local",
@@ -990,6 +1000,65 @@ describe("public contract schemas", () => {
             }
           : template
       )
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      assetEdit: {
+        ...validCatalog.assetEdit,
+        acceptedKeys: ["theme"]
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      assetEdit: {
+        ...validCatalog.assetEdit,
+        availableThemes: []
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      assetEdit: {
+        ...validCatalog.assetEdit,
+        availableThemes: [...validCatalog.assetEdit.availableThemes, validCatalog.assetEdit.availableThemes[0]!]
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      assetEdit: {
+        ...validCatalog.assetEdit,
+        availableThemes: [
+          ...validCatalog.assetEdit.availableThemes,
+          {
+            ...validCatalog.assetEdit.availableThemes[0]!,
+            theme: "toys"
+          }
+        ]
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      assetEdit: {
+        ...validCatalog.assetEdit,
+        availableThemes: [
+          ...validCatalog.assetEdit.availableThemes,
+          {
+            ...validCatalog.assetEdit.availableThemes[0]!,
+            aliases: ["dinosaurs"],
+            localReplacementFolder: "toys",
+            theme: "toys"
+          }
+        ]
+      }
+    }).success).toBe(false);
+    expect(BuilderCatalogSchema.safeParse({
+      ...validCatalog,
+      assetEdit: {
+        ...validCatalog.assetEdit,
+        availableThemes: validCatalog.assetEdit.availableThemes.map((entry) => ({
+          ...entry,
+          suggestedItems: []
+        }))
+      }
     }).success).toBe(false);
     expect(BuilderCatalogSchema.safeParse({
       ...validCatalog,

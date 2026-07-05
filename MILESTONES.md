@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Asset Edit Catalogs Are Local And Unambiguous
+
+Milestone:
+- `BuilderCatalogSchema` now requires supported asset editing to expose local replacement folders and at least one available theme with suggested items.
+- Asset edit catalog validation now rejects missing `theme`/`items` keys, duplicate themes, duplicate replacement folders, and aliases that map to multiple themes.
+
+Supportive changes:
+- Contract tests cover empty theme lists, duplicate themes/folders, alias collisions, missing accepted keys, and empty suggested item lists.
+- Source scans guard local replacement folder requirements, non-empty available themes, non-empty suggested items, and asset alias uniqueness helpers.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+
+Constraint notes:
+- Keeps asset replacement explicit, local, and unambiguous for agent-driven toddler mini-game assembly without hosted providers, generated runtime code, auth, database state, compatibility shims, or catalog-order alias resolution.
+
 ## 2026-07-05 - Builder Catalog Templates Are Local And Addressable
 
 Milestone:

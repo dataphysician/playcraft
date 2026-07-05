@@ -638,6 +638,12 @@ describe("import-light boundaries and source scans", () => {
     const studioAssetLibrarySource = readSource("apps/studio/src/asset-library.ts");
 
     expect(contractSource).toContain("localReplacementFolder: z.string().min");
+    expect(contractSource).toContain("localReplacementFolders: z.literal(true)");
+    expect(contractSource).toContain("availableThemes: z.array(BuilderAssetEditCatalogEntrySchema).min(1)");
+    expect(contractSource).toContain("suggestedItems: z.array(z.string().min(1).max(48)).min(1)");
+    expect(contractSource).toContain("addDuplicateBuilderAssetThemeIssues");
+    expect(contractSource).toContain("asset edit alias ${duplicate} must map to exactly one theme");
+    expect(contractSource).toContain("asset edit acceptedKeys must include ${key}");
     expect(assetSource).toContain("localReplacementFolder: input.localReplacementFolder ?? input.theme");
     expect(rootReadme).toContain("local replacement themes and folders");
     expect(devGuide).toContain("bundled local replacement themes/items/folders");

@@ -794,7 +794,7 @@ export const BuilderAssetEditCatalogEntrySchema = z
     aliases: z.array(z.string().min(1).max(80)).default([]),
     aliasSummary: z.string().min(1).max(240),
     suggestedItemSummary: z.string().min(1).max(240),
-    suggestedItems: z.array(z.string().min(1).max(48)).default([])
+    suggestedItems: z.array(z.string().min(1).max(48)).min(1)
   })
   .strict();
 export type BuilderAssetEditCatalogEntry = z.infer<typeof BuilderAssetEditCatalogEntrySchema>;
@@ -1134,10 +1134,10 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
       supported: z.literal(true),
       acceptedKeys: z.array(z.enum(["theme", "items"])).min(1),
       maxItems: z.number().int().positive(),
-      localReplacementFolders: z.boolean(),
+      localReplacementFolders: z.literal(true),
       freeformItemSuffixes: z.array(z.string().min(1).max(12)).min(1),
       genericThemeTokens: z.array(z.string().min(1).max(40)).default([]),
-      availableThemes: z.array(BuilderAssetEditCatalogEntrySchema).default([])
+      availableThemes: z.array(BuilderAssetEditCatalogEntrySchema).min(1)
     })
     .strict(),
   retrieval: z
@@ -1153,12 +1153,27 @@ export const BuilderCatalogSchema = PublicContractBaseSchema.extend({
     const sessionBoundActions = value.sessions.sessionBoundActions;
     const toolActionNames = value.tools.map((tool) => tool.actionName);
     const templateIds = value.templates.map((template) => template.id);
+    const assetEditThemes = value.assetEdit.availableThemes.map((entry) => entry.theme);
+    const assetEditFolders = value.assetEdit.availableThemes.map((entry) => entry.localReplacementFolder);
 
     addDuplicateBuilderInputSourceIssues(context, acceptedSources, ["acceptedInputSources"]);
     addDuplicateBuilderInputSourceIssues(context, optionSources, ["input", "sourceOptions"]);
     addDuplicateSessionBoundActionIssues(context, sessionBoundActions, ["sessions", "sessionBoundActions"]);
     addDuplicateBuilderActionIssues(context, toolActionNames, ["tools"]);
     addDuplicateBuilderTemplateIssues(context, templateIds, ["templates"]);
+    addDuplicateBuilderAssetThemeIssues(context, assetEditThemes, ["assetEdit", "availableThemes"]);
+    addDuplicateBuilderAssetFolderIssues(context, assetEditFolders, ["assetEdit", "availableThemes"]);
+    addDuplicateBuilderAssetAliasIssues(context, value.assetEdit.availableThemes, ["assetEdit", "availableThemes"]);
+
+    for (const key of ["theme", "items"] as const) {
+      if (!value.assetEdit.acceptedKeys.includes(key)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `asset edit acceptedKeys must include ${key}`,
+          path: ["assetEdit", "acceptedKeys"]
+        });
+      }
+    }
 
     if (!templateIds.includes(value.defaultTemplateId)) {
       context.addIssue({
@@ -1319,6 +1334,86 @@ function addDuplicateBuilderTemplateIssues(
       path
     });
   }
+}
+
+function addDuplicateBuilderAssetThemeIssues(
+  context: z.RefinementCtx,
+  themes: string[],
+  path: Array<string | number>
+): void {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const theme of themes.map((entry) => normalizedCatalogToken(entry))) {
+    if (seen.has(theme)) {
+      duplicates.add(theme);
+    }
+    seen.add(theme);
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `asset edit theme ${duplicate} must be unique`,
+      path
+    });
+  }
+}
+
+function addDuplicateBuilderAssetFolderIssues(
+  context: z.RefinementCtx,
+  folders: string[],
+  path: Array<string | number>
+): void {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const folder of folders.map((entry) => normalizedCatalogToken(entry))) {
+    if (seen.has(folder)) {
+      duplicates.add(folder);
+    }
+    seen.add(folder);
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `asset edit replacement folder ${duplicate} must be unique`,
+      path
+    });
+  }
+}
+
+function addDuplicateBuilderAssetAliasIssues(
+  context: z.RefinementCtx,
+  themes: BuilderAssetEditCatalogEntry[],
+  path: Array<string | number>
+): void {
+  const ownerByAlias = new Map<string, string>();
+  const duplicates = new Set<string>();
+
+  for (const theme of themes) {
+    for (const alias of [theme.theme, ...theme.aliases]) {
+      const normalized = normalizedCatalogToken(alias);
+      const owner = ownerByAlias.get(normalized);
+      if (owner && owner !== theme.theme) {
+        duplicates.add(normalized);
+      }
+      ownerByAlias.set(normalized, theme.theme);
+    }
+  }
+
+  for (const duplicate of duplicates) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `asset edit alias ${duplicate} must map to exactly one theme`,
+      path
+    });
+  }
+}
+
+function normalizedCatalogToken(value: string): string {
+  return value.trim().toLowerCase();
 }
 
 function addDuplicateSessionBoundActionIssues(
