@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Trusted Renderer Asset Bindings
+
+Milestone:
+- Trusted component rendering now rejects asset binding names that are not declared by the component manifest.
+- Shared preview rendering no longer ignores extra profile asset bindings when rendering trusted components.
+
+Supportive changes:
+- Renderer tests cover unknown asset bindings during trusted component rendering.
+- Source scans guard the unknown binding check in the trusted renderer.
+
+Validation:
+- `pnpm test packages/renderer/test/trusted-renderer.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps trusted rendering manifest-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or ignored asset binding metadata.
+
 ## 2026-07-05 - Exact Trusted Renderer Asset IDs
 
 Milestone:

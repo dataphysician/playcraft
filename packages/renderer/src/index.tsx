@@ -178,6 +178,11 @@ function bindAssets(
 ): { ok: true; assets: Record<string, GeneratedAssetRecord> } | TrustedRenderFailure {
   const byId = new Map(assetRecords.map((asset) => [asset.assetId, asset]));
   const assets: Record<string, GeneratedAssetRecord> = {};
+  const knownBindings = new Set(manifest.requiredAssets.map((requirement) => requirement.binding));
+  const unknownBindings = Object.keys(request.assetBindings).filter((binding) => !knownBindings.has(binding));
+  if (unknownBindings.length > 0) {
+    return failure("invalid-request", `unknown asset bindings for ${manifest.id}: ${unknownBindings.join(", ")}`);
+  }
 
   for (const requirement of manifest.requiredAssets) {
     const assetId = request.assetBindings[requirement.binding];

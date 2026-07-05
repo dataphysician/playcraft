@@ -1500,6 +1500,9 @@ describe("import-light boundaries and source scans", () => {
     expect(rendererSource).toContain("duplicate generated asset ids");
     expect(rendererSource).toContain("const duplicateAssetIds = duplicateGeneratedAssetIds(assetsParsed);");
     expect(readSource("packages/renderer/test/trusted-renderer.test.tsx")).toContain("rejects duplicate generated asset ids instead of binding asset order");
+    expect(rendererSource).toContain("unknown asset bindings for ${manifest.id}");
+    expect(rendererSource).toContain("const unknownBindings = Object.keys(request.assetBindings).filter");
+    expect(readSource("packages/renderer/test/trusted-renderer.test.tsx")).toContain("rejects unknown asset bindings instead of ignoring extra profile data");
     expect(rendererSource).not.toContain("entry.manifest.id === request.componentId");
     expect(rendererSource).not.toContain("entry.manifest.renderCapability === request.componentCapability");
     expect(previewSource).toContain("candidate.id === request.componentId && candidate.version === request.componentVersion");

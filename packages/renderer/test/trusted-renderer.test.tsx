@@ -88,6 +88,25 @@ describe("trusted renderer", () => {
     }
   });
 
+  it("rejects unknown asset bindings instead of ignoring extra profile data", () => {
+    const registry = registerPlaycraftTrustedComponents();
+    const { request, assets } = firstRenderRequest();
+    const result = registry.render({
+      ...request,
+      assetBindings: {
+        ...request.assetBindings,
+        extra: assets[0]!.assetId
+      }
+    }, assets);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("invalid-request");
+      expect(result.error.message).toContain("unknown asset bindings");
+      expect(result.error.message).toContain("extra");
+    }
+  });
+
   it("rejects generated or executable code-shaped input", () => {
     const registry = registerPlaycraftTrustedComponents();
     const { request, assets } = firstRenderRequest();
