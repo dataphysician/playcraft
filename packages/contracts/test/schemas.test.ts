@@ -754,6 +754,12 @@ describe("public contract schemas", () => {
   it("requires profiles to carry matching validation snapshots", () => {
     const profile = assembleMvpProfiles()[0];
     expect(profile).toBeDefined();
+    const validationIssue = {
+      code: "test.validation",
+      message: "test validation issue",
+      path: ["validation"],
+      severity: "error" as const
+    };
 
     expect(
       GameAssemblyProfileSchema.safeParse({
@@ -761,6 +767,42 @@ describe("public contract schemas", () => {
         validation: {
           ...profile!.validation,
           profileId: "profile.other"
+        }
+      }).success
+    ).toBe(false);
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        validation: {
+          ...profile!.validation,
+          id: "validation.profile.other"
+        }
+      }).success
+    ).toBe(false);
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        validation: {
+          ...profile!.validation,
+          valid: false
+        }
+      }).success
+    ).toBe(false);
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        validation: {
+          ...profile!.validation,
+          errors: [validationIssue]
+        }
+      }).success
+    ).toBe(false);
+    expect(
+      GameAssemblyProfileSchema.safeParse({
+        ...profile!,
+        validation: {
+          ...profile!.validation,
+          warnings: [{ ...validationIssue, severity: "warning" as const }]
         }
       }).success
     ).toBe(false);

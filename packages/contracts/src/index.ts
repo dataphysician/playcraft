@@ -640,6 +640,22 @@ export const GameAssemblyProfileSchema = PublicContractBaseSchema.extend({
     message: "profile validation snapshot must match profile id",
     path: ["validation", "profileId"]
   })
+  .refine((value) => value.validation.id === `validation.${value.id}`, {
+    message: "profile validation snapshot id must match profile id",
+    path: ["validation", "id"]
+  })
+  .refine((value) => value.validation.valid, {
+    message: "profile validation snapshot must be valid",
+    path: ["validation", "valid"]
+  })
+  .refine((value) => value.validation.errors.length === 0, {
+    message: "profile validation snapshot must not contain errors",
+    path: ["validation", "errors"]
+  })
+  .refine((value) => value.validation.warnings.length === 0, {
+    message: "profile validation snapshot must not contain warnings",
+    path: ["validation", "warnings"]
+  })
   .superRefine((value, context) => {
     const mechanicBindingIds = new Set(value.mechanics.map((mechanic) => mechanic.bindingId));
     const assetRequestIds = new Set(value.assetRequests.map((request) => request.requestId));

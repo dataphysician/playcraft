@@ -1,5 +1,27 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Profile Validation Snapshots Are Clean
+
+Milestone:
+- `GameAssemblyProfileSchema` now requires saved profiles to carry validation snapshots whose ID and profile ID match the profile, whose `valid` flag is true, and whose embedded errors and warnings are empty.
+- Studio's Developer summary now presents saved profile validation as a clean snapshot instead of showing stale mutable error/warning counters.
+
+Supportive changes:
+- Contract tests cover mismatched validation IDs, invalid snapshots, embedded validation errors, and embedded validation warnings.
+- Core replay tests fail closed when a saved profile carries an unclean validation snapshot.
+- Source scans guard the stricter snapshot contract and the Developer summary text.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts packages/service/test/local-service.test.ts packages/contracts/test/schemas.test.ts packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts tests/studio-ui.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- hidden stale removed-provider exact scan
+- full ignored-path legacy transcript/provider scan
+
+Constraint notes:
+- Keeps imported and saved profiles self-consistent for local agent-driven toddler mini-game assembly without preserving contradictory validation metadata.
+
 ## 2026-07-05 - Profile Internal References Are Schema-Owned
 
 Milestone:

@@ -989,9 +989,7 @@ function ProfileSummaryPanel({ profile }: { profile: GameAssemblyProfile }): Rea
     { style: shellStyles.summaryPanel },
     React.createElement("h3", null, "Active profile"),
     React.createElement("p", null, `ID: ${profile.id}`),
-    React.createElement("p", null, `Validation: ${profile.validation.valid ? "valid" : "invalid"}`),
-    React.createElement("p", null, `Errors: ${profile.validation.errors.length}`),
-    React.createElement("p", null, `Warnings: ${profile.validation.warnings.length}`),
+    React.createElement("p", null, "Validation: clean"),
     React.createElement("p", null, `Replay events: ${profile.replay.eventLog.length}`)
   );
 }

@@ -80,6 +80,17 @@ function serviceRequestFieldSamples(input: {
   };
 }
 
+function validationForProfile(
+  profile: BuilderProfileExport["profile"],
+  profileId: string
+): BuilderProfileExport["profile"]["validation"] {
+  return {
+    ...profile.validation,
+    id: `validation.${profileId}`,
+    profileId
+  };
+}
+
 describe("local Playcraft service", () => {
   it("publishes local tools and bundled templates for shells", () => {
     const service = createLocalPlaycraftService();
@@ -1749,10 +1760,7 @@ describe("local Playcraft service", () => {
     const customProfile = {
       ...profile!,
       id: "profile.service-custom-memory",
-      validation: {
-        ...profile!.validation,
-        profileId: "profile.service-custom-memory"
-      },
+      validation: validationForProfile(profile!, "profile.service-custom-memory"),
       assemblyRequestId: "request.service-custom-memory",
       template: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,

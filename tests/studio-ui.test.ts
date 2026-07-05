@@ -620,7 +620,7 @@ describe("studio UI", () => {
     fireEvent.click(screen.getByRole("button", { name: "memory-card-1-a" }));
     fireEvent.click(screen.getByRole("tab", { name: "Developer" }));
     expect((await screen.findAllByText((text) => text.startsWith("Preview interaction:"))).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Validation: valid")).toBeDefined();
+    expect(screen.getByText("Validation: clean")).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.reveal-card-grid/u })).toBeDefined();
     expect(screen.getByRole("button", { name: /component\.celebration-overlay/u })).toBeDefined();
     expect(screen.getByText("tools: tool:reveal-card")).toBeDefined();

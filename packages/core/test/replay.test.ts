@@ -43,6 +43,22 @@ describe("saved profile replay", () => {
     expect(result.renderRequests[0]?.expectedEmittedEvents).not.toContain("tool:reveal-card");
   });
 
+  it("fails closed when saved profile validation snapshots are not clean", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const invalidValidationProfile = {
+      ...saved,
+      validation: {
+        ...saved.validation,
+        valid: false
+      }
+    };
+
+    expect(() => replayProfile(invalidValidationProfile, createDefaultRegistries())).toThrow(
+      /profile validation snapshot must be valid/u
+    );
+  });
+
   it("fails closed when replay cannot load a component manifest for emitted tool metadata", () => {
     const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
     const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
