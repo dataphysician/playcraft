@@ -33,6 +33,16 @@ const tsconfigJsonSchema = z
     references: z.array(z.object({ path: z.string() }).passthrough())
   })
   .passthrough();
+const appTsconfigJsonSchema = z
+  .object({
+    compilerOptions: z
+      .object({
+        outDir: z.string(),
+        tsBuildInfoFile: z.string()
+      })
+      .passthrough()
+  })
+  .passthrough();
 
 function readText(path: string): string {
   return readFileSync(join(root, path), "utf8");
@@ -52,6 +62,8 @@ describe("builder/studio workspace scaffold", () => {
     const studioViteConfig = readText("apps/studio/vite.config.ts");
     const staleEmptyOutDirSetting = `emptyOutDir: ${String(false)}`;
     const tsconfig = readJson("tsconfig.json", tsconfigJsonSchema);
+    const studioTsconfig = readJson("apps/studio/tsconfig.json", appTsconfigJsonSchema);
+    const mobileTsconfig = readJson("apps/mobile-shell/tsconfig.json", appTsconfigJsonSchema);
 
     expect(readme).toContain("pnpm serve:service");
     expect(readme).toContain("VITE_PLAYCRAFT_SERVICE_URL=http://127.0.0.1:8787/playcraft");
@@ -78,9 +90,13 @@ describe("builder/studio workspace scaffold", () => {
     expect(studioViteConfig).toContain('outDir: "web-dist"');
     expect(studioViteConfig).toContain("emptyOutDir: true");
     expect(studioViteConfig).not.toContain(staleEmptyOutDirSetting);
+    expect(studioTsconfig.compilerOptions.outDir).toBe("dist");
+    expect(studioTsconfig.compilerOptions.tsBuildInfoFile).toBe("dist/.tsbuildinfo");
     expect(mobileViteConfig).toContain('outDir: "web-dist"');
     expect(mobileViteConfig).toContain("emptyOutDir: true");
     expect(mobileViteConfig).not.toContain(staleEmptyOutDirSetting);
+    expect(mobileTsconfig.compilerOptions.outDir).toBe("dist");
+    expect(mobileTsconfig.compilerOptions.tsBuildInfoFile).toBe("dist/.tsbuildinfo");
   });
 
   it("defines builder, service, studio, and mobile package manifests with the expected boundaries", () => {

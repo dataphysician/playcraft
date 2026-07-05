@@ -1,5 +1,26 @@
 # Playcraft Milestones
 
+## 2026-07-05 - App Build Metadata Cleans With Outputs
+
+Milestone:
+- Studio and Mobile shell TypeScript incremental metadata now lives under each app's ignored `dist/` output directory.
+- Removing generated app outputs no longer leaves stale `.tsbuildinfo` files that can make TypeScript believe missing declarations were already built.
+
+Supportive changes:
+- Workspace scaffold tests now assert both app projects keep `outDir` and `tsBuildInfoFile` aligned under `dist/`.
+- Ignored generated outputs containing stale legacy transcript markers were purged locally and regenerated from current source.
+
+Validation:
+- `pnpm exec tsc -b --clean`
+- `pnpm build`
+- `pnpm test tests/builder-studio-scaffold.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `git diff --check`
+- full ignored-path stale marker scan for removed provider and legacy transcript terms
+
+Constraint notes:
+- Keeps clean local rebuilds forward-only and source-derived for the text/Moonshine-only mini-game builder without retaining stale generated artifacts outside ignored output directories.
+
 ## 2026-07-05 - Request Tips Follow Catalog Data
 
 Milestone:
