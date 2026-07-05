@@ -391,6 +391,31 @@ describe("studio asset library", () => {
     expect(screen.queryByRole("button", { name: "gem-3" })).toBeNull();
   });
 
+  it("rejects sequence surfaces without an authored choice component capability", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Repeat a pattern with gems" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const missingChoiceCapabilityProfile = {
+      ...profile!,
+      template: {
+        ...profile!.template,
+        liveSurface: {
+          ...profile!.template.liveSurface,
+          componentCapabilities: {
+            primary: profile!.template.liveSurface.componentCapabilities.primary
+          }
+        }
+      }
+    };
+
+    render(React.createElement(LiveGame, { profile: missingChoiceCapabilityProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("sequence surface is missing required authored choice component capability");
+    expect(screen.queryByRole("button", { name: "gem-1" })).toBeNull();
+  });
+
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toybox" });

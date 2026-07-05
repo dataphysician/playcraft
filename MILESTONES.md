@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Explicit Sequence Choice Components
+
+Milestone:
+- Live App sequence games now require an authored choice component capability before rendering playable choice buttons.
+- Sequence play no longer synthesizes choice buttons from sequence and round tokens when imported/custom profiles omit choice component metadata.
+
+Supportive changes:
+- Studio asset-library tests cover missing authored sequence choice component capability.
+- Source scans guard the required sequence choice component path and block synthesized choice fallback.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps sequence interactions template-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or inferred choice controls.
+
 ## 2026-07-05 - Exact Trusted Renderer Asset Bindings
 
 Milestone:

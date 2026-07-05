@@ -191,7 +191,7 @@ function LiveGameForProfile({
       }
       case "sequence": {
         const sequenceComponent = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
-        const choiceComponent = sequenceChoiceComponent(profile, liveSurface);
+        const choiceComponent = requiredSequenceChoiceComponent(profile, liveSurface);
         validateSequenceSurfaceProps(profile.id, sequenceComponent, choiceComponent, tokenStyleCatalog);
         return React.createElement(SequenceGame, {
           profile,
@@ -746,16 +746,14 @@ function SequenceGame({
 }: {
   profile: GameAssemblyProfile;
   sequenceComponent: ComponentBinding;
-  choiceComponent?: ComponentBinding;
+  choiceComponent: ComponentBinding;
   replacements: AssetReplacementLookup;
   tokenStyleCatalog: TokenStyleCatalog;
   onInteraction?: (interaction: LiveGameInteraction) => void;
 }): React.ReactElement {
   const sequence = stringArrayProp(sequenceComponent.props, "sequence");
   const configuredRounds = stringMatrixProp(sequenceComponent.props, "rounds");
-  const choices = choiceComponent
-    ? stringArrayProp(choiceComponent.props, "items")
-    : uniqueStrings([...sequence, ...configuredRounds.flat()]);
+  const choices = stringArrayProp(choiceComponent.props, "items");
   const rounds = React.useMemo(() => configuredRounds, [JSON.stringify(configuredRounds)]);
   const [roundIndex, setRoundIndex] = React.useState(0);
   const [progress, setProgress] = React.useState(0);
@@ -1212,18 +1210,18 @@ function validateSortingSurfaceProps(
   validateTokenStylesForTokens(profileId, sortingStyleTokens(component), tokenStyleCatalog);
 }
 
-function sequenceStyleTokens(sequenceComponent: ComponentBinding, choiceComponent: ComponentBinding | undefined): string[] {
+function sequenceStyleTokens(sequenceComponent: ComponentBinding, choiceComponent: ComponentBinding): string[] {
   return [
     ...stringArrayProp(sequenceComponent.props, "sequence"),
     ...stringMatrixProp(sequenceComponent.props, "rounds").flat(),
-    ...stringArrayProp(choiceComponent?.props ?? {}, "items")
+    ...stringArrayProp(choiceComponent.props, "items")
   ];
 }
 
 function validateSequenceSurfaceProps(
   profileId: string,
   sequenceComponent: ComponentBinding,
-  choiceComponent: ComponentBinding | undefined,
+  choiceComponent: ComponentBinding,
   tokenStyleCatalog: TokenStyleCatalog
 ): void {
   const sequence = stringArrayProp(sequenceComponent.props, "sequence");
@@ -1240,33 +1238,34 @@ function validateSequenceSurfaceProps(
     throw new Error(`profile ${profileId} sequence round ${emptyRound + 1} is empty`);
   }
 
-  if (choiceComponent) {
-    const choices = stringArrayProp(choiceComponent.props, "items");
-    if (choices.length === 0) {
-      throw new Error(`profile ${profileId} sequence choices are missing authored items`);
-    }
+  const choices = stringArrayProp(choiceComponent.props, "items");
+  if (choices.length === 0) {
+    throw new Error(`profile ${profileId} sequence choices are missing authored items`);
+  }
 
-    const duplicateChoices = duplicateStrings(choices);
-    if (duplicateChoices.length > 0) {
-      throw new Error(`profile ${profileId} sequence choices contain duplicate item ids: ${duplicateChoices.join(", ")}`);
-    }
+  const duplicateChoices = duplicateStrings(choices);
+  if (duplicateChoices.length > 0) {
+    throw new Error(`profile ${profileId} sequence choices contain duplicate item ids: ${duplicateChoices.join(", ")}`);
+  }
 
-    const choiceIds = new Set(choices);
-    const missingChoices = uniqueStrings([...sequence, ...rounds.flat()].filter((token) => !choiceIds.has(token)));
-    if (missingChoices.length > 0) {
-      throw new Error(`profile ${profileId} sequence tokens are missing authored choices: ${missingChoices.join(", ")}`);
-    }
+  const choiceIds = new Set(choices);
+  const missingChoices = uniqueStrings([...sequence, ...rounds.flat()].filter((token) => !choiceIds.has(token)));
+  if (missingChoices.length > 0) {
+    throw new Error(`profile ${profileId} sequence tokens are missing authored choices: ${missingChoices.join(", ")}`);
   }
 
   validateTokenStylesForTokens(profileId, sequenceStyleTokens(sequenceComponent, choiceComponent), tokenStyleCatalog);
 }
 
-function sequenceChoiceComponent(
+function requiredSequenceChoiceComponent(
   profile: GameAssemblyProfile,
   liveSurface: GameTemplateLiveSurface
-): ComponentBinding | undefined {
+): ComponentBinding {
   const choiceCapability = liveSurface.componentCapabilities.choice;
-  return choiceCapability ? requiredComponentByCapability(profile, choiceCapability) : undefined;
+  if (!choiceCapability) {
+    throw new Error(`profile ${profile.id} sequence surface is missing required authored choice component capability`);
+  }
+  return requiredComponentByCapability(profile, choiceCapability);
 }
 
 function requiredComponentByCapability(profile: GameAssemblyProfile, capability: string): ComponentBinding {
