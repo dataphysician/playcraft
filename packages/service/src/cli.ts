@@ -362,7 +362,7 @@ function writeCatalogSummary(catalog: BuilderCatalog, io: LocalServiceCliIo): vo
   io.stdout("service actions:");
   for (const action of catalog.service.actions) {
     io.stdout(
-      `- ${action.displayName} [${action.actionName}] input: ${action.acceptsInput ? "yes" : "no"}; session: ${action.requiresSession ? "required" : "optional"}; response: ${action.responsePayload}; fields: ${formatServiceRequestFields(action.request.acceptedFields)}; required: ${formatServiceRequestFields(action.request.requiredFields)}; one-of: ${formatServiceRequestAnyOf(action.request.requiredAnyOf)}`
+      `- ${action.displayName} [${action.actionName}] input: ${action.acceptsInput ? "yes" : "no"}; session: ${action.requiresSession ? "required" : "optional"}; response: ${action.responsePayload}; fields: ${formatServiceRequestFields(action.request.acceptedFields)}; required: ${formatServiceRequestFields(action.request.requiredFields)}; one-of: ${formatServiceRequestAnyOf(action.request.requiredAnyOf)}; exclusive: ${formatServiceRequestAnyOf(action.request.exclusiveAnyOf)}; forbidden: ${formatServiceRequestAnyOf(action.request.forbiddenTogether)}`
     );
     io.stdout(`  request: ${action.request.summary}`);
   }

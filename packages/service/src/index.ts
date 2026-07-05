@@ -85,6 +85,8 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: [],
         requiredFields: [],
         requiredAnyOf: [],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
         summary: "No payload fields accepted."
       },
       responsePayload: "catalog"
@@ -98,6 +100,8 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
         requiredFields: [],
         requiredAnyOf: [["text", "moonshineTranscript"]],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
         summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
       },
       responsePayload: "execution"
@@ -111,6 +115,8 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
         requiredFields: ["sessionId"],
         requiredAnyOf: [["text", "moonshineTranscript"]],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
         summary: "Requires sessionId plus text or a Moonshine transcript record; templateId, source, and assetEdit are optional."
       },
       responsePayload: "execution"
@@ -124,6 +130,8 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: ["sessionId"],
         requiredFields: ["sessionId"],
         requiredAnyOf: [],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
         summary: "Requires sessionId and accepts no input, template, asset, or profile payloads."
       },
       responsePayload: "execution"
@@ -137,6 +145,8 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: ["sessionId"],
         requiredFields: ["sessionId"],
         requiredAnyOf: [],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
         summary: "Requires sessionId and returns the current session snapshot."
       },
       responsePayload: "session"
@@ -150,6 +160,8 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: ["sessionId"],
         requiredFields: ["sessionId"],
         requiredAnyOf: [],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
         summary: "Requires sessionId and returns a portable profile export."
       },
       responsePayload: "profileExport"
@@ -163,6 +175,8 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: ["sessionId", "profile", "profileExport", "assetEdit"],
         requiredFields: ["sessionId"],
         requiredAnyOf: [["profile", "profileExport"]],
+        exclusiveAnyOf: [["profile", "profileExport"]],
+        forbiddenTogether: [["profileExport", "assetEdit"]],
         summary: "Requires sessionId plus exactly one profile or profileExport; top-level assetEdit is only accepted with profile imports."
       },
       responsePayload: "execution"
@@ -176,6 +190,8 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: [],
         requiredFields: [],
         requiredAnyOf: [],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
         summary: "No payload fields accepted."
       },
       responsePayload: "reset"

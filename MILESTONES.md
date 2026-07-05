@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Catalog Service Constraint Discovery
+
+Milestone:
+- `BuilderCatalog.service.actions[].request` now publishes exclusive one-of groups and forbidden field combinations alongside accepted and required fields.
+- The local service catalog marks `import-profile` as exactly one of `profile` or `profileExport`, and forbids `profileExport` with top-level `assetEdit`.
+- Service CLI output and the Studio Developer catalog view render those stricter request constraints from the catalog.
+
+Supportive changes:
+- Contract fixtures cover the new exclusive and forbidden request metadata.
+- Service tests pin profile-import constraints in JSON catalog output and CLI summaries.
+- Studio UI and source-scan tests guard catalog-owned constraint rendering across contracts, service, CLI, Developer tab, and docs.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts packages/service/test/local-service.test.ts tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps stricter service-call rules contract-owned and discoverable without hosted providers, generated runtime code, auth, database state, compatibility shims, or CLI/UI-local request heuristics.
+
 ## 2026-07-04 - Catalog Request Shape Discovery
 
 Milestone:

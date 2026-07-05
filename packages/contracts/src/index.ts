@@ -745,6 +745,8 @@ export const BuilderServiceCatalogActionRequestSchema = z
     acceptedFields: z.array(BuilderServiceRequestFieldNameSchema).default([]),
     requiredFields: z.array(BuilderServiceRequestFieldNameSchema).default([]),
     requiredAnyOf: z.array(z.array(BuilderServiceRequestFieldNameSchema).min(2)).default([]),
+    exclusiveAnyOf: z.array(z.array(BuilderServiceRequestFieldNameSchema).min(2)).default([]),
+    forbiddenTogether: z.array(z.array(BuilderServiceRequestFieldNameSchema).min(2)).default([]),
     summary: z.string().min(1).max(240)
   })
   .strict();

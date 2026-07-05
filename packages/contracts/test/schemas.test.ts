@@ -219,6 +219,8 @@ describe("public contract schemas", () => {
                 acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
                 requiredFields: [],
                 requiredAnyOf: [["text", "moonshineTranscript"]],
+                exclusiveAnyOf: [],
+                forbiddenTogether: [],
                 summary: "Requires text or a Moonshine transcript record."
               },
               responsePayload: "execution"
@@ -232,6 +234,8 @@ describe("public contract schemas", () => {
                 acceptedFields: ["sessionId"],
                 requiredFields: ["sessionId"],
                 requiredAnyOf: [],
+                exclusiveAnyOf: [],
+                forbiddenTogether: [],
                 summary: "Requires sessionId."
               },
               responsePayload: "profileExport"

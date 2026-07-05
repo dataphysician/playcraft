@@ -75,6 +75,8 @@ describe("local Playcraft service", () => {
             acceptedFields: [],
             requiredFields: [],
             requiredAnyOf: [],
+            exclusiveAnyOf: [],
+            forbiddenTogether: [],
             summary: "No payload fields accepted."
           },
           responsePayload: "catalog"
@@ -88,6 +90,8 @@ describe("local Playcraft service", () => {
             acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
             requiredFields: [],
             requiredAnyOf: [["text", "moonshineTranscript"]],
+            exclusiveAnyOf: [],
+            forbiddenTogether: [],
             summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
           },
           responsePayload: "execution"
@@ -101,6 +105,8 @@ describe("local Playcraft service", () => {
             acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
             requiredFields: ["sessionId"],
             requiredAnyOf: [["text", "moonshineTranscript"]],
+            exclusiveAnyOf: [],
+            forbiddenTogether: [],
             summary: "Requires sessionId plus text or a Moonshine transcript record; templateId, source, and assetEdit are optional."
           },
           responsePayload: "execution"
@@ -114,6 +120,8 @@ describe("local Playcraft service", () => {
             acceptedFields: ["sessionId"],
             requiredFields: ["sessionId"],
             requiredAnyOf: [],
+            exclusiveAnyOf: [],
+            forbiddenTogether: [],
             summary: "Requires sessionId and accepts no input, template, asset, or profile payloads."
           },
           responsePayload: "execution"
@@ -127,6 +135,8 @@ describe("local Playcraft service", () => {
             acceptedFields: ["sessionId"],
             requiredFields: ["sessionId"],
             requiredAnyOf: [],
+            exclusiveAnyOf: [],
+            forbiddenTogether: [],
             summary: "Requires sessionId and returns the current session snapshot."
           },
           responsePayload: "session"
@@ -140,6 +150,8 @@ describe("local Playcraft service", () => {
             acceptedFields: ["sessionId"],
             requiredFields: ["sessionId"],
             requiredAnyOf: [],
+            exclusiveAnyOf: [],
+            forbiddenTogether: [],
             summary: "Requires sessionId and returns a portable profile export."
           },
           responsePayload: "profileExport"
@@ -153,6 +165,8 @@ describe("local Playcraft service", () => {
             acceptedFields: ["sessionId", "profile", "profileExport", "assetEdit"],
             requiredFields: ["sessionId"],
             requiredAnyOf: [["profile", "profileExport"]],
+            exclusiveAnyOf: [["profile", "profileExport"]],
+            forbiddenTogether: [["profileExport", "assetEdit"]],
             summary: "Requires sessionId plus exactly one profile or profileExport; top-level assetEdit is only accepted with profile imports."
           },
           responsePayload: "execution"
@@ -166,6 +180,8 @@ describe("local Playcraft service", () => {
             acceptedFields: [],
             requiredFields: [],
             requiredAnyOf: [],
+            exclusiveAnyOf: [],
+            forbiddenTogether: [],
             summary: "No payload fields accepted."
           },
           responsePayload: "reset"
@@ -928,12 +944,16 @@ describe("local Playcraft service", () => {
       acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
       requiredFields: [],
       requiredAnyOf: [["text", "moonshineTranscript"]],
+      exclusiveAnyOf: [],
+      forbiddenTogether: [],
       summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
     });
     expect(catalog.service.actions.find((action) => action.actionName === "import-profile")?.request).toEqual({
       acceptedFields: ["sessionId", "profile", "profileExport", "assetEdit"],
       requiredFields: ["sessionId"],
       requiredAnyOf: [["profile", "profileExport"]],
+      exclusiveAnyOf: [["profile", "profileExport"]],
+      forbiddenTogether: [["profileExport", "assetEdit"]],
       summary: "Requires sessionId plus exactly one profile or profileExport; top-level assetEdit is only accepted with profile imports."
     });
 
@@ -945,8 +965,9 @@ describe("local Playcraft service", () => {
       "- Assemble Game [tool:assemble-game -> assemble-game] input: Text, Transcript; args: assetEdit:object, input:object, sessionId:string, templateId*:string",
       "- Preview Action [tool:preview-action -> preview-action] input: none; args: interaction*:object, sessionId*:string",
       "service actions:",
-      "- Assemble [assemble] input: yes; session: optional; response: execution; fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit; required: none; one-of: text|moonshineTranscript",
+      "- Assemble [assemble] input: yes; session: optional; response: execution; fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit; required: none; one-of: text|moonshineTranscript; exclusive: none; forbidden: none",
       "  request: Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional.",
+      "- Import Profile [import-profile] input: no; session: required; response: execution; fields: sessionId, profile, profileExport, assetEdit; required: sessionId; one-of: profile|profileExport; exclusive: profile|profileExport; forbidden: profileExport|assetEdit",
       "exact envelopes: request/request-batch via BuilderServiceRequestSchema/BuilderServiceRequestBatchSchema",
       "service helpers: handleLocalServiceRequest/handleLocalServiceRequestBatch",
       "service transports: createLocalServiceTransport, createHttpServiceTransport, handleServiceHttpRequestBody",

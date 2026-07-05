@@ -487,6 +487,8 @@ function AgentToolCatalogPanel({ catalog }: { catalog: BuilderCatalog | undefine
               React.createElement("span", { style: shellStyles.catalogMeta }, `fields: ${formatCatalogList(action.request.acceptedFields)}`),
               React.createElement("span", { style: shellStyles.catalogMeta }, `required: ${formatCatalogList(action.request.requiredFields)}`),
               React.createElement("span", { style: shellStyles.catalogMeta }, `one-of: ${formatCatalogAnyOf(action.request.requiredAnyOf)}`),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `exclusive: ${formatCatalogAnyOf(action.request.exclusiveAnyOf)}`),
+              React.createElement("span", { style: shellStyles.catalogMeta }, `forbidden: ${formatCatalogAnyOf(action.request.forbiddenTogether)}`),
               React.createElement("span", { style: shellStyles.catalogMeta }, `request: ${action.request.summary}`),
               React.createElement("span", { style: shellStyles.catalogMeta }, `response: ${action.responsePayload}`)
             )
