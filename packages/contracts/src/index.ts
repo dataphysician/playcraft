@@ -92,6 +92,42 @@ export const PublicContractBaseSchema = z
   })
   .strict();
 
+export const PublicContractNameSchema = z.enum([
+  "PlaycraftAssemblyRequestSchema",
+  "DomainProfileSchema",
+  "SafetyPolicyPackSchema",
+  "GameAssemblyProfileSchema",
+  "MechanicDefinitionSchema",
+  "RuleModuleDefinitionSchema",
+  "ComponentManifestSchema",
+  "ComponentRenderRequestSchema",
+  "ThemePackSchema",
+  "FrontendToolDefinitionSchema",
+  "AssetGenerationRequestSchema",
+  "AssetSourceCapabilityManifestSchema",
+  "GeneratedAssetRecordSchema",
+  "AssemblyValidationResultSchema",
+  "PlaycraftAgUiEventEnvelopeSchema",
+  "PlaycraftEventRecordSchema",
+  "PackManifestSchema",
+  "GameProfileTemplateSnapshotSchema",
+  "GameTemplateDefinitionSchema",
+  "MoonshineTranscriptRecordSchema",
+  "BuilderInputRequestSchema",
+  "BuilderToolDefinitionSchema",
+  "BuilderCatalogSchema",
+  "BuilderIntentResolutionSchema",
+  "BuilderCommandSchema",
+  "BuilderPreviewStateSchema",
+  "BuilderCommandResultSchema",
+  "BuilderSessionSnapshotSchema",
+  "BuilderProfileExportSchema",
+  "BuilderServiceExecutionSchema",
+  "BuilderServiceRequestSchema",
+  "BuilderServiceResponseSchema"
+]);
+export type PublicContractName = z.infer<typeof PublicContractNameSchema>;
+
 export const FrontendToolDefinitionSchema = PublicContractBaseSchema.extend({
   kind: z.literal("frontend-tool"),
   toolName: CapabilityTagSchema,
@@ -691,7 +727,7 @@ export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
   inputSourceSummary: z.string().min(1).max(120),
   localOnly: z.boolean(),
   emittedEvents: z.array(CapabilityTagSchema).default([]),
-  requiredContracts: z.array(z.string().min(1)).min(1)
+  requiredContracts: z.array(PublicContractNameSchema).min(1)
 }).strict();
 export type BuilderToolDefinition = z.infer<typeof BuilderToolDefinitionSchema>;
 
@@ -1144,7 +1180,7 @@ function hasOnlyServiceResponsePayloads(
   );
 }
 
-export const PublicContractSchemas: Record<string, z.ZodTypeAny> = {
+export const PublicContractSchemas: Record<PublicContractName, z.ZodTypeAny> = {
   PlaycraftAssemblyRequestSchema,
   DomainProfileSchema,
   SafetyPolicyPackSchema,
@@ -1178,8 +1214,6 @@ export const PublicContractSchemas: Record<string, z.ZodTypeAny> = {
   BuilderServiceRequestSchema,
   BuilderServiceResponseSchema
 } as const;
-
-export type PublicContractName = keyof typeof PublicContractSchemas;
 
 export function schemaIssue(path: Array<string | number>, code: string, message: string, severity: z.infer<typeof ValidationSeveritySchema>): z.infer<typeof SchemaIssueSchema> {
   return { path, code, message, severity };

@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Public Contract Name Guard
+
+Milestone:
+- `BuilderToolDefinition.requiredContracts` now accepts only names from `PublicContractNameSchema`.
+- `PublicContractSchemas` is keyed by the same public contract name type, so schema registry entries and advertised required contracts stay aligned.
+- Unknown required contract names are rejected at the contract boundary instead of being accepted as arbitrary strings.
+
+Supportive changes:
+- Contract tests verify every public contract enum name exists in `PublicContractSchemas`.
+- Contract tests reject a builder tool that advertises a missing contract name.
+- Source scans guard the typed required-contract schema and block the old arbitrary string validation.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps builder tool contract dependencies strict and discoverable without hosted providers, generated runtime code, auth, database state, compatibility shims, or stale contract-name strings.
+
 ## 2026-07-04 - Builder Required Contract Discovery
 
 Milestone:

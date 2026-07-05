@@ -12,6 +12,7 @@ import {
   InputModalitySchema,
   PLAYCRAFT_SCHEMA_VERSION,
   PlaycraftAgUiEventEnvelopeSchema,
+  PublicContractNameSchema,
   PublicContractSchemas
 } from "@playcraft/contracts";
 import { replayProfile } from "@playcraft/core";
@@ -660,6 +661,60 @@ describe("public contract schemas", () => {
     delete missingCapabilityRequest.componentCapability;
     expect(ComponentRenderRequestSchema.safeParse(missingCapabilityRequest).success).toBe(false);
     expect(ComponentRenderRequestSchema.safeParse({ ...request, fallbackPolicy: "skip-component" }).success).toBe(false);
+  });
+
+  it("keeps builder tool required contracts limited to public contract names", () => {
+    const names = PublicContractNameSchema.options;
+
+    expect(Object.keys(PublicContractSchemas).sort()).toEqual([...names].sort());
+    expect(PublicContractSchemas.BuilderToolDefinitionSchema.safeParse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-tool.required-contracts.valid",
+      version: "1.0.0",
+      kind: "builder-tool",
+      toolName: "tool:assemble-game",
+      displayName: "Assemble game",
+      description: "Assemble a game from a registered template.",
+      actionName: "assemble-game",
+      argumentsSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        type: "object",
+        fields: {
+          templateId: { type: "string", required: true }
+        },
+        allowUnknown: false
+      },
+      argumentSummary: "args: templateId*:string",
+      acceptedInputSources: ["text"],
+      inputSourceSummary: "input: Text",
+      localOnly: true,
+      emittedEvents: ["builder:profile-ready"],
+      requiredContracts: ["BuilderCommandSchema", "GameTemplateDefinitionSchema"]
+    }).success).toBe(true);
+    expect(PublicContractSchemas.BuilderToolDefinitionSchema.safeParse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-tool.required-contracts.invalid",
+      version: "1.0.0",
+      kind: "builder-tool",
+      toolName: "tool:assemble-game",
+      displayName: "Assemble game",
+      description: "Assemble a game from a registered template.",
+      actionName: "assemble-game",
+      argumentsSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        type: "object",
+        fields: {
+          templateId: { type: "string", required: true }
+        },
+        allowUnknown: false
+      },
+      argumentSummary: "args: templateId*:string",
+      acceptedInputSources: ["text"],
+      inputSourceSummary: "input: Text",
+      localOnly: true,
+      emittedEvents: ["builder:profile-ready"],
+      requiredContracts: ["MissingContractSchema"]
+    }).success).toBe(false);
   });
 
   it("keeps builder command payload fields scoped to their actions", () => {

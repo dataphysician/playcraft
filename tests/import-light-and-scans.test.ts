@@ -296,6 +296,10 @@ describe("import-light boundaries and source scans", () => {
     const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
     const frameworkReadme = readSource("playcraft-agentic-framework/README.md");
 
+    expect(contractSource).toContain("PublicContractNameSchema");
+    expect(contractSource).toContain("requiredContracts: z.array(PublicContractNameSchema).min(1)");
+    expect(contractSource).toContain("PublicContractSchemas: Record<PublicContractName, z.ZodTypeAny>");
+    expect(contractSource).not.toContain("requiredContracts: z.array(z.string().min(1)).min(1)");
     expect(contractSource).toContain("argumentSummary: z.string()");
     expect(rootReadme).toContain("per-action required contracts");
     expect(architecture).toContain("per-action required contracts");
