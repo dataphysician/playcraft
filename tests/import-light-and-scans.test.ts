@@ -722,8 +722,10 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).toContain("LOCAL_SERVICE_CATALOG");
     expect(serviceSource).toContain("service: LOCAL_SERVICE_CATALOG");
     expect(serviceSource).toContain('acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"]');
+    expect(serviceSource).toContain('exclusiveAnyOf: [["text", "moonshineTranscript"]]');
     expect(serviceSource).toContain('exclusiveAnyOf: [["profile", "profileExport"]]');
     expect(serviceSource).toContain('forbiddenTogether: [["profileExport", "assetEdit"]]');
+    expect(contractSource).toContain("service requests accept either text or a Moonshine transcript record, not both");
     expect(serviceSource).toContain("handleLocalServiceRequestBatch");
     expect(serviceSource).toContain("BuilderServiceRequestBatchSchema.parse");
     expect(serviceTestSource).toContain("keeps service catalog request metadata aligned with the request schema");

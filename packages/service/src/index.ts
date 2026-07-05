@@ -100,7 +100,7 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
         requiredFields: [],
         requiredAnyOf: [["text", "moonshineTranscript"]],
-        exclusiveAnyOf: [],
+        exclusiveAnyOf: [["text", "moonshineTranscript"]],
         forbiddenTogether: [],
         summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
       },
@@ -115,7 +115,7 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
         requiredFields: ["sessionId"],
         requiredAnyOf: [["text", "moonshineTranscript"]],
-        exclusiveAnyOf: [],
+        exclusiveAnyOf: [["text", "moonshineTranscript"]],
         forbiddenTogether: [],
         summary: "Requires sessionId plus text or a Moonshine transcript record; templateId, source, and assetEdit are optional."
       },

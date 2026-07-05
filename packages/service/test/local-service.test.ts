@@ -138,7 +138,7 @@ describe("local Playcraft service", () => {
             acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
             requiredFields: [],
             requiredAnyOf: [["text", "moonshineTranscript"]],
-            exclusiveAnyOf: [],
+            exclusiveAnyOf: [["text", "moonshineTranscript"]],
             forbiddenTogether: [],
             summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
           },
@@ -153,7 +153,7 @@ describe("local Playcraft service", () => {
             acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
             requiredFields: ["sessionId"],
             requiredAnyOf: [["text", "moonshineTranscript"]],
-            exclusiveAnyOf: [],
+            exclusiveAnyOf: [["text", "moonshineTranscript"]],
             forbiddenTogether: [],
             summary: "Requires sessionId plus text or a Moonshine transcript record; templateId, source, and assetEdit are optional."
           },
@@ -658,8 +658,7 @@ describe("local Playcraft service", () => {
       actionName: "assemble",
       sessionId: "session.service-api",
       source: "moonshine-transcript",
-      moonshineTranscript: transcript,
-      text: transcript.text
+      moonshineTranscript: transcript
     });
     const updated = service.handle({
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
@@ -805,8 +804,7 @@ describe("local Playcraft service", () => {
       actionName: "assemble",
       sessionId: "session.http-client",
       source: "moonshine-transcript",
-      moonshineTranscript: transcript,
-      text: transcript.text
+      moonshineTranscript: transcript
     });
 
     expect(response.kind).toBe("builder-service-response");
@@ -851,8 +849,7 @@ describe("local Playcraft service", () => {
           actionName: "assemble",
           sessionId: "session.live-http",
           source: "moonshine-transcript",
-          moonshineTranscript: transcript,
-          text: transcript.text
+          moonshineTranscript: transcript
         })
       });
       const parsed = BuilderServiceResponseSchema.parse(await response.json());
@@ -1178,7 +1175,7 @@ describe("local Playcraft service", () => {
       acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
       requiredFields: [],
       requiredAnyOf: [["text", "moonshineTranscript"]],
-      exclusiveAnyOf: [],
+      exclusiveAnyOf: [["text", "moonshineTranscript"]],
       forbiddenTogether: [],
       summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
     });
@@ -1199,7 +1196,7 @@ describe("local Playcraft service", () => {
       "- Assemble Game [tool:assemble-game -> assemble-game] input: Text, Transcript; args: assetEdit:object, input:object, sessionId:string, templateId*:string; contracts: BuilderCommandSchema, BuilderInputRequestSchema, GameTemplateDefinitionSchema",
       "- Preview Action [tool:preview-action -> preview-action] input: none; args: interaction*:object, sessionId*:string; contracts: BuilderCommandSchema, BuilderPreviewStateSchema",
       "service actions:",
-      "- Assemble [assemble] input: yes; session: optional; response: execution; fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit; required: none; one-of: text|moonshineTranscript; exclusive: none; forbidden: none",
+      "- Assemble [assemble] input: yes; session: optional; response: execution; fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit; required: none; one-of: text|moonshineTranscript; exclusive: text|moonshineTranscript; forbidden: none",
       "  request: Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional.",
       "- Import Profile [import-profile] input: no; session: required; response: execution; fields: sessionId, profile, profileExport, assetEdit; required: sessionId; one-of: profile|profileExport; exclusive: profile|profileExport; forbidden: profileExport|assetEdit",
       "exact envelopes: request/request-batch via BuilderServiceRequestSchema/BuilderServiceRequestBatchSchema; contracts: BuilderServiceRequestSchema, BuilderServiceRequestBatchSchema, BuilderServiceResponseSchema",
@@ -1626,8 +1623,7 @@ describe("local Playcraft service", () => {
       actionName: "assemble",
       sessionId: "session.cli-envelope",
       source: "moonshine-transcript",
-      moonshineTranscript: transcript,
-      text: transcript.text
+      moonshineTranscript: transcript
     };
 
     expect(

@@ -220,7 +220,7 @@ describe("public contract schemas", () => {
                 acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
                 requiredFields: [],
                 requiredAnyOf: [["text", "moonshineTranscript"]],
-                exclusiveAnyOf: [],
+                exclusiveAnyOf: [["text", "moonshineTranscript"]],
                 forbiddenTogether: [],
                 summary: "Requires text or a Moonshine transcript record."
               },
@@ -825,6 +825,36 @@ describe("public contract schemas", () => {
           localOnly: true
         },
         receivedAt: "2026-07-04T00:00:00.000Z"
+      }).success
+    ).toBe(false);
+
+    const moonshineTranscript = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "moonshine-transcript.test.dual-input",
+      version: "1.0.0",
+      kind: "moonshine-transcript",
+      transcriptId: "moonshine-transcript.test.dual-input",
+      engine: "moonshine-streaming",
+      runtime: "cpu",
+      localOnly: true,
+      finalized: true,
+      text: "memory game with dinosaurs",
+      receivedAt: "2026-07-04T00:00:00.000Z",
+      segments: [],
+      metadata: {
+        origin: "contract-test"
+      }
+    };
+    expect(
+      BuilderServiceRequestSchema.safeParse({
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "builder-service-request.test.dual-input",
+        version: "1.0.0",
+        kind: "builder-service-request",
+        actionName: "assemble",
+        source: "moonshine-transcript",
+        moonshineTranscript,
+        text: moonshineTranscript.text
       }).success
     ).toBe(false);
 

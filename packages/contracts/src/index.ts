@@ -1093,9 +1093,9 @@ export const BuilderServiceRequestSchema = PublicContractBaseSchema.extend({
     message: "moonshine-transcript service requests require a Moonshine transcript record",
     path: ["moonshineTranscript"]
   })
-  .refine((value) => !value.moonshineTranscript || !value.text || value.text === value.moonshineTranscript.text, {
-    message: "service request text must match Moonshine transcript record text",
-    path: ["moonshineTranscript"]
+  .refine((value) => !value.moonshineTranscript || !value.text, {
+    message: "service requests accept either text or a Moonshine transcript record, not both",
+    path: ["text"]
   })
   .refine((value) => value.actionName !== "import-profile" || Boolean(value.profile || value.profileExport), {
     message: "import-profile requests require profile or profileExport",

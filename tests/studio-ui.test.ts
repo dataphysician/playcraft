@@ -419,6 +419,7 @@ describe("studio UI", () => {
     expect(screen.getAllByText("fields: sessionId, text, source, moonshineTranscript, templateId, assetEdit").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("required: sessionId").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("one-of: text|moonshineTranscript").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("exclusive: text|moonshineTranscript").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("exclusive: profile|profileExport")).toBeDefined();
     expect(screen.getByText("forbidden: profileExport|assetEdit")).toBeDefined();
     expect(screen.getByText("request: Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional.")).toBeDefined();

@@ -1,5 +1,30 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Exclusive Service Input Envelopes
+
+Milestone:
+- `BuilderServiceRequestSchema` now rejects requests that include both `text` and `moonshineTranscript`.
+- Service catalog metadata advertises `text|moonshineTranscript` as both required-one-of and exclusive-one-of for assemble/update.
+- Direct service, HTTP, and CLI exact-envelope transcript examples now use transcript-only payloads.
+
+Supportive changes:
+- Contract tests cover dual text/transcript request rejection.
+- Service, Studio Developer tab, and source-scan tests pin the published exclusivity metadata.
+
+Validation:
+- `pnpm test packages/contracts/test/schemas.test.ts`
+- `pnpm --filter @playcraft/service test`
+- `pnpm test tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps the public local service/API contract explicit for text or local Moonshine Streaming CPU transcripts without hosted providers, generated runtime code, auth, database state, compatibility shims, or dual-source request ambiguity.
+
 ## 2026-07-04 - Single-Source Service CLI Input Payloads
 
 Milestone:
