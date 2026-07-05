@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Sorting Bin Asset Aliases
+
+Milestone:
+- Studio sorting bin asset lookup now rejects bin labels that match more than one local bin asset.
+- Extensible local bin catalogs no longer render whichever matching bin art appears first when aliases collide.
+
+Supportive changes:
+- Studio asset-library tests cover duplicate sorting bin aliases in the exported local bin catalog.
+- Source scans block first-match sorting bin asset lookup from returning.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps static Live App bin artwork explicit and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or sorting-bin catalog order inference.
+
 ## 2026-07-05 - Exact Local Sprite Replacement Matches
 
 Milestone:

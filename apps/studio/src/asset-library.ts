@@ -151,9 +151,13 @@ function componentForReplacementSource(
 
 export function sortingBinAssetFor(bin: string): LibraryAssetReplacement | undefined {
   const binTokens = normalizedTokens(bin);
-  const asset = sortingBinAssetCatalog.find((entry) =>
+  const matches = sortingBinAssetCatalog.filter((entry) =>
     entry.aliases.some((alias) => tokenSequenceIncludes(binTokens, normalizedTokens(alias)))
   );
+  if (matches.length > 1) {
+    throw new Error(`sorting bin ${bin} maps to multiple local bin assets: ${matches.map((entry) => entry.id).join(", ")}`);
+  }
+  const [asset] = matches;
   return asset ? { altText: asset.altText, uri: asset.uri } : undefined;
 }
 

@@ -1401,6 +1401,10 @@ describe("import-light boundaries and source scans", () => {
     expect(assetLibrarySource).toContain("const matches = profile.components.filter((component) => component.renderCapability === capability);");
     expect(assetLibrarySource).toContain("has multiple asset replacement components");
     expect(assetLibrarySource).not.toContain("profile.components.find((component) => component.renderCapability === capability)");
+    expect(assetLibrarySource).toContain("const matches = sortingBinAssetCatalog.filter((entry)");
+    expect(assetLibrarySource).toContain("maps to multiple local bin assets");
+    expect(assetLibrarySource).not.toContain("const asset = sortingBinAssetCatalog.find((entry)");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects ambiguous sorting bin aliases instead of using catalog order");
     expect(assetLibrarySource).toContain("setReplacement(replacements, `${namespace}:${token}`, sprite);");
     expect(assetLibrarySource).toContain("setReplacement(replacements, `${source.namespace}:${token}`, sprite);");
     expect(assetLibrarySource).not.toContain("setReplacement(replacements, token, sprite);");

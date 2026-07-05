@@ -391,4 +391,19 @@ describe("studio asset library", () => {
     expect(sortingBinAssetFor("blueberry")).toBeUndefined();
     expect(sortingBinAssetFor("greenhouse")).toBeUndefined();
   });
+
+  it("rejects ambiguous sorting bin aliases instead of using catalog order", () => {
+    sortingBinAssetCatalog.push({
+      aliases: ["blue bin"],
+      altText: "duplicate blue sorting bin",
+      id: "duplicate-blue",
+      uri: "data:image/png;base64,AAAA"
+    });
+
+    try {
+      expect(() => sortingBinAssetFor("blue bin")).toThrow(/sorting bin blue bin maps to multiple local bin assets: blue, duplicate-blue/u);
+    } finally {
+      sortingBinAssetCatalog.pop();
+    }
+  });
 });
