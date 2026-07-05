@@ -51,6 +51,10 @@ describe("public contract schemas", () => {
         sourceId: "validator.contract"
       }
     });
+    expect(PlaycraftAgUiEventEnvelopeSchema.safeParse({
+      ...envelope,
+      runId: undefined
+    }).success).toBe(false);
     const builderToolFixture = {
       schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
       id: "builder-tool.fixture",

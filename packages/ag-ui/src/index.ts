@@ -137,14 +137,14 @@ export function playcraftCustomEvent(
   options: { extraPayloadSchemas?: PayloadSchemaRegistry; sequence?: number } = {}
 ): AgUiEvent<PlaycraftAgUiEventEnvelope> {
   const envelope = validatePlaycraftEnvelope(envelopeInput, options.extraPayloadSchemas);
-  return baseEvent("Custom", envelope.runId ?? "run.unspecified", options.sequence ?? 0, envelope);
+  return baseEvent("Custom", envelope.runId, options.sequence ?? 0, envelope);
 }
 
 export function createPlaycraftEnvelope<TPayload>(input: {
   eventId: string;
   eventVersion?: string;
   profileId?: string;
-  runId?: string;
+  runId: string;
   payloadType: string;
   payload: TPayload;
   provenance: PlaycraftAgUiEventEnvelope["provenance"];

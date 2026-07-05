@@ -1,5 +1,29 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Run-Owned AG-UI Custom Events
+
+Milestone:
+- `PlaycraftAgUiEventEnvelopeSchema` now requires `runId`.
+- `createPlaycraftEnvelope` requires callers to provide a run id.
+- `playcraftCustomEvent` now emits custom AG-UI events with the envelope run id instead of a placeholder run.
+
+Supportive changes:
+- AG-UI tests reject custom envelopes without run ids.
+- Contract tests reject Playcraft AG-UI envelopes with missing run ids.
+- Source scans block the removed `run.unspecified` and `envelope.runId ??` recovery paths.
+
+Validation:
+- `pnpm test packages/ag-ui/test/events.test.ts packages/contracts/test/schemas.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- AG-UI run-id source scan confirmed no placeholder run-id fallback.
+
+Constraint notes:
+- Keeps agent-facing AG-UI event streams run-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or placeholder event provenance.
+
 ## 2026-07-04 - Self-Describing Service Session Templates
 
 Milestone:

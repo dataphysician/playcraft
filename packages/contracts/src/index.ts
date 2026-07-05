@@ -432,7 +432,7 @@ export const PlaycraftAgUiEventEnvelopeSchema = z
     eventId: StableIdSchema,
     eventVersion: VersionSchema,
     profileId: StableIdSchema.optional(),
-    runId: StableIdSchema.optional(),
+    runId: StableIdSchema,
     payloadType: PlaycraftPayloadTypeSchema,
     payload: JsonValueSchema,
     provenance: z

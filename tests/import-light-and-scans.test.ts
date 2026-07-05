@@ -92,6 +92,18 @@ describe("import-light boundaries and source scans", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps AG-UI custom events run-owned without placeholder run ids", () => {
+    const contractSource = readSource("packages/contracts/src/index.ts");
+    const agUiSource = readSource("packages/ag-ui/src/index.ts");
+    const agUiTestSource = readSource("packages/ag-ui/test/events.test.ts");
+
+    expect(contractSource).toContain("runId: StableIdSchema");
+    expect(agUiSource).toContain('return baseEvent("Custom", envelope.runId');
+    expect(agUiTestSource).toContain("requires custom envelopes to declare run ids");
+    expect(`${contractSource}\n${agUiSource}`).not.toContain("run.unspecified");
+    expect(agUiSource).not.toContain('envelope.runId ??');
+  });
+
   it("keeps public local asset source names free of stub terminology", () => {
     const blockedTerms = [
       "asset-source." + "stub-deterministic",

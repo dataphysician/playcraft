@@ -86,6 +86,24 @@ describe("AG-UI-compatible events", () => {
     expect(event.value.payloadType).toBe("profile.proposed");
   });
 
+  it("requires custom envelopes to declare run ids", () => {
+    const profile = assembleMvpProfiles()[0];
+
+    expect(() => createPlaycraftEnvelope({
+      eventId: "event.agui.no-run",
+      profileId: profile.id,
+      payloadType: "replay.ready",
+      payload: {
+        profileId: profile.id,
+        replayable: true
+      },
+      provenance: {
+        role: "planner",
+        sourceId: "planner.deterministic.mvp"
+      }
+    } as Parameters<typeof createPlaycraftEnvelope>[0])).toThrow(/runId/u);
+  });
+
   it("rejects unknown and invalid custom payloads", () => {
     const profile = assembleMvpProfiles()[0];
     const unknown = createPlaycraftEnvelope({
