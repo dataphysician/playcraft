@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Live App Memory Cards
+
+Milestone:
+- Live App memory games now reject imported/custom profiles with duplicate card ids before rendering.
+- Memory matching no longer depends on shuffled deck order when a profile carries ambiguous card identity.
+
+Supportive changes:
+- Studio asset-library tests cover duplicate memory card ids in profile-carried Live App props.
+- Source scans guard the memory surface validator and duplicate-card error path.
+
+Validation:
+- `pnpm test tests/studio-asset-library.test.tsx tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps Live App memory interactions profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or deck order inference.
+
 ## 2026-07-05 - Exact Pack Generated Asset Binding
 
 Milestone:

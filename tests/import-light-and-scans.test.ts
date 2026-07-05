@@ -1389,11 +1389,14 @@ describe("import-light boundaries and source scans", () => {
     expect(devGuide).toContain("default token style");
     expect(liveGameSource).toContain("GameTemplateTokenStyle");
     expect(liveGameSource).toContain("tokenStyleCatalogForSurface");
+    expect(liveGameSource).toContain("function validateMemorySurfaceProps");
+    expect(liveGameSource).toContain("memory cards contain duplicate card ids");
     expect(liveGameSource).toContain("function validateTokenStylesForTokens");
     expect(liveGameSource).toContain("function tokenStyleMatchesForToken");
     expect(liveGameSource).toContain("maps to multiple token styles");
     expect(liveGameSource).toContain("liveSurface.defaultTokenStyle");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App token styles instead of using style order");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate Live App memory card ids instead of using deck order");
     expect(liveGameSource).not.toContain("tokenColorCatalog");
     expect(liveGameSource).not.toContain("memoryPairPalette");
     expect(liveGameSource).not.toContain("const palette =");

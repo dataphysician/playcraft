@@ -169,7 +169,7 @@ function LiveGameForProfile({
     switch (liveSurface.kind) {
       case "memory": {
         const component = requiredComponentByCapability(profile, liveSurface.componentCapabilities.primary);
-        validateTokenStylesForTokens(profile.id, memoryStyleTokens(component), tokenStyleCatalog);
+        validateMemorySurfaceProps(profile.id, component, tokenStyleCatalog);
         return React.createElement(MemoryGame, {
           profile,
           component,
@@ -1139,6 +1139,20 @@ function tokenStyleCatalogForSurface(liveSurface: GameTemplateLiveSurface): Toke
   };
 }
 
+function validateMemorySurfaceProps(
+  profileId: string,
+  component: ComponentBinding,
+  tokenStyleCatalog: TokenStyleCatalog
+): void {
+  const cards = stringArrayProp(component.props, "cards");
+  const duplicateCards = duplicateStrings(cards);
+  if (duplicateCards.length > 0) {
+    throw new Error(`profile ${profileId} memory cards contain duplicate card ids: ${duplicateCards.join(", ")}`);
+  }
+
+  validateTokenStylesForTokens(profileId, memoryStyleTokens(component), tokenStyleCatalog);
+}
+
 function validateTokenStylesForTokens(
   profileId: string,
   tokens: string[],
@@ -1281,6 +1295,22 @@ function profileAssetById(profile: GameAssemblyProfile, assetId: string): Genera
   }
 
   return matches[0];
+}
+
+function duplicateStrings(values: string[]): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const value of values) {
+    if (seen.has(value)) {
+      duplicates.add(value);
+      continue;
+    }
+
+    seen.add(value);
+  }
+
+  return [...duplicates];
 }
 
 function requireUniqueProfileAssetIds(profile: GameAssemblyProfile): void {

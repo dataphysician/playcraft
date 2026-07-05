@@ -302,6 +302,38 @@ describe("studio asset library", () => {
     expect(screen.queryByTestId("trusted-preview-surface")).toBeNull();
   });
 
+  it("rejects duplicate Live App memory card ids instead of using deck order", () => {
+    const client = createLocalStudioClient();
+    const session = client.assembleFromIntent({ idea: "Memory game with dinosaurs" });
+    const profile = session.activeProfile;
+
+    expect(profile).toBeDefined();
+    const duplicateCardProfile = {
+      ...profile!,
+      components: profile!.components.map((component) =>
+        component.renderCapability === "component:reveal-card-grid"
+          ? {
+              ...component,
+              props: {
+                ...component.props,
+                cards: ["dinosaur-1-a", "dinosaur-1-a", "dinosaur-2-a", "dinosaur-2-b"],
+                pairs: {
+                  "dinosaur-1-a": "pair-1",
+                  "dinosaur-2-a": "pair-2",
+                  "dinosaur-2-b": "pair-2"
+                }
+              }
+            }
+          : component
+      )
+    };
+
+    render(React.createElement(LiveGame, { profile: duplicateCardProfile }));
+
+    expect(screen.getByTestId("live-game-error").textContent).toContain("memory cards contain duplicate card ids: dinosaur-1-a");
+    expect(screen.queryByRole("button", { name: "dinosaur-1-a" })).toBeNull();
+  });
+
   it("does not substitute unrelated local sprites when a requested theme has no local folder", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toybox" });
