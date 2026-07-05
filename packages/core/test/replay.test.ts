@@ -96,6 +96,24 @@ describe("saved profile replay", () => {
     );
   });
 
+  it("fails closed when saved profile asset requests contain duplicate request ids", () => {
+    const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
+    const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+    const duplicateAssetRequestProfile = {
+      ...saved,
+      assetRequests: [
+        ...saved.assetRequests,
+        {
+          ...saved.assetRequests[0]!
+        }
+      ]
+    };
+
+    expect(() => replayProfile(duplicateAssetRequestProfile, createDefaultRegistries())).toThrow(
+      new RegExp(`profile profile\\.memory-match\\.mvp has duplicate asset request ids: ${saved.assetRequests[0]!.requestId.replace(/\./gu, "\\.")}`, "u")
+    );
+  });
+
   it("fails closed when saved profile mechanics contain duplicate binding ids", () => {
     const path = fileURLToPath(new URL(fixturePaths[0], import.meta.url));
     const saved = GameAssemblyProfileSchema.parse(JSON.parse(readFileSync(path, "utf8")));

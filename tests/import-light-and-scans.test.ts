@@ -1458,6 +1458,9 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("packages/core/src/index.ts")).toContain("duplicate_asset_id");
     expect(readSource("packages/core/src/index.ts")).toContain("const duplicateAssetIds = duplicateStrings(profile.assets.map((asset) => asset.assetId));");
     expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile assets contain duplicate generated asset ids");
+    expect(readSource("packages/core/src/index.ts")).toContain("duplicate_asset_request_id");
+    expect(readSource("packages/core/src/index.ts")).toContain("const duplicateAssetRequestIds = duplicateStrings(profile.assetRequests.map((request) => request.requestId));");
+    expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile asset requests contain duplicate request ids");
     expect(liveGameSource).toContain("const matches = profile.assets.filter((entry) => entry.assetId === assetId);");
     expect(liveGameSource).not.toContain("profile.assets.find((entry) => entry.assetId === assetId)");
     expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate generated asset ids instead of using asset order");

@@ -1,5 +1,25 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Core Asset Request IDs
+
+Milestone:
+- Core profile validation now rejects duplicate asset request ids before saved profile replay.
+- Asset provenance checks no longer accept repeated request identity when matching generated assets back to requests.
+
+Supportive changes:
+- Core replay tests cover duplicate saved profile asset request ids.
+- Source scans guard duplicate asset request validation beside generated asset identity checks.
+
+Validation:
+- `pnpm test packages/core/test/replay.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+- `git diff --check`
+- removed-provider exact scan
+
+Constraint notes:
+- Keeps asset request identity profile-owned and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, or duplicate asset request provenance.
+
 ## 2026-07-05 - Exact Core Rule Binding IDs
 
 Milestone:
