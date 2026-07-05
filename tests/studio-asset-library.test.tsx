@@ -142,6 +142,7 @@ describe("studio asset library", () => {
     const profile = session.activeProfile;
 
     expect(profile).toBeDefined();
+    expect(profile!.assetRequests[0]?.metadata.assetEditItems).toEqual(["toy-1", "toy-2"]);
     const replacements = createProfileLibraryAssetReplacements(profile!);
     expect(replacements["card:toy-1-a"]?.altText).toBe("toy 1 sprite");
     expect(replacements["toy-1-a"]).toBeUndefined();

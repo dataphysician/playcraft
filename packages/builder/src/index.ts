@@ -758,15 +758,16 @@ function applyAssetEdit(
     return profile;
   }
   const template = templateForProfile(profile);
+  const assetRequestItems = assetEditItemsForAssetRequests(template, profile, edit);
 
   const assetRequests = profile.assetRequests.map((request) =>
     AssetGenerationRequestSchema.parse({
       ...request,
-      prompt: promptForAssetEdit(template, edit),
+      prompt: promptForAssetEdit(template, edit, assetRequestItems),
       metadata: {
         ...request.metadata,
         assetEditTheme: edit.theme,
-        assetEditItems: edit.items
+        assetEditItems: assetRequestItems
       }
     })
   );
@@ -874,17 +875,67 @@ function editComponentProps(
   }
 }
 
-function promptForAssetEdit(template: GameTemplateDefinition | GameProfileTemplateSnapshot, edit: NormalizedAssetEdit): string {
+function promptForAssetEdit(
+  template: GameTemplateDefinition | GameProfileTemplateSnapshot,
+  edit: NormalizedAssetEdit,
+  assetRequestItems: string[]
+): string {
   switch (template.assetPromptKind) {
     case "memory-cards":
-      return `child-safe ${edit.theme} memory card illustrations for ${edit.items.join(", ")}`;
+      return `child-safe ${edit.theme} memory card illustrations for ${assetRequestItems.join(", ")}`;
     case "sorting-game":
-      return `child-safe ${edit.theme} sorting game illustrations for ${edit.items.join(", ")}`;
+      return `child-safe ${edit.theme} sorting game illustrations for ${assetRequestItems.join(", ")}`;
     case "sequence-buttons":
-      return `child-safe ${edit.theme} sequence game button illustrations for ${edit.items.join(", ")}`;
+      return `child-safe ${edit.theme} sequence game button illustrations for ${assetRequestItems.join(", ")}`;
     case "general-game":
       return `child-safe ${edit.theme} game illustrations for ${template.displayName}`;
   }
+}
+
+function assetEditItemsForAssetRequests(
+  template: GameTemplateDefinition | GameProfileTemplateSnapshot,
+  profile: GameAssemblyProfile,
+  edit: NormalizedAssetEdit
+): string[] {
+  switch (template.assetPromptKind) {
+    case "memory-cards":
+      return requireAssetEditItemsForMemoryPairs(
+        edit,
+        requireMemoryPairCount(propsForAssetEditOperation(template, profile, "memory-pairs"))
+      );
+    case "sorting-game":
+      return requireAssetEditItemsForBins(
+        edit,
+        requireStringArrayProp(propsForAssetEditOperation(template, profile, "sorting-items"), "bins", "sorting-items")
+      );
+    case "sequence-buttons": {
+      const props = propsForAssetEditOperation(template, profile, "sequence-items");
+      const sourceSequence = requireStringArrayProp(props, "sequence", "sequence-items");
+      const sourceRounds = requireStringMatrixProp(props, "rounds", "sequence-items");
+      return requireAssetEditItemsForSequence(edit.items, [...sourceSequence, ...sourceRounds.flat()]);
+    }
+    case "general-game":
+      return edit.items;
+  }
+}
+
+function propsForAssetEditOperation(
+  template: GameTemplateDefinition | GameProfileTemplateSnapshot,
+  profile: GameAssemblyProfile,
+  operationKind: GameTemplateAssetEditOperation["operation"]
+): Record<string, JsonValue> {
+  const operations = template.assetEditOperations.filter((operation) => operation.operation === operationKind);
+  if (operations.length !== 1) {
+    throw new Error(`${template.id} requires exactly one ${operationKind} asset edit operation for asset requests`);
+  }
+
+  const [operation] = operations;
+  const component = profile.components.find((entry) => entry.renderCapability === operation.componentCapability);
+  if (!component) {
+    throw new Error(`${profile.id} is missing component ${operation.componentCapability} for ${operationKind} asset requests`);
+  }
+
+  return component.props;
 }
 
 function pairedCardIds(edit: NormalizedAssetEdit, pairCount: number): string[] {
@@ -964,6 +1015,15 @@ function requireAssetEditItemsForBins(edit: NormalizedAssetEdit, bins: string[])
   return edit.items.slice(0, bins.length);
 }
 
+function requireAssetEditItemsForSequence(items: string[], tokens: string[]): string[] {
+  const uniqueTokens = uniqueStrings(tokens);
+  if (items.length < uniqueTokens.length) {
+    throw new Error(`sequence-items requires at least ${uniqueTokens.length} asset edit items for sequence tokens ${uniqueTokens.join(", ")}`);
+  }
+
+  return items.slice(0, uniqueTokens.length);
+}
+
 function remapSequenceTokens(tokens: string[], tokenMap: Map<string, string>): string[] {
   return tokens.map((token) => tokenMap.get(token) ?? token);
 }
@@ -974,11 +1034,9 @@ function remapSequenceRounds(rounds: string[][], tokenMap: Map<string, string>):
 
 function tokenMapForSequence(tokens: string[], items: string[]): Map<string, string> {
   const uniqueTokens = uniqueStrings(tokens);
-  if (items.length < uniqueTokens.length) {
-    throw new Error(`sequence-items requires at least ${uniqueTokens.length} asset edit items for sequence tokens ${uniqueTokens.join(", ")}`);
-  }
+  const sequenceItems = requireAssetEditItemsForSequence(items, tokens);
 
-  return new Map(uniqueTokens.map((token, index) => [token, items[index]!]));
+  return new Map(uniqueTokens.map((token, index) => [token, sequenceItems[index]!]));
 }
 
 function rewriteAssetBindings(

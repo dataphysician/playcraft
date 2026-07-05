@@ -538,7 +538,7 @@ describe("import-light boundaries and source scans", () => {
     expect(studioAssetLibrarySource).toContain('from "@playcraft/assets"');
     expect(studioAssetLibrarySource).toContain("entry.localReplacementFolder === theme");
     expect(studioAssetLibrarySource).toContain("request.metadata.assetEditTheme");
-    expect(studioAssetLibrarySource).toContain("request.metadata.assetEditItems");
+    expect(studioAssetLibrarySource).not.toContain("addMetadataValue(values, request.metadata.assetEditItems)");
     expect(studioAssetLibrarySource).not.toContain("values.add(request.prompt)");
     expect(studioAssetLibrarySource).not.toContain("Object.values(component.props)");
     expect(studioAssetLibrarySource).not.toContain("const aliases: Record");
@@ -1139,6 +1139,7 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps builder asset prompt wording template-owned instead of component-inferred", () => {
     const builderSource = readSource("packages/builder/src/index.ts");
+    const builderTestSource = readSource("packages/builder/test/session-service.test.ts");
     const contractSource = readSource("packages/contracts/src/index.ts");
     const packSource = readSource("packages/packs/src/index.ts");
 
@@ -1148,8 +1149,17 @@ describe("import-light boundaries and source scans", () => {
     expect(packSource).toContain("assetEditOperations: template.assetEditOperations");
     expect(builderSource).toContain("template.assetPromptKind");
     expect(builderSource).toContain("template.assetEditOperations");
+    expect(builderSource).toContain("function assetEditItemsForAssetRequests");
+    expect(builderSource).toContain("function propsForAssetEditOperation");
+    expect(builderSource).toContain("promptForAssetEdit(template, edit, assetRequestItems)");
+    expect(builderSource).toContain("assetEditItems: assetRequestItems");
+    expect(builderTestSource).toContain('not.toContain("dinosaur-3")');
+    expect(builderTestSource).toContain('not.toContain("toy-3")');
+    expect(builderTestSource).toContain("metadata.assetEditItems");
     expect(builderSource).not.toContain("hasComponentCapability");
     expect(builderSource).not.toContain("promptForAssetEdit(profile");
+    expect(builderSource).not.toContain("assetEditItems: edit.items");
+    expect(builderSource).not.toContain("promptForAssetEdit(template, edit)");
     expect(builderSource).not.toContain('case "component:reveal-card-grid"');
     expect(builderSource).not.toContain('case "component:choice-grid"');
     expect(builderSource).not.toContain('case "component:sort-bins"');

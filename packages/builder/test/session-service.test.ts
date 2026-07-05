@@ -235,6 +235,9 @@ describe("builder session service", () => {
       "toy-2-b": "pair-2"
     });
     expect(dinosaurs.result.profile?.assetRequests[0]?.prompt).toContain("dinosaurs memory card illustrations");
+    expect(dinosaurs.result.profile?.assetRequests[0]?.prompt).toContain("dinosaur-1, dinosaur-2");
+    expect(dinosaurs.result.profile?.assetRequests[0]?.prompt).not.toContain("dinosaur-3");
+    expect(dinosaurs.result.profile?.assetRequests[0]?.metadata.assetEditItems).toEqual(["dinosaur-1", "dinosaur-2"]);
     expect(toys.result.profile?.assetRequests[0]?.prompt).toContain("toys memory card illustrations");
     expect(dinosaurs.result.profile?.assets[0]?.assetId).not.toBe(toys.result.profile?.assets[0]?.assetId);
     expect(toys.result.profile?.components[0]?.assetBindings.illustration).toBe(toys.result.profile?.assets[0]?.assetId);
@@ -247,6 +250,7 @@ describe("builder session service", () => {
 
     expect(cardsFor(edited.result.profile)).toEqual(["dolphin-1-a", "dolphin-1-b", "dolphin-2-a", "dolphin-2-b"]);
     expect(edited.result.profile?.assetRequests[0]?.prompt).toContain("ocean animals memory card illustrations");
+    expect(edited.result.profile?.assetRequests[0]?.prompt).not.toContain("dolphin-3");
     expect(edited.result.validation?.valid).toBe(true);
   });
 
@@ -302,6 +306,8 @@ describe("builder session service", () => {
       "star-b": "pair-3"
     });
     expect(columnsFor(updated.result.profile)).toBe(3);
+    expect(updated.result.profile?.assetRequests[0]?.prompt).toContain("rocket, moon, star");
+    expect(updated.result.profile?.assetRequests[0]?.metadata.assetEditItems).toEqual(["rocket", "moon", "star"]);
     expect(updated.result.validation?.valid).toBe(true);
   });
 
@@ -357,6 +363,9 @@ describe("builder session service", () => {
       "toy-1": "red",
       "toy-2": "blue"
     });
+    expect(edited.result.profile?.assetRequests[0]?.prompt).toContain("toy-1, toy-2");
+    expect(edited.result.profile?.assetRequests[0]?.prompt).not.toContain("toy-3");
+    expect(edited.result.profile?.assetRequests[0]?.metadata.assetEditItems).toEqual(["toy-1", "toy-2"]);
     expect(edited.result.validation?.valid).toBe(true);
   });
 
@@ -402,6 +411,7 @@ describe("builder session service", () => {
       ["gem-1", "gem-2", "gem-1", "gem-3"],
       ["gem-2", "gem-1", "gem-3", "gem-1", "gem-2"]
     ]);
+    expect(edited.result.profile?.assetRequests[0]?.metadata.assetEditItems).toEqual(["gem-1", "gem-2", "gem-3"]);
     expect(edited.result.validation?.valid).toBe(true);
   });
 

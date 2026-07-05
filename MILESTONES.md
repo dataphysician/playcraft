@@ -1,5 +1,24 @@
 # Playcraft Milestones
 
+## 2026-07-05 - Exact Asset Request Item Metadata
+
+Milestone:
+- Builder asset requests now store and prompt for only the replacement items actually used by the authored profile shape.
+- Studio local replacement folder discovery now uses asset edit theme metadata only, so exact item metadata such as `toy-1` and `toy-2` does not mask the real `toys` sprite folder.
+
+Supportive changes:
+- Builder tests assert memory, sorting, sequence, and imported custom memory prompts/metadata expose exact used items and omit unused catalog suggestions.
+- Studio asset-library and UI tests assert exact item metadata still maps local replacement sprites.
+- Source scans block returning to `assetEditItems: edit.items`, old prompt-wide item lists, and item metadata as a folder hint.
+
+Validation:
+- `pnpm test packages/builder/test/session-service.test.ts tests/studio-asset-library.test.tsx tests/studio-ui.test.ts tests/import-light-and-scans.test.ts`
+- `pnpm build`
+- `pnpm test`
+
+Constraint notes:
+- Keeps local asset generation requests profile-authored and forward-only without hosted providers, generated runtime code, auth, database state, compatibility shims, unused catalog item prompts, or item-token folder inference.
+
 ## 2026-07-05 - Template-Scoped Asset Edit Inheritance
 
 Milestone:
