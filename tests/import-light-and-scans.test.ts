@@ -630,7 +630,10 @@ describe("import-light boundaries and source scans", () => {
   it("keeps service CLI stateful examples on exact request batches", () => {
     const cliSource = readSource("packages/service/src/cli.ts");
     const rootReadme = readSource("README.md");
+    const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
     const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
+    const frameworkReadme = readSource("playcraft-agentic-framework/README.md");
+    const prd = readSource("playcraft-agentic-framework/PRD.md");
 
     expect(cliSource).toContain("request-batch");
     expect(cliSource).toContain("parseServiceRequestBatchJson");
@@ -639,7 +642,15 @@ describe("import-light boundaries and source scans", () => {
     expect(cliSource).toContain("BuilderServiceRequestSchema.array().min(1)");
     expect(rootReadme).toContain("playcraft-service request-batch");
     expect(devGuide).toContain("playcraft-service request-batch");
+    expect(frameworkReadme).toContain("request batches");
+    expect(architecture).toContain("same-process request batches");
     expect(`${rootReadme}\n${devGuide}`).not.toMatch(/export-profile\s+--(?:text|transcript|asset-theme|asset-item)/u);
+    expect(`${frameworkReadme}\n${architecture}\n${devGuide}\n${prd}`).toContain("export-profile");
+    expect(`${frameworkReadme}\n${architecture}\n${devGuide}\n${prd}`).toContain("import-profile");
+    expect(`${frameworkReadme}\n${architecture}\n${devGuide}\n${prd}`).toContain("get-session");
+    expect(devGuide).not.toContain("catalog, assemble, update, and preview actions");
+    expect(frameworkReadme).not.toContain("previewing trusted interactions, and listing local tools/templates");
+    expect(prd).not.toContain("assemble, update, preview, and catalog listing");
   });
 
   it("keeps Studio request tips catalog-owned instead of app-composed", () => {

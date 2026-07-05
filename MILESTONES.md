@@ -1,5 +1,28 @@
 # Playcraft Milestones
 
+## 2026-07-04 - Align Framework Tool Surface Docs
+
+Milestone:
+- Canonical framework docs now describe builder tools as assemble/update/preview/catalog plus get-session, export-profile, and import-profile.
+- Service CLI docs now name exact-envelope request batches alongside raw request envelopes.
+- PRD, architecture, README, and developer guide agree that profile portability is part of the reusable local tool surface.
+
+Supportive changes:
+- Source scans pin request-batch docs and expanded builder tool descriptions across canonical framework docs.
+- Source scans block stale assemble/update/preview-only builder tool wording from returning.
+
+Validation:
+- `pnpm test tests/import-light-and-scans.test.ts`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --filter @playcraft/studio build`
+- `pnpm --filter @playcraft/mobile-shell build`
+- `git diff --check`
+- Removed-provider/key source scan across active app/package/test/docs/spec/plan files returned only guard/planning references.
+
+Constraint notes:
+- Keeps documentation aligned with the local reusable tool contract without adding hosted providers, generated runtime code, auth, database state, or compatibility shims.
+
 ## 2026-07-04 - Reject Mixed Envelope CLI Flags
 
 Milestone:

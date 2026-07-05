@@ -27,7 +27,7 @@ Recommended package boundaries:
 | `packages/renderer` | Trusted React renderer, component registry, component manifest validation. |
 | `packages/assets` | Asset request schemas, deterministic local asset source, asset source manifest helpers. |
 | `packages/packs` | Initial mechanic, rule, component, theme, domain, and safety policy packs. |
-| `packages/builder` | Local builder tool handler for catalog, assemble, update, and preview actions with published argument schemas. |
+| `packages/builder` | Local builder tool handler for catalog, assemble, update, preview, get-session, export-profile, and import-profile actions with published argument schemas. |
 | `packages/service` | Local app/API and `playcraft-service` CLI facade for validated `BuilderServiceRequest`, `BuilderServiceResponse`, `BuilderCatalog`, `BuilderIntentResolution`, text input, `MoonshineTranscriptRecord` inputs from Moonshine Streaming CPU, template resolution, and asset edit levers. |
 | `apps/studio` | Vite React studio that renders the live toddler game, developer timeline, and trusted preview from the service transport. |
 | `apps/mobile-shell` | Tauri Mobile-facing webview shell that reuses the Studio UI and local service transport. |
