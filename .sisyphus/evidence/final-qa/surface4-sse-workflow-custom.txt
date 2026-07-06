@@ -1,0 +1,15 @@
+
+ RUN  v3.2.6 /home/damaso/python/hackathons/playcraft
+
+ ✓ packages/assets/test/local-asset-source.test.ts (21 tests) 31ms
+ ✓ packages/packs/test/custom-templates.test.ts (12 tests) 124ms
+ ✓ packages/service/test/sse.test.ts (14 tests) 322ms
+ ✓ packages/service/test/workflow.test.ts (17 tests) 650ms
+ ✓ tests/workflow-examples.test.ts (8 tests) 708ms
+ ✓ packages/service/test/workflow-integration.test.ts (8 tests) 775ms
+
+ Test Files  6 passed (6)
+      Tests  80 passed (80)
+   Start at  17:03:24
+   Duration  2.00s (transform 633ms, setup 0ms, collect 2.11s, tests 2.61s, environment 2.66s, prepare 798ms)
+

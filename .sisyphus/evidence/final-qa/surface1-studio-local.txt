@@ -1,0 +1,23 @@
+
+ RUN  v3.2.6 /home/damaso/python/hackathons/playcraft
+
+ ✓ tests/studio-states.test.tsx (5 tests) 175ms
+ ✓ tests/studio-sse-client.test.tsx (15 tests) 110ms
+ ✓ tests/builder-studio-scaffold.test.tsx (3 tests) 197ms
+ ✓ tests/studio-tactile.test.tsx (6 tests) 1019ms
+   ✓ studio tactile interactions > renders interactive elements at least 64x64px  332ms
+ ✓ tests/studio-live-streaming.test.tsx (3 tests) 1114ms
+   ✓ studio live streaming > frames update progress text  347ms
+   ✓ studio live streaming > profile-swap clears state (no leftover cards/items from previous profile)  658ms
+ ✓ tests/studio-asset-library.test.tsx (33 tests) 3182ms
+ ✓ tests/studio-ui.test.ts (51 tests) 4844ms
+   ✓ studio UI > lets transcript input replace typed game requests  490ms
+   ✓ studio UI > keeps the memory game selected while swapping requested card assets  452ms
+   ✓ studio UI > exports and imports profiles from the Developer tab through the Studio client  616ms
+   ✓ studio UI > plays the sequence profile through completion  340ms
+
+ Test Files  7 passed (7)
+      Tests  116 passed (116)
+   Start at  17:00:13
+   Duration  6.41s (transform 995ms, setup 0ms, collect 4.05s, tests 10.64s, environment 2.92s, prepare 761ms)
+

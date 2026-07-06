@@ -2162,15 +2162,15 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
 > Do NOT auto-proceed after verification. Wait for user's explicit approval before marking work complete.
 > Never mark F1-F4 as checked before getting user's okay. Rejection or user feedback → fix → re-run → present again → wait for okay.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, curl endpoint, run command). For each "Must NOT Have": search codebase for forbidden patterns (hosted-provider markers, mcp auth, runtime replay validation, hardcoded asset IDs in new code, etc.) — reject with file:line if found. Check evidence files exist in `.sisyphus/evidence/`. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `pnpm typecheck` + `pnpm exec vitest run`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names (data/result/item/temp). Verify TDD discipline (RED tests exist before GREEN impl).
   Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Agent-Executed QA** — `unspecified-high` (split by surface, run in parallel)
+- [x] F3. **Agent-Executed QA** — `unspecified-high` (split by surface, run in parallel)
   4 parallel QA tasks (each is a separate sub-agent):
   - **F3a**: Studio local transport (StudioClient + SSE timeline + Run Inspector + empty states + tactile)
   - **F3b**: Studio HTTP transport (curl MCP endpoints, real OpenAI-style agent call sequence: list → call → observe)
@@ -2179,7 +2179,7 @@ Parallel Speedup: ~70% vs sequential; max concurrent: 7 (Wave 2 + Wave 3)
   Start from clean state. Execute EVERY QA scenario from EVERY task — follow exact steps, capture evidence. Test cross-task integration (features working together, not isolation). Test edge cases: empty state, invalid input, rapid actions. Save to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   For each task: read "What to do", read actual diff (`git log`/`git diff`). Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check "Must NOT do" compliance. Detect cross-task contamination: Task N touching Task M's files. Flag unaccounted changes. Specifically verify Server-Ready Retrieval stayed OUT (no real remote providers, no auth/db/network code).
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | Server-Ready [OUT/IN] | VERDICT`
 

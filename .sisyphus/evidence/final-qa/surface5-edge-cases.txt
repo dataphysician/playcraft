@@ -1,0 +1,24 @@
+[POST http://127.0.0.1:38601/playcraft/tools/call - name=evil-tool]
+status: 403
+content-type: application/json
+body.kind: tool-not-allowed
+body.message: tool evil-tool is not in the PLAYCRAFT_MCP_GUARDRAILS allowlist
+
+[POST tools/call - missing name]
+status: 400
+body.kind: builder-service-error
+body.message: tools/call request body must include a non-empty name string
+
+[GET tools/call]
+status: 404
+body.kind: builder-service-error
+body.message: unknown route /playcraft/tools/call
+
+[POST unknown route]
+status: 404
+body.kind: builder-service-error
+body.message: unknown route /playcraft/foo-bar
+
+[GET /health]
+status: 200
+body: {"schemaVersion":"playcraft.v1","kind":"builder-service-health","ok":true}

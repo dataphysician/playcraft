@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "workflow-graph.examples.custom-template",
+  "version": "1.0.0",
+  "kind": "workflow-graph",
+  "nodes": [
+    {
+      "id": "node-assemble",
+      "actionName": "assemble",
+      "payload": {
+        "sessionId": "session.examples.custom-template",
+        "templateId": "template.custom.toy-memory",
+        "text": "Memory game with toys"
+      },
+      "dependsOn": []
+    },
+    {
+      "id": "node-preview",
+      "actionName": "preview",
+      "payload": {
+        "sessionId": "session.examples.custom-template",
+        "interaction": {
+          "action": "primary"
+        }
+      },
+      "dependsOn": [
+        "node-assemble"
+      ]
+    },
+    {
+      "id": "node-export",
+      "actionName": "export-profile",
+      "payload": {
+        "sessionId": "session.examples.custom-template"
+      },
+      "dependsOn": [
+        "node-preview"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "node-assemble",
+      "to": "node-preview"
+    },
+    {
+      "from": "node-preview",
+      "to": "node-export"
+    }
+  ],
+  "startNodeId": "node-assemble"
+}

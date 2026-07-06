@@ -1,0 +1,44 @@
+HTTP server up: http://127.0.0.1:40937/playcraft
+
+[GET http://127.0.0.1:40937/playcraft/catalog]
+status: 200
+content-type: application/json
+kind: builder-catalog
+mcp.tools count: 7
+mcp.tool names: tool:assemble-game, tool:update-game, tool:preview-action, tool:list-builder-tools, tool:get-session, tool:export-profile, tool:import-profile
+first 2 mcp.tool entries:
+{"name":"tool:assemble-game","description":"Assemble a mini-game from a registered local template.","parameters":{"assetEdit":{"name":"assetEdit","type":"object","description":"assemble-game argument: Optional asset edit payload that swaps the active theme or items.","required":false},"input":{"name":"input","type":"object","description":"assemble-game argument: Optional input request payload (text or Moonshine transcript).","required":false},"sessionId":{"name":"sessionId","type":"string","description":"assemble-game argument: Optional stable session id; auto-generated when omitted.","required":false},"templateId":{"name":"templateId","type":"string","description":"assemble-game argument: Required game template id (for example template.memory-match).","required":true}}}
+{"name":"tool:update-game","description":"Update the active mini-game template or its asset edit levers.","parameters":{"assetEdit":{"name":"assetEdit","type":"object","description":"update-game argument: Optional asset edit payload that swaps the active theme or items.","required":false},"input":{"name":"input","type":"object","description":"update-game argument: Optional input request payload (text or Moonshine transcript).","required":false},"sessionId":{"name":"sessionId","type":"string","description":"update-game argument: Optional stable session id; auto-generated when omitted.","required":true},"templateId":{"name":"templateId","type":"string","description":"update-game argument: Required game template id (for example template.memory-match).","required":true}}}
+
+[POST http://127.0.0.1:40937/playcraft/tools/list]
+status: 200
+tools count: 7
+tools names: tool:assemble-game, tool:update-game, tool:preview-action, tool:list-builder-tools, tool:get-session, tool:export-profile, tool:import-profile
+first tool description: Assemble a mini-game from a registered local template.
+
+[POST http://127.0.0.1:40937/playcraft/tools/list?include=assemble-game]
+status: 200
+filtered tool: tool:assemble-game
+
+[POST http://127.0.0.1:40937/playcraft/tools/call - name=assemble-game]
+status: 200
+response.kind: builder-service-response
+response.actionName: assemble
+response.session.sessionId: service.session
+response.execution.result.profile.id: profile.memory-match.mvp
+
+[POST http://127.0.0.1:40937/playcraft/tools/call - name=get-session]
+status: 200
+response.actionName: get-session
+response.execution.result.ownership.ownerId: undefined
+response.execution.result.ownership.expiresAt: undefined
+
+[POST http://127.0.0.1:40937/playcraft/tools/call - name=export-profile]
+status: 200
+response.actionName: export-profile
+response.execution.result.profile.id: undefined
+response.execution.result.profile.profileName: undefined
+
+[GET /health]
+status: 200
+body: {"schemaVersion":"playcraft.v1","kind":"builder-service-health","ok":true}

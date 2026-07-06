@@ -1,0 +1,20 @@
+
+[run-workflow assemble-preview-export]
+exit code: 0
+stderr lines: 0
+stdout length: 3146
+response.kind: builder-service-response
+response.actionName: execute-workflow
+events count: 7
+event types: ToolCall, ToolResult, ToolCall, ToolResult, ToolCall, ToolResult, RunFinished
+graph.nodes (3): node-assemble=assemble, node-preview=preview, node-export=export-profile
+
+[run-workflow assemble-with-custom-template]
+exit code: 0
+stderr lines: 0
+stdout length: 1744
+response.kind: builder-service-response
+response.actionName: execute-workflow
+events count: 3
+event types: ToolCall, ToolResult, RunFinished
+graph.nodes (3): node-assemble=assemble, node-preview=preview, node-export=export-profile

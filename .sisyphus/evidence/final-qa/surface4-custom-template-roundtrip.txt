@@ -1,0 +1,12 @@
+[import-profile via service.handle]
+response.kind: builder-service-response
+response.actionName: import-profile
+imported profile.id: profile.custom.toy-memory
+imported profile.profileName: Toy Memory Custom
+
+[export-profile via service.handle]
+response.kind: builder-service-response
+response.actionName: export-profile
+exported profile.id: profile.custom.toy-memory
+exported profile.profileName: Toy Memory Custom
+exported profile.sessionId: session.qa.custom.toy-memory

@@ -1,0 +1,11 @@
+
+ RUN  v3.2.6 /home/damaso/python/hackathons/playcraft
+
+ ✓ tests/mobile-shell.test.tsx (16 tests) 1495ms
+   ✓ Tauri mobile shell > renders the mobile shell and generates a live game  307ms
+
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+   Start at  17:03:06
+   Duration  2.80s (transform 446ms, setup 0ms, collect 667ms, tests 1.49s, environment 290ms, prepare 101ms)
+

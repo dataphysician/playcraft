@@ -1,0 +1,36 @@
+
+[theme=dinosaurs]
+  catalog.id: asset-catalog-manifest.bundled.dinosaurs
+  catalog.kind: asset-catalog-manifest
+  catalog.theme: dinosaurs
+  catalog.displayLabel: dinosaurs
+  catalog.aliases: ["dinosaur","dinosaurs"]
+  catalog.suggestedItems: ["dinosaur-1","dinosaur-2","dinosaur-3"]
+  catalog.source: catalog.json
+
+[theme=fruits]
+  catalog.id: asset-catalog-manifest.bundled.fruits
+  catalog.kind: asset-catalog-manifest
+  catalog.theme: fruits
+  catalog.displayLabel: fruit
+  catalog.aliases: ["fruit","fruits"]
+  catalog.suggestedItems: ["fruit-1","fruit-2","fruit-3"]
+  catalog.source: catalog.json
+
+[theme=toys]
+  catalog.id: asset-catalog-manifest.bundled.toys
+  catalog.kind: asset-catalog-manifest
+  catalog.theme: toys
+  catalog.displayLabel: toys
+  catalog.aliases: ["toy","toys"]
+  catalog.suggestedItems: ["toy-1","toy-2","toy-3"]
+  catalog.source: catalog.json
+
+[theme=dolphins]
+  catalog.id: asset-catalog-manifest.bundled.dolphins
+  catalog.kind: asset-catalog-manifest
+  catalog.theme: dolphins
+  catalog.displayLabel: ocean animals
+  catalog.aliases: ["dolphin","dolphins","ocean animals","ocean animal","sea animals","sea animal"]
+  catalog.suggestedItems: ["dolphin-1","dolphin-2","dolphin-3"]
+  catalog.source: catalog.json

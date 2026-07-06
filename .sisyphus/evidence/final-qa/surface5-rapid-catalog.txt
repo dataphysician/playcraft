@@ -1,0 +1,5 @@
+[rapid 10x catalog calls]
+statuses: 200, 200, 200, 200, 200, 200, 200, 200, 200, 200
+tool counts: 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+all 200: true
+all 7 tools: true
