@@ -2,10 +2,18 @@
   "active_plan": "/home/damaso/python/hackathons/playcraft/.sisyphus/plans/playcraft-wave.md",
   "started_at": "2026-07-05T16:53:31.904Z",
   "session_ids": [
-    "ses_0cce158b4ffesouGhYpbMFAKrA"
+    "ses_0cce158b4ffesouGhYpbMFAKrA",
+    "ses_0c903e713ffe5EJFqG6LjL5KBu",
+    "ses_0c903be3effedX6Cb7TRefZGTD",
+    "ses_0c90394caffeRP76U66xaBVlo3",
+    "ses_0c9036b17ffeQmAkeSpdY5PRat"
   ],
   "session_origins": {
-    "ses_0cce158b4ffesouGhYpbMFAKrA": "direct"
+    "ses_0cce158b4ffesouGhYpbMFAKrA": "direct",
+    "ses_0c903e713ffe5EJFqG6LjL5KBu": "appended",
+    "ses_0c903be3effedX6Cb7TRefZGTD": "appended",
+    "ses_0c90394caffeRP76U66xaBVlo3": "appended",
+    "ses_0c9036b17ffeQmAkeSpdY5PRat": "appended"
   },
   "plan_name": "playcraft-wave",
   "agent": "atlas",

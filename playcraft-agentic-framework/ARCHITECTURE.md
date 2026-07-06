@@ -4,18 +4,18 @@
 
 | Attribute | Value |
 |-----------|-------|
-| Version | 1.0.0-cleanroom |
-| Date | 2026-06-27 |
-| Status | Canonical architecture spec |
+| Status | Active architecture spec |
+| Date | 2026-07-06 |
+| Schema version | `playcraft.v1` |
 
 ## 1. Architecture Goals
 
 Playcraft architecture must make coding-agent output constrained, inspectable, and replayable.
 
-The framework should provide:
+The framework provides:
 
 - A small game DSL.
-- Strict schemas.
+- Strict schemas with the `playcraft.v1` discriminator.
 - Capability registries.
 - AG-UI protocol mapping.
 - Deterministic assembly and replay.
@@ -31,14 +31,14 @@ The core must not depend on a specific app framework, route system, database, au
 |-------|----------------|
 | AG-UI transport | Standard agent/frontend lifecycle, state, activity, tool, and custom events. |
 | Playcraft AG-UI adapter | Validates Playcraft custom envelopes and maps framework operations to AG-UI. |
-| Contracts | Zod schemas and TypeScript types for every public object. |
+| Contracts | Zod schemas and TypeScript types for every public object. The `@playcraft/contracts` barrel re-exports twelve domain modules: `base`, `condition`, `workflow`, `mcp`, `sse`, `asset`, `ag-ui`, `packs`, `game-template`, `builder-catalog`, `manifests`, `builder`. All schemas stamp `schemaVersion: "playcraft.v1"`. |
 | Core | Registries, assembly validation, rules, safety evaluation, replay, deterministic planner interfaces. |
-| Packs | Versioned mechanics, rules, components, themes, asset sources, domain profiles, and safety policies. |
-| Assets | Local asset-source asset requests, capability manifests, deterministic local asset source, provenance records. |
+| Packs | Versioned mechanics, rules, components, themes, asset sources, domain profiles, and safety policies. `packages/packs` exports `gameTemplateDefinitions` and `DEFAULT_GAME_TEMPLATE_ID`. |
+| Assets | Local asset-source asset requests, capability manifests, deterministic local asset source, provenance records. `localAssetEditCatalog` enumerates the discoverable local replacement folders. |
 | Renderer | Trusted React component registry and render requests. |
-| Builder tools | Local CLI/API actions that assemble templates, update asset levers, preview trusted interactions, inspect sessions, export/import profiles, and expose callable argument schemas, surfaced per-action required contracts, and template request aliases in the tool/template catalog. |
-| Service | Local app/API facade that accepts validated `BuilderServiceRequest` envelopes, emits `BuilderServiceResponse`, normalizes text and Moonshine Streaming CPU transcript records, emits `BuilderIntentResolution`, and calls builder tools. |
-| Studio/shells | Vite React studio and Tauri Mobile-facing shell that consume the shared service transport without moving contracts, registries, or game rules into the app layer. |
+| Builder tools | `packages/builder`'s `BuilderCommandHandler` executes `assemble-game`, `update-game`, `preview-action`, `importProfile`, `listTemplates`, `listTools`, and `getSessionSnapshot`. |
+| Service | `LocalPlaycraftService` in `packages/service` (in-process) plus `playcraft-service-http` (loopback HTTP) over the same `BuilderServiceRequest` / `BuilderServiceResponse` envelope. Split across `index.ts`, `local-catalog.ts`, `intent-resolution.ts`, `json-helpers.ts`. |
+| Studio / mobile shell | `apps/studio` (Vite React) and `apps/mobile-shell` (Tauri Mobile-facing webview) consume the service transport. They default to `createLocalServiceTransport` and switch to `createHttpServiceTransport` when `VITE_PLAYCRAFT_SERVICE_URL` is set. |
 
 ## 3. Protocol Boundaries
 
@@ -53,7 +53,11 @@ The core must not depend on a specific app framework, route system, database, au
 
 Builder input is local-first: text requests and Moonshine Streaming CPU-only transcript records both become `BuilderInputRequest` records before they reach the builder service. Transcript input is represented as a validated `MoonshineTranscriptRecord`; the framework stores transcript text, CPU/local-only engine metadata, optional timing segments, and provenance, but does not embed microphone capture, real-time call services, or external session state in the core.
 
-The current user-facing app path is `apps/studio` for the web studio and `apps/mobile-shell` for a Tauri Mobile-facing shell. Both route assembly through the `@playcraft/service` transport, which can later be replaced by a server-backed adapter as long as it preserves `BuilderServiceRequest` and `BuilderServiceResponse`. The Studio client accepts either typed text or a `MoonshineTranscriptRecord` from a local Moonshine transcript adapter; explicit transcript records are forwarded through the same service request instead of being reduced to an app-local flag. The service package includes an in-process transport, HTTP JSON client/server-body helpers, and a local `playcraft-service-http` server over the same envelope. The Vite shells use the in-process service by default and can switch to the HTTP service with `VITE_PLAYCRAFT_SERVICE_URL`, so local loopback and future server transport stay behind the same app contract. Agents can also use the `playcraft-service` CLI bin for catalog, assemble, update, preview, get-session, export-profile, import-profile, reset, raw `BuilderServiceRequest` commands, or same-process `BuilderServiceRequestBatchSchema` request batches over the validated service boundary. Profile export/import carries validated `GameAssemblyProfile` records plus session preview metadata and keeps imported profiles replay-checked before they become active; the Studio Developer tab exposes the same export/import loop through the shared client contract. The catalog exposes bundled templates, default and transcript input sources, callable builder tool argument schemas, service facade action summaries, request field summaries, exclusive and forbidden field groups, exact-envelope helpers, transport helpers, and available local asset-edit themes such as dinosaurs, toys, dolphins/ocean animals, and fruits; Studio request tips and the Developer tool catalog render from that same catalog. Template switching is driven by catalog `requestAliases`, not app-specific game-name branches.
+The current user-facing app path is `apps/studio` for the web studio and `apps/mobile-shell` for a Tauri Mobile-facing shell. Both route assembly through `@playcraft/service` over the in-process transport by default and switch to the local HTTP service (`playcraft-service-http`) when `VITE_PLAYCRAFT_SERVICE_URL` is set. The Studio client accepts either typed text or a `MoonshineTranscriptRecord` from a local Moonshine transcript adapter; explicit transcript records are forwarded through the same `BuilderServiceRequest` instead of being reduced to an app-local flag.
+
+The service package includes `createLocalServiceTransport`, `createHttpServiceTransport`, `handleServiceHttpRequestBody`, and `handleLocalServiceRequestBatch` over the same envelope. The local HTTP service is the loopback service that ships with the framework; a server retrieval adapter is a separate, deferred item tracked in `SERVER_RETRIEVAL_PLAN.md` (contract + threat model) and `NEXT_WAVE.md` §2.4 (graduation criteria).
+
+Agents can also use the `playcraft-service` CLI bin for `catalog`, `assemble`, `update`, `preview`, `get-session`, `export-profile`, `import-profile`, `reset`, `execute-workflow`, raw `BuilderServiceRequest` commands, or same-process `BuilderServiceRequestBatchSchema` request batches over the validated service boundary. Profile export/import carries validated `GameAssemblyProfile` records plus session preview metadata and keeps imported profiles replay-checked before they become active; the Studio Developer tab exposes the same export/import loop through the shared client contract. The catalog exposes bundled templates, default and transcript input sources, callable builder tool argument schemas, surfaced per-action required contracts, service facade action summaries, request field summaries, exclusive and forbidden field groups, exact-envelope helpers, transport helpers, and available local asset-edit themes such as dinosaurs, toys, dolphins/ocean animals, and fruits; Studio request tips and the Developer tool catalog render from that same catalog. Template switching is driven by catalog `requestAliases`, not app-specific game-name branches.
 
 Live app surfaces are template-owned: each `GameTemplateLiveSurface` declares the component capabilities, asset replacement sources, explicit token styles, and a default token style used when a profile introduces new local asset tokens.
 
@@ -93,7 +97,7 @@ Every AG-UI `Custom` event value must be a validated envelope:
 
 ```ts
 type PlaycraftAgUiEventEnvelope<TPayload> = {
-  schemaVersion: string;
+  schemaVersion: string; // "playcraft.v1"
   eventId: string;
   profileId?: string;
   runId?: string;
@@ -206,7 +210,7 @@ Required pack types:
 Every pack manifest must declare:
 
 - Pack ID and version.
-- Schema version.
+- Schema version (`"playcraft.v1"`).
 - Provided capabilities.
 - Required peer capabilities.
 - Compatible domain profiles.
@@ -216,7 +220,7 @@ Every pack manifest must declare:
 - Import-light status.
 - Network/credential/native requirements, if any.
 
-V1 packs must be local and import-light. Middleweight packs may add richer studio components, curated asset folders, and server catalog retrieval, but third-party runtime adapters are outside the framework path.
+V1 packs are local and import-light. Middleweight packs may add richer studio components and curated asset folders; third-party runtime adapters are outside the framework path.
 
 ## 11. Safety and Privacy
 
@@ -260,3 +264,31 @@ Do not carry these old app abstractions into the framework core:
 - Provider-specific core paths.
 - Generated React/runtime code as a play-surface strategy.
 - Hardcoded scoring, age difficulty, asset pools, or seed lists in core logic.
+
+## 14. Schema Versioning Posture
+
+The public contracts ship a single schema discriminator: `PLAYCRAFT_SCHEMA_VERSION = "playcraft.v1"`. The `BasePublicContractSchema` in `packages/contracts/src/base.ts` enforces that every public object stamped with `schemaVersion: "playcraft.v1"` passes the corresponding object schema. There is no v1.1 / v2 reservation in the contracts package.
+
+A future v2 discriminator would require:
+
+- A written policy for opening v2 (covered in `NEXT_WAVE.md` §2.5).
+- Migration tooling for saved `GameAssemblyProfile` records.
+- A deprecation window for v1.
+- A new entry in `PublicContractSchemas` accepting `playcraft.v2`.
+
+Until then, the only schema discriminator shipped in the framework is `playcraft.v1`.
+
+## 15. Deferred Architecture Items
+
+The following items are not part of the current architecture; they are tracked in `NEXT_WAVE.md` with rationale, dependencies, and graduation criteria:
+
+- Server retrieval implementation (`SERVER_RETRIEVAL_PLAN.md`).
+- Federated discovery.
+- Cross-host profile replay.
+- Remote asset library sync.
+- Marketplace and pack publishing.
+- Telemetry and observability.
+- Multi-tenant session isolation.
+- npm package publishing.
+- End-to-end test harness.
+- Schema versioning beyond `playcraft.v1`.

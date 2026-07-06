@@ -12,6 +12,7 @@
     "dev:studio": "pnpm --filter @playcraft/studio dev",
     "serve:service": "pnpm --filter @playcraft/service serve",
     "test": "vitest run",
+    "test:a11y": "vitest run tests/studio-accessibility.test.tsx",
     "typecheck:mobile": "pnpm --filter @playcraft/mobile-shell typecheck",
     "typecheck": "tsc -b",
     "typecheck:studio": "pnpm --filter @playcraft/studio typecheck"
@@ -22,9 +23,11 @@
     "@testing-library/react": "^16.2.0",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
+    "axe-core": "^4.10.0",
     "jsdom": "^26.0.0",
     "typescript": "^5.8.2",
-    "vitest": "^3.0.8"
+    "vitest": "^3.0.8",
+    "vitest-axe": "^0.1.0"
   },
   "dependencies": {
     "react": "^19.0.0",

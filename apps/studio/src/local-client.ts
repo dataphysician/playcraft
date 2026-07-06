@@ -2,6 +2,7 @@ import { parseAgUiEvent, type AgUiEvent } from "@playcraft/ag-ui";
 import {
   BuilderServiceRequestSchema,
   PLAYCRAFT_SCHEMA_VERSION,
+  type AgUiEventEnvelopeContract,
   type BuilderCatalog,
   type BuilderInputSource,
   type BuilderProfileExport,
@@ -485,7 +486,7 @@ function reconcileFrames(
   request: BuilderServiceRequest,
   frames: readonly SseFrame[]
 ): BuilderServiceResponse {
-  const events: JsonValue[] = [];
+  const events: AgUiEventEnvelopeContract[] = [];
   let lastResponse: BuilderServiceResponse | undefined;
 
   for (const frame of frames) {
@@ -522,7 +523,13 @@ function reconcileFrames(
         if (isBuilderServiceResponseShape(payload)) {
           lastResponse = payload;
         } else {
-          events.push(payload);
+          events.push({
+            type: "Custom",
+            eventId: `event.${frame.runId}.${frame.sequence}`,
+            runId: frame.runId,
+            timestamp: "",
+            value: payload
+          });
         }
         break;
       }

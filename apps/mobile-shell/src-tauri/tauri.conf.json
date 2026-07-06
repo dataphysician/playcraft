@@ -24,6 +24,29 @@
   },
   "bundle": {
     "active": false,
-    "targets": "all"
+    "targets": "all",
+    "category": "DeveloperTool",
+    "publisher": "Playcraft",
+    "shortDescription": "Playcraft local-first mobile shell",
+    "longDescription": "Playcraft is a local-first, AG-UI-native game-assembly framework for toddlers and coding agents.",
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "frameworks": [],
+      "entitlements": null,
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.sectigo.com",
+      "certificateThumbprint": null,
+      "allowDowngrades": false
+    },
+    "android": {
+      "minSdkVersion": 24
+    },
+    "iOS": {
+      "bundleVersion": "1"
+    }
   }
 }

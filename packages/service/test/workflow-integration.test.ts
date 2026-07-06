@@ -278,21 +278,33 @@ describe("workflow failure surfaces in the response", () => {
       if (eventTypeOf(event) !== "ToolResult") {
         return false;
       }
-      return readObjectField(event, "error") !== undefined;
+      const result = readNestedField(event, ["value", "result"]);
+      return readNestedField(result, ["error"]) !== undefined;
     });
     expect(errorToolResult).toBeDefined();
 
     const runFinished = events.find((event) => eventTypeOf(event) === "RunFinished");
     expect(runFinished).toBeDefined();
     if (runFinished) {
-      const success = readObjectField(runFinished, "success");
+      const success = readNestedField(runFinished, ["value", "success"]);
       expect(success).toBe(false);
-      const failed = readObjectField(runFinished, "failed");
+      const failed = readNestedField(runFinished, ["value", "failed"]);
       expect(Array.isArray(failed)).toBe(true);
       expect((failed as unknown[]).length).toBeGreaterThan(0);
     }
   });
 });
+
+function readNestedField(value: unknown, path: readonly string[]): unknown {
+  let current: unknown = value;
+  for (const key of path) {
+    if (typeof current !== "object" || current === null) {
+      return undefined;
+    }
+    current = (current as Record<string, unknown>)[key];
+  }
+  return current;
+}
 
 function eventTypeOf(event: unknown): string | undefined {
   if (typeof event !== "object" || event === null) {

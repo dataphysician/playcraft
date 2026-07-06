@@ -71,6 +71,19 @@ function readContractSources(): string {
   return main + "\n" + extras;
 }
 
+function readServiceSources(): string {
+  const main = readSource("packages/service/src/index.ts");
+  const dir = join(root, "packages/service/src");
+  let extras = "";
+  try {
+    extras = readdirSync(dir)
+      .filter((f) => /\.(ts|tsx)$/.test(f) && f !== "index.ts")
+      .map((f) => readFileSync(join(dir, f), "utf-8"))
+      .join("\n");
+  } catch {}
+  return main + "\n" + extras;
+}
+
 function repoSourceFiles(directory = root): string[] {
   const ignoredDirectories = new Set([".git", ".omx", "dist", "node_modules", "web-dist"]);
   const sourceExtensions = new Set([".json", ".md", ".ts", ".tsx", ".yaml", ".yml"]);
@@ -475,11 +488,11 @@ describe("import-light boundaries and source scans", () => {
     expect(readContractSources()).not.toContain("transcription: MoonshineTranscriptionConfigSchema.optional()");
     expect(readContractSources()).toContain("moonshineTranscript: MoonshineTranscriptRecordSchema.optional()");
     expect(readContractSources()).toContain("defaultSource: BuilderInputSourceSchema");
-    expect(readSource("packages/service/src/index.ts")).toContain("LOCAL_SERVICE_INPUT_POLICY");
-    expect(readSource("packages/service/src/index.ts")).toContain("function sourceForServiceRequest");
-    expect(readSource("packages/service/src/index.ts")).toContain("return request.source ?? inputPolicy.defaultSource;");
-    expect(readSource("packages/service/src/index.ts")).not.toContain('input.source ?? "text"');
-    expect(readSource("packages/service/src/index.ts")).not.toContain('request.source ?? "text"');
+    expect(readServiceSources()).toContain("LOCAL_SERVICE_INPUT_POLICY");
+    expect(readServiceSources()).toContain("function sourceForServiceRequest");
+    expect(readServiceSources()).toContain("return request.source ?? inputPolicy.defaultSource;");
+    expect(readServiceSources()).not.toContain('input.source ?? "text"');
+    expect(readServiceSources()).not.toContain('request.source ?? "text"');
     expect(readSource("packages/service/src/cli.ts")).not.toContain('args.source ?? "text"');
     expect(readSource("packages/service/src/cli.ts")).not.toContain("const text = transcriptText || args.text?.trim()");
     expect(readSource("packages/service/src/cli.ts")).not.toContain("request.text = text || undefined");
@@ -493,16 +506,16 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain("text: moonshineTranscript?.text ?? input.changeRequest");
     expect(readSource("tests/studio-ui.test.ts")).toContain("rejects contradictory text source and Moonshine transcript records before transport");
     expect(readContractSources()).toContain("Moonshine transcript records require moonshine-transcript source");
-    expect(readSource("packages/service/src/index.ts")).toContain("moonshineConfig: input.source === \"moonshine-transcript\"");
-    expect(readSource("packages/service/src/index.ts")).toContain("MOONSHINE_STREAMING_CPU_CONFIG");
-    expect(readSource("packages/service/src/index.ts")).not.toContain("MOONSHINE_STREAMING_CPU_TRANSCRIPTION");
-    expect(readSource("packages/service/src/index.ts")).not.toContain("transcription: input.source === \"moonshine-transcript\"");
+    expect(readServiceSources()).toContain("moonshineConfig: input.source === \"moonshine-transcript\"");
+    expect(readServiceSources()).toContain("MOONSHINE_STREAMING_CPU_CONFIG");
+    expect(readServiceSources()).not.toContain("MOONSHINE_STREAMING_CPU_TRANSCRIPTION");
+    expect(readServiceSources()).not.toContain("transcription: input.source === \"moonshine-transcript\"");
     expect(violations).toEqual([]);
   });
 
   it("keeps Studio input source controls catalog-owned", () => {
     const contractSource = readContractSources();
-    const serviceSource = readSource("packages/service/src/index.ts");
+    const serviceSource = readServiceSources();
     const studioSource = readStudioSources();
 
     expect(contractSource).toContain("BuilderInputSourceOptionSchema");
@@ -992,7 +1005,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps service event serialization schema-first and non-coercive", () => {
-    const source = readSource("packages/service/src/index.ts");
+    const source = readServiceSources();
 
     expect(source).toContain("function toJsonValue");
     expect(source).toContain("JsonValueSchema.parse(normalizeJsonValue(value))");
@@ -1001,7 +1014,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps service input text normalization free of empty-string fallback", () => {
-    const source = readSource("packages/service/src/index.ts");
+    const source = readServiceSources();
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
     const studioTestSource = readSource("tests/studio-ui.test.ts");
 
@@ -1017,7 +1030,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps service execution results from preserving stale active template ids", () => {
-    const source = readSource("packages/service/src/index.ts");
+    const source = readServiceSources();
 
     expect(source).toContain("function requireResultTemplateId(result: BuilderExecutionResult[\"result\"]): BuilderTemplateId");
     expect(source).toContain("result preview requires activeTemplateId");
@@ -1050,7 +1063,7 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps service profile imports free of payload precedence fallbacks", () => {
     const contractSource = readContractSources();
-    const serviceSource = readSource("packages/service/src/index.ts");
+    const serviceSource = readServiceSources();
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
 
     expect(contractSource).toContain("profileExport imports carry asset edits in the export");
@@ -1194,7 +1207,7 @@ describe("import-light boundaries and source scans", () => {
     const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
     const frameworkReadme = readSource("playcraft-agentic-framework/README.md");
     const prd = readSource("playcraft-agentic-framework/PRD.md");
-    const serviceSource = readSource("packages/service/src/index.ts");
+    const serviceSource = readServiceSources();
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
     const studioSource = readStudioSources();
 
@@ -1289,7 +1302,7 @@ describe("import-light boundaries and source scans", () => {
     const contractSource = readContractSources();
     const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
-    const serviceSource = readSource("packages/service/src/index.ts");
+    const serviceSource = readServiceSources();
 
     expect(contractSource).toContain("BuilderCatalogRequestTipsSchema");
     expect(contractSource).toContain("exampleRequest");
@@ -1383,7 +1396,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps service freeform asset folder names literal", () => {
-    const source = readSource("packages/service/src/index.ts");
+    const source = readServiceSources();
     const contractSource = readContractSources();
     const assetCatalogSource = readSource("packages/assets/src/index.ts");
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
@@ -1432,7 +1445,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps active asset edit inheritance scoped to the active template", () => {
-    const source = readSource("packages/service/src/index.ts");
+    const source = readServiceSources();
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
 
     expect(source).toContain("allowActiveAssetEdit: templateDecision.templateId === input.activeTemplateId");
@@ -1449,7 +1462,7 @@ describe("import-light boundaries and source scans", () => {
   it("keeps the default builder template pack-owned", () => {
     const packSource = readPacksSources();
     const contractSource = readContractSources();
-    const serviceSource = readSource("packages/service/src/index.ts");
+    const serviceSource = readServiceSources();
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
 
     expect(packSource).toContain("DEFAULT_GAME_TEMPLATE_ID");

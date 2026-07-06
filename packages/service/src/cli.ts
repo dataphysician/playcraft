@@ -331,7 +331,7 @@ function buildExecuteWorkflowRequestFromFile(graphPath: string): BuilderServiceR
     version: "1.0.0",
     kind: "builder-service-request",
     actionName: "execute-workflow",
-    workflow
+    workflow: parsedJson as Parameters<typeof WorkflowGraphSchema.parse>[0]
   });
 }
 

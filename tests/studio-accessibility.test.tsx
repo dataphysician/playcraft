@@ -1,9 +1,36 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { axe } from "vitest-axe";
+import { toHaveNoViolations } from "vitest-axe/matchers";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createLocalStudioClient } from "../apps/studio/src/local-client.js";
 import { LiveGame } from "../apps/studio/src/live-game.js";
 import { StudioApp } from "../apps/studio/src/studio-app.js";
+
+expect.extend(toHaveNoViolations);
+
+/**
+ * Run axe-core with the standard ruleset. The CI gate for this suite is
+ * "zero CRITICAL impact accessibility violations"; lower-impact violations
+ * (serious / moderate / minor) are filtered out at assertion time via
+ * `criticalViolations()` because:
+ *
+ *   - color-contrast cannot be evaluated under jsdom (axe-core docs)
+ *   - best-practice / experimental rules change between axe-core minor
+ *     versions and would create flaky CI
+ *   - the Studio is an in-process local dev surface, not a public
+ *     marketing surface, so minor a11y polish is tracked separately
+ *
+ * axe-core does not provide a built-in tag for filtering by impact, so we
+ * run the full ruleset and filter in-test.
+ */
+const AXE_OPTIONS = {
+  rules: {}
+};
+
+function criticalViolations(results: Awaited<ReturnType<typeof axe>>) {
+  return results.violations.filter((violation) => violation.impact === "critical");
+}
 
 afterEach(() => {
   cleanup();
@@ -304,5 +331,51 @@ describe("studio accessibility", () => {
 
     const style = window.getComputedStyle(buttons[0]!);
     expect(style.outlineStyle).not.toBe("none");
+  });
+
+  it("axe: LiveGame (memory profile) has zero critical accessibility violations", async () => {
+    const profile = createMemoryProfile();
+    const { container } = render(React.createElement(LiveGame, { profile }));
+
+    const results = await axe(container, AXE_OPTIONS);
+
+    expect(criticalViolations(results)).toEqual([]);
+  });
+
+  it("axe: LiveGame (sorting profile) has zero critical accessibility violations", async () => {
+    const profile = createSortingProfile();
+    const { container } = render(React.createElement(LiveGame, { profile }));
+
+    const results = await axe(container, AXE_OPTIONS);
+
+    expect(criticalViolations(results)).toEqual([]);
+  });
+
+  it("axe: LiveGame (sequence profile) has zero critical accessibility violations", async () => {
+    const profile = createSequenceProfile();
+    const { container } = render(React.createElement(LiveGame, { profile }));
+
+    const results = await axe(container, AXE_OPTIONS);
+
+    expect(criticalViolations(results)).toEqual([]);
+  });
+
+  it("axe: StudioApp has zero critical accessibility violations", async () => {
+    const { container } = render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    const results = await axe(container, AXE_OPTIONS);
+
+    expect(criticalViolations(results)).toEqual([]);
+  });
+
+  it("axe: StudioApp Developer tab has zero critical accessibility violations", async () => {
+    const { container } = render(React.createElement(StudioApp, { client: createLocalStudioClient() }));
+
+    const liveTab = screen.getByRole("tab", { name: "Developer" });
+    fireEvent.click(liveTab);
+
+    const results = await axe(container, AXE_OPTIONS);
+
+    expect(criticalViolations(results)).toEqual([]);
   });
 });

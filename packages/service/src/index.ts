@@ -1,284 +1,97 @@
 import {
   BuilderCatalogSchema,
-  BuilderInputRequestSchema,
-  BuilderIntentResolutionSchema,
   BuilderProfileExportSchema,
   BuilderServiceErrorSchema,
   BuilderServiceExecutionSchema,
-  BuilderServiceRequestBatchSchema,
   BuilderServiceRequestSchema,
+  BuilderServiceRequestBatchSchema,
   BuilderServiceResponseSchema,
-  BuilderSessionOwnershipSchema,
-  BuilderSessionSnapshotSchema,
-  BuilderPreviewStateSchema,
   JsonValueSchema,
-  MoonshineTranscriptRecordSchema,
   PLAYCRAFT_LOCAL_TIMESTAMP,
   PLAYCRAFT_SCHEMA_VERSION,
   WorkflowGraphSchema,
   type BuilderAssetEdit,
-  type BuilderAssetEditCatalogEntry,
   type BuilderCatalog,
-  type BuilderServiceActionName,
-  type BuilderServiceCatalog,
   type BuilderCommand,
-  type BuilderCommandResult,
-  type BuilderInputRequest,
   type BuilderInputSource,
-  type BuilderIntentResolution,
   type BuilderPreviewInteraction,
-  type BuilderPreviewState,
   type BuilderProfileExport,
+  type BuilderServiceActionName,
   type BuilderServiceError,
-  type BuilderServiceExecution,
   type BuilderServiceRequest,
   type BuilderServiceRequestBatch,
   type BuilderServiceResponse,
-  type BuilderSessionOwnership,
   type BuilderSessionSnapshot,
   type BuilderTemplateId,
   type GameAssemblyProfile,
-  type GameTemplateDefinition,
   type JsonValue,
   type MoonshineTranscriptRecord,
-  type MoonshineTranscriptSegment,
-  type SseFrame
+  type SseFrame,
+  type AgUiEventEnvelopeContract
 } from "@playcraft/contracts";
 import {
   localAssetEditCatalog,
   localAssetEditFreeformItemSuffixes,
   localAssetEditGenericThemeTokens,
-  localAssetEditIntentPatterns,
-  localAssetEditMaxItems,
-  localAssetEditMaxThemeLength,
-  type LocalAssetEditIntentPattern
+  localAssetEditMaxItems
 } from "@playcraft/assets";
 import {
   createBuilderCommandHandler,
   type BuilderCommandHandler,
   type BuilderExecutionResult
 } from "@playcraft/builder";
-import { DEFAULT_GAME_TEMPLATE_ID, gameTemplateDefinitions } from "@playcraft/packs";
+import { DEFAULT_GAME_TEMPLATE_ID } from "@playcraft/packs";
 import { agUiEventToSseFrame, type AgUiEventLike } from "./sse.js";
 import { executeWorkflowSync as executeWorkflowGraphSync } from "./workflow/executor.js";
+import {
+  LOCAL_SERVICE_CATALOG,
+  LOCAL_SERVICE_DEFAULT_OWNER_ID,
+  LOCAL_SERVICE_INPUT_POLICY,
+  LOCAL_SERVICE_SESSION_POLICY,
+  createSessionOwnership,
+  mergeSessionState,
+  requestTipsForCatalog,
+  type LocalSessionState
+} from "./local-catalog.js";
+import {
+  resolveBuilderInputCommand,
+  sourceForServiceRequest,
+  textForServiceRequest,
+  type ResolvedBuilderInputCommand
+} from "./intent-resolution.js";
+import {
+  buildWorkflowCommandResult,
+  defaultFetch,
+  requireResultTemplateId,
+  serializeExecution,
+  serviceRequestSessionId,
+  serviceResponse,
+  streamRunId,
+  type BuilderServiceHttpFetch,
+  type BuilderServiceHttpFetchResponse
+} from "./json-helpers.js";
 export { executeWorkflow, executeWorkflowSse, executeWorkflowSync } from "./workflow/executor.js";
 export { WorkflowGraphSchema, WorkflowNodeSchema, WorkflowEdgeSchema, WorkflowConditionSchema, WORKFLOW_NODE_CAP } from "./workflow/schema.js";
 
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
 export { localAssetEditCatalog } from "@playcraft/assets";
 
-export const LOCAL_SERVICE_SESSION_POLICY = {
-  defaultAssembleSessionId: "service.session",
-  sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
-} as const;
+export {
+  LOCAL_SERVICE_CATALOG,
+  LOCAL_SERVICE_DEFAULT_OWNER_ID,
+  LOCAL_SERVICE_INPUT_POLICY,
+  LOCAL_SERVICE_SESSION_POLICY
+} from "./local-catalog.js";
 
-export const LOCAL_SERVICE_SESSION_TTL_MS = 60 * 60 * 1000;
+export {
+  LOCAL_SERVICE_REQUEST_TIP_EXAMPLES,
+  LOCAL_SERVICE_REQUEST_TIP_FEATURED_TEMPLATE_IDS,
+  LOCAL_SERVICE_SESSION_TTL_MS
+} from "./local-catalog.js";
 
-export const LOCAL_SERVICE_DEFAULT_OWNER_ID = "service.local.owner";
+export { MOONSHINE_STREAMING_CPU_CONFIG } from "./intent-resolution.js";
 
-const LOCAL_SERVICE_SESSION_CAPABILITIES = [
-  "assemble",
-  "update",
-  "preview",
-  "get-session",
-  "export-profile",
-  "import-profile"
-] as const;
-
-export const LOCAL_SERVICE_INPUT_POLICY = {
-  defaultSource: "text",
-  transcriptSource: "moonshine-transcript",
-  noInputLabel: "none",
-  sourceOptions: [
-    {
-      source: "text",
-      displayLabel: "Text",
-      generatePlaceholder: "Memory game with dinosaurs",
-      updatePlaceholder: "Change the game or replace assets..."
-    },
-    {
-      source: "moonshine-transcript",
-      displayLabel: "Transcript",
-      generatePlaceholder: "Moonshine transcript: memory game with dinosaurs",
-      updatePlaceholder: "Moonshine transcript: change the game or replace assets"
-    }
-  ]
-} as const;
-
-export const LOCAL_SERVICE_REQUEST_TIP_EXAMPLES = [
-  {
-    templateId: "template.memory-match",
-    request: "Memory game with dinosaurs"
-  },
-  {
-    templateId: "template.sorting",
-    request: "Sorting game with toys"
-  },
-  {
-    templateId: "template.sequence-repeat",
-    request: "Sequence repeat with ocean animals"
-  }
-] as const;
-
-export const LOCAL_SERVICE_REQUEST_TIP_FEATURED_TEMPLATE_IDS = [
-  "template.memory-match",
-  "template.sorting",
-  "template.sequence-repeat"
-] as const satisfies readonly BuilderTemplateId[];
-
-export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
-  actions: [
-    {
-      actionName: "catalog",
-      displayName: "Catalog",
-      requiresSession: false,
-      acceptsInput: false,
-      request: {
-        acceptedFields: [],
-        requiredFields: [],
-        requiredAnyOf: [],
-        exclusiveAnyOf: [],
-        forbiddenTogether: [],
-        summary: "No payload fields accepted."
-      },
-      responsePayload: "catalog"
-    },
-    {
-      actionName: "assemble",
-      displayName: "Assemble",
-      requiresSession: false,
-      acceptsInput: true,
-      request: {
-        acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
-        requiredFields: [],
-        requiredAnyOf: [["text", "moonshineTranscript"]],
-        exclusiveAnyOf: [["text", "moonshineTranscript"]],
-        forbiddenTogether: [],
-        summary: "Requires text or a Moonshine transcript record; sessionId, templateId, source, and assetEdit are optional."
-      },
-      responsePayload: "execution"
-    },
-    {
-      actionName: "update",
-      displayName: "Update",
-      requiresSession: true,
-      acceptsInput: true,
-      request: {
-        acceptedFields: ["sessionId", "text", "source", "moonshineTranscript", "templateId", "assetEdit"],
-        requiredFields: ["sessionId"],
-        requiredAnyOf: [["text", "moonshineTranscript"]],
-        exclusiveAnyOf: [["text", "moonshineTranscript"]],
-        forbiddenTogether: [],
-        summary: "Requires sessionId plus text or a Moonshine transcript record; templateId, source, and assetEdit are optional."
-      },
-      responsePayload: "execution"
-    },
-    {
-      actionName: "preview",
-      displayName: "Preview",
-      requiresSession: true,
-      acceptsInput: false,
-      request: {
-        acceptedFields: ["sessionId", "interaction"],
-        requiredFields: ["sessionId", "interaction"],
-        requiredAnyOf: [],
-        exclusiveAnyOf: [],
-        forbiddenTogether: [],
-        summary: "Requires sessionId and an explicit preview interaction payload; accepts no input, template, asset, or profile payloads."
-      },
-      responsePayload: "execution"
-    },
-    {
-      actionName: "get-session",
-      displayName: "Get Session",
-      requiresSession: true,
-      acceptsInput: false,
-      request: {
-        acceptedFields: ["sessionId"],
-        requiredFields: ["sessionId"],
-        requiredAnyOf: [],
-        exclusiveAnyOf: [],
-        forbiddenTogether: [],
-        summary: "Requires sessionId and returns the current session snapshot."
-      },
-      responsePayload: "session"
-    },
-    {
-      actionName: "export-profile",
-      displayName: "Export Profile",
-      requiresSession: true,
-      acceptsInput: false,
-      request: {
-        acceptedFields: ["sessionId"],
-        requiredFields: ["sessionId"],
-        requiredAnyOf: [],
-        exclusiveAnyOf: [],
-        forbiddenTogether: [],
-        summary: "Requires sessionId and returns a portable profile export."
-      },
-      responsePayload: "profileExport"
-    },
-    {
-      actionName: "import-profile",
-      displayName: "Import Profile",
-      requiresSession: true,
-      acceptsInput: false,
-      request: {
-        acceptedFields: ["sessionId", "profile", "profileExport", "assetEdit"],
-        requiredFields: ["sessionId"],
-        requiredAnyOf: [["profile", "profileExport"]],
-        exclusiveAnyOf: [["profile", "profileExport"]],
-        forbiddenTogether: [["profileExport", "assetEdit"]],
-        summary: "Requires sessionId plus exactly one profile or profileExport; top-level assetEdit is only accepted with profile imports."
-      },
-      responsePayload: "execution"
-    },
-    {
-      actionName: "reset",
-      displayName: "Reset",
-      requiresSession: false,
-      acceptsInput: false,
-      request: {
-        acceptedFields: [],
-        requiredFields: [],
-        requiredAnyOf: [],
-        exclusiveAnyOf: [],
-        forbiddenTogether: [],
-        summary: "No payload fields accepted."
-      },
-      responsePayload: "reset"
-    },
-    {
-      actionName: "execute-workflow",
-      displayName: "Execute Workflow",
-      requiresSession: false,
-      acceptsInput: false,
-      request: {
-        acceptedFields: ["sessionId", "workflow"],
-        requiredFields: ["workflow"],
-        requiredAnyOf: [],
-        exclusiveAnyOf: [],
-        forbiddenTogether: [],
-        summary: "Requires a deterministic workflow graph; runs up to 20 nodes in topological order, executes each via the same service envelope, and emits AG-UI events per node."
-      },
-      responsePayload: "execution"
-    }
-  ],
-  exactEnvelope: {
-    singleCommand: "request",
-    batchCommand: "request-batch",
-    requestSchema: "BuilderServiceRequestSchema",
-    batchSchema: "BuilderServiceRequestBatchSchema",
-    directHandler: "handleLocalServiceRequest",
-    directBatchHandler: "handleLocalServiceRequestBatch",
-    requiredContracts: ["BuilderServiceRequestSchema", "BuilderServiceRequestBatchSchema", "BuilderServiceResponseSchema"]
-  },
-  transports: {
-    local: "createLocalServiceTransport",
-    httpClient: "createHttpServiceTransport",
-    httpBody: "handleServiceHttpRequestBody"
-  }
-};
+export { resolveBuilderInputCommand } from "./intent-resolution.js";
 
 export interface LocalBuilderInput {
   assetEdit?: BuilderAssetEdit;
@@ -289,12 +102,7 @@ export interface LocalBuilderInput {
   text?: string;
 }
 
-export interface ResolvedBuilderInputCommand {
-  assetEdit?: BuilderAssetEdit;
-  input: BuilderInputRequest;
-  resolution: BuilderIntentResolution;
-  templateId: BuilderTemplateId;
-}
+export type { ResolvedBuilderInputCommand } from "./intent-resolution.js";
 
 export interface BuilderServiceTransport {
   send(request: BuilderServiceRequest): BuilderServiceResponse | Promise<BuilderServiceResponse>;
@@ -306,20 +114,7 @@ export interface BuilderServiceHttpResponse {
   status: number;
 }
 
-export interface BuilderServiceHttpFetchResponse {
-  ok: boolean;
-  status: number;
-  text(): Promise<string>;
-}
-
-export type BuilderServiceHttpFetch = (
-  url: string,
-  init: {
-    body: string;
-    headers: Record<string, string>;
-    method: "POST";
-  }
-) => Promise<BuilderServiceHttpFetchResponse>;
+export type { BuilderServiceHttpFetch, BuilderServiceHttpFetchResponse };
 
 export class LocalPlaycraftService {
   private readonly handler: BuilderCommandHandler;
@@ -472,46 +267,25 @@ export class LocalPlaycraftService {
 
     const sessionId = request.sessionId ?? this.catalog().sessions.defaultAssembleSessionId;
     const graph = WorkflowGraphSchema.parse(request.workflow);
-    const events: JsonValue[] = [];
+    const events: AgUiEventLike[] = [];
+    let sequence = 0;
     let commandResult: BuilderExecutionResult["result"] | undefined;
 
     for (const workflowEvent of executeWorkflowGraphSync(graph, { send: (request) => this.handle(request) }, sessionId)) {
       if (workflowEvent.kind === "node-finished") {
-        events.push(toJsonValue({
-          type: "ToolResult",
-          toolName: workflowEvent.toolName,
-          nodeId: workflowEvent.nodeId,
-          runId: workflowEvent.runId,
-          result: workflowEvent.result
-        }));
+        events.push(toolResultEnvelope(workflowEvent.runId, sequence, workflowEvent.toolName, workflowEvent.result));
+        sequence += 1;
       } else if (workflowEvent.kind === "node-failed") {
-        events.push(toJsonValue({
-          type: "ToolResult",
-          toolName: workflowEvent.toolName,
-          nodeId: workflowEvent.nodeId,
-          runId: workflowEvent.runId,
-          error: workflowEvent.error
-        }));
+        events.push(toolResultEnvelope(workflowEvent.runId, sequence, workflowEvent.toolName, { error: workflowEvent.error }));
+        sequence += 1;
       } else if (workflowEvent.kind === "node-skipped") {
-        events.push(toJsonValue({
-          type: "ToolResult",
-          toolName: workflowEvent.toolName,
-          nodeId: workflowEvent.nodeId,
-          runId: workflowEvent.runId,
-          skipped: true,
-          reason: workflowEvent.reason
-        }));
+        events.push(toolResultEnvelope(workflowEvent.runId, sequence, workflowEvent.toolName, { skipped: true, reason: workflowEvent.reason }));
+        sequence += 1;
       } else if (workflowEvent.kind === "node-started") {
-        events.push(toJsonValue({
-          type: "ToolCall",
-          toolName: workflowEvent.toolName,
-          nodeId: workflowEvent.nodeId,
-          runId: workflowEvent.runId,
-          args: workflowEvent.args
-        }));
+        events.push(toolCallEnvelope(workflowEvent.runId, sequence, workflowEvent.toolName, workflowEvent.args));
+        sequence += 1;
       } else if (workflowEvent.kind === "workflow-finished") {
-        events.push(toJsonValue({
-          type: "RunFinished",
+        events.push(runFinishedEnvelope(workflowEvent.runId, sequence, {
           runId: workflowEvent.runId,
           graphId: workflowEvent.graphId,
           executed: workflowEvent.executed,
@@ -519,6 +293,7 @@ export class LocalPlaycraftService {
           failed: workflowEvent.failed,
           success: workflowEvent.success
         }));
+        sequence += 1;
         commandResult = buildWorkflowCommandResult(workflowEvent.runId, sessionId, workflowEvent.executed.length);
       }
     }
@@ -655,8 +430,9 @@ export class LocalPlaycraftService {
 
   /**
    * Returns a `session-expired` error when the tracked ownership for `sessionId`
-   * is past its `expiresAt` timestamp. Sessions without ownership are treated as
-   * non-expired (legacy/test fixture compatibility). The MCP HTTP endpoint uses
+   * is past its `expiresAt` timestamp. Sessions without an ownership record are
+   * intentionally treated as non-expired so newly-created sessions remain
+   * writable until their first ownership write. The MCP HTTP endpoint uses
    * this for ownership enforcement on `POST /playcraft/tools/call`.
    */
   checkSessionExpiry(sessionId: string): BuilderServiceError | undefined {
@@ -777,10 +553,8 @@ export class LocalPlaycraftService {
       const response = this.handle(validated);
 
       if (response.execution) {
-        let sequence = 0;
-        for (const event of response.execution.events) {
-          yield agUiEventToSseFrame(event as unknown as AgUiEventLike, sequence);
-          sequence += 1;
+        for (const [sequence, event] of response.execution.events.entries()) {
+          yield agUiEventToSseFrame(agUiEventFromEnvelope(event), sequence);
         }
         return;
       }
@@ -791,7 +565,7 @@ export class LocalPlaycraftService {
         kind: "sse-custom",
         runId,
         sequence: 1,
-        payload: response as unknown as JsonValue
+        payload: JsonValueSchema.parse(response)
       };
       yield { kind: "sse-run-finished", runId, sequence: 2, payload: { runId } };
     } catch (error) {
@@ -804,66 +578,48 @@ export class LocalPlaycraftService {
   }
 }
 
-interface LocalSessionState {
-  activeAssetEdit?: BuilderAssetEdit;
-  activeTemplateId: BuilderTemplateId;
-  ownership?: BuilderSessionOwnership;
+function envelopeEventId(runId: string, kind: string, sequence: number): string {
+  return `${runId}.${kind}.${String(sequence).padStart(4, "0")}`;
 }
 
-function streamRunId(): string {
-  return `stream.${Date.now().toString(36)}.${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function createSessionOwnership(_sessionId: string, nowMs: number): BuilderSessionOwnership {
-  const createdAt = new Date(nowMs).toISOString();
-  const expiresAt = new Date(nowMs + LOCAL_SERVICE_SESSION_TTL_MS).toISOString();
-  return BuilderSessionOwnershipSchema.parse({
-    ownerId: LOCAL_SERVICE_DEFAULT_OWNER_ID,
-    createdAt,
-    expiresAt,
-    capabilities: [...LOCAL_SERVICE_SESSION_CAPABILITIES]
-  });
-}
-
-function requestTipsForCatalog(
-  templates: GameTemplateDefinition[],
-  assetThemes: BuilderAssetEditCatalogEntry[]
-): BuilderCatalog["requestTips"] {
-  const availableGames = templates.map((template) => template.displayLabel);
-  const templateById = new Map(templates.map((template) => [template.id, template]));
-  const featuredGames = LOCAL_SERVICE_REQUEST_TIP_FEATURED_TEMPLATE_IDS.map((templateId) =>
-    requiredTemplateForRequestTip(templateById, templateId).displayLabel
-  );
-  const hiddenGameCount = Math.max(0, availableGames.length - featuredGames.length);
-  const assetEdits = assetThemes.map((entry) => `with ${entry.displayLabel}`);
-  const examples = LOCAL_SERVICE_REQUEST_TIP_EXAMPLES.map((entry) => {
-    requiredTemplateForRequestTip(templateById, entry.templateId);
-    return entry.request;
-  });
-
+function agUiEventFromEnvelope(envelope: AgUiEventEnvelopeContract): AgUiEventLike {
   return {
-    availableGames,
-    featuredGames,
-    assetEdits,
-    examples,
-    summaryLines: [
-      `Available games: ${featuredGames.join(", ")}${hiddenGameCount > 0 ? `, plus ${hiddenGameCount} more` : ""}.`,
-      `Asset edits: ${assetEdits.join(", ")}.`,
-      `Try: ${examples.join("; ")}.`
-    ]
+    type: envelope.type,
+    eventId: envelope.eventId,
+    runId: envelope.runId,
+    timestamp: envelope.timestamp,
+    value: envelope.value
   };
 }
 
-function requiredTemplateForRequestTip(
-  templateById: Map<string, GameTemplateDefinition>,
-  templateId: BuilderTemplateId
-): GameTemplateDefinition {
-  const template = templateById.get(templateId);
-  if (!template) {
-    throw new Error(`request tip references unknown template ${templateId}`);
-  }
+function toolCallEnvelope(runId: string, sequence: number, toolName: string, args: JsonValue): AgUiEventLike {
+  return {
+    type: "ToolCall",
+    eventId: envelopeEventId(runId, "call", sequence),
+    runId,
+    timestamp: PLAYCRAFT_LOCAL_TIMESTAMP,
+    value: { toolName, args }
+  };
+}
 
-  return template;
+function toolResultEnvelope(runId: string, sequence: number, toolName: string, result: JsonValue): AgUiEventLike {
+  return {
+    type: "ToolResult",
+    eventId: envelopeEventId(runId, "result", sequence),
+    runId,
+    timestamp: PLAYCRAFT_LOCAL_TIMESTAMP,
+    value: { toolName, result }
+  };
+}
+
+function runFinishedEnvelope(runId: string, sequence: number, value: Record<string, JsonValue>): AgUiEventLike {
+  return {
+    type: "RunFinished",
+    eventId: envelopeEventId(runId, "finished", sequence),
+    runId,
+    timestamp: PLAYCRAFT_LOCAL_TIMESTAMP,
+    value
+  };
 }
 
 export function createLocalPlaycraftService(handler?: BuilderCommandHandler): LocalPlaycraftService {
@@ -952,542 +708,4 @@ export function handleLocalServiceRequestBatch(
   return service.handleBatch(requests);
 }
 
-export function resolveBuilderInputCommand(input: {
-  activeAssetEdit?: BuilderAssetEdit;
-  activeTemplateId?: BuilderTemplateId;
-  assetEdit?: BuilderAssetEdit;
-  sequence: number;
-  source: BuilderInputSource;
-  moonshineTranscript?: MoonshineTranscriptRecord;
-  templateId?: BuilderTemplateId;
-  text?: string;
-}): ResolvedBuilderInputCommand {
-  const commandText = textForBuilderInputSource(input);
-  const request = createBuilderInputRequest({
-    sequence: input.sequence,
-    source: input.source,
-    moonshineTranscript: input.moonshineTranscript,
-    text: commandText
-  });
-  const templateMatch = templateMatchForText(commandText);
-  const templateDecision = templateDecisionFor({
-    activeTemplateId: input.activeTemplateId,
-    matchedCapabilityTags: templateMatch.matchedCapabilityTags,
-    matchedTemplateIds: templateMatch.matchedTemplateIds,
-    templateId: input.templateId
-  });
-  const textAssetEdit = assetEditForText(commandText);
-  const assetDecision = assetDecisionFor({
-    activeAssetEdit: input.activeAssetEdit,
-    allowActiveAssetEdit: templateDecision.templateId === input.activeTemplateId,
-    explicitAssetEdit: input.assetEdit,
-    textAssetEdit
-  });
-  const resolution = BuilderIntentResolutionSchema.parse({
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    id: `builder-intent.local.${input.sequence}`,
-    version: "1.0.0",
-    kind: "builder-intent-resolution",
-    inputId: request.inputId,
-    activeTemplateId: input.activeTemplateId,
-    selectedTemplateId: templateDecision.templateId,
-    templateDecision: {
-      source: templateDecision.source,
-      matchedTemplateIds: templateMatch.matchedTemplateIds,
-      matchedCapabilityTags: templateMatch.matchedCapabilityTags,
-      matchedRequestAliases: templateMatch.matchedRequestAliases
-    },
-    assetEdit: assetDecision.assetEdit,
-    assetDecision: {
-      source: assetDecision.source,
-      matchedText: assetDecision.matchedText
-    }
-  });
-  const requestWithResolution = BuilderInputRequestSchema.parse({
-    ...request,
-    metadata: {
-      ...request.metadata,
-      intentResolution: toJsonValue(resolution)
-    }
-  });
-
-  return {
-    assetEdit: resolution.assetEdit,
-    input: requestWithResolution,
-    resolution,
-    templateId: resolution.selectedTemplateId
-  };
-}
-
-export function createBuilderInputRequest(input: {
-  sequence: number;
-  source: BuilderInputSource;
-  moonshineTranscript?: MoonshineTranscriptRecord;
-  text?: string;
-}): BuilderInputRequest {
-  const text = textForBuilderInputSource(input);
-  const moonshineTranscript = input.source === "moonshine-transcript" ? input.moonshineTranscript : undefined;
-
-  return BuilderInputRequestSchema.parse({
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    id: `builder-input.local.${input.sequence}`,
-    version: "1.0.0",
-    kind: "builder-input",
-    inputId: `builder-input.local.${input.sequence}`,
-    source: input.source,
-    text,
-    moonshineConfig: input.source === "moonshine-transcript" ? MOONSHINE_STREAMING_CPU_CONFIG : undefined,
-    moonshineTranscript,
-    receivedAt: PLAYCRAFT_LOCAL_TIMESTAMP,
-    metadata: {
-      origin: "playcraft.local-service",
-      ...(moonshineTranscript ? { moonshineTranscriptId: moonshineTranscript.transcriptId } : {})
-    }
-  });
-}
-
-function textForBuilderInputSource(input: {
-  source: BuilderInputSource;
-  moonshineTranscript?: MoonshineTranscriptRecord;
-  text?: string;
-}): string {
-  if (input.source === "moonshine-transcript") {
-    if (!input.moonshineTranscript) {
-      throw new Error("moonshine-transcript input requires a Moonshine transcript record");
-    }
-
-    return input.moonshineTranscript.text;
-  }
-
-  if (input.moonshineTranscript) {
-    throw new Error("text input must not include Moonshine transcript records");
-  }
-
-  if (!input.text) {
-    throw new Error("text input requires text");
-  }
-
-  return input.text.trim();
-}
-
-export const MOONSHINE_STREAMING_CPU_CONFIG = {
-  engine: "moonshine-streaming",
-  runtime: "cpu",
-  localOnly: true
-} as const;
-
-export function createMoonshineTranscriptRecord(input: {
-  id?: string;
-  metadata?: Record<string, JsonValue>;
-  receivedAt?: string;
-  segments?: MoonshineTranscriptSegment[];
-  sequence?: number;
-  text: string;
-  transcriptId?: string;
-}): MoonshineTranscriptRecord {
-  const id = input.id ?? `moonshine-transcript.local.${input.sequence ?? 1}`;
-  return MoonshineTranscriptRecordSchema.parse({
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    id,
-    version: "1.0.0",
-    kind: "moonshine-transcript",
-    transcriptId: input.transcriptId ?? id,
-    engine: MOONSHINE_STREAMING_CPU_CONFIG.engine,
-    runtime: MOONSHINE_STREAMING_CPU_CONFIG.runtime,
-    localOnly: MOONSHINE_STREAMING_CPU_CONFIG.localOnly,
-    finalized: true,
-    text: input.text.trim(),
-    receivedAt: input.receivedAt ?? PLAYCRAFT_LOCAL_TIMESTAMP,
-    segments: input.segments ?? [],
-    metadata: {
-      origin: "playcraft.local-moonshine-streaming-cpu",
-      ...input.metadata
-    }
-  });
-}
-
-function sourceForServiceRequest(
-  request: BuilderServiceRequest,
-  inputPolicy: BuilderCatalog["input"]
-): BuilderInputSource {
-  return request.source ?? inputPolicy.defaultSource;
-}
-
-function textForServiceRequest(request: BuilderServiceRequest): string {
-  if (request.moonshineTranscript) {
-    return request.moonshineTranscript.text;
-  }
-
-  if (request.text) {
-    return request.text;
-  }
-
-  throw new Error(`${request.actionName} requests require text or a Moonshine transcript record`);
-}
-
-interface TemplateTextMatch {
-  matchedCapabilityTags: string[];
-  matchedRequestAliases: string[];
-  matchedTemplateIds: BuilderTemplateId[];
-}
-
-interface TemplateDecision {
-  source: BuilderIntentResolution["templateDecision"]["source"];
-  templateId: BuilderTemplateId;
-}
-
-interface TextAssetEdit {
-  assetEdit: BuilderAssetEdit;
-  matchedText: string;
-  source: Extract<BuilderIntentResolution["assetDecision"]["source"], "catalog-asset-alias" | "freeform-asset-request">;
-}
-
-interface AssetDecision {
-  assetEdit?: BuilderAssetEdit;
-  matchedText?: string;
-  source: BuilderIntentResolution["assetDecision"]["source"];
-}
-
-function templateMatchForText(text: string): TemplateTextMatch {
-  const textTokens = normalizedTokens(text);
-  const matches = gameTemplateDefinitions.flatMap((template) => {
-    const matchedRequestAliases = template.requestAliases.filter((alias) =>
-      tokenSequenceIncludes(textTokens, normalizedTokens(alias))
-    );
-    return matchedRequestAliases.length > 0
-      ? [{ capabilityTags: template.capabilityTags, requestAliases: matchedRequestAliases, templateId: template.id }]
-      : [];
-  });
-
-  return {
-    matchedCapabilityTags: [...new Set(matches.flatMap((match) => match.capabilityTags))],
-    matchedRequestAliases: [...new Set(matches.flatMap((match) => match.requestAliases))],
-    matchedTemplateIds: [...new Set(matches.map((match) => match.templateId))]
-  };
-}
-
-function templateDecisionFor(input: {
-  activeTemplateId?: BuilderTemplateId;
-  matchedCapabilityTags: string[];
-  matchedTemplateIds: BuilderTemplateId[];
-  templateId?: BuilderTemplateId;
-}): TemplateDecision {
-  if (input.templateId) {
-    return { source: "explicit-template-id", templateId: input.templateId };
-  }
-
-  if (input.matchedTemplateIds.length > 1) {
-    throw new Error(`ambiguous template request matched ${input.matchedTemplateIds.join(", ")}; use explicit templateId`);
-  }
-
-  const matchedTemplateId = singleValue(input.matchedTemplateIds);
-  if (matchedTemplateId) {
-    return { source: "catalog-template-alias", templateId: matchedTemplateId };
-  }
-
-  if (input.activeTemplateId) {
-    return { source: "active-template", templateId: input.activeTemplateId };
-  }
-
-  throw new Error("assemble requests require a game template id or a recognizable game request");
-}
-
-function assetDecisionFor(input: {
-  activeAssetEdit?: BuilderAssetEdit;
-  allowActiveAssetEdit: boolean;
-  explicitAssetEdit?: BuilderAssetEdit;
-  textAssetEdit?: TextAssetEdit;
-}): AssetDecision {
-  if (input.explicitAssetEdit) {
-    return {
-      assetEdit: input.explicitAssetEdit,
-      matchedText: input.explicitAssetEdit.theme ?? input.explicitAssetEdit.items?.join(", "),
-      source: "explicit-asset-edit"
-    };
-  }
-
-  if (input.textAssetEdit) {
-    return {
-      assetEdit: input.textAssetEdit.assetEdit,
-      matchedText: input.textAssetEdit.matchedText,
-      source: input.textAssetEdit.source
-    };
-  }
-
-  if (input.allowActiveAssetEdit && input.activeAssetEdit) {
-    return {
-      assetEdit: input.activeAssetEdit,
-      matchedText: input.activeAssetEdit.theme ?? input.activeAssetEdit.items?.join(", "),
-      source: "active-asset-edit"
-    };
-  }
-
-  return { source: "none" };
-}
-
-function assetEditForText(text: string): TextAssetEdit | undefined {
-  const normalized = text.toLowerCase();
-  const clauses = assetIntentClauses(normalized);
-  const matches = uniqueAssetThemeMatches(
-    clauses.flatMap((clause) =>
-      localAssetEditIntentPatterns.flatMap((pattern) => matchAssetThemes(clause, pattern))
-    )
-  );
-
-  if (matches.length === 0) {
-    return undefined;
-  }
-
-  if (matches.length > 1) {
-    throw new Error(`ambiguous asset request matched ${matches.map((entry) => entry.theme).join(", ")}; use explicit assetEdit`);
-  }
-
-  const match = requireSingleValue(matches, "asset request match");
-  requireTextAssetThemeWithinContract(match.theme);
-  const items = match.theme
-    .split(/\s*(?:,| and )\s*/u)
-    .map((entry) => cleanAssetTheme(entry))
-    .filter((entry) => entry.length > 0);
-  if (items.length > localAssetEditMaxItems) {
-    throw new Error(`text asset requests accept at most ${localAssetEditMaxItems} explicit items; use explicit assetEdit`);
-  }
-
-  return {
-    assetEdit: items.length > 1 ? { theme: match.theme, items } : { theme: match.theme },
-    matchedText: match.theme,
-    source: match.source
-  };
-}
-
-function singleValue<TValue>(values: TValue[]): TValue | undefined {
-  return values.length === 1 ? values[0] : undefined;
-}
-
-function requireSingleValue<TValue>(values: TValue[], label: string): TValue {
-  const value = singleValue(values);
-  if (value === undefined) {
-    throw new Error(`${label} requires exactly one value`);
-  }
-
-  return value;
-}
-
-function assetIntentClauses(text: string): string[] {
-  return text
-    .split(/(?:[;!?]+|\.(?:\s+|$))/u)
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-}
-
-function matchAssetThemes(
-  text: string,
-  pattern: LocalAssetEditIntentPattern
-): Array<{ source: TextAssetEdit["source"]; theme: string }> {
-  const matcher = new RegExp(pattern.pattern.source, pattern.pattern.flags.includes("g") ? pattern.pattern.flags : `${pattern.pattern.flags}g`);
-  return Array.from(text.matchAll(matcher)).flatMap((match) => {
-    const candidate = cleanAssetTheme(match[1]);
-    requireTextAssetThemeWithinContract(candidate);
-    if (
-      candidate.length === 0 ||
-      isGenericAssetTheme(candidate) ||
-      isTemplateOnlyTheme(candidate) ||
-      (pattern.source === "catalog-asset-alias" && !isKnownAssetTheme(candidate))
-    ) {
-      return [];
-    }
-
-    const matchedSource = isKnownAssetTheme(candidate) ? "catalog-asset-alias" : pattern.source;
-    return [{ source: matchedSource, theme: candidate }];
-  });
-}
-
-function uniqueAssetThemeMatches(
-  matches: Array<{ source: TextAssetEdit["source"]; theme: string }>
-): Array<{ source: TextAssetEdit["source"]; theme: string }> {
-  const seen = new Set<string>();
-  return matches.filter((match) => {
-    const key = `${match.source}:${normalizedTokens(match.theme).join(" ")}`;
-    if (seen.has(key)) {
-      return false;
-    }
-
-    seen.add(key);
-    return true;
-  });
-}
-
-function isKnownAssetTheme(value: string): boolean {
-  const tokens = normalizedTokens(value).join(" ");
-  return localAssetEditCatalog.some((entry) =>
-    [entry.theme, ...entry.aliases].some((alias) => normalizedTokens(alias).join(" ") === tokens)
-  );
-}
-
-function isTemplateOnlyTheme(value: string): boolean {
-  const candidate = normalizedTokens(value).join(" ");
-  return gameTemplateDefinitions.some((template) =>
-    template.requestAliases.some((alias) => normalizedTokens(alias).join(" ") === candidate)
-  );
-}
-
-function isGenericAssetTheme(value: string): boolean {
-  const candidate = normalizedTokens(value).join(" ");
-  return localAssetEditGenericThemeTokens.some((token) => normalizedTokens(token).join(" ") === candidate);
-}
-
-function cleanAssetTheme(value: string): string {
-  return value
-    .replace(/\b(?:a|an|the)\b/gu, " ")
-    .replace(/[^a-z0-9 ,.-]+/gu, " ")
-    .replace(/\s+/gu, " ")
-    .trim();
-}
-
-function requireTextAssetThemeWithinContract(theme: string): void {
-  if (theme.length > localAssetEditMaxThemeLength) {
-    throw new Error(`text asset requests accept asset themes up to ${localAssetEditMaxThemeLength} characters; use explicit assetEdit`);
-  }
-}
-
-function toJsonValue(value: unknown): JsonValue {
-  return JsonValueSchema.parse(normalizeJsonValue(value));
-}
-
-function normalizeJsonValue(value: unknown): unknown {
-  if (value === null || typeof value === "string" || typeof value === "boolean") {
-    return value;
-  }
-
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) {
-      throw new Error("service event value contains a non-finite number");
-    }
-
-    return value;
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((entry) => {
-      if (entry === undefined) {
-        throw new Error("service event value contains undefined inside an array");
-      }
-
-      return normalizeJsonValue(entry);
-    });
-  }
-
-  if (typeof value === "object") {
-    const prototype = Object.getPrototypeOf(value);
-    if (prototype !== Object.prototype && prototype !== null) {
-      throw new Error("service event value contains a non-plain object");
-    }
-
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>)
-        .filter(([, entry]) => entry !== undefined)
-        .map(([key, entry]) => [key, normalizeJsonValue(entry)])
-    );
-  }
-
-  throw new Error(`service event value contains unsupported JSON type ${typeof value}`);
-}
-
-function serializeExecution(output: BuilderExecutionResult): BuilderServiceExecution {
-  return BuilderServiceExecutionSchema.parse({
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    result: output.result,
-    events: output.events.map((event) => toJsonValue(event))
-  });
-}
-
-function buildWorkflowCommandResult(commandId: string, sessionId: string, executedNodeCount: number): BuilderCommandResult {
-  const preview: BuilderPreviewState = BuilderPreviewStateSchema.parse({
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    sessionId,
-    renderedComponentIds: [],
-    interactionCount: executedNodeCount
-  });
-  return {
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    id: `builder-command-result.workflow.${commandId}`,
-    version: "1.0.0",
-    kind: "builder-command-result",
-    commandId: `builder-command.workflow.${commandId}`,
-    sessionId,
-    preview
-  };
-}
-
-function serviceResponse(
-  request: BuilderServiceRequest,
-  payload: {
-    catalog?: BuilderCatalog;
-    execution?: BuilderServiceExecution;
-    profileExport?: BuilderProfileExport;
-    reset?: true;
-    session?: BuilderSessionSnapshot;
-    error?: BuilderServiceError | { kind: "ownership-mismatch"; ownerId: string };
-  }
-): BuilderServiceResponse {
-  return BuilderServiceResponseSchema.parse({
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    id: `builder-service-response.${request.id}`,
-    version: "1.0.0",
-    kind: "builder-service-response",
-    requestId: request.id,
-    actionName: request.actionName,
-    ...payload
-  });
-}
-
-function serviceRequestSessionId(request: BuilderServiceRequest): string {
-  if (!request.sessionId) {
-    throw new Error(`${request.actionName} requires sessionId`);
-  }
-
-  return request.sessionId;
-}
-
-function requireResultTemplateId(result: BuilderExecutionResult["result"]): BuilderTemplateId {
-  if (!result.preview.activeTemplateId) {
-    throw new Error(`${result.commandId} result preview requires activeTemplateId`);
-  }
-
-  return result.preview.activeTemplateId;
-}
-
-function mergeSessionState(snapshot: BuilderSessionSnapshot, state: LocalSessionState | undefined): BuilderSessionSnapshot {
-  return BuilderSessionSnapshotSchema.parse({
-    ...snapshot,
-    activeAssetEdit: state?.activeAssetEdit,
-    ownership: state?.ownership ?? snapshot.ownership
-  });
-}
-
-function normalizedTokens(value: string): string[] {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/gu, " ")
-    .trim()
-    .split(/\s+/u)
-    .filter(Boolean);
-}
-
-function tokenSequenceIncludes(tokens: string[], sequence: string[]): boolean {
-  if (sequence.length === 0 || sequence.length > tokens.length) {
-    return false;
-  }
-
-  return tokens.some((_, index) =>
-    sequence.every((token, offset) => tokens[index + offset] === token)
-  );
-}
-
-function defaultFetch(...args: Parameters<BuilderServiceHttpFetch>): ReturnType<BuilderServiceHttpFetch> {
-  const fetcher = (globalThis as { fetch?: BuilderServiceHttpFetch }).fetch;
-  if (!fetcher) {
-    throw new Error("HTTP service transport requires a fetch implementation");
-  }
-
-  return fetcher(...args);
-}
+export { createMoonshineTranscriptRecord } from "./json-helpers.js";

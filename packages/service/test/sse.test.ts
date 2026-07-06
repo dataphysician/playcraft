@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { SseFrameSchema, PLAYCRAFT_SCHEMA_VERSION, type SseFrame } from "@playcraft/contracts";
+import { SseFrameSchema, PLAYCRAFT_SCHEMA_VERSION, WorkflowGraphSchema, type SseFrame } from "@playcraft/contracts";
 import {
   encodeSseFrame,
   parseSseFrame,
@@ -341,6 +341,69 @@ describe("LocalPlaycraftService.stream", () => {
     expect(frames[2]?.kind).toBe("sse-run-finished");
     if (frames[1]?.kind === "sse-run-error") {
       expect(frames[1].payload.message).toMatch(/active session|assemble/i);
+    }
+  });
+
+  it("emits AG-UI-shaped SSE frames for an execute-workflow request", async () => {
+    const service = createLocalPlaycraftService();
+    const sessionId = "session.stream.workflow";
+    const graph = WorkflowGraphSchema.parse({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "workflow-graph.test.stream.linear",
+      version: "1.0.0",
+      kind: "workflow-graph",
+      nodes: [
+        {
+          id: "node-stream-assemble",
+          actionName: "assemble",
+          payload: { sessionId, text: "Memory game with dinosaurs" },
+          dependsOn: []
+        },
+        {
+          id: "node-stream-export",
+          actionName: "export-profile",
+          payload: { sessionId },
+          dependsOn: ["node-stream-assemble"]
+        }
+      ],
+      edges: [{ from: "node-stream-assemble", to: "node-stream-export" }],
+      startNodeId: "node-stream-assemble"
+    });
+
+    const frames: SseFrame[] = [];
+    for await (const frame of service.stream({
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: "builder-service-request.test.stream.workflow",
+      version: "1.0.0",
+      kind: "builder-service-request",
+      actionName: "execute-workflow",
+      workflow: graph
+    })) {
+      frames.push(frame);
+    }
+
+    expect(frames.length).toBeGreaterThan(0);
+    for (const frame of frames) {
+      expect(() => SseFrameSchema.parse(frame)).not.toThrow();
+    }
+
+    const kinds = frames.map((frame) => frame.kind);
+    expect(kinds).toContain("sse-tool-call");
+    expect(kinds).toContain("sse-tool-result");
+    expect(kinds).toContain("sse-run-finished");
+
+    const toolCall = frames.find((frame) => frame.kind === "sse-tool-call");
+    expect(toolCall?.kind).toBe("sse-tool-call");
+    if (toolCall?.kind === "sse-tool-call") {
+      expect(toolCall.payload.toolName).toBe("tool:assemble-game");
+      expect(toolCall.payload.args).toBeDefined();
+    }
+
+    const toolResult = frames.find((frame) => frame.kind === "sse-tool-result");
+    expect(toolResult?.kind).toBe("sse-tool-result");
+    if (toolResult?.kind === "sse-tool-result") {
+      expect(toolResult.payload.toolName).toBe("tool:assemble-game");
+      expect(toolResult.payload.result).toBeDefined();
     }
   });
 });

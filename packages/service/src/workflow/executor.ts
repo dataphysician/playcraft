@@ -1,10 +1,11 @@
 import {
   BuilderServiceRequestSchema,
   PLAYCRAFT_SCHEMA_VERSION,
-  WorkflowGraphSchema,
+  evaluateCondition,
   type BuilderServiceActionName,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
+  type ConditionEvaluationResult,
   type JsonValue,
   type SseFrame,
   type WorkflowGraph,
@@ -24,37 +25,25 @@ export interface WorkflowServiceTransport {
   send(request: BuilderServiceRequest): BuilderServiceResponse | Promise<BuilderServiceResponse>;
 }
 
-interface ConditionContext {
-  payload: Record<string, JsonValue>;
-}
-
-type ConditionLiteral = string | number | boolean | null;
-
-interface ConditionResult {
-  satisfied: boolean;
-  detail: string;
-}
-
 export function* executeWorkflowSync(
   graph: WorkflowGraph,
   service: WorkflowServiceTransport,
   sessionId: string
 ): Generator<WorkflowEvent> {
-  const validated = WorkflowGraphSchema.parse(graph);
-  if (validated.nodes.length > 20) {
-    throw new Error(`workflow graph exceeds 20-node cap (${String(validated.nodes.length)} nodes)`);
+  if (graph.nodes.length > 20) {
+    throw new Error(`workflow graph exceeds 20-node cap (${String(graph.nodes.length)} nodes)`);
   }
 
   const runId = workflowRunId();
-  const order = topologicalOrder(validated);
+  const order = topologicalOrder(graph);
   const nodeIndex = new Map<string, number>();
-  validated.nodes.forEach((node, index) => nodeIndex.set(node.id, index));
+  graph.nodes.forEach((node, index) => nodeIndex.set(node.id, index));
 
   yield {
     kind: "workflow-started",
     runId,
-    graphId: validated.id,
-    nodeCount: validated.nodes.length,
+    graphId: graph.id,
+    nodeCount: graph.nodes.length,
     sessionId
   };
 
@@ -63,7 +52,7 @@ export function* executeWorkflowSync(
   const failed: string[] = [];
 
   for (const nodeId of order) {
-    const node = nodeById(validated, nodeId);
+    const node = nodeById(graph, nodeId);
     if (!node) {
       continue;
     }
@@ -76,7 +65,7 @@ export function* executeWorkflowSync(
     const args = buildNodeRequestArgs(node, sessionId);
     const sequenceIndex = nodeIndex.get(nodeId) ?? 0;
 
-    let conditionResult: ConditionResult | undefined;
+    let conditionResult: ConditionEvaluationResult | undefined;
     if (node.condition !== undefined) {
       conditionResult = evaluateCondition(node.condition, { payload: node.payload });
     }
@@ -94,10 +83,10 @@ export function* executeWorkflowSync(
       };
 
       if (node.cascade !== false) {
-        const descendants = descendantsOf(validated, nodeId);
+        const descendants = descendantsOf(graph, nodeId);
         for (const descendant of descendants) {
           if (!skipped.includes(descendant) && !executed.includes(descendant) && !failed.includes(descendant)) {
-            const descendantNode = nodeById(validated, descendant);
+            const descendantNode = nodeById(graph, descendant);
             if (!descendantNode) {
               continue;
             }
@@ -170,7 +159,7 @@ export function* executeWorkflowSync(
   yield {
     kind: "workflow-finished",
     runId,
-    graphId: validated.id,
+    graphId: graph.id,
     executed,
     skipped,
     failed,
@@ -496,121 +485,4 @@ function responsePayloadForResponse(response: BuilderServiceResponse | Promise<B
 
 function isPromise(value: unknown): value is Promise<BuilderServiceResponse> {
   return typeof value === "object" && value !== null && "then" in value && typeof (value as { then?: unknown }).then === "function";
-}
-
-function evaluateCondition(expression: string, context: ConditionContext): ConditionResult {
-  const trimmed = expression.trim();
-  const lenMatch = /^len\(\s*payload\.([a-z0-9_-]+)(?:\.(length|count|size))?\s*\)\s*(==|!=|>=|<=|>|<)\s*(-?\d+(?:\.\d+)?)\s*$/u.exec(trimmed);
-  if (lenMatch) {
-    const key = lenMatch[1] ?? "";
-    const op = lenMatch[3] ?? "==";
-    const target = Number(lenMatch[4] ?? 0);
-    const value = readPayloadValue(context.payload, key);
-    const length = computeLength(value);
-    const satisfied = compareNumbers(length, op, target);
-    return {
-      satisfied,
-      detail: satisfied
-        ? `len(payload.${key}) ${op} ${String(target)} evaluated true (length=${String(length)})`
-        : `len(payload.${key}) ${op} ${String(target)} evaluated false (length=${String(length)})`
-    };
-  }
-
-  const equalityMatch = /^payload\.([a-z0-9_-]+)(?:\.(length|count|size))?\s*(==|!=)\s*("(?:[^"\\\n]|\\.)*"|-?\d+(?:\.\d+)?|true|false|null)\s*$/u.exec(trimmed);
-  if (!equalityMatch) {
-    return {
-      satisfied: false,
-      detail: `condition expression "${trimmed}" is not a supported payload equality or length check`
-    };
-  }
-
-  const key = equalityMatch[1] ?? "";
-  const op = equalityMatch[3] ?? "==";
-  const literal = parseLiteral(equalityMatch[4] ?? "null");
-  const value = readPayloadValue(context.payload, key);
-  const satisfied = op === "==" ? looseEqual(value, literal) : !looseEqual(value, literal);
-  return {
-    satisfied,
-    detail: satisfied
-      ? `payload.${key} ${op} ${JSON.stringify(literal)} evaluated true`
-      : `payload.${key} ${op} ${JSON.stringify(literal)} evaluated false (actual=${JSON.stringify(value)})`
-  };
-}
-
-function readPayloadValue(payload: Record<string, JsonValue>, key: string): JsonValue {
-  if (Object.prototype.hasOwnProperty.call(payload, key)) {
-    return payload[key] as JsonValue;
-  }
-  return null;
-}
-
-function computeLength(value: JsonValue): number {
-  if (value === null) {
-    return 0;
-  }
-  if (typeof value === "string") {
-    return value.length;
-  }
-  if (typeof value === "number" || typeof value === "boolean") {
-    return 1;
-  }
-  if (Array.isArray(value)) {
-    return value.length;
-  }
-  if (typeof value === "object") {
-    return Object.keys(value).length;
-  }
-  return 0;
-}
-
-function compareNumbers(actual: number, op: string, target: number): boolean {
-  switch (op) {
-    case "==":
-      return actual === target;
-    case "!=":
-      return actual !== target;
-    case ">":
-      return actual > target;
-    case ">=":
-      return actual >= target;
-    case "<":
-      return actual < target;
-    case "<=":
-      return actual <= target;
-    default:
-      return false;
-  }
-}
-
-function looseEqual(actual: JsonValue, expected: ConditionLiteral): boolean {
-  if (expected === null) {
-    return actual === null;
-  }
-  if (typeof expected === "string") {
-    return actual === expected;
-  }
-  if (typeof expected === "number") {
-    return actual === expected;
-  }
-  if (typeof expected === "boolean") {
-    return actual === expected;
-  }
-  return false;
-}
-
-function parseLiteral(raw: string): ConditionLiteral {
-  if (raw === "true") {
-    return true;
-  }
-  if (raw === "false") {
-    return false;
-  }
-  if (raw === "null") {
-    return null;
-  }
-  if (raw.startsWith("\"")) {
-    const unescaped = raw.slice(1, -1).replace(/\\(.)/gu, "$1");
-    return unescaped;
-  }
-  return Number(raw);
 }

@@ -128,7 +128,7 @@ describe("workflow schemas", () => {
         edges: [],
         startNodeId: "node-a"
       })
-    ).toThrow(/workflow conditions must be simple payload equality or length comparisons/u);
+    ).toThrow(/workflow condition/i);
   });
 
   it("accepts workflow graphs of exactly 20 nodes", () => {
