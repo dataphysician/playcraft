@@ -106,7 +106,7 @@ Produce a strictly greenfield, forward-only Playcraft codebase where:
 - [x] `NEXT_WAVE.md` exists with deferred features roadmap
 - [x] axe-core scan returns zero critical violations on Studio
 - [x] F1–F4 audit APPROVE
-- [ ] Atomic commit pushed
+- [x] Atomic commit pushed
 
 ### Must Have
 
@@ -272,4 +272,4 @@ grep -E '"Version.*1\.0\.0-cleanroom"|"future server transport"|"Server-Ready Re
 - [x] SERVER_RETRIEVAL_PLAN.md + NEXT_WAVE.md drafted
 - [x] All 5 spec docs (PRD, ARCHITECTURE, DEV_GUIDE, ROADMAP, README) rewritten — no dated language
 - [x] F1–F4 re-audit APPROVE
-- [ ] Atomic commit pushed
+- [x] Atomic commit pushed
