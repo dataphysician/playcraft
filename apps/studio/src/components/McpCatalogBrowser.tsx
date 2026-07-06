@@ -23,6 +23,7 @@ export function McpCatalogBrowser({
   const [expandedTool, setExpandedTool] = React.useState<string | undefined>(undefined);
   const [workflowTool, setWorkflowTool] = React.useState<{ name: string; actionName: string; args: Record<string, unknown> } | undefined>(undefined);
   const [workflowArgs, setWorkflowArgs] = React.useState<Record<string, JsonValue>>({});
+  const [workflowArgsError, setWorkflowArgsError] = React.useState<string | null>(null);
 
   const manifest = React.useMemo(() => {
     if (!catalog) return null;
@@ -175,7 +176,7 @@ export function McpCatalogBrowser({
                       {
                         type: "button",
                         className: "mcp-catalog-button",
-                        onClick: () => handleRunWith(tool.name, tool.name.replace("tool:", ""), Object.fromEntries(Object.entries(tool.parameters).map(([k, v]) => [k, ""]))),
+                        onClick: () => handleRunWith(tool.name, tool.name.replace("tool:", ""), Object.fromEntries(Object.entries(tool.parameters).map(([k]) => [k, ""]))),
                         style: shellStyles.catalogItemButton
                       },
                       "Run with..."
@@ -241,14 +242,19 @@ export function McpCatalogBrowser({
                     const parsed = JSON.parse(event.target.value);
                     if (isRecord(parsed)) {
                       setWorkflowArgs(parsed);
+                      setWorkflowArgsError(null);
                     }
                   } catch {
-                    void 0;
+                    setWorkflowArgsError("invalid JSON");
                   }
                 },
+                "aria-invalid": workflowArgsError ? "true" : undefined,
                 rows: 5,
                 style: shellStyles.portabilityTextarea
-              })
+              }),
+              workflowArgsError
+                ? React.createElement("span", { role: "alert", style: { color: "#b91c1c" } }, workflowArgsError)
+                : null
             ),
             React.createElement(
               "span",

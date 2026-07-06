@@ -18,6 +18,12 @@ importers:
         specifier: ^3.24.2
         version: 3.25.76
     devDependencies:
+      '@playcraft/builder':
+        specifier: workspace:*
+        version: link:packages/builder
+      '@playcraft/service':
+        specifier: workspace:*
+        version: link:packages/service
       '@testing-library/react':
         specifier: ^16.2.0
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -85,6 +91,9 @@ importers:
       '@playcraft/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@playcraft/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
       '@playcraft/packs':
         specifier: workspace:*
         version: link:../../packages/packs
@@ -164,6 +173,18 @@ importers:
       zod:
         specifier: ^3.24.2
         version: 3.25.76
+
+  packages/mcp:
+    dependencies:
+      '@playcraft/builder':
+        specifier: workspace:*
+        version: link:../builder
+      '@playcraft/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@playcraft/service':
+        specifier: workspace:*
+        version: link:../service
 
   packages/packs:
     dependencies:

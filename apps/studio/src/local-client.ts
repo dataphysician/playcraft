@@ -8,7 +8,6 @@ import {
   type BuilderPreviewState,
   type BuilderServiceRequest,
   type BuilderServiceResponse,
-  type BuilderSessionSnapshot,
   type GameAssemblyProfile,
   type JsonValue,
   type MoonshineTranscriptRecord,

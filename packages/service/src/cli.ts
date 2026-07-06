@@ -1,5 +1,9 @@
 declare const process: { argv: string[]; exit(code?: number): never };
 
+import { realpathSync } from "node:fs";
+
+const __filename = new URL(import.meta.url).pathname;
+
 import {
   BuilderPreviewInteractionSchema,
   BuilderProfileExportSchema,
@@ -488,6 +492,6 @@ function formatServiceRequestAnyOf(groups: string[][]): string {
   return groups.length > 0 ? groups.map((group) => group.join("|")).join(", ") : "none";
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (realpathSync(process.argv[1]) === __filename) {
   process.exit(runLocalServiceCli(process.argv.slice(2)));
 }

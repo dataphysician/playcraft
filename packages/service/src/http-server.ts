@@ -4,6 +4,10 @@ declare const process: {
   on(event: "SIGINT" | "SIGTERM", listener: () => void): void;
 };
 
+import { realpathSync } from "node:fs";
+
+const __filename = new URL(import.meta.url).pathname;
+
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import {
   BuilderCatalogSchema,
@@ -807,7 +811,7 @@ async function invokeMcpTool(
   return Promise.resolve(service.handle(request));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (realpathSync(process.argv[1]) === __filename) {
   runPlaycraftHttpServerCli().catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : String(error));
     process.exit(1);

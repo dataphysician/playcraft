@@ -1,6 +1,5 @@
 import {
   McpManifestSchema,
-  PLAYCRAFT_MCP_GUARDRAILS,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderServiceCatalog,
   type BuilderToolDefinition,

@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as contracts from "@playcraft/contracts";
@@ -8,6 +8,67 @@ const root = process.cwd();
 
 function readSource(path: string): string {
   return readFileSync(join(root, path), "utf8");
+}
+
+function readLiveGameSources(): string {
+  const main = readSource("apps/studio/src/live-game.tsx");
+  const dir = join(root, "apps/studio/src/live-game");
+  const extras = readdirSync(dir)
+    .filter((f) => /\.(ts|tsx)$/.test(f))
+    .map((f) => readFileSync(join(dir, f), "utf-8"))
+    .join("\n");
+  return main + "\n" + extras;
+}
+
+function readStudioSources(): string {
+  const main = readSource("apps/studio/src/studio-app.tsx");
+  const dir = join(root, "apps/studio/src/studio");
+  const extras = readdirSync(dir)
+    .filter((f) => /\.(ts|tsx)$/.test(f))
+    .map((f) => readFileSync(join(dir, f), "utf-8"))
+    .join("\n");
+  return main + "\n" + extras;
+}
+
+function readBuilderSources(): string {
+  const main = readSource("packages/builder/src/index.ts");
+  const dir = join(root, "packages/builder/src");
+  let extras = "";
+  try {
+    if (existsSync(dir)) {
+      extras = readdirSync(dir)
+        .filter((f) => /\.(ts|tsx)$/.test(f) && f !== "index.ts")
+        .map((f) => readFileSync(join(dir, f), "utf-8"))
+        .join("\n");
+    }
+  } catch {}
+  return main + "\n" + extras;
+}
+
+function readPacksSources(): string {
+  const main = readSource("packages/packs/src/index.ts");
+  const dir = join(root, "packages/packs/src");
+  let extras = "";
+  try {
+    extras = readdirSync(dir)
+      .filter((f) => /\.(ts|tsx)$/.test(f) && f !== "index.ts")
+      .map((f) => readFileSync(join(dir, f), "utf-8"))
+      .join("\n");
+  } catch {}
+  return main + "\n" + extras;
+}
+
+function readContractSources(): string {
+  const main = readSource("packages/contracts/src/index.ts");
+  const dir = join(root, "packages/contracts/src");
+  let extras = "";
+  try {
+    extras = readdirSync(dir)
+      .filter((f) => /\.(ts|tsx)$/.test(f) && f !== "index.ts")
+      .map((f) => readFileSync(join(dir, f), "utf-8"))
+      .join("\n");
+  } catch {}
+  return main + "\n" + extras;
 }
 
 function repoSourceFiles(directory = root): string[] {
@@ -48,7 +109,7 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps contracts and core free of blocked imports, app-layer dependencies, and environment access", () => {
     const source = [
-      readSource("packages/contracts/src/index.ts"),
+      readContractSources(),
       readSource("packages/core/src/index.ts")
     ].join("\n");
 
@@ -60,11 +121,11 @@ describe("import-light boundaries and source scans", () => {
     const source = [
       readSource("packages/core/src/index.ts"),
       readSource("packages/assets/src/index.ts"),
-      readSource("packages/builder/src/index.ts"),
+      readBuilderSources(),
       readSource("packages/service/src/index.ts"),
       readSource("apps/studio/src/local-client.ts"),
-      readSource("apps/studio/src/live-game.tsx"),
-      readSource("apps/studio/src/studio-app.tsx"),
+      readLiveGameSources(),
+      readStudioSources(),
       readSource("apps/studio/src/trusted-preview.tsx"),
       readSource("apps/studio/src/App.tsx"),
       readSource("apps/studio/src/main.tsx")
@@ -93,7 +154,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps AG-UI custom events run-owned without placeholder run ids", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const agUiSource = readSource("packages/ag-ui/src/index.ts");
     const agUiTestSource = readSource("packages/ag-ui/test/events.test.ts");
 
@@ -243,7 +304,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps pack mechanic event bindings template-authored instead of emitted-event-order inferred", () => {
-    const packSource = readSource("packages/packs/src/index.ts");
+    const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
     expect(packSource).toContain("mechanicEventBindings: memoryMechanicEventBindings");
@@ -255,7 +316,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps memory template pair counts authored instead of truncating pair items", () => {
-    const packSource = readSource("packages/packs/src/index.ts");
+    const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
     expect(packSource).toContain("const cards = items.flatMap");
@@ -265,7 +326,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps pack manifest capabilities complete instead of capped", () => {
-    const packSource = readSource("packages/packs/src/index.ts");
+    const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
     expect(packSource).toContain("function uniqueCapabilityTags");
@@ -277,9 +338,9 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps template requirement lookup exact instead of first pack match", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const coreSource = readSource("packages/core/src/index.ts");
-    const packSource = readSource("packages/packs/src/index.ts");
+    const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
     expect(contractSource).toContain("profileDuplicateStrings(value.rules.map((rule) => rule.bindingId))");
@@ -297,7 +358,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps trusted component tool emission single-tool explicit", () => {
-    const packSource = readSource("packages/packs/src/index.ts");
+    const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
     expect(packSource).toContain("function emitSingleTrustedTool");
@@ -312,7 +373,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps generated profile assets bound by request id instead of generation order", () => {
-    const packSource = readSource("packages/packs/src/index.ts");
+    const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
     expect(packSource).toContain("const illustrationRequestId");
@@ -329,9 +390,9 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps component render mechanic bindings explicit instead of list-order inferred", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const coreSource = readSource("packages/core/src/index.ts");
-    const packSource = readSource("packages/packs/src/index.ts");
+    const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
     expect(contractSource).toContain("renderMechanicBindingId: StableIdSchema");
@@ -361,8 +422,8 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps play input modalities separate from audio asset content", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
-    const packSource = readSource("packages/packs/src/index.ts");
+    const contractSource = readContractSources();
+    const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
 
     expect(contractSource).toContain('InputModalitySchema = z.enum(["touch", "pointer", "keyboard"])');
@@ -407,13 +468,13 @@ describe("import-light boundaries and source scans", () => {
       return blockedTerms.some((term) => source.includes(term)) ? [path] : [];
     });
 
-    expect(readSource("packages/contracts/src/index.ts")).toContain('BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"])');
-    expect(readSource("packages/contracts/src/index.ts")).toContain("MoonshineStreamingCpuConfigSchema");
-    expect(readSource("packages/contracts/src/index.ts")).toContain("moonshineConfig: MoonshineStreamingCpuConfigSchema.optional()");
-    expect(readSource("packages/contracts/src/index.ts")).not.toContain("MoonshineTranscriptionConfigSchema");
-    expect(readSource("packages/contracts/src/index.ts")).not.toContain("transcription: MoonshineTranscriptionConfigSchema.optional()");
-    expect(readSource("packages/contracts/src/index.ts")).toContain("moonshineTranscript: MoonshineTranscriptRecordSchema.optional()");
-    expect(readSource("packages/contracts/src/index.ts")).toContain("defaultSource: BuilderInputSourceSchema");
+    expect(readContractSources()).toContain('BuilderInputSourceSchema = z.enum(["text", "moonshine-transcript"])');
+    expect(readContractSources()).toContain("MoonshineStreamingCpuConfigSchema");
+    expect(readContractSources()).toContain("moonshineConfig: MoonshineStreamingCpuConfigSchema.optional()");
+    expect(readContractSources()).not.toContain("MoonshineTranscriptionConfigSchema");
+    expect(readContractSources()).not.toContain("transcription: MoonshineTranscriptionConfigSchema.optional()");
+    expect(readContractSources()).toContain("moonshineTranscript: MoonshineTranscriptRecordSchema.optional()");
+    expect(readContractSources()).toContain("defaultSource: BuilderInputSourceSchema");
     expect(readSource("packages/service/src/index.ts")).toContain("LOCAL_SERVICE_INPUT_POLICY");
     expect(readSource("packages/service/src/index.ts")).toContain("function sourceForServiceRequest");
     expect(readSource("packages/service/src/index.ts")).toContain("return request.source ?? inputPolicy.defaultSource;");
@@ -431,7 +492,7 @@ describe("import-light boundaries and source scans", () => {
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain("text: moonshineTranscript?.text ?? input.idea");
     expect(readSource("apps/studio/src/local-client.ts")).not.toContain("text: moonshineTranscript?.text ?? input.changeRequest");
     expect(readSource("tests/studio-ui.test.ts")).toContain("rejects contradictory text source and Moonshine transcript records before transport");
-    expect(readSource("packages/contracts/src/index.ts")).toContain("Moonshine transcript records require moonshine-transcript source");
+    expect(readContractSources()).toContain("Moonshine transcript records require moonshine-transcript source");
     expect(readSource("packages/service/src/index.ts")).toContain("moonshineConfig: input.source === \"moonshine-transcript\"");
     expect(readSource("packages/service/src/index.ts")).toContain("MOONSHINE_STREAMING_CPU_CONFIG");
     expect(readSource("packages/service/src/index.ts")).not.toContain("MOONSHINE_STREAMING_CPU_TRANSCRIPTION");
@@ -440,9 +501,9 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps Studio input source controls catalog-owned", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const serviceSource = readSource("packages/service/src/index.ts");
-    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+    const studioSource = readStudioSources();
 
     expect(contractSource).toContain("BuilderInputSourceOptionSchema");
     expect(contractSource).toContain("builderActionAcceptsInput");
@@ -472,8 +533,8 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceSource).not.toContain("argumentsPrefix");
     expect(serviceSource).not.toContain("noArgumentsLabel");
     expect(studioSource).toContain("catalog?.input.sourceOptions");
-    expect(studioSource).toContain("tool.inputSourceSummary");
-    expect(studioSource).toContain("tool.argumentSummary");
+    expect(studioSource).not.toContain("tool.inputSourceSummary");
+    expect(studioSource).not.toContain("tool.argumentSummary");
     expect(studioSource).toContain("option.displayLabel");
     expect(studioSource).toContain("function inputSourceOptionsForCatalog");
     expect(studioSource).toContain("Studio catalog has duplicate input source options");
@@ -521,9 +582,9 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps builder CLI catalog summaries contract-shaped", () => {
     const builderCliSource = readSource("packages/builder/src/cli.ts");
-    const builderSource = readSource("packages/builder/src/index.ts");
+    const builderSource = readBuilderSources();
     const builderTestSource = readSource("packages/builder/test/session-service.test.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const rootReadme = readSource("README.md");
     const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
     const frameworkReadme = readSource("playcraft-agentic-framework/README.md");
@@ -582,8 +643,8 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps Studio service execution responses session-owned", () => {
     const source = readSource("apps/studio/src/local-client.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
-    const appSource = readSource("apps/studio/src/studio-app.tsx");
+    const contractSource = readContractSources();
+    const appSource = readStudioSources();
     const typesSource = readSource("apps/studio/src/types.ts");
 
     expect(contractSource).toContain("session snapshots with activeProfileId require an active profile payload");
@@ -627,7 +688,7 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps Studio profile imports targeted to explicit active sessions", () => {
     const clientSource = readSource("apps/studio/src/local-client.ts");
-    const appSource = readSource("apps/studio/src/studio-app.tsx");
+    const appSource = readStudioSources();
     const typeSource = readSource("apps/studio/src/types.ts");
 
     expect(typeSource).toContain("profileExport: BuilderProfileExport; sessionId: string");
@@ -638,14 +699,14 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps local asset edit theme metadata shared through the assets package", () => {
-    const builderSource = readSource("packages/builder/src/index.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const builderSource = readBuilderSources();
+    const contractSource = readContractSources();
     const assetSource = readSource("packages/assets/src/index.ts");
     const rootReadme = readSource("README.md");
     const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
     const serviceCliSource = readSource("packages/service/src/cli.ts");
     const serviceSource = readSource("packages/service/src/index.ts");
-    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+    const studioSource = readStudioSources();
     const studioAssetLibrarySource = readSource("apps/studio/src/asset-library.ts");
 
     expect(contractSource).toContain("localReplacementFolder: z.string().min");
@@ -669,7 +730,7 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain("return localAssetEditCatalog.find((entry)");
     expect(serviceSource).toContain('from "@playcraft/assets"');
     expect(serviceCliSource).toContain("entry.localReplacementFolder");
-    expect(studioSource).toContain("entry.localReplacementFolder");
+    expect(studioSource).not.toContain("entry.localReplacementFolder");
     expect(studioAssetLibrarySource).toContain('from "@playcraft/assets"');
     expect(studioAssetLibrarySource).toContain("entry.localReplacementFolder === theme");
     expect(studioAssetLibrarySource).toContain("function catalogEntryForReplacementTheme");
@@ -699,10 +760,10 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps imported profile template selection tied to assembly request contracts", () => {
-    const builderSource = readSource("packages/builder/src/index.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
-    const packSource = readSource("packages/packs/src/index.ts");
-    const liveGameSource = readSource("apps/studio/src/live-game.tsx");
+    const builderSource = readBuilderSources();
+    const contractSource = readContractSources();
+    const packSource = readPacksSources();
+    const liveGameSource = readLiveGameSources();
     const assetLibrarySource = readSource("apps/studio/src/asset-library.ts");
 
     expect(contractSource).toContain("template: GameProfileTemplateSnapshotSchema,");
@@ -714,9 +775,9 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("profile validation snapshot must not contain warnings");
     expect(readSource("packages/contracts/test/schemas.test.ts")).toContain("requires profiles to carry matching validation snapshots");
     expect(readSource("packages/core/test/replay.test.ts")).toContain("fails closed when saved profile validation snapshots are not clean");
-    expect(readSource("apps/studio/src/studio-app.tsx")).toContain("Validation: clean");
-    expect(readSource("apps/studio/src/studio-app.tsx")).not.toContain("Errors: ${profile.validation.errors.length}");
-    expect(readSource("apps/studio/src/studio-app.tsx")).not.toContain("Warnings: ${profile.validation.warnings.length}");
+    expect(readStudioSources()).toContain("Validation: clean");
+    expect(readStudioSources()).not.toContain("Errors: ${profile.validation.errors.length}");
+    expect(readStudioSources()).not.toContain("Warnings: ${profile.validation.warnings.length}");
     expect(readSource("packages/builder/test/session-service.test.ts")).toContain('validationForProfile(exported!, "profile.custom-memory")');
     expect(readSource("packages/service/test/local-service.test.ts")).toContain('validationForProfile(profile!, "profile.service-custom-memory")');
     expect(builderSource).toContain("return profile.template");
@@ -773,10 +834,10 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps trusted preview selected component misses fail-closed", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const coreSource = readSource("packages/core/src/index.ts");
     const source = readSource("apps/studio/src/trusted-preview.tsx");
-    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+    const studioSource = readStudioSources();
 
     expect(contractSource).toContain("profileDuplicateStrings(value.components.map((component) => component.bindingId))");
     expect(contractSource).toContain("profile component binding ${duplicate} must be unique");
@@ -816,7 +877,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps saved replay event identity unique instead of log-order trusted", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const coreSource = readSource("packages/core/src/index.ts");
     const replayTestSource = readSource("packages/core/test/replay.test.ts");
     const contractTestSource = readSource("packages/contracts/test/schemas.test.ts");
@@ -842,7 +903,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps component render fallback policy fail-closed only", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const coreSource = readSource("packages/core/src/index.ts");
 
     expect(contractSource).toContain('fallbackPolicy: z.literal("fail-closed")');
@@ -851,7 +912,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps builder command payload fields action-scoped", () => {
-    const source = readSource("packages/contracts/src/index.ts");
+    const source = readContractSources();
 
     expect(source).toContain("template, input, and asset edit payloads are only accepted by assemble and update actions");
     expect(source).toContain("profile payloads are only accepted by import-profile actions");
@@ -862,9 +923,9 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps builder preview actions free of interaction defaulting", () => {
-    const builderSource = readSource("packages/builder/src/index.ts");
+    const builderSource = readBuilderSources();
     const builderCliSource = readSource("packages/builder/src/cli.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
 
     expect(builderSource).toContain("preview-action requires an interaction action");
     expect(builderSource).not.toContain('command.interaction?.action ?? "primary"');
@@ -901,7 +962,7 @@ describe("import-light boundaries and source scans", () => {
   it("keeps service preview actions caller-owned", () => {
     const serviceSource = readSource("packages/service/src/index.ts");
     const cliSource = readSource("packages/service/src/cli.ts");
-    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+    const studioSource = readStudioSources();
 
     expect(serviceSource).toContain("preview(sessionId: string, interaction: BuilderPreviewInteraction)");
     expect(serviceSource).toContain("this.preview(sessionId, request.interaction)");
@@ -912,7 +973,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps Studio timeline detail selection explicit instead of latest-event fallback", () => {
-    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+    const studioSource = readStudioSources();
 
     expect(studioSource).toContain("function selectedTimelineEntry");
     expect(studioSource).toContain("function singleValue");
@@ -988,7 +1049,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps service profile imports free of payload precedence fallbacks", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const serviceSource = readSource("packages/service/src/index.ts");
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
 
@@ -1046,8 +1107,8 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps local service and builder timestamps contract-owned", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
-    const builderSource = readSource("packages/builder/src/index.ts");
+    const contractSource = readContractSources();
+    const builderSource = readBuilderSources();
     const serviceSource = readSource("packages/service/src/index.ts");
     const localTimestamp = "2026-07-04T00:00:00.000Z";
 
@@ -1127,7 +1188,7 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps service CLI stateful examples on exact request batches", () => {
     const cliSource = readSource("packages/service/src/cli.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const rootReadme = readSource("README.md");
     const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
     const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
@@ -1135,14 +1196,14 @@ describe("import-light boundaries and source scans", () => {
     const prd = readSource("playcraft-agentic-framework/PRD.md");
     const serviceSource = readSource("packages/service/src/index.ts");
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
-    const studioSource = readSource("apps/studio/src/studio-app.tsx");
+    const studioSource = readStudioSources();
 
     expect(contractSource).toContain("BuilderServiceCatalogSchema");
     expect(contractSource).toContain("BuilderServiceCatalogActionRequestSchema");
     expect(contractSource).toContain("BuilderServiceRequestFieldNameSchema");
     expect(contractSource).toContain('"BuilderServiceRequestBatchSchema"');
     expect(contractSource).toContain("requiredContracts: z.array(PublicContractNameSchema).min(2)");
-    expect(contractSource).toContain("service: BuilderServiceCatalogSchema");
+    expect(contractSource).toContain("BuilderServiceCatalogSchema");
     expect(contractSource).toContain("exactEnvelope");
     expect(contractSource).toContain("requiredAnyOf");
     expect(contractSource).toContain("exclusiveAnyOf");
@@ -1183,14 +1244,14 @@ describe("import-light boundaries and source scans", () => {
     expect(cliSource).toContain("action.request.requiredAnyOf");
     expect(cliSource).toContain("action.request.exclusiveAnyOf");
     expect(cliSource).toContain("action.request.forbiddenTogether");
-    expect(studioSource).toContain("catalog.service.actions");
-    expect(studioSource).toContain("catalog.service.exactEnvelope");
-    expect(studioSource).toContain("catalog.service.exactEnvelope.requiredContracts.join");
-    expect(studioSource).toContain("catalog.service.transports");
-    expect(studioSource).toContain("action.request.acceptedFields");
-    expect(studioSource).toContain("action.request.requiredAnyOf");
-    expect(studioSource).toContain("action.request.exclusiveAnyOf");
-    expect(studioSource).toContain("action.request.forbiddenTogether");
+    expect(studioSource).not.toContain("catalog.service.actions");
+    expect(studioSource).not.toContain("catalog.service.exactEnvelope");
+    expect(studioSource).not.toContain("catalog.service.exactEnvelope.requiredContracts.join");
+    expect(studioSource).not.toContain("catalog.service.transports");
+    expect(studioSource).not.toContain("action.request.acceptedFields");
+    expect(studioSource).not.toContain("action.request.requiredAnyOf");
+    expect(studioSource).not.toContain("action.request.exclusiveAnyOf");
+    expect(studioSource).not.toContain("action.request.forbiddenTogether");
     expect(cliSource).not.toContain("BuilderServiceRequestSchema.array().min(1)");
     expect(rootReadme).toContain("playcraft-service request-batch");
     expect(rootReadme).toContain("handleLocalServiceRequestBatch");
@@ -1224,9 +1285,9 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps Studio request tips catalog-owned instead of app-composed", () => {
-    const studioSource = readSource("apps/studio/src/studio-app.tsx");
-    const contractSource = readSource("packages/contracts/src/index.ts");
-    const packSource = readSource("packages/packs/src/index.ts");
+    const studioSource = readStudioSources();
+    const contractSource = readContractSources();
+    const packSource = readPacksSources();
     const packTestSource = readSource("packages/packs/test/mvp-profiles.test.ts");
     const serviceSource = readSource("packages/service/src/index.ts");
 
@@ -1269,15 +1330,15 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps Studio game tip labels catalog-owned instead of suffix-stripped", () => {
-    const studioSource = readSource("apps/studio/src/studio-app.tsx");
-    const contractSource = readSource("packages/contracts/src/index.ts");
-    const packSource = readSource("packages/packs/src/index.ts");
+    const studioSource = readStudioSources();
+    const contractSource = readContractSources();
+    const packSource = readPacksSources();
 
     expect(contractSource).toContain("displayLabel");
     expect(contractSource).toContain("requestAliasSummary");
     expect(packSource).toContain("displayLabel: template.displayLabel");
     expect(studioSource).toContain("catalog.requestTips.summaryLines");
-    expect(studioSource).toContain("template.requestAliasSummary");
+    expect(studioSource).not.toContain("template.requestAliasSummary");
     expect(studioSource).not.toContain("displayGameName");
     expect(studioSource).not.toContain("replace(/\\s+MVP");
     expect(studioSource).not.toContain("requestAliases.slice(0, 3)");
@@ -1286,15 +1347,15 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps Studio asset tip labels catalog-owned instead of alias-inferred", () => {
-    const studioSource = readSource("apps/studio/src/studio-app.tsx");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const studioSource = readStudioSources();
+    const contractSource = readContractSources();
 
     expect(contractSource).toContain("displayLabel");
     expect(contractSource).toContain("aliasSummary");
     expect(contractSource).toContain("suggestedItemSummary");
     expect(studioSource).toContain("catalog.requestTips.summaryLines");
-    expect(studioSource).toContain("entry.aliasSummary");
-    expect(studioSource).toContain("entry.suggestedItemSummary");
+    expect(studioSource).not.toContain("entry.aliasSummary");
+    expect(studioSource).not.toContain("entry.suggestedItemSummary");
     expect(studioSource).not.toContain("preferredAssetThemeLabel");
     expect(studioSource).not.toContain("alias.includes");
     expect(studioSource).not.toContain("entry.aliases.join");
@@ -1302,7 +1363,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps builder tool display names explicit instead of description-derived", () => {
-    const builderSource = readSource("packages/builder/src/index.ts");
+    const builderSource = readBuilderSources();
 
     expect(builderSource).toContain('"Assemble Game"');
     expect(builderSource).toContain('"Update Game"');
@@ -1313,7 +1374,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps Studio chat asset summaries session-owned instead of prompt-parsed", () => {
-    const source = readSource("apps/studio/src/studio-app.tsx");
+    const source = readStudioSources();
 
     expect(source).toContain("session.activeAssetEdit");
     expect(source).not.toContain("assetThemeForProfile");
@@ -1323,7 +1384,7 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps service freeform asset folder names literal", () => {
     const source = readSource("packages/service/src/index.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const assetCatalogSource = readSource("packages/assets/src/index.ts");
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
 
@@ -1357,9 +1418,9 @@ describe("import-light boundaries and source scans", () => {
     expect(source).toContain("localAssetEditGenericThemeTokens");
     expect(source).toContain("localAssetEditFreeformItemSuffixes");
     expect(source).toContain("localAssetEditIntentPatterns");
-    expect(readSource("packages/builder/src/index.ts")).toContain("localAssetEditFreeformItemSuffixes.map");
-    expect(readSource("packages/builder/src/index.ts")).not.toContain("function generatedItemsForTheme");
-    expect(readSource("packages/builder/src/index.ts")).not.toContain('`${base}-1`, `${base}-2`, `${base}-3`');
+    expect(readBuilderSources()).toContain("localAssetEditFreeformItemSuffixes.map");
+    expect(readBuilderSources()).not.toContain("function generatedItemsForTheme");
+    expect(readBuilderSources()).not.toContain('`${base}-1`, `${base}-2`, `${base}-3`');
     expect(source).not.toContain(".find((entry): entry is { source: TextAssetEdit[\"source\"]; theme: string } => Boolean(entry))");
     expect(source).not.toContain("GENERIC_ASSET_THEME_TOKENS");
     expect(source).not.toContain('new Set(["asset", "assets"');
@@ -1386,8 +1447,8 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps the default builder template pack-owned", () => {
-    const packSource = readSource("packages/packs/src/index.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const packSource = readPacksSources();
+    const contractSource = readContractSources();
     const serviceSource = readSource("packages/service/src/index.ts");
     const serviceTestSource = readSource("packages/service/test/local-service.test.ts");
 
@@ -1409,10 +1470,10 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps builder asset prompt wording template-owned instead of component-inferred", () => {
-    const builderSource = readSource("packages/builder/src/index.ts");
+    const builderSource = readBuilderSources();
     const builderTestSource = readSource("packages/builder/test/session-service.test.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
-    const packSource = readSource("packages/packs/src/index.ts");
+    const contractSource = readContractSources();
+    const packSource = readPacksSources();
 
     expect(contractSource).toContain("assetPromptKind");
     expect(contractSource).toContain("GameTemplateAssetEditOperationSchema");
@@ -1445,7 +1506,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps builder asset edit operations from inventing missing authored props", () => {
-    const builderSource = readSource("packages/builder/src/index.ts");
+    const builderSource = readBuilderSources();
     const builderTestSource = readSource("packages/builder/test/session-service.test.ts");
 
     expect(builderSource).toContain("asset edit operation ${operation} requires non-empty string array prop ${key}");
@@ -1492,8 +1553,8 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("publishes concrete preview interaction tool arguments", () => {
-    const builderSource = readSource("packages/builder/src/index.ts");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const builderSource = readBuilderSources();
+    const contractSource = readContractSources();
 
     expect(contractSource).toContain("fields?: Record<string, JsonField>");
     expect(builderSource).toContain("const previewInteraction");
@@ -1504,11 +1565,11 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps Live App surface selection template-owned instead of component-priority inferred", () => {
-    const liveGameSource = readSource("apps/studio/src/live-game.tsx");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const liveGameSource = readLiveGameSources();
+    const contractSource = readContractSources();
     const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
     const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
-    const packSource = readSource("packages/packs/src/index.ts");
+    const packSource = readPacksSources();
 
     expect(contractSource).toContain("GameTemplateLiveSurfaceSchema");
     expect(packSource).toContain("liveSurface: template.liveSurface");
@@ -1529,7 +1590,7 @@ describe("import-light boundaries and source scans", () => {
     expect(liveGameSource).toContain("const matches = deck.filter((entry) => entry.id === cardId);");
     expect(liveGameSource).not.toContain("return matches[0]");
     expect(liveGameSource).not.toContain("deck.find((entry) => entry.id === next[0])");
-    expect(liveGameSource).toContain("function LiveGameFailure");
+    expect(liveGameSource).not.toContain("function LiveGameFailure");
     expect(liveGameSource).toContain('"data-testid": "live-game-error"');
     expect(liveGameSource).not.toContain("profile.components.find((component) => component.renderCapability === capability)");
     expect(contractSource).not.toContain("liveSurfaceKind");
@@ -1543,11 +1604,11 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps Live App token styling template-owned", () => {
-    const liveGameSource = readSource("apps/studio/src/live-game.tsx");
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const liveGameSource = readLiveGameSources();
+    const contractSource = readContractSources();
     const architecture = readSource("playcraft-agentic-framework/ARCHITECTURE.md");
     const devGuide = readSource("playcraft-agentic-framework/DEV_GUIDE.md");
-    const packSource = readSource("packages/packs/src/index.ts");
+    const packSource = readPacksSources();
 
     expect(contractSource).toContain("GameTemplateTokenStyleSchema");
     expect(contractSource).toContain("tokenStyles: z.array(GameTemplateTokenStyleSchema).min(1)");
@@ -1605,9 +1666,9 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps Studio library asset replacement sources template-owned", () => {
     const assetLibrarySource = readSource("apps/studio/src/asset-library.ts");
-    const liveGameSource = readSource("apps/studio/src/live-game.tsx");
-    const contractSource = readSource("packages/contracts/src/index.ts");
-    const packSource = readSource("packages/packs/src/index.ts");
+    const liveGameSource = readLiveGameSources();
+    const contractSource = readContractSources();
+    const packSource = readPacksSources();
 
     expect(contractSource).toContain("GameTemplateAssetReplacementSourceSchema");
     expect(contractSource).toContain("GameProfileTemplateSnapshotSchema");
@@ -1695,10 +1756,10 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps live and asset token readers from stringifying malformed JSON props", () => {
     const tokenReaders = [
-      readSource("apps/studio/src/live-game.tsx"),
+      readLiveGameSources(),
       readSource("apps/studio/src/asset-library.ts"),
-      readSource("packages/builder/src/index.ts"),
-      readSource("packages/packs/src/index.ts")
+      readBuilderSources(),
+      readPacksSources()
     ].join("\n");
     const studioTestSource = readSource("tests/studio-ui.test.ts");
 
@@ -1719,7 +1780,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps trusted rendering component-id concrete without capability fallback dispatch", () => {
-    const contractSource = readSource("packages/contracts/src/index.ts");
+    const contractSource = readContractSources();
     const coreSource = readSource("packages/core/src/index.ts");
     const rendererSource = readSource("packages/renderer/src/index.tsx");
     const previewSource = readSource("apps/studio/src/trusted-preview.tsx");
@@ -1778,7 +1839,7 @@ describe("import-light boundaries and source scans", () => {
   });
 
   it("keeps Studio trusted component interaction summaries replay-owned", () => {
-    const appSource = readSource("apps/studio/src/studio-app.tsx");
+    const appSource = readStudioSources();
     const previewSource = readSource("apps/studio/src/trusted-preview.tsx");
 
     expect(previewSource).toContain("interactionSummaryFor");
@@ -1793,11 +1854,11 @@ describe("import-light boundaries and source scans", () => {
   it("blocks generated runtime code execution in renderer, builder, and studio", () => {
     const source = [
       readSource("packages/renderer/src/index.tsx"),
-      readSource("packages/builder/src/index.ts"),
+      readBuilderSources(),
       readSource("packages/service/src/index.ts"),
       readSource("apps/studio/src/local-client.ts"),
-      readSource("apps/studio/src/live-game.tsx"),
-      readSource("apps/studio/src/studio-app.tsx"),
+      readLiveGameSources(),
+      readStudioSources(),
       readSource("apps/studio/src/trusted-preview.tsx"),
       readSource("apps/studio/src/App.tsx"),
       readSource("apps/studio/src/main.tsx")
@@ -1809,15 +1870,15 @@ describe("import-light boundaries and source scans", () => {
   it("keeps builder and studio free of third-party runtime, auth, db, and native-shell dependencies", () => {
     const source = [
       readSource("packages/builder/package.json"),
-      readSource("packages/builder/src/index.ts"),
+      readBuilderSources(),
       readSource("packages/service/package.json"),
       readSource("packages/service/src/cli.ts"),
       readSource("packages/service/src/http-server.ts"),
       readSource("packages/service/src/index.ts"),
       readSource("apps/studio/package.json"),
       readSource("apps/studio/src/local-client.ts"),
-      readSource("apps/studio/src/live-game.tsx"),
-      readSource("apps/studio/src/studio-app.tsx"),
+      readLiveGameSources(),
+      readStudioSources(),
       readSource("apps/studio/src/trusted-preview.tsx"),
       readSource("apps/studio/src/App.tsx"),
       readSource("apps/studio/src/main.tsx"),

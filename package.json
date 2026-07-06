@@ -17,6 +17,8 @@
     "typecheck:studio": "pnpm --filter @playcraft/studio typecheck"
   },
   "devDependencies": {
+    "@playcraft/service": "workspace:*",
+    "@playcraft/builder": "workspace:*",
     "@testing-library/react": "^16.2.0",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
