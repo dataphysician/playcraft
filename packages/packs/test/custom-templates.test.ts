@@ -29,16 +29,16 @@ function loadFixture(relativePath: string): GameAssemblyProfile {
 }
 
 describe("custom template recipes", () => {
-  it("exports three custom template recipes under the template.custom.* namespace", () => {
+  it("exports three custom template recipes under the recipe.bundled.* namespace, paired 1-to-1 with template.custom.* template definitions", () => {
     expect(customTemplateRecipes).toHaveLength(3);
     expect(customTemplateRecipes.map((recipe) => recipe.id)).toEqual([
-      "template.custom.toy-memory",
-      "template.custom.dolphin-sorting",
-      "template.custom.fruit-sequence"
+      "recipe.bundled.toy-memory",
+      "recipe.bundled.dolphin-sorting",
+      "recipe.bundled.fruit-sequence"
     ]);
     for (const recipe of customTemplateRecipes) {
-      expect(recipe.id.startsWith("template.custom.")).toBe(true);
-      expect(() => BuilderTemplateNamespaceSchema.parse(recipe.id)).not.toThrow();
+      expect(recipe.id.startsWith("recipe.bundled.")).toBe(true);
+      expect(() => BuilderTemplateNamespaceSchema.parse(recipe.id.replace(/^recipe\.bundled\./u, "template.custom."))).not.toThrow();
     }
   });
 
@@ -50,9 +50,11 @@ describe("custom template recipes", () => {
       "request.dolphin-sorting.custom",
       "request.fruit-sequence.custom"
     ]);
-    expect(customGameTemplateDefinitions.map((definition) => definition.id)).toEqual(
-      customTemplateRecipes.map((recipe) => recipe.id)
-    );
+    expect(customGameTemplateDefinitions.map((definition) => definition.id)).toEqual([
+      "template.custom.toy-memory",
+      "template.custom.dolphin-sorting",
+      "template.custom.fruit-sequence"
+    ]);
     for (const request of customAssemblyRequests) {
       expect(request.intent.requestedCapabilities.some((capability) => capability.startsWith("game:custom-"))).toBe(true);
       expect(request.deterministicSeed).toMatch(/^seed-custom-/u);

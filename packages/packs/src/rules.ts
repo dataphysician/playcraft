@@ -1,4 +1,5 @@
 import {
+  BUNDLED_LOCAL_PROVENANCE,
   PLAYCRAFT_SCHEMA_VERSION,
   RuleModuleDefinitionSchema,
   type RuleModuleDefinition
@@ -33,7 +34,8 @@ export function rule(
       modalities: ["touch", "pointer"],
       requiredCapabilities: capabilityTags,
       assetContentTypes: []
-    }
+    },
+    provenance: BUNDLED_LOCAL_PROVENANCE
   };
 }
 

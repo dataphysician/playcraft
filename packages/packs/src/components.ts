@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  BUNDLED_LOCAL_PROVENANCE,
   ComponentManifestSchema,
   FrontendToolDefinitionSchema,
   PLAYCRAFT_SCHEMA_VERSION,
@@ -66,7 +67,8 @@ export function component(
       keyboardReachable: true
     },
     safetyPolicyIds: [DEFAULT_SAFETY_POLICY_ID],
-    replayBehavior: "state-derived"
+    replayBehavior: "state-derived",
+    provenance: BUNDLED_LOCAL_PROVENANCE
   };
 }
 

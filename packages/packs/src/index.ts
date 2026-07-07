@@ -1,4 +1,4 @@
-import { DeterministicLocalAssetSource } from "@playcraft/assets";
+import { LocalAssetFolderSource } from "@playcraft/assets";
 import {
   BuilderTemplateIdSchema,
   PLAYCRAFT_SCHEMA_VERSION,
@@ -8,6 +8,7 @@ import {
 import {
   DeterministicAssemblyPlanner,
   createEmptyRegistries,
+  type AssetRecordGenerator,
   type PlaycraftRegistries
 } from "@playcraft/core";
 import { TrustedComponentRegistry } from "@playcraft/renderer";
@@ -163,9 +164,9 @@ export function createDefaultRegistries(): PlaycraftRegistries {
   return registries;
 }
 
-export function createDefaultPlanner(options: { registries?: PlaycraftRegistries; assetSource?: DeterministicLocalAssetSource } = {}): DeterministicAssemblyPlanner {
+export function createDefaultPlanner(options: { registries?: PlaycraftRegistries; assetSource?: AssetRecordGenerator } = {}): DeterministicAssemblyPlanner {
   const registries = options.registries ?? createDefaultRegistries();
-  const assetSource = options.assetSource ?? new DeterministicLocalAssetSource();
+  const assetSource = options.assetSource ?? new LocalAssetFolderSource({ folder: "apps/studio/src/assets/library/replacements" });
   return new DeterministicAssemblyPlanner({
     id: DEFAULT_PLANNER_ID,
     version: "1.0.0",

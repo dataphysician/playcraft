@@ -57,6 +57,19 @@ import {
   ThemePackSchema
 } from "./manifests.js";
 import { PackManifestSchema } from "./packs.js";
+import { GameBundleSchema } from "./game-bundle.js";
+import {
+  AgentStepSchema,
+  AgentToolCallSchema,
+  AgentToolResultSchema,
+  LocalInferenceEngineIdSchema,
+  LocalInferenceEngineManifestSchema,
+  PlaycraftAgentTranscriptSchema
+} from "./agent.js";
+import {
+  RemoteEnrichmentRequestSchema,
+  RemoteEnrichmentResponseSchema
+} from "./enrichment.js";
 
 // base.ts re-exports this module, creating a circular import where base.ts is
 // mid-initialization while builder.ts is being loaded. Every schema in this
@@ -178,12 +191,25 @@ export const BuilderProfileExportSchema = z.lazy(() =>
     preview: BuilderPreviewStateSchema,
     validation: AssemblyValidationResultSchema,
     exportedAt: z.string().datetime(),
-    retrieval: z
+    provenance: z
       .object({
-        current: z.literal("bundled-local"),
-        planned: z.literal("server-catalog")
+        source: z.enum(["local-llm-agent", "deterministic-local", "remote-agent"]),
+        agentEngine: LocalInferenceEngineIdSchema.optional(),
+        enrichmentSources: z.array(StableIdSchema).default([]),
+        assembledBy: z.string().min(1).max(120).optional(),
+        assembledAt: z.string().datetime(),
+        remoteUrl: z.string().url().optional(),
+        agentTranscriptId: StableIdSchema.optional()
       })
       .strict()
+      .refine((value) => value.source !== "local-llm-agent" || Boolean(value.agentEngine), {
+        message: "local-llm-agent provenance must declare an agentEngine",
+        path: ["agentEngine"]
+      })
+      .refine((value) => value.source !== "remote-agent" || value.enrichmentSources.length > 0, {
+        message: "remote-agent provenance must list at least one enrichmentSource",
+        path: ["enrichmentSources"]
+      })
   })
     .strict()
     .refine((value) => Boolean(value.preview.activeProfileId), {
@@ -470,7 +496,15 @@ export const PublicContractSchemas: Record<PublicContractName, z.ZodTypeAny> = {
   get McpManifestSchema(): z.ZodTypeAny { return McpManifestSchema; },
   get McpServerPolicySchema(): z.ZodTypeAny { return McpServerPolicySchema; },
   get WorkflowGraphSchema(): z.ZodTypeAny { return WorkflowGraphSchema; },
-  get AssetCatalogManifestSchema(): z.ZodTypeAny { return AssetCatalogManifestSchema; }
+  get AssetCatalogManifestSchema(): z.ZodTypeAny { return AssetCatalogManifestSchema; },
+  get GameBundleSchema(): z.ZodTypeAny { return GameBundleSchema; },
+  get LocalInferenceEngineManifestSchema(): z.ZodTypeAny { return LocalInferenceEngineManifestSchema; },
+  get AgentToolCallSchema(): z.ZodTypeAny { return AgentToolCallSchema; },
+  get AgentToolResultSchema(): z.ZodTypeAny { return AgentToolResultSchema; },
+  get AgentStepSchema(): z.ZodTypeAny { return AgentStepSchema; },
+  get PlaycraftAgentTranscriptSchema(): z.ZodTypeAny { return PlaycraftAgentTranscriptSchema; },
+  get RemoteEnrichmentRequestSchema(): z.ZodTypeAny { return RemoteEnrichmentRequestSchema; },
+  get RemoteEnrichmentResponseSchema(): z.ZodTypeAny { return RemoteEnrichmentResponseSchema; }
 };
 
 export function schemaIssue(path: Array<string | number>, code: string, message: string, severity: z.infer<typeof ValidationSeveritySchema>): z.infer<typeof SchemaIssueSchema> {

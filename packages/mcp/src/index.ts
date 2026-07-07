@@ -31,6 +31,7 @@ export { adapterToolsToMcp } from "./adapter.js";
 export type { AdapterMcpGuardrails } from "./adapter.js";
 export { invokeMcpTool } from "./tool-call.js";
 export type { InvokeMcpToolArgs } from "./tool-call.js";
+export type { McpServiceFacade } from "./facade.js";
 
 export {
   PLAYCRAFT_MCP_GUARDRAILS,

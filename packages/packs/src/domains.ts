@@ -1,5 +1,6 @@
 import { LOCAL_ASSET_SOURCE_ID } from "@playcraft/assets";
 import {
+  BUNDLED_LOCAL_PROVENANCE,
   DomainProfileSchema,
   PLAYCRAFT_SCHEMA_VERSION,
   SafetyPolicyPackSchema,
@@ -35,7 +36,8 @@ export const safetyPolicyPacks: SafetyPolicyPack[] = [
       noPunitiveFailures: true,
       quietModeAvailable: true,
       maxSessionMinutes: 10
-    }
+    },
+    provenance: BUNDLED_LOCAL_PROVENANCE
   })
 ];
 
@@ -58,6 +60,7 @@ export const domainProfiles: DomainProfile[] = [
     defaults: {
       feedbackTone: "gentle",
       progressMode: "noncompetitive"
-    }
+    },
+    provenance: BUNDLED_LOCAL_PROVENANCE
   })
 ];

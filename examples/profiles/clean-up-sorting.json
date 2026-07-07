@@ -1,0 +1,340 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.clean-up-sorting.mvp",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Clean Up Sorting MVP",
+  "assemblyRequestId": "request.clean-up-sorting.mvp",
+  "template": {
+    "schemaVersion": "playcraft.v1",
+    "id": "template.clean-up-sorting",
+    "version": "1.0.0",
+    "kind": "game-template-snapshot",
+    "displayName": "Clean Up Sorting MVP",
+    "displayLabel": "Clean Up Sorting",
+    "assetPromptKind": "sorting-game",
+    "assetEditOperations": [
+      {
+        "componentCapability": "component:choice-grid",
+        "operation": "choice-items"
+      },
+      {
+        "componentCapability": "component:sort-bins",
+        "operation": "sorting-items"
+      },
+      {
+        "componentCapability": "component:hint-bubble",
+        "operation": "hint-message"
+      }
+    ],
+    "liveSurface": {
+      "kind": "sorting",
+      "componentCapabilities": {
+        "primary": "component:sort-bins"
+      },
+      "assetReplacementSources": [
+        {
+          "componentRole": "primary",
+          "prop": "items",
+          "namespace": "item"
+        }
+      ],
+      "tokenStyles": [
+        {
+          "tokens": [
+            "red"
+          ],
+          "background": "#fee2e2",
+          "border": "#ef4444",
+          "foreground": "#7f1d1d",
+          "accent": "#fecaca"
+        },
+        {
+          "tokens": [
+            "blue"
+          ],
+          "background": "#dbeafe",
+          "border": "#2563eb",
+          "foreground": "#1e3a8a",
+          "accent": "#bfdbfe"
+        },
+        {
+          "tokens": [
+            "green"
+          ],
+          "background": "#dcfce7",
+          "border": "#16a34a",
+          "foreground": "#14532d",
+          "accent": "#bbf7d0"
+        },
+        {
+          "tokens": [
+            "yellow"
+          ],
+          "background": "#fef3c7",
+          "border": "#eab308",
+          "foreground": "#713f12",
+          "accent": "#fde68a"
+        }
+      ],
+      "defaultTokenStyle": {
+        "tokens": [
+          "default"
+        ],
+        "background": "#ede9fe",
+        "border": "#7c3aed",
+        "foreground": "#4c1d95",
+        "accent": "#ddd6fe"
+      }
+    },
+    "assemblyRequestId": "request.clean-up-sorting.mvp"
+  },
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.mechanic.1",
+      "mechanicId": "mechanic.tap-to-select",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-select"
+      },
+      "eventBindings": {
+        "primary": "frontend:selected"
+      }
+    },
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.mechanic.2",
+      "mechanicId": "mechanic.sort-into-bins",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:sort-into-bins"
+      },
+      "eventBindings": {
+        "primary": "rule:item-sorted"
+      }
+    },
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.mechanic.3",
+      "mechanicId": "mechanic.retry-loop",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "support:retry"
+      },
+      "eventBindings": {
+        "primary": "rule:retry-ready"
+      }
+    },
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.mechanic.4",
+      "mechanicId": "mechanic.hint-prompt",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "support:hint"
+      },
+      "eventBindings": {
+        "primary": "frontend:hint-shown"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.rule.1",
+      "ruleId": "rule.category-validation",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "category-validation"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.rule.2",
+      "ruleId": "rule.guided-retry",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "retry"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.rule.3",
+      "ruleId": "rule.completion",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "completion"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.component.1",
+      "componentId": "component.choice-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:choice-grid",
+      "mechanicBindingIds": [
+        "profile.clean-up-sorting.mvp.mechanic.1"
+      ],
+      "renderMechanicBindingId": "profile.clean-up-sorting.mvp.mechanic.1",
+      "props": {
+        "title": "Clean up sort",
+        "prompt": "Put each toy in the right basket.",
+        "items": [
+          "block",
+          "crayon",
+          "doll"
+        ]
+      },
+      "assetBindings": {
+        "illustration": "asset.dinosaurs.dinosaur-1"
+      }
+    },
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.component.2",
+      "componentId": "component.sort-bins",
+      "version": "1.0.0",
+      "renderCapability": "component:sort-bins",
+      "mechanicBindingIds": [
+        "profile.clean-up-sorting.mvp.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.clean-up-sorting.mvp.mechanic.2",
+      "props": {
+        "title": "Clean up sort",
+        "items": [
+          "block",
+          "crayon",
+          "doll"
+        ],
+        "bins": [
+          "blocks",
+          "art"
+        ],
+        "targets": {
+          "block": "blocks",
+          "crayon": "art",
+          "doll": "blocks"
+        }
+      },
+      "assetBindings": {
+        "illustration": "asset.dinosaurs.dinosaur-1"
+      }
+    },
+    {
+      "bindingId": "profile.clean-up-sorting.mvp.component.3",
+      "componentId": "component.hint-bubble",
+      "version": "1.0.0",
+      "renderCapability": "component:hint-bubble",
+      "mechanicBindingIds": [
+        "profile.clean-up-sorting.mvp.mechanic.4"
+      ],
+      "renderMechanicBindingId": "profile.clean-up-sorting.mvp.mechanic.4",
+      "props": {
+        "hint": "Match it to the basket label."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.clean-up-sorting.mvp",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.clean-up-sorting.mvp",
+      "profileId": "profile.clean-up-sorting.mvp",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "png",
+      "prompt": "friendly toy baskets for a child-safe clean up sorting game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-clean-up-sorting"
+      },
+      "metadata": {
+        "profileTemplate": "template.clean-up-sorting"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.dinosaurs.dinosaur-1",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.clean-up-sorting.mvp",
+      "assetId": "asset.dinosaurs.dinosaur-1",
+      "sourceId": "asset-source.local-folder",
+      "contentType": "image",
+      "format": "png",
+      "uri": "file:///home/damaso/python/hackathons/playcraft/apps/studio/src/assets/library/replacements/dinosaurs/dinosaur-1.png",
+      "altText": "dinosaur-1 sprite",
+      "metadata": {
+        "theme": "dinosaurs",
+        "basename": "dinosaur-1",
+        "folder": "apps/studio/src/assets/library/replacements",
+        "canonical": true
+      },
+      "provenance": {
+        "sourceManifestId": "asset-source.local-folder",
+        "sourceManifestVersion": "1.0.0",
+        "seed": "seed-clean-up-sorting",
+        "seedSupported": false,
+        "seedStatus": "not-provided",
+        "generatedAt": "2026-07-06T21:56:59.089Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-clean-up-sorting",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.clean-up-sorting.mvp.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.clean-up-sorting.mvp",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.clean-up-sorting.mvp",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.clean-up-sorting.mvp",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.clean-up-sorting.mvp",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}

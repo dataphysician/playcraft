@@ -196,7 +196,7 @@
         ]
       },
       "assetBindings": {
-        "illustration": "asset.c8a5dc09"
+        "illustration": "asset.dinosaurs.dinosaur-1"
       }
     },
     {
@@ -226,7 +226,7 @@
         }
       },
       "assetBindings": {
-        "illustration": "asset.c8a5dc09"
+        "illustration": "asset.dinosaurs.dinosaur-1"
       }
     },
     {
@@ -255,7 +255,7 @@
       "domainProfileId": "domain.child-edu",
       "safetyPolicyId": "safety.child-friendly",
       "contentType": "image",
-      "format": "svg",
+      "format": "png",
       "prompt": "simple colorful shapes for a child-safe sorting game",
       "seedPolicy": {
         "mode": "required",
@@ -269,28 +269,29 @@
   "assets": [
     {
       "schemaVersion": "playcraft.v1",
-      "id": "generated.c8a5dc09",
+      "id": "generated.dinosaurs.dinosaur-1",
       "version": "1.0.0",
       "kind": "generated-asset",
       "requestId": "asset-request.profile.sorting.mvp",
-      "assetId": "asset.c8a5dc09",
-      "sourceId": "asset-source.local-deterministic",
+      "assetId": "asset.dinosaurs.dinosaur-1",
+      "sourceId": "asset-source.local-folder",
       "contentType": "image",
-      "format": "svg",
-      "uri": "local-asset://image/c8a5dc09.svg",
-      "altText": "Deterministic image asset for simple colorful shapes for a child-safe sorting game",
+      "format": "png",
+      "uri": "file:///home/damaso/python/hackathons/playcraft/apps/studio/src/assets/library/replacements/dinosaurs/dinosaur-1.png",
+      "altText": "dinosaur-1 sprite",
       "metadata": {
-        "promptDigest": "c8a5dc09",
-        "source": "deterministic-local"
+        "theme": "dinosaurs",
+        "basename": "dinosaur-1",
+        "folder": "apps/studio/src/assets/library/replacements",
+        "canonical": true
       },
       "provenance": {
-        "sourceManifestId": "asset-source.local-deterministic",
+        "sourceManifestId": "asset-source.local-folder",
         "sourceManifestVersion": "1.0.0",
-        "deterministic": true,
         "seed": "seed-sorting",
-        "seedSupported": true,
-        "seedStatus": "used",
-        "generatedAt": "2026-06-27T00:00:00.000Z"
+        "seedSupported": false,
+        "seedStatus": "not-provided",
+        "generatedAt": "2026-07-06T23:11:43.933Z"
       },
       "safety": {
         "status": "safe",

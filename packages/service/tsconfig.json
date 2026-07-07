@@ -10,6 +10,8 @@
     { "path": "../assets" },
     { "path": "../contracts" },
     { "path": "../builder" },
-    { "path": "../packs" }
+    { "path": "../mcp" },
+    { "path": "../packs" },
+    { "path": "../text-utils" }
   ]
 }

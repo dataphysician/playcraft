@@ -4,10 +4,10 @@ import type {
   GameTemplateAssetReplacementNamespace,
   GameTemplateAssetReplacementSource,
   GameProfileTemplateSnapshot,
-  JsonValue,
-  BuilderAssetEditCatalogEntry
+  JsonValue
 } from "@playcraft/contracts";
-import { localAssetEditCatalog } from "@playcraft/assets";
+import { CANONICAL_LOCAL_ASSET_FOLDER, LocalAssetFolderSource } from "@playcraft/assets";
+import { cleanLabel, normalizedTokens, singularize, slugLabel, tokenSequenceIncludes } from "@playcraft/text-utils";
 
 import memoryMatchBackgroundUrl from "./assets/library/ui/backgrounds/memory-match.png";
 import sequenceRepeatBackgroundUrl from "./assets/library/ui/backgrounds/sequence-repeat.png";
@@ -16,6 +16,19 @@ import playcraftCardBackUrl from "./assets/library/ui/cards/playcraft-card-back.
 import sortingBinBlueUrl from "./assets/library/ui/sorting/bin-blue.png";
 import sortingBinGreenUrl from "./assets/library/ui/sorting/bin-green.png";
 import sortingBinRedUrl from "./assets/library/ui/sorting/bin-red.png";
+
+function resolveStudioReplacementsFolder(): string {
+  const override = typeof process !== "undefined" ? process.env["PLAYCRAFT_REPLACEMENTS_FOLDER"] : undefined;
+  if (typeof override === "string" && override.length > 0) {
+    return override;
+  }
+  if (typeof process !== "undefined" && typeof process.cwd === "function") {
+    return `${process.cwd()}/${CANONICAL_LOCAL_ASSET_FOLDER}`;
+  }
+  return CANONICAL_LOCAL_ASSET_FOLDER;
+}
+
+const STUDIO_REPLACEMENTS_FOLDER = resolveStudioReplacementsFolder();
 
 export interface LibraryAssetReplacement {
   altText: string;
@@ -69,31 +82,62 @@ export const sortingBinAssetCatalog: SortingBinAsset[] = [
   }
 ];
 
+const studioReplacementFolderSource = new LocalAssetFolderSource({
+  folder: STUDIO_REPLACEMENTS_FOLDER
+});
+
 const replacementImageModules = import.meta.glob("./assets/library/replacements/**/*.png", {
   eager: true,
   import: "default"
 });
 
-const replacementSprites = replacementImageEntries(replacementImageModules)
-  .flatMap(([path, uri]) => {
+const moduleSpriteEntries = replacementImageEntries(replacementImageModules);
+
+const folderSpriteEntries = studioReplacementFolderSource
+  .listAllSprites()
+  .filter((sprite) => !sprite.fileName.endsWith("-source.png"))
+  .map((sprite) => {
+    const moduleEntry = moduleSpriteEntries.find(([path]) => {
+      const parts = path.split("/");
+      return parts.at(-2) === sprite.theme && parts.at(-1) === sprite.fileName;
+    });
+    const moduleUri = moduleEntry?.[1];
+    return {
+      altText: `${sprite.basename.replace(/-/gu, " ")} sprite`,
+      id: sprite.basename,
+      theme: sprite.theme,
+      uri: moduleUri ?? sprite.uri
+    };
+  })
+  .filter((entry) => entry.uri.length > 0);
+
+const moduleOnlyEntries = moduleSpriteEntries
+  .filter(([path]) => {
     const parts = path.split("/");
+    const theme = parts.at(-2) ?? "";
     const fileName = parts.at(-1) ?? "";
     if (fileName.endsWith("-source.png")) {
-      return [];
+      return false;
     }
-
+    return !folderSpriteEntries.some((entry) => entry.theme === theme && entry.id === fileName.replace(/\.png$/u, ""));
+  })
+  .map(([path, moduleUri]) => {
+    const parts = path.split("/");
+    const fileName = parts.at(-1) ?? "";
     const id = fileName.replace(/\.png$/u, "");
     const theme = parts.at(-2) ?? "default";
-    return [
-      {
-        altText: `${id.replace(/-/gu, " ")} sprite`,
-        id,
-        theme,
-        uri
-      }
-    ];
+    return {
+      altText: `${id.replace(/-/gu, " ")} sprite`,
+      id,
+      theme,
+      uri: typeof moduleUri === "string" ? moduleUri : ""
+    };
   })
-  .sort((left, right) => `${left.theme}/${left.id}`.localeCompare(`${right.theme}/${right.id}`));
+  .filter((entry) => entry.uri.length > 0);
+
+const replacementSprites = [...folderSpriteEntries, ...moduleOnlyEntries].sort((left, right) =>
+  `${left.theme}/${left.id}`.localeCompare(`${right.theme}/${right.id}`)
+);
 
 function replacementImageEntries(modules: Record<string, unknown>): Array<[string, string]> {
   return Object.entries(modules).map(([path, uri]) => {
@@ -289,22 +333,41 @@ function valuesMatchTheme(values: string[], theme: string): boolean {
 }
 
 function themeTerms(theme: string): string[] {
-  const normalized = normalizeText(theme);
+  const normalized = cleanLabel(theme);
   const singular = singularize(normalized);
   const catalogEntry = catalogEntryForReplacementTheme(theme);
 
   return uniqueStrings([normalized, singular, catalogEntry?.theme, catalogEntry?.displayLabel, ...(catalogEntry?.aliases ?? [])].filter((entry): entry is string => Boolean(entry)));
 }
 
-function catalogEntryForReplacementTheme(theme: string): BuilderAssetEditCatalogEntry | undefined {
-  const matches = localAssetEditCatalog.filter((entry) =>
-    entry.theme === theme || entry.localReplacementFolder === theme
-  );
-  if (matches.length > 1) {
-    throw new Error(`local asset replacement theme ${theme} maps to multiple catalog entries: ${matches.map((entry) => entry.theme).join(", ")}`);
+function catalogEntryForReplacementTheme(theme: string): { theme: string; localReplacementFolder: string; displayLabel: string; aliases: string[]; suggestedItems: string[] } | undefined {
+  const manifests = studioReplacementFolderSource.listThemeManifests();
+  const matches = manifests
+    .filter((entry) => entry.theme === theme)
+    .map((entry) => entry.theme);
+  const unique = uniqueStrings(matches);
+  if (unique.length > 1) {
+    throw new Error(`local asset replacement theme ${theme} maps to multiple catalog entries: ${unique.join(", ")}`);
   }
 
-  return singleValue(matches);
+  const matchedTheme = singleValue(unique);
+  if (!matchedTheme) {
+    return undefined;
+  }
+
+  const manifest = manifests.find((entry) => entry.theme === matchedTheme);
+  if (!manifest) {
+    return undefined;
+  }
+
+  const sprites = studioReplacementFolderSource.listSpritesForTheme(matchedTheme);
+  return {
+    theme: matchedTheme,
+    localReplacementFolder: matchedTheme,
+    displayLabel: manifest.displayLabel,
+    aliases: manifest.aliases,
+    suggestedItems: sprites.map((sprite) => sprite.basename)
+  };
 }
 
 function spriteForIdentifier(identifier: string, themeFolders: string[]): ReplacementSprite | undefined {
@@ -414,47 +477,6 @@ function stringRecordProp(props: Record<string, JsonValue>, key: string): Record
   return Object.fromEntries(
     Object.entries(value).map(([entryKey, entryValue]) => [entryKey, entryValue as string])
   );
-}
-
-function normalizeText(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]+/gu, " ")
-    .replace(/\s+/gu, " ")
-    .trim();
-}
-
-function normalizedTokens(value: string): string[] {
-  return normalizeText(value).split(" ").filter(Boolean);
-}
-
-function tokenSequenceIncludes(tokens: string[], sequence: string[]): boolean {
-  if (sequence.length === 0 || sequence.length > tokens.length) {
-    return false;
-  }
-
-  return tokens.some((_, index) =>
-    sequence.every((token, offset) => tokens[index + offset] === token)
-  );
-}
-
-function slugLabel(value: string): string {
-  return normalizeText(value).replace(/\s+/gu, "-");
-}
-
-function singularize(value: string): string {
-  return value
-    .split(" ")
-    .map((word) => {
-      if (word.endsWith("ies") && word.length > 3) {
-        return `${word.slice(0, -3)}y`;
-      }
-      if (word.endsWith("s") && !word.endsWith("ss") && word.length > 3) {
-        return word.slice(0, -1);
-      }
-      return word;
-    })
-    .join(" ");
 }
 
 function uniqueStrings(values: string[]): string[] {

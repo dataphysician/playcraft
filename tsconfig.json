@@ -3,6 +3,7 @@
   "references": [
     { "path": "./packages/contracts" },
     { "path": "./packages/assets" },
+    { "path": "./packages/text-utils" },
     { "path": "./packages/core" },
     { "path": "./packages/ag-ui" },
     { "path": "./packages/renderer" },
@@ -11,7 +12,8 @@
     { "path": "./packages/service" },
     { "path": "./packages/mcp" },
     { "path": "./apps/studio" },
-    { "path": "./apps/mobile-shell" }
+    { "path": "./apps/mobile-shell" },
+    { "path": "./tests/e2e" }
   ],
   "compilerOptions": {
     "target": "ES2022",
@@ -29,6 +31,7 @@
       "@playcraft/contracts": ["packages/contracts/src/index.ts"],
       "@playcraft/core": ["packages/core/src/index.ts"],
       "@playcraft/assets": ["packages/assets/src/index.ts"],
+      "@playcraft/text-utils": ["packages/text-utils/src/index.ts"],
       "@playcraft/ag-ui": ["packages/ag-ui/src/index.ts"],
       "@playcraft/renderer": ["packages/renderer/src/index.tsx"],
       "@playcraft/packs": ["packages/packs/src/index.ts"],

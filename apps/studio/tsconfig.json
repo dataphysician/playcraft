@@ -10,6 +10,7 @@
     { "path": "../../packages/assets" },
     { "path": "../../packages/contracts" },
     { "path": "../../packages/core" },
+    { "path": "../../packages/text-utils" },
     { "path": "../../packages/ag-ui" },
     { "path": "../../packages/renderer" },
     { "path": "../../packages/packs" },

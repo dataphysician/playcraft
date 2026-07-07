@@ -1,4 +1,5 @@
 import {
+  BuilderAssetEditCatalogEntrySchema,
   BuilderCatalogSchema,
   BuilderProfileExportSchema,
   BuilderServiceErrorSchema,
@@ -11,6 +12,7 @@ import {
   PLAYCRAFT_SCHEMA_VERSION,
   WorkflowGraphSchema,
   type BuilderAssetEdit,
+  type BuilderAssetEditCatalogEntry,
   type BuilderCatalog,
   type BuilderCommand,
   type BuilderInputSource,
@@ -29,12 +31,6 @@ import {
   type SseFrame,
   type AgUiEventEnvelopeContract
 } from "@playcraft/contracts";
-import {
-  localAssetEditCatalog,
-  localAssetEditFreeformItemSuffixes,
-  localAssetEditGenericThemeTokens,
-  localAssetEditMaxItems
-} from "@playcraft/assets";
 import {
   createBuilderCommandHandler,
   type BuilderCommandHandler,
@@ -74,7 +70,63 @@ export { executeWorkflow, executeWorkflowSse, executeWorkflowSync } from "./work
 export { WorkflowGraphSchema, WorkflowNodeSchema, WorkflowEdgeSchema, WorkflowConditionSchema, WORKFLOW_NODE_CAP } from "./workflow/schema.js";
 
 export const PLAYCRAFT_SERVICE_PACKAGE = "@playcraft/service";
-export { localAssetEditCatalog } from "@playcraft/assets";
+
+function buildAssetEditCatalogEntry(input: {
+  aliases: string[];
+  displayLabel: string;
+  localReplacementFolder?: string;
+  suggestedItems: string[];
+  theme: string;
+}): BuilderAssetEditCatalogEntry {
+  return BuilderAssetEditCatalogEntrySchema.parse({
+    ...input,
+    aliasSummary: input.aliases.join(", "),
+    localReplacementFolder: input.localReplacementFolder ?? input.theme,
+    suggestedItemSummary: input.suggestedItems.join(", ")
+  });
+}
+
+const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
+  buildAssetEditCatalogEntry({
+    theme: "dinosaurs",
+    displayLabel: "dinosaurs",
+    aliases: ["dinosaur", "dinosaurs"],
+    suggestedItems: ["dinosaur-1", "dinosaur-2", "dinosaur-3"]
+  }),
+  buildAssetEditCatalogEntry({
+    theme: "toys",
+    displayLabel: "toys",
+    aliases: ["toy", "toys"],
+    suggestedItems: ["toy-1", "toy-2", "toy-3"]
+  }),
+  buildAssetEditCatalogEntry({
+    theme: "dolphins",
+    displayLabel: "ocean animals",
+    aliases: ["dolphin", "dolphins", "ocean animals", "ocean animal", "sea animals", "sea animal"],
+    suggestedItems: ["dolphin-1", "dolphin-2", "dolphin-3"]
+  }),
+  buildAssetEditCatalogEntry({
+    theme: "fruits",
+    displayLabel: "fruit",
+    aliases: ["fruit", "fruits"],
+    suggestedItems: ["fruit-1", "fruit-2", "fruit-3"]
+  })
+];
+const localAssetEditMaxItems = 12;
+const localAssetEditFreeformItemSuffixes = ["1", "2", "3"];
+const localAssetEditGenericThemeTokens = [
+  "asset",
+  "assets",
+  "card",
+  "cards",
+  "card image",
+  "card images",
+  "image",
+  "images",
+  "art",
+  "theme"
+];
+export { localAssetEditCatalog, localAssetEditMaxItems, localAssetEditFreeformItemSuffixes, localAssetEditGenericThemeTokens };
 
 export {
   LOCAL_SERVICE_CATALOG,
@@ -151,7 +203,7 @@ export class LocalPlaycraftService {
       },
       retrieval: {
         current: "bundled-local",
-        planned: "server-catalog"
+        planned: "bundled-local"
       }
     });
   }
@@ -213,9 +265,12 @@ export class LocalPlaycraftService {
       preview: session.preview,
       validation: session.validation,
       exportedAt: PLAYCRAFT_LOCAL_TIMESTAMP,
-      retrieval: {
-        current: "bundled-local",
-        planned: "server-catalog"
+      provenance: {
+        source: "local-llm-agent",
+        agentEngine: "lfm2.5-vl-450m-extract",
+        assembledBy: "playcraft-service",
+        assembledAt: PLAYCRAFT_LOCAL_TIMESTAMP,
+        agentTranscriptId: `agent-transcript.${sessionId}`
       }
     });
   }

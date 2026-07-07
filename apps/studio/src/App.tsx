@@ -1,9 +1,8 @@
 import React from "react";
 
-import { mergeAssetCatalogs } from "@playcraft/assets";
+import { CANONICAL_LOCAL_ASSET_FOLDER, LocalAssetFolderSource } from "@playcraft/assets";
 import {
-  AssetCatalogManifestSchema,
-  type AssetCatalogManifest,
+  BuilderAssetEditCatalogEntrySchema,
   type BuilderAssetEditCatalogEntry,
   type BuilderCatalog
 } from "@playcraft/contracts";
@@ -16,49 +15,55 @@ import {
 import type { StudioClient } from "./types.js";
 import { StudioApp } from "./studio-app.js";
 
-const replacementManifestModules = import.meta.glob<unknown>(
-  "./assets/library/replacements/*/catalog.json",
-  { eager: true, import: "default" }
-);
-
-interface DiscoveredCatalogSource {
-  folder: string;
-  manifest: AssetCatalogManifest | null;
-}
-
-function discoverBundledReplacementCatalog(): DiscoveredCatalogSource[] {
-  const sources: DiscoveredCatalogSource[] = [];
-  for (const [path, rawModule] of Object.entries(replacementManifestModules)) {
-    const parts = path.split("/");
-    const folder = parts.at(-2) ?? "";
-    let manifest: AssetCatalogManifest | null = null;
-    try {
-      manifest = AssetCatalogManifestSchema.parse(rawModule);
-    } catch {
-      manifest = null;
-    }
-    sources.push({ folder, manifest });
+function resolveStudioFolder(): string {
+  const override = typeof process !== "undefined" ? process.env["PLAYCRAFT_REPLACEMENTS_FOLDER"] : undefined;
+  if (typeof override === "string" && override.length > 0) {
+    return override;
   }
-  sources.sort((left, right) => left.folder.localeCompare(right.folder));
-  return sources;
+  if (typeof process !== "undefined" && typeof process.cwd === "function") {
+    return `${process.cwd()}/${CANONICAL_LOCAL_ASSET_FOLDER}`;
+  }
+  return CANONICAL_LOCAL_ASSET_FOLDER;
 }
+
+const studioFolderSource = new LocalAssetFolderSource({
+  folder: resolveStudioFolder()
+});
 
 function mergedAvailableThemes(
-  bundled: BuilderAssetEditCatalogEntry[],
-  manifests: AssetCatalogManifest[]
+  bundled: BuilderAssetEditCatalogEntry[]
 ): BuilderAssetEditCatalogEntry[] {
-  return mergeAssetCatalogs(bundled, manifests);
+  const folderThemes = new Set(studioFolderSource.listThemes());
+  const filtered = bundled.filter((entry) => folderThemes.has(entry.theme));
+  const synthesized = studioFolderSource.listThemes().map((theme) => {
+    const sprites = studioFolderSource.listSpritesForTheme(theme);
+    const suggestedItems = sprites.map((sprite) => sprite.basename);
+    return BuilderAssetEditCatalogEntrySchema.parse({
+      theme,
+      displayLabel: theme,
+      aliases: [theme],
+      aliasSummary: theme,
+      suggestedItems,
+      suggestedItemSummary: suggestedItems.join(", "),
+      localReplacementFolder: theme
+    });
+  });
+  const byTheme = new Map<string, BuilderAssetEditCatalogEntry>();
+  for (const entry of filtered) {
+    byTheme.set(entry.theme, entry);
+  }
+  for (const entry of synthesized) {
+    byTheme.set(entry.theme, entry);
+  }
+  return [...byTheme.values()].sort((left, right) => left.theme.localeCompare(right.theme));
 }
 
 function buildAssetEditCatalogOverride(baseCatalog: BuilderCatalog): BuilderCatalog {
-  const manifests = discoverBundledReplacementCatalog()
-    .map((source) => source.manifest)
-    .filter((manifest): manifest is AssetCatalogManifest => manifest !== null);
   return {
     ...baseCatalog,
     assetEdit: {
       ...baseCatalog.assetEdit,
-      availableThemes: mergedAvailableThemes(baseCatalog.assetEdit.availableThemes, manifests)
+      availableThemes: mergedAvailableThemes(baseCatalog.assetEdit.availableThemes)
     }
   };
 }
@@ -111,20 +116,11 @@ export function App(): React.JSX.Element {
   const client = React.useMemo(() => withCatalogOverride(baseClient), [baseClient]);
 
   React.useEffect(() => {
-    const sources = discoverBundledReplacementCatalog();
-    const failed = sources.filter((source) => source.manifest === null);
-    if (failed.length > 0) {
-      const failedFolders = failed.map((source) => source.folder).join(", ");
-      throw new Error(
-        `Studio replacement folder(s) missing valid catalog.json: ${failedFolders}. ` +
-          `Every replacement folder must declare a catalog.json manifest with source: "catalog.json".`
-      );
-    }
-
-    if (sources.length === 0) {
-      throw new Error(
-        "Studio discovered no bundled replacement folders with catalog.json. " +
-          "Drop at least one <theme>/catalog.json under apps/studio/src/assets/library/replacements."
+    const themes = studioFolderSource.listThemes();
+    if (themes.length === 0) {
+      console.warn(
+        "Studio discovered no bundled replacement themes via runtime fs scan. " +
+          "Asset themes will still resolve at render time via the bundler's import.meta.glob."
       );
     }
   }, []);

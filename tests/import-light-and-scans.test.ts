@@ -50,9 +50,19 @@ function readPacksSources(): string {
   const dir = join(root, "packages/packs/src");
   let extras = "";
   try {
-    extras = readdirSync(dir)
-      .filter((f) => /\.(ts|tsx)$/.test(f) && f !== "index.ts")
-      .map((f) => readFileSync(join(dir, f), "utf-8"))
+    extras = readdirSync(dir, { withFileTypes: true })
+      .flatMap((entry) => {
+        const entryPath = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          return readdirSync(entryPath)
+            .filter((f) => /\.(ts|tsx)$/.test(f))
+            .map((f) => readFileSync(join(entryPath, f), "utf-8"));
+        }
+        if (/\.(ts|tsx)$/.test(entry.name) && entry.name !== "index.ts") {
+          return [readFileSync(entryPath, "utf-8")];
+        }
+        return [];
+      })
       .join("\n");
   } catch {}
   return main + "\n" + extras;
@@ -273,16 +283,17 @@ describe("import-light boundaries and source scans", () => {
 
   it("keeps registry compatibility selection contract-kind explicit", () => {
     const coreSource = readSource("packages/core/src/index.ts");
+    const constraintsSource = readSource("packages/core/src/registry-constraints.ts");
     const registryTestSource = readSource("packages/core/test/registries.test.ts");
 
     expect(coreSource).not.toContain("function " + "compatibilityStringArray");
     expect(coreSource).not.toContain("contractCompatibilityForEntry(entry,");
-    expect(coreSource).toContain("function contractCompatibilityForEntry(entry: RegistryEntry): ContractCompatibilityFields | undefined");
-    expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.domainProfileIds");
-    expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.safetyPolicyIds");
-    expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.ageBands");
-    expect(coreSource).toContain("contractCompatibilityForEntry(entry)?.modalities");
-    expect(coreSource).toContain('entry.kind !== "mechanic" && entry.kind !== "rule-module"');
+    expect(constraintsSource).toContain("function contractCompatibilityForEntry(entry: RegistryEntry): ContractCompatibilityFields | undefined");
+    expect(constraintsSource).toContain("contractCompatibilityForEntry(entry)?.domainProfileIds");
+    expect(constraintsSource).toContain("contractCompatibilityForEntry(entry)?.safetyPolicyIds");
+    expect(constraintsSource).toContain("contractCompatibilityForEntry(entry)?.ageBands");
+    expect(constraintsSource).toContain("contractCompatibilityForEntry(entry)?.modalities");
+    expect(constraintsSource).toContain('entry.kind !== "mechanic" && entry.kind !== "rule-module"');
     expect(coreSource).toContain("function registrySelectionWarnings");
     expect(coreSource).toContain("function singleValue");
     expect(coreSource).toContain("return singleValue(matches);");
@@ -729,10 +740,11 @@ describe("import-light boundaries and source scans", () => {
     expect(contractSource).toContain("addDuplicateBuilderAssetThemeIssues");
     expect(contractSource).toContain("asset edit alias ${duplicate} must map to exactly one theme");
     expect(contractSource).toContain("asset edit acceptedKeys must include ${key}");
-    expect(assetSource).toContain("localReplacementFolder: input.localReplacementFolder ?? input.theme");
+    expect(assetSource).toContain("LOCAL_ASSET_SOURCE_ID");
+    expect(builderSource).toContain("localReplacementFolder: matched.theme");
     expect(rootReadme).toContain("local replacement themes and folders");
     expect(devGuide).toContain("bundled local replacement themes/items/folders");
-    expect(builderSource).toContain("localAssetEditCatalog");
+    expect(builderSource).toContain("PROFILE_BUILD_FOLDER_SOURCE");
     expect(builderSource).toContain("BuilderAssetEditSchema.parse(assetEdit)");
     expect(builderSource).toContain("assetEditCatalogEntryFor");
     expect(builderSource).toContain("maps to multiple builder asset edit catalog entries");
@@ -741,14 +753,14 @@ describe("import-light boundaries and source scans", () => {
     expect(builderSource).not.toContain('"custom assets"');
     expect(builderSource).not.toContain("defaultItemsForTheme");
     expect(builderSource).not.toContain("return localAssetEditCatalog.find((entry)");
-    expect(serviceSource).toContain('from "@playcraft/assets"');
+    expect(serviceSource).toContain("localAssetEditCatalog");
     expect(serviceCliSource).toContain("entry.localReplacementFolder");
     expect(studioSource).not.toContain("entry.localReplacementFolder");
     expect(studioAssetLibrarySource).toContain('from "@playcraft/assets"');
-    expect(studioAssetLibrarySource).toContain("entry.localReplacementFolder === theme");
+    expect(studioAssetLibrarySource).toContain("localReplacementFolder: matchedTheme");
     expect(studioAssetLibrarySource).toContain("function catalogEntryForReplacementTheme");
     expect(studioAssetLibrarySource).toContain("maps to multiple catalog entries");
-    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("rejects duplicate local replacement catalog themes instead of using catalog order");
+    expect(readSource("tests/studio-asset-library.test.tsx")).toContain("uses the folder-driven catalog for local replacement themes");
     expect(studioAssetLibrarySource).toContain("request.metadata.assetEditTheme");
     expect(studioAssetLibrarySource).not.toContain("addMetadataValue(values, request.metadata.assetEditItems)");
     expect(studioAssetLibrarySource).not.toContain("values.add(request.prompt)");
@@ -1422,16 +1434,23 @@ describe("import-light boundaries and source scans", () => {
     expect(serviceTestSource).toContain("keeps dotted freeform asset folder names literal instead of treating dots as truncation");
     expect(contractSource).toContain("genericThemeTokens");
     expect(contractSource).toContain("freeformItemSuffixes");
-    expect(assetCatalogSource).toContain("localAssetEditGenericThemeTokens");
-    expect(assetCatalogSource).toContain("localAssetEditFreeformItemSuffixes");
-    expect(assetCatalogSource).toContain("localAssetEditMaxItems");
-    expect(assetCatalogSource).toContain("localAssetEditMaxThemeLength");
-    expect(assetCatalogSource).toContain("localAssetEditIntentPatterns");
-    expect(assetCatalogSource).not.toContain("[a-z0-9 ,.-]{1,80}");
+    expect(assetCatalogSource).toContain("LocalAssetFolderSource");
+    expect(assetCatalogSource).toContain("CANONICAL_LOCAL_ASSET_FOLDER");
+    expect(assetCatalogSource).toContain("LOCAL_ASSET_SOURCE_ID");
+    expect(assetCatalogSource).toContain("LOCAL_ASSET_SOURCE_VERSION");
+    expect(assetCatalogSource).not.toContain("DeterministicLocalAssetSource");
+    expect(assetCatalogSource).not.toContain("localAssetEditIntentPatterns");
+    expect(assetCatalogSource).not.toContain("loadManifestFromFolder");
+    expect(assetCatalogSource).not.toContain("mergeAssetCatalogs");
+    expect(assetCatalogSource).not.toContain("createLocalAssetSourceManifest");
+    expect(assetCatalogSource).not.toContain("assetSourceManifestSupportsRequest");
+    expect(assetCatalogSource).not.toContain("stableHash");
+    expect(assetCatalogSource).not.toContain("assetCatalogManifestPath");
+    expect(assetCatalogSource).not.toContain("ASSET_CATALOG_MANIFEST_FILE_NAME");
     expect(source).toContain("localAssetEditGenericThemeTokens");
     expect(source).toContain("localAssetEditFreeformItemSuffixes");
     expect(source).toContain("localAssetEditIntentPatterns");
-    expect(readBuilderSources()).toContain("localAssetEditFreeformItemSuffixes.map");
+    expect(readBuilderSources()).toContain("FALLBACK_FREEFORM_SUFFIXES");
     expect(readBuilderSources()).not.toContain("function generatedItemsForTheme");
     expect(readBuilderSources()).not.toContain('`${base}-1`, `${base}-2`, `${base}-3`');
     expect(source).not.toContain(".find((entry): entry is { source: TextAssetEdit[\"source\"]; theme: string } => Boolean(entry))");

@@ -1,8 +1,10 @@
-import { localAssetEditCatalog, localAssetEditFreeformItemSuffixes, type DeterministicLocalAssetSource } from "@playcraft/assets";
+import { LocalAssetFolderSource } from "@playcraft/assets";
 import {
   AssetGenerationRequestSchema,
+  BuilderAssetEditCatalogEntrySchema,
   BuilderAssetEditSchema,
   GameAssemblyProfileSchema,
+  type BuilderAssetEditCatalogEntry,
   type BuilderAssetEdit,
   type GameAssemblyProfile,
   type GameProfileTemplateSnapshot,
@@ -11,7 +13,13 @@ import {
   type GeneratedAssetRecord,
   type JsonValue
 } from "@playcraft/contracts";
-import { validateGameAssemblyProfile, type PlaycraftRegistries } from "@playcraft/core";
+import { validateGameAssemblyProfile, type AssetRecordGenerator, type PlaycraftRegistries } from "@playcraft/core";
+import { articleFor, cleanLabel, singularize, slugLabel, titleCase } from "@playcraft/text-utils";
+
+const FALLBACK_FREEFORM_SUFFIXES = ["1", "2", "3"] as const;
+const PROFILE_BUILD_FOLDER_SOURCE = new LocalAssetFolderSource({
+  folder: "apps/studio/src/assets/library/replacements"
+});
 
 export interface NormalizedAssetEdit {
   theme: string;
@@ -23,7 +31,7 @@ export interface NormalizedAssetEdit {
 export function applyAssetEdit(
   profile: GameAssemblyProfile,
   assetEdit: BuilderAssetEdit | undefined,
-  assetSource: DeterministicLocalAssetSource,
+  assetSource: AssetRecordGenerator,
   registries: PlaycraftRegistries
 ): GameAssemblyProfile {
   const edit = normalizeAssetEdit(assetEdit);
@@ -289,21 +297,48 @@ export function pairMapForCards(cards: string[]): Record<string, string> {
   return pairs;
 }
 
-export function assetEditCatalogEntryFor(theme: string): typeof localAssetEditCatalog[number] | undefined {
+export function assetEditCatalogEntryFor(theme: string): BuilderAssetEditCatalogEntry | undefined {
   const candidate = cleanLabel(theme);
-  const matches = localAssetEditCatalog.filter((entry) =>
-    [entry.theme, ...entry.aliases].some((alias) => cleanLabel(alias) === candidate)
-  );
+  const manifests = PROFILE_BUILD_FOLDER_SOURCE.listThemeManifests();
+  const matches = manifests.filter((entry) => {
+    if (cleanLabel(entry.theme) === candidate) {
+      return true;
+    }
+    if (cleanLabel(entry.displayLabel) === candidate) {
+      return true;
+    }
+    return entry.aliases.some((alias) => cleanLabel(alias) === candidate);
+  });
   if (matches.length > 1) {
     throw new Error(`asset edit theme ${theme} maps to multiple builder asset edit catalog entries: ${matches.map((entry) => entry.theme).join(", ")}`);
   }
+  const matched = singleValue(matches);
+  if (!matched) {
+    return undefined;
+  }
 
-  return singleValue(matches);
+  const sprites = PROFILE_BUILD_FOLDER_SOURCE.listSpritesForTheme(matched.theme);
+  const suggestedItems = sprites.map((sprite) => sprite.basename);
+  return BuilderAssetEditCatalogEntrySchema.parse({
+    theme: matched.theme,
+    displayLabel: matched.displayLabel,
+    aliases: matched.aliases,
+    aliasSummary: matched.aliases.join(", "),
+    suggestedItems,
+    suggestedItemSummary: suggestedItems.join(", "),
+    localReplacementFolder: matched.theme
+  });
 }
 
 export function freeformItemsForTheme(singularTheme: string): string[] {
+  const resolvedTheme = PROFILE_BUILD_FOLDER_SOURCE.resolveThemeByAliasOrName(singularTheme);
+  if (resolvedTheme) {
+    return PROFILE_BUILD_FOLDER_SOURCE
+      .listSpritesForTheme(resolvedTheme)
+      .map((sprite) => sprite.basename);
+  }
   const base = slugLabel(singularTheme);
-  return localAssetEditFreeformItemSuffixes.map((suffix) => `${base}-${suffix}`);
+  return FALLBACK_FREEFORM_SUFFIXES.map((suffix) => `${base}-${suffix}`);
 }
 
 export function requireAssetEditItemsForBins(edit: NormalizedAssetEdit, bins: string[]): string[] {
@@ -457,41 +492,6 @@ export function requireSingleValue<TValue>(values: TValue[], label: string): TVa
   }
 
   return value;
-}
-
-export function cleanLabel(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]+/gu, " ")
-    .replace(/\s+/gu, " ")
-    .trim();
-}
-
-export function slugLabel(value: string): string {
-  return cleanLabel(value).replace(/\s+/gu, "-");
-}
-
-export function singularize(value: string): string {
-  return value
-    .split(" ")
-    .map((word) => {
-      if (word.endsWith("ies") && word.length > 3) {
-        return `${word.slice(0, -3)}y`;
-      }
-      if (word.endsWith("s") && !word.endsWith("ss") && word.length > 3) {
-        return word.slice(0, -1);
-      }
-      return word;
-    })
-    .join(" ");
-}
-
-export function titleCase(value: string): string {
-  return value.replace(/\b[a-z]/gu, (match) => match.toUpperCase());
-}
-
-export function articleFor(value: string): "a" | "an" {
-  return /^[aeiou]/u.test(value) ? "an" : "a";
 }
 
 function templateForProfile(profile: GameAssemblyProfile): GameProfileTemplateSnapshot {

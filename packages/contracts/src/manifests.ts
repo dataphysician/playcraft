@@ -10,7 +10,8 @@ import {
   JsonObjectSchemaDescriptorSchema,
   ValidationSeveritySchema,
   CompatibilityConstraintsSchema,
-  VersionSchema
+  VersionSchema,
+  ProvenanceSchema
 } from "./base.js";
 import { AssetRequirementSchema } from "./asset.js";
 import { McpServerPolicy } from "./mcp.js";
@@ -45,7 +46,8 @@ export const MechanicDefinitionSchema = z.lazy(() =>
     consumesEvents: z.array(CapabilityTagSchema).default([]),
     emitsEvents: z.array(CapabilityTagSchema).min(1),
     requiredAssetContentTypes: z.array(AssetContentTypeSchema).default([]),
-    compatibility: CompatibilityConstraintsSchema
+    compatibility: CompatibilityConstraintsSchema,
+    provenance: ProvenanceSchema
   }).strict()
 );
 export type MechanicDefinition = z.infer<typeof MechanicDefinitionSchema>;
@@ -60,7 +62,8 @@ export const RuleModuleDefinitionSchema = z.lazy(() =>
     consumesEvents: z.array(CapabilityTagSchema).min(1),
     emitsEvents: z.array(CapabilityTagSchema).min(1),
     defaultSource: z.enum(["profile", "manifest", "domain-profile", "safety-policy", "explicit-config"]),
-    compatibility: CompatibilityConstraintsSchema
+    compatibility: CompatibilityConstraintsSchema,
+    provenance: ProvenanceSchema
   }).strict()
 );
 export type RuleModuleDefinition = z.infer<typeof RuleModuleDefinitionSchema>;
@@ -84,7 +87,8 @@ export const ComponentManifestSchema = z.lazy(() =>
       })
       .strict(),
     safetyPolicyIds: z.array(StableIdSchema).min(1),
-    replayBehavior: z.enum(["deterministic", "state-derived", "event-derived"])
+    replayBehavior: z.enum(["deterministic", "state-derived", "event-derived"]),
+    provenance: ProvenanceSchema
   }).strict()
 );
 export type ComponentManifest = z.infer<typeof ComponentManifestSchema>;
@@ -106,7 +110,8 @@ export const ThemePackSchema = z.lazy(() =>
       })
       .strict(),
     allowedContentTags: z.array(CapabilityTagSchema).min(1),
-    assetPromptConstraints: z.array(z.string().min(1)).default([])
+    assetPromptConstraints: z.array(z.string().min(1)).default([]),
+    provenance: ProvenanceSchema
   }).strict()
 );
 export type ThemePack = z.infer<typeof ThemePackSchema>;
@@ -141,7 +146,8 @@ export const SafetyPolicyPackSchema = z.lazy(() =>
         quietModeAvailable: z.boolean(),
         maxSessionMinutes: z.number().int().positive()
       })
-      .strict()
+      .strict(),
+    provenance: ProvenanceSchema
   }).strict()
 );
 export type SafetyPolicyPack = z.infer<typeof SafetyPolicyPackSchema>;
@@ -159,7 +165,8 @@ export const DomainProfileSchema = z.lazy(() =>
     allowedAssetSourceIds: z.array(StableIdSchema).min(1),
     ageBands: z.array(AgeBandSchema).min(1),
     modalities: z.array(InputModalitySchema).min(1),
-    defaults: z.record(JsonValueSchema).default({})
+    defaults: z.record(JsonValueSchema).default({}),
+    provenance: ProvenanceSchema
   }).strict()
 );
 export type DomainProfile = z.infer<typeof DomainProfileSchema>;

@@ -17,6 +17,7 @@ export { BUILDER_SESSION_POLICY, BUILDER_SESSION_TTL_MS, BUILDER_DEFAULT_OWNER_I
 export { PlaycraftBuilderSessionService } from "./session-service.js";
 export type { BuildOrUpdateCommand, BuilderExecutionEvent, BuilderExecutionResult, BuilderSessionRecord } from "./ownership.js";
 export { requestForTemplate, customTemplateSnapshotFor } from "./templates.js";
+export { assetEditCatalogEntryFor } from "./profile-build.js";
 
 export const PLAYCRAFT_BUILDER_PACKAGE = "@playcraft/builder";
 

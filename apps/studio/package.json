@@ -19,6 +19,7 @@
     "@playcraft/packs": "workspace:*",
     "@playcraft/renderer": "workspace:*",
     "@playcraft/service": "workspace:*",
+    "@playcraft/text-utils": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

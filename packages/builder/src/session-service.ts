@@ -11,7 +11,7 @@ import {
   toolCall,
   toolResult
 } from "@playcraft/ag-ui";
-import { DeterministicLocalAssetSource } from "@playcraft/assets";
+import { LocalAssetFolderSource } from "@playcraft/assets";
 import {
   BuilderCommandResultSchema,
   BuilderCommandSchema,
@@ -68,7 +68,7 @@ import {
 
 export class PlaycraftBuilderSessionService implements BuilderCommandHandler {
   private readonly registries = createDefaultRegistries();
-  private readonly assetSource = new DeterministicLocalAssetSource();
+  private readonly assetSource = new LocalAssetFolderSource({ folder: "apps/studio/src/assets/library/replacements" });
   private readonly planner = createDefaultPlanner({ registries: this.registries, assetSource: this.assetSource });
   private readonly sessions = new Map<string, BuilderSessionRecord>();
 

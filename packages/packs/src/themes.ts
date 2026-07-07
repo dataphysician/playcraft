@@ -1,4 +1,4 @@
-import { PLAYCRAFT_SCHEMA_VERSION, ThemePackSchema, type GameTemplateTokenStyle, type ThemePack } from "@playcraft/contracts";
+import { BUNDLED_LOCAL_PROVENANCE, PLAYCRAFT_SCHEMA_VERSION, ThemePackSchema, type GameTemplateTokenStyle, type ThemePack } from "@playcraft/contracts";
 import { DEFAULT_DOMAIN_ID } from "./mechanics.js";
 
 export const DEFAULT_THEME_ID = "theme.bright-calm";
@@ -51,6 +51,7 @@ export const themePacks: ThemePack[] = [
       readableText: true
     },
     allowedContentTags: ["content:child-friendly", "content:educational"],
-    assetPromptConstraints: ["Use simple friendly shapes.", "Avoid scary, punitive, or competitive imagery."]
+    assetPromptConstraints: ["Use simple friendly shapes.", "Avoid scary, punitive, or competitive imagery."],
+    provenance: BUNDLED_LOCAL_PROVENANCE
   })
 ];

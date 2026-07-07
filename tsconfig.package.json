@@ -21,6 +21,7 @@
       "@playcraft/contracts": ["packages/contracts/src/index.ts"],
       "@playcraft/core": ["packages/core/src/index.ts"],
       "@playcraft/assets": ["packages/assets/src/index.ts"],
+      "@playcraft/text-utils": ["packages/text-utils/src/index.ts"],
       "@playcraft/ag-ui": ["packages/ag-ui/src/index.ts"],
       "@playcraft/renderer": ["packages/renderer/src/index.tsx"],
       "@playcraft/packs": ["packages/packs/src/index.ts"],

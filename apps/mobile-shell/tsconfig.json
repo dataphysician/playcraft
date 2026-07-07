@@ -9,6 +9,7 @@
   "references": [
     { "path": "../../packages/contracts" },
     { "path": "../../packages/builder" },
+    { "path": "../../packages/core" },
     { "path": "../../packages/service" },
     { "path": "../studio" }
   ]

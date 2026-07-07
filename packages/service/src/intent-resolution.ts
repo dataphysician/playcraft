@@ -4,6 +4,7 @@ import {
   PLAYCRAFT_LOCAL_TIMESTAMP,
   PLAYCRAFT_SCHEMA_VERSION,
   type BuilderAssetEdit,
+  type BuilderAssetEditCatalogEntry,
   type BuilderCatalog,
   type BuilderInputRequest,
   type BuilderInputSource,
@@ -12,15 +13,8 @@ import {
   type BuilderTemplateId,
   type MoonshineTranscriptRecord
 } from "@playcraft/contracts";
-import {
-  localAssetEditCatalog,
-  localAssetEditGenericThemeTokens,
-  localAssetEditIntentPatterns,
-  localAssetEditMaxItems,
-  localAssetEditMaxThemeLength,
-  type LocalAssetEditIntentPattern
-} from "@playcraft/assets";
 import { gameTemplateDefinitions } from "@playcraft/packs";
+import { normalizedTokens, tokenSequenceIncludes } from "@playcraft/text-utils";
 import { toJsonValue } from "./json-helpers.js";
 
 export const MOONSHINE_STREAMING_CPU_CONFIG = {
@@ -28,6 +22,87 @@ export const MOONSHINE_STREAMING_CPU_CONFIG = {
   runtime: "cpu",
   localOnly: true
 } as const;
+
+const localAssetEditCatalog: BuilderAssetEditCatalogEntry[] = [
+  {
+    theme: "dinosaurs",
+    displayLabel: "dinosaurs",
+    aliases: ["dinosaur", "dinosaurs"],
+    aliasSummary: "dinosaur, dinosaurs",
+    localReplacementFolder: "dinosaurs",
+    suggestedItems: ["dinosaur-1", "dinosaur-2", "dinosaur-3"],
+    suggestedItemSummary: "dinosaur-1, dinosaur-2, dinosaur-3"
+  },
+  {
+    theme: "toys",
+    displayLabel: "toys",
+    aliases: ["toy", "toys"],
+    aliasSummary: "toy, toys",
+    localReplacementFolder: "toys",
+    suggestedItems: ["toy-1", "toy-2", "toy-3"],
+    suggestedItemSummary: "toy-1, toy-2, toy-3"
+  },
+  {
+    theme: "dolphins",
+    displayLabel: "ocean animals",
+    aliases: ["dolphin", "dolphins", "ocean animals", "ocean animal", "sea animals", "sea animal"],
+    aliasSummary: "dolphin, dolphins, ocean animals, ocean animal, sea animals, sea animal",
+    localReplacementFolder: "dolphins",
+    suggestedItems: ["dolphin-1", "dolphin-2", "dolphin-3"],
+    suggestedItemSummary: "dolphin-1, dolphin-2, dolphin-3"
+  },
+  {
+    theme: "fruits",
+    displayLabel: "fruit",
+    aliases: ["fruit", "fruits"],
+    aliasSummary: "fruit, fruits",
+    localReplacementFolder: "fruits",
+    suggestedItems: ["fruit-1", "fruit-2", "fruit-3"],
+    suggestedItemSummary: "fruit-1, fruit-2, fruit-3"
+  }
+];
+const localAssetEditGenericThemeTokens = [
+  "asset",
+  "assets",
+  "card",
+  "cards",
+  "card image",
+  "card images",
+  "image",
+  "images",
+  "art",
+  "theme"
+];
+const localAssetEditMaxItems = 12;
+const localAssetEditMaxThemeLength = 80;
+
+interface LocalAssetEditIntentPattern {
+  pattern: RegExp;
+  source: "catalog-asset-alias" | "freeform-asset-request";
+}
+
+const localAssetEditIntentPatterns: LocalAssetEditIntentPattern[] = [
+  {
+    pattern: /\breplace\s+(?:the\s+)?(?:assets?|cards?|card images?|images?|art)\s+with\s+([a-z0-9][a-z0-9 ,.-]*)/u,
+    source: "freeform-asset-request"
+  },
+  {
+    pattern: /\b(?:assets?|cards?|card images?|images?|art|theme)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]*)/u,
+    source: "freeform-asset-request"
+  },
+  {
+    pattern: /\b(?:make|change|switch|update)\s+(?:it|this|them)\s+(?:(?:to|with|as|for)\s+)?([a-z0-9][a-z0-9 ,.-]*)/u,
+    source: "catalog-asset-alias"
+  },
+  {
+    pattern: /\b(?:game|profile|challenge)\s+(?:to|with|as|for)\s+([a-z0-9][a-z0-9 ,.-]*)/u,
+    source: "catalog-asset-alias"
+  },
+  {
+    pattern: /\b(?:with|using|about|featuring)\s+([a-z0-9][a-z0-9 ,.-]*)/u,
+    source: "freeform-asset-request"
+  }
+];
 
 export interface ResolvedBuilderInputCommand {
   assetEdit?: BuilderAssetEdit;
@@ -395,23 +470,4 @@ function requireTextAssetThemeWithinContract(theme: string): void {
   if (theme.length > localAssetEditMaxThemeLength) {
     throw new Error(`text asset requests accept asset themes up to ${localAssetEditMaxThemeLength} characters; use explicit assetEdit`);
   }
-}
-
-export function normalizedTokens(value: string): string[] {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/gu, " ")
-    .trim()
-    .split(/\s+/u)
-    .filter(Boolean);
-}
-
-export function tokenSequenceIncludes(tokens: string[], sequence: string[]): boolean {
-  if (sequence.length === 0 || sequence.length > tokens.length) {
-    return false;
-  }
-
-  return tokens.some((_, index) =>
-    sequence.every((token, offset) => tokens[index + offset] === token)
-  );
 }

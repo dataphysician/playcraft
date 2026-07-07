@@ -1,0 +1,346 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.rhythm-repeat.mvp",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Rhythm Repeat MVP",
+  "assemblyRequestId": "request.rhythm-repeat.mvp",
+  "template": {
+    "schemaVersion": "playcraft.v1",
+    "id": "template.rhythm-repeat",
+    "version": "1.0.0",
+    "kind": "game-template-snapshot",
+    "displayName": "Rhythm Repeat MVP",
+    "displayLabel": "Rhythm Repeat",
+    "assetPromptKind": "sequence-buttons",
+    "assetEditOperations": [
+      {
+        "componentCapability": "component:sequence-pad",
+        "operation": "sequence-items"
+      },
+      {
+        "componentCapability": "component:choice-grid",
+        "operation": "choice-items"
+      },
+      {
+        "componentCapability": "component:celebration-overlay",
+        "operation": "completion-message"
+      }
+    ],
+    "liveSurface": {
+      "kind": "sequence",
+      "componentCapabilities": {
+        "primary": "component:sequence-pad",
+        "choice": "component:choice-grid"
+      },
+      "assetReplacementSources": [
+        {
+          "componentRole": "primary",
+          "prop": "sequence",
+          "namespace": "choice"
+        },
+        {
+          "componentRole": "choice",
+          "prop": "items",
+          "namespace": "choice"
+        }
+      ],
+      "tokenStyles": [
+        {
+          "tokens": [
+            "red"
+          ],
+          "background": "#fee2e2",
+          "border": "#ef4444",
+          "foreground": "#7f1d1d",
+          "accent": "#fecaca"
+        },
+        {
+          "tokens": [
+            "blue"
+          ],
+          "background": "#dbeafe",
+          "border": "#2563eb",
+          "foreground": "#1e3a8a",
+          "accent": "#bfdbfe"
+        },
+        {
+          "tokens": [
+            "green"
+          ],
+          "background": "#dcfce7",
+          "border": "#16a34a",
+          "foreground": "#14532d",
+          "accent": "#bbf7d0"
+        },
+        {
+          "tokens": [
+            "yellow"
+          ],
+          "background": "#fef3c7",
+          "border": "#eab308",
+          "foreground": "#713f12",
+          "accent": "#fde68a"
+        }
+      ],
+      "defaultTokenStyle": {
+        "tokens": [
+          "default"
+        ],
+        "background": "#ede9fe",
+        "border": "#7c3aed",
+        "foreground": "#4c1d95",
+        "accent": "#ddd6fe"
+      }
+    },
+    "assemblyRequestId": "request.rhythm-repeat.mvp"
+  },
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.rhythm-repeat.mvp.mechanic.1",
+      "mechanicId": "mechanic.sequence-repeat",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:sequence-repeat"
+      },
+      "eventBindings": {
+        "primary": "rule:sequence-progressed"
+      }
+    },
+    {
+      "bindingId": "profile.rhythm-repeat.mvp.mechanic.2",
+      "mechanicId": "mechanic.tap-to-select",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-select"
+      },
+      "eventBindings": {
+        "primary": "frontend:selected"
+      }
+    },
+    {
+      "bindingId": "profile.rhythm-repeat.mvp.mechanic.3",
+      "mechanicId": "mechanic.timed-celebration",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "feedback:celebration"
+      },
+      "eventBindings": {
+        "primary": "frontend:celebrated"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.rhythm-repeat.mvp.rule.1",
+      "ruleId": "rule.sequence-progression",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "progression"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.rhythm-repeat.mvp.rule.2",
+      "ruleId": "rule.attempt-feedback",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "attempt-feedback"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.rhythm-repeat.mvp.rule.3",
+      "ruleId": "rule.hint-timing",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "hint"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.rhythm-repeat.mvp.component.1",
+      "componentId": "component.sequence-pad",
+      "version": "1.0.0",
+      "renderCapability": "component:sequence-pad",
+      "mechanicBindingIds": [
+        "profile.rhythm-repeat.mvp.mechanic.1",
+        "profile.rhythm-repeat.mvp.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.rhythm-repeat.mvp.mechanic.1",
+      "props": {
+        "title": "Rhythm repeat",
+        "prompt": "Tap the rhythm pattern.",
+        "sequence": [
+          "tap",
+          "clap",
+          "tap"
+        ],
+        "rounds": [
+          [
+            "tap",
+            "clap",
+            "tap"
+          ],
+          [
+            "shake",
+            "tap",
+            "clap"
+          ],
+          [
+            "tap",
+            "shake",
+            "clap",
+            "tap"
+          ]
+        ]
+      },
+      "assetBindings": {
+        "illustration": "asset.dinosaurs.dinosaur-1"
+      }
+    },
+    {
+      "bindingId": "profile.rhythm-repeat.mvp.component.2",
+      "componentId": "component.choice-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:choice-grid",
+      "mechanicBindingIds": [
+        "profile.rhythm-repeat.mvp.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.rhythm-repeat.mvp.mechanic.2",
+      "props": {
+        "title": "Rhythm repeat",
+        "prompt": "Tap the rhythm pattern.",
+        "items": [
+          "tap",
+          "clap",
+          "shake"
+        ]
+      },
+      "assetBindings": {
+        "illustration": "asset.dinosaurs.dinosaur-1"
+      }
+    },
+    {
+      "bindingId": "profile.rhythm-repeat.mvp.component.3",
+      "componentId": "component.celebration-overlay",
+      "version": "1.0.0",
+      "renderCapability": "component:celebration-overlay",
+      "mechanicBindingIds": [
+        "profile.rhythm-repeat.mvp.mechanic.3"
+      ],
+      "renderMechanicBindingId": "profile.rhythm-repeat.mvp.mechanic.3",
+      "props": {
+        "message": "Rhythm repeat complete."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.rhythm-repeat.mvp",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.rhythm-repeat.mvp",
+      "profileId": "profile.rhythm-repeat.mvp",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "png",
+      "prompt": "friendly drum buttons for a child-safe rhythm repeat game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-rhythm-repeat"
+      },
+      "metadata": {
+        "profileTemplate": "template.rhythm-repeat"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.dinosaurs.dinosaur-1",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.rhythm-repeat.mvp",
+      "assetId": "asset.dinosaurs.dinosaur-1",
+      "sourceId": "asset-source.local-folder",
+      "contentType": "image",
+      "format": "png",
+      "uri": "file:///home/damaso/python/hackathons/playcraft/apps/studio/src/assets/library/replacements/dinosaurs/dinosaur-1.png",
+      "altText": "dinosaur-1 sprite",
+      "metadata": {
+        "theme": "dinosaurs",
+        "basename": "dinosaur-1",
+        "folder": "apps/studio/src/assets/library/replacements",
+        "canonical": true
+      },
+      "provenance": {
+        "sourceManifestId": "asset-source.local-folder",
+        "sourceManifestVersion": "1.0.0",
+        "seed": "seed-rhythm-repeat",
+        "seedSupported": false,
+        "seedStatus": "not-provided",
+        "generatedAt": "2026-07-06T21:56:59.097Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-rhythm-repeat",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.rhythm-repeat.mvp.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.rhythm-repeat.mvp",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.rhythm-repeat.mvp",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.rhythm-repeat.mvp",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.rhythm-repeat.mvp",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}

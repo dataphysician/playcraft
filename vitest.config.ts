@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     include: ["packages/**/*.test.ts", "packages/**/*.test.tsx", "tests/**/*.test.ts", "tests/**/*.test.tsx"],
+    exclude: ["tests/e2e/**", "**/node_modules/**"],
     globals: false
   },
   resolve: {
@@ -14,6 +15,7 @@ export default defineConfig({
       "@playcraft/contracts": fileURLToPath(new URL("packages/contracts/src/index.ts", import.meta.url)),
       "@playcraft/core": fileURLToPath(new URL("packages/core/src/index.ts", import.meta.url)),
       "@playcraft/assets": fileURLToPath(new URL("packages/assets/src/index.ts", import.meta.url)),
+      "@playcraft/text-utils": fileURLToPath(new URL("packages/text-utils/src/index.ts", import.meta.url)),
       "@playcraft/ag-ui": fileURLToPath(new URL("packages/ag-ui/src/index.ts", import.meta.url)),
       "@playcraft/renderer": fileURLToPath(new URL("packages/renderer/src/index.tsx", import.meta.url)),
       "@playcraft/packs": fileURLToPath(new URL("packages/packs/src/index.ts", import.meta.url)),

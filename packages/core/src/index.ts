@@ -32,6 +32,8 @@ import {
   type SafetyPolicyPack,
   type ThemePack
 } from "@playcraft/contracts";
+import { DEFAULT_REGISTRY_CONSTRAINTS } from "./registry-constraints.js";
+import { DEFAULT_RECIPE_SCORE, evaluateRecipeScore } from "./planner-score.js";
 
 export interface RegistryEntry {
   id: string;
@@ -148,87 +150,9 @@ export class CapabilityRegistry<TEntry extends RegistryEntry> {
 
   private rejectionReasons(entry: TEntry, query: RegistryQuery): string[] {
     const reasons: string[] = [];
-
-    if (query.ids && !query.ids.includes(entry.id)) {
-      reasons.push(`id ${entry.id} not requested`);
+    for (const constraint of DEFAULT_REGISTRY_CONSTRAINTS) {
+      reasons.push(...constraint.evaluate(entry, query));
     }
-
-    if (query.version && entry.version !== query.version) {
-      reasons.push(`version ${entry.version} does not match ${query.version}`);
-    }
-
-    for (const capability of query.capabilityTags ?? []) {
-      if (!getStringArray(entry, "capabilityTags").includes(capability)) {
-        reasons.push(`missing capability ${capability}`);
-      }
-    }
-
-    if (query.renderCapability && entry.renderCapability !== query.renderCapability) {
-      reasons.push(`render capability ${String(entry.renderCapability)} does not match ${query.renderCapability}`);
-    }
-
-    if (query.domainProfileId) {
-      const domains = domainProfileIdsForEntry(entry);
-      if (domains.length > 0 && !domains.includes(query.domainProfileId)) {
-        reasons.push(`domain ${query.domainProfileId} is not supported`);
-      }
-    }
-
-    if (query.safetyPolicyId) {
-      const policies = safetyPolicyIdsForEntry(entry);
-      if (policies.length > 0 && !policies.includes(query.safetyPolicyId)) {
-        reasons.push(`safety policy ${query.safetyPolicyId} is not supported`);
-      }
-    }
-
-    if (query.ageBand) {
-      const ageBands = ageBandsForEntry(entry);
-      if (ageBands.length > 0 && !ageBands.includes(query.ageBand)) {
-        reasons.push(`age band ${query.ageBand} is not supported`);
-      }
-    }
-
-    if (query.modality) {
-      const modalities = modalitiesForEntry(entry);
-      if (modalities.length > 0 && !modalities.includes(query.modality)) {
-        reasons.push(`modality ${query.modality} is not supported`);
-      }
-    }
-
-    if (query.mechanicIds) {
-      const supportedMechanics = getStringArray(entry, "supportedMechanicIds");
-      if (supportedMechanics.length > 0) {
-        const hasCompatibleMechanic = query.mechanicIds.some((mechanicId) => supportedMechanics.includes(mechanicId));
-        if (!hasCompatibleMechanic) {
-          reasons.push(`none of the requested mechanics are supported`);
-        }
-      }
-    }
-
-    if (query.ruleCategory && entry.category !== query.ruleCategory) {
-      reasons.push(`rule category ${String(entry.category)} does not match ${query.ruleCategory}`);
-    }
-
-    if (query.contentType && !getStringArray(entry, "contentTypes").includes(query.contentType)) {
-      reasons.push(`content type ${query.contentType} is not supported`);
-    }
-
-    if (query.format && !getStringArray(entry, "formats").includes(query.format)) {
-      reasons.push(`format ${query.format} is not supported`);
-    }
-
-    if (query.offlineOnly && entry.offline !== true) {
-      reasons.push("candidate is not offline");
-    }
-
-    if (query.credentialsForbidden && entry.requiresCredentials === true) {
-      reasons.push("candidate requires credentials");
-    }
-
-    if (query.seedSupportRequired && entry.seedSupport !== true) {
-      reasons.push("candidate does not support deterministic seeds");
-    }
-
     return reasons;
   }
 }
@@ -318,6 +242,22 @@ export interface AssemblyRecipeBuildContext {
   assetSource: AssetRecordGenerator;
 }
 
+/**
+ * Recipe ID namespace convention (forward-only, no migration):
+ *   - `recipe.bundled.<slug>` — recipes shipped with a `@playcraft/packs`
+ *     package and discovered by the default planner.
+ *   - `recipe.local-authored.<slug>` — recipes authored at runtime by the
+ *     local LLM agent loop and registered through
+ *     `DeterministicAssemblyPlanner.registerRecipe(...)`.
+ *   - `recipe.remote-agent.<slug>` — recipes fetched from the remote
+ *     enrichment layer and registered the same way.
+ *
+ * The convention is enforced by code review and by
+ * `AssemblyRecipeRegisterSchema` (in `@playcraft/contracts`) — there is no
+ * runtime switch, no migration, and no backwards-compat path. A recipe id
+ * that does not start with one of these three prefixes is rejected at
+ * registration time.
+ */
 export interface AssemblyRecipe {
   id: string;
   version: string;
@@ -348,6 +288,25 @@ export class DeterministicAssemblyPlanner {
     this.assetSource = options.assetSource;
   }
 
+  /**
+   * Register a runtime-authored recipe (LLM-authored or remote-agent). The
+   * recipe id must match the `recipe.local-authored.*` or
+   * `recipe.remote-agent.*` namespace (or `recipe.bundled.*` if you are
+   * intentionally re-registering a bundled recipe with a new version).
+   * `capabilityTags` must be non-empty; the recipe is deduped by `id`.
+   *
+   * Throws on namespace violation, missing `capabilityTags`, or duplicate id.
+   */
+  registerRecipe(recipeInput: AssemblyRecipe): this {
+    const recipe = validateRecipeForRegistration(recipeInput);
+    const existingIndex = this.recipes.findIndex((candidate) => candidate.id === recipe.id);
+    if (existingIndex >= 0) {
+      throw new Error(`recipe ${recipe.id} is already registered with the planner`);
+    }
+    this.recipes.push(recipe);
+    return this;
+  }
+
   assemble(requestInput: PlaycraftAssemblyRequest): GameAssemblyProfile {
     const request = PlaycraftAssemblyRequestSchema.parse(requestInput);
     const recipe = this.selectRecipe(request);
@@ -372,7 +331,7 @@ export class DeterministicAssemblyPlanner {
     const candidates = this.recipes
       .map((recipe) => ({
         recipe,
-        score: recipe.capabilityTags.filter((capability) => requested.has(capability)).length
+        score: evaluateRecipeScore(DEFAULT_RECIPE_SCORE, recipe.capabilityTags, requested)
       }))
       .filter((candidate) => candidate.score > 0);
     if (candidates.length === 0) {
@@ -387,6 +346,33 @@ export class DeterministicAssemblyPlanner {
 
     return requireSingleValue(bestCandidates, "deterministic planner best candidate").recipe;
   }
+}
+
+const RECIPE_NAMESPACE_PREFIXES = ["recipe.bundled.", "recipe.local-authored.", "recipe.remote-agent."] as const;
+
+function isValidRecipeId(id: string): boolean {
+  return typeof id === "string" && id.length > 0 && RECIPE_NAMESPACE_PREFIXES.some((prefix) => id.startsWith(prefix));
+}
+
+function validateRecipeForRegistration(recipeInput: AssemblyRecipe): AssemblyRecipe {
+  if (!recipeInput || typeof recipeInput !== "object") {
+    throw new Error("recipe must be an object");
+  }
+  if (!isValidRecipeId(recipeInput.id)) {
+    throw new Error(
+      `recipe id ${recipeInput.id} must start with one of: ${RECIPE_NAMESPACE_PREFIXES.join(", ")}`
+    );
+  }
+  if (typeof recipeInput.version !== "string" || recipeInput.version.length === 0) {
+    throw new Error(`recipe ${recipeInput.id} must declare a non-empty version`);
+  }
+  if (!Array.isArray(recipeInput.capabilityTags) || recipeInput.capabilityTags.length === 0) {
+    throw new Error(`recipe ${recipeInput.id} must declare a non-empty capabilityTags array`);
+  }
+  if (typeof recipeInput.build !== "function") {
+    throw new Error(`recipe ${recipeInput.id} must declare a build function`);
+  }
+  return recipeInput;
 }
 
 export interface ReplayResult {
@@ -588,88 +574,34 @@ function getStringArrayFromRecord(record: unknown, key: string): string[] {
   return isStringArray(value) ? value : [];
 }
 
-interface ContractCompatibilityFields {
-  ageBands: string[];
-  domainProfileIds: string[];
-  modalities: string[];
-  safetyPolicyIds: string[];
-}
-
-function contractCompatibilityForEntry(entry: RegistryEntry): ContractCompatibilityFields | undefined {
-  if (entry.kind !== "mechanic" && entry.kind !== "rule-module") {
-    return undefined;
-  }
-
-  const compatibility = entry.compatibility;
-  if (!isContractCompatibilityFields(compatibility)) {
-    return undefined;
-  }
-
-  return compatibility;
-}
-
-function isContractCompatibilityFields(value: unknown): value is ContractCompatibilityFields {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return false;
-  }
-
-  const candidate = value as Partial<Record<keyof ContractCompatibilityFields, unknown>>;
-  return (
-    isStringArray(candidate.ageBands) &&
-    isStringArray(candidate.domainProfileIds) &&
-    isStringArray(candidate.modalities) &&
-    isStringArray(candidate.safetyPolicyIds)
-  );
-}
-
 function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
-function domainProfileIdsForEntry(entry: RegistryEntry): string[] {
-  if (entry.kind === "domain-profile") {
-    return [entry.id];
-  }
+export {
+  AGENT_STUB_ENGINE_ID,
+  MoonshineStreamingCpuEngine,
+  StubLocalInferenceEngine,
+  defaultMoonshineStreamingCpuEngineManifest,
+  defaultStubEngineManifest,
+  outlinesJsonSchemaForToolArguments
+} from "./local-llm.js";
+export type {
+  AgentInferenceResult,
+  AgentPrompt,
+  AgentToolArgumentsSchema,
+  AgentToolDescriptor,
+  AgentToolField,
+  LocalInferenceEngine
+} from "./local-llm.js";
 
-  if (entry.kind === "component" || entry.kind === "theme" || entry.kind === "safety-policy") {
-    return getStringArray(entry, "supportedDomains");
-  }
+export { AgentLoop, agentLoopToolsFromBuilderDefinitions } from "./agent-loop.js";
+export type {
+  AgentLoopOptions,
+  AgentLoopResult,
+  AgentToolExecutionContext,
+  AgentToolExecutor
+} from "./agent-loop.js";
 
-  return contractCompatibilityForEntry(entry)?.domainProfileIds ?? [];
-}
-
-function safetyPolicyIdsForEntry(entry: RegistryEntry): string[] {
-  if (entry.kind === "component") {
-    return getStringArray(entry, "safetyPolicyIds");
-  }
-
-  if (entry.kind === "domain-profile" && typeof entry.defaultSafetyPolicyId === "string") {
-    return [entry.defaultSafetyPolicyId];
-  }
-
-  return contractCompatibilityForEntry(entry)?.safetyPolicyIds ?? [];
-}
-
-function ageBandsForEntry(entry: RegistryEntry): string[] {
-  if (entry.kind === "mechanic" || entry.kind === "component" || entry.kind === "theme") {
-    return getStringArray(entry, "supportedAgeBands");
-  }
-
-  if (entry.kind === "domain-profile" || entry.kind === "safety-policy") {
-    return getStringArray(entry, "ageBands");
-  }
-
-  return contractCompatibilityForEntry(entry)?.ageBands ?? [];
-}
-
-function modalitiesForEntry(entry: RegistryEntry): string[] {
-  if (entry.kind === "mechanic") {
-    return getStringArray(entry, "supportedModalities");
-  }
-
-  if (entry.kind === "domain-profile") {
-    return getStringArray(entry, "modalities");
-  }
-
-  return contractCompatibilityForEntry(entry)?.modalities ?? [];
-}
+export { NullRemoteEnrichmentSource } from "./enrichment.js";
+export type { RemoteEnrichmentSource } from "./enrichment.js";

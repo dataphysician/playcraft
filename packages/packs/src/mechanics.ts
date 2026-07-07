@@ -1,6 +1,7 @@
 import {
   MechanicDefinitionSchema,
   PLAYCRAFT_SCHEMA_VERSION,
+  BUNDLED_LOCAL_PROVENANCE,
   type MechanicDefinition
 } from "@playcraft/contracts";
 
@@ -37,7 +38,8 @@ export function mechanic(
       modalities: supportedModalities,
       requiredCapabilities: capabilityTags,
       assetContentTypes: []
-    }
+    },
+    provenance: BUNDLED_LOCAL_PROVENANCE
   };
 }
 

@@ -22,8 +22,14 @@ import {
 } from "@playcraft/core";
 import { componentManifests } from "./components.js";
 import { DEFAULT_DOMAIN_ID, DEFAULT_SAFETY_POLICY_ID } from "./domains.js";
-import { mechanicDefinitions } from "./mechanics.js";
+import { mechanicDefinitions, memoryMechanicEventBindings, sequenceMechanicEventBindings, sortingMechanicEventBindings } from "./mechanics.js";
 import { ruleModuleDefinitions } from "./rules.js";
+import {
+  defaultMemoryTokenStyle,
+  defaultToddlerTokenStyle,
+  memoryPairTokenStyles,
+  toddlerTokenStyles
+} from "./themes.js";
 
 export type TemplateInputModality = "touch" | "pointer" | "keyboard";
 
@@ -72,6 +78,234 @@ interface MvpProfileTemplate {
 }
 
 export type { MvpProfileTemplate };
+
+export function pairedCards(items: string[]): { cards: string[]; pairs: Record<string, string> } {
+  const cards = items.flatMap((item) => [`${item}-a`, `${item}-b`]);
+  const pairs = Object.fromEntries(
+    cards.map((card, index) => [card, `pair-${Math.floor(index / 2) + 1}`])
+  );
+  return { cards, pairs };
+}
+
+export function memoryTemplate(input: {
+  aliases: string[];
+  displayLabel: string;
+  exampleRequest: string;
+  label: string;
+  name: string;
+  pairItems: string[];
+  prompt: string;
+  requestAliasSummary: string;
+  seed: string;
+  slug: string;
+  title: string;
+}): MvpProfileTemplate {
+  const pairs = pairedCards(input.pairItems);
+  return {
+    id: `template.${input.slug}`,
+    requestLabel: input.label,
+    requestedCapabilities: [`game:${input.slug}`],
+    deterministicSeed: input.seed,
+    displayLabel: input.displayLabel,
+    description: `A toddler-safe matching game for ${input.title.toLowerCase()}.`,
+    capabilityTags: [`game:${input.slug}`, "mechanic:match-pairs"],
+    requestAliases: input.aliases,
+    requestAliasSummary: input.requestAliasSummary,
+    exampleRequest: input.exampleRequest,
+    assetPromptKind: "memory-cards",
+    assetEditOperations: memoryAssetEditOperations,
+    liveSurface: {
+      kind: "memory",
+      componentCapabilities: { primary: "component:reveal-card-grid" },
+      assetReplacementSources: [{
+        componentRole: "primary",
+        prop: "cards",
+        namespace: "card",
+        pairMapProp: "pairs"
+      }],
+      tokenStyles: memoryPairTokenStyles,
+      defaultTokenStyle: defaultMemoryTokenStyle
+    },
+    profileId: `profile.${input.slug}.mvp`,
+    profileName: input.name,
+    assetPrompt: input.prompt,
+    primaryInputModality: "touch",
+    mechanicCapabilities: ["mechanic:tap-to-reveal", "mechanic:match-pairs", "feedback:celebration"],
+    mechanicEventBindings: memoryMechanicEventBindings,
+    componentMechanicCapabilities: {
+      "component:reveal-card-grid": ["mechanic:tap-to-reveal", "mechanic:match-pairs"],
+      "component:celebration-overlay": ["feedback:celebration"]
+    },
+    componentRenderMechanicCapabilities: {
+      "component:reveal-card-grid": "mechanic:tap-to-reveal",
+      "component:celebration-overlay": "feedback:celebration"
+    },
+    ruleCategories: ["pair-matching", "retry", "hint", "completion"],
+    componentCapabilities: ["component:reveal-card-grid", "component:celebration-overlay"],
+    propsByCapability: {
+      "component:reveal-card-grid": {
+        title: input.title,
+        cards: pairs.cards,
+        pairs: pairs.pairs,
+        columns: 2
+      },
+      "component:celebration-overlay": { message: `${input.title} complete.` }
+    }
+  };
+}
+
+export function sortingTemplate(input: {
+  aliases: string[];
+  bins: string[];
+  displayLabel: string;
+  exampleRequest: string;
+  hint: string;
+  items: string[];
+  label: string;
+  name: string;
+  prompt: string;
+  promptText: string;
+  requestAliasSummary: string;
+  seed: string;
+  slug: string;
+  targets: Record<string, string>;
+  title: string;
+}): MvpProfileTemplate {
+  return {
+    id: `template.${input.slug}`,
+    requestLabel: input.label,
+    requestedCapabilities: [`game:${input.slug}`],
+    deterministicSeed: input.seed,
+    displayLabel: input.displayLabel,
+    description: `A toddler-safe sorting game for ${input.title.toLowerCase()}.`,
+    capabilityTags: [`game:${input.slug}`, "mechanic:sort-into-bins"],
+    requestAliases: input.aliases,
+    requestAliasSummary: input.requestAliasSummary,
+    exampleRequest: input.exampleRequest,
+    assetPromptKind: "sorting-game",
+    assetEditOperations: sortingAssetEditOperations,
+    liveSurface: {
+      kind: "sorting",
+      componentCapabilities: { primary: "component:sort-bins" },
+      assetReplacementSources: [{
+        componentRole: "primary",
+        prop: "items",
+        namespace: "item"
+      }],
+      tokenStyles: toddlerTokenStyles,
+      defaultTokenStyle: defaultToddlerTokenStyle
+    },
+    profileId: `profile.${input.slug}.mvp`,
+    profileName: input.name,
+    assetPrompt: input.prompt,
+    primaryInputModality: "touch",
+    mechanicCapabilities: ["mechanic:tap-to-select", "mechanic:sort-into-bins", "support:retry", "support:hint"],
+    mechanicEventBindings: sortingMechanicEventBindings,
+    componentMechanicCapabilities: {
+      "component:choice-grid": ["mechanic:tap-to-select"],
+      "component:sort-bins": ["mechanic:sort-into-bins"],
+      "component:hint-bubble": ["support:hint"]
+    },
+    componentRenderMechanicCapabilities: {
+      "component:choice-grid": "mechanic:tap-to-select",
+      "component:sort-bins": "mechanic:sort-into-bins",
+      "component:hint-bubble": "support:hint"
+    },
+    ruleCategories: ["category-validation", "retry", "completion"],
+    componentCapabilities: ["component:choice-grid", "component:sort-bins", "component:hint-bubble"],
+    propsByCapability: {
+      "component:choice-grid": { title: input.title, prompt: input.promptText, items: input.items },
+      "component:sort-bins": {
+        title: input.title,
+        items: input.items,
+        bins: input.bins,
+        targets: input.targets
+      },
+      "component:hint-bubble": { hint: input.hint }
+    }
+  };
+}
+
+export function sequenceTemplate(input: {
+  aliases: string[];
+  displayLabel: string;
+  exampleRequest: string;
+  items: string[];
+  label: string;
+  name: string;
+  prompt: string;
+  promptText: string;
+  requestAliasSummary: string;
+  rounds: string[][];
+  seed: string;
+  sequence: string[];
+  slug: string;
+  title: string;
+}): MvpProfileTemplate {
+  return {
+    id: `template.${input.slug}`,
+    requestLabel: input.label,
+    requestedCapabilities: [`game:${input.slug}`],
+    deterministicSeed: input.seed,
+    displayLabel: input.displayLabel,
+    description: `A toddler-safe sequence game for ${input.title.toLowerCase()}.`,
+    capabilityTags: [`game:${input.slug}`, "mechanic:sequence-repeat"],
+    requestAliases: input.aliases,
+    requestAliasSummary: input.requestAliasSummary,
+    exampleRequest: input.exampleRequest,
+    assetPromptKind: "sequence-buttons",
+    assetEditOperations: sequenceAssetEditOperations,
+    liveSurface: {
+      kind: "sequence",
+      componentCapabilities: {
+        primary: "component:sequence-pad",
+        choice: "component:choice-grid"
+      },
+      assetReplacementSources: [
+        {
+          componentRole: "primary",
+          prop: "sequence",
+          namespace: "choice"
+        },
+        {
+          componentRole: "choice",
+          prop: "items",
+          namespace: "choice"
+        }
+      ],
+      tokenStyles: toddlerTokenStyles,
+      defaultTokenStyle: defaultToddlerTokenStyle
+    },
+    profileId: `profile.${input.slug}.mvp`,
+    profileName: input.name,
+    assetPrompt: input.prompt,
+    primaryInputModality: "touch",
+    mechanicCapabilities: ["mechanic:sequence-repeat", "mechanic:tap-to-select", "feedback:celebration"],
+    mechanicEventBindings: sequenceMechanicEventBindings,
+    componentMechanicCapabilities: {
+      "component:sequence-pad": ["mechanic:sequence-repeat", "mechanic:tap-to-select"],
+      "component:choice-grid": ["mechanic:tap-to-select"],
+      "component:celebration-overlay": ["feedback:celebration"]
+    },
+    componentRenderMechanicCapabilities: {
+      "component:sequence-pad": "mechanic:sequence-repeat",
+      "component:choice-grid": "mechanic:tap-to-select",
+      "component:celebration-overlay": "feedback:celebration"
+    },
+    ruleCategories: ["progression", "attempt-feedback", "hint"],
+    componentCapabilities: ["component:sequence-pad", "component:choice-grid", "component:celebration-overlay"],
+    propsByCapability: {
+      "component:sequence-pad": {
+        title: input.title,
+        prompt: input.promptText,
+        sequence: input.sequence,
+        rounds: input.rounds
+      },
+      "component:choice-grid": { title: input.title, prompt: input.promptText, items: input.items },
+      "component:celebration-overlay": { message: `${input.title} complete.` }
+    }
+  };
+}
 
 export function request(id: string, label: string, capabilities: string[], seed: string): PlaycraftAssemblyRequest {
   return {
@@ -320,7 +554,7 @@ function buildProfileFromTemplate(template: MvpProfileTemplate, context: Assembl
       domainProfileId: domain.id,
       safetyPolicyId: safety.id,
       contentType: "image",
-      format: "svg",
+      format: "png",
       prompt: template.assetPrompt,
       seedPolicy: {
         mode: "required",

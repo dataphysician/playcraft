@@ -1,0 +1,317 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.number-memory.mvp",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Number Memory MVP",
+  "assemblyRequestId": "request.number-memory.mvp",
+  "template": {
+    "schemaVersion": "playcraft.v1",
+    "id": "template.number-memory",
+    "version": "1.0.0",
+    "kind": "game-template-snapshot",
+    "displayName": "Number Memory MVP",
+    "displayLabel": "Number Memory",
+    "assetPromptKind": "memory-cards",
+    "assetEditOperations": [
+      {
+        "componentCapability": "component:reveal-card-grid",
+        "operation": "memory-pairs"
+      },
+      {
+        "componentCapability": "component:celebration-overlay",
+        "operation": "completion-message"
+      }
+    ],
+    "liveSurface": {
+      "kind": "memory",
+      "componentCapabilities": {
+        "primary": "component:reveal-card-grid"
+      },
+      "assetReplacementSources": [
+        {
+          "componentRole": "primary",
+          "prop": "cards",
+          "namespace": "card",
+          "pairMapProp": "pairs"
+        }
+      ],
+      "tokenStyles": [
+        {
+          "tokens": [
+            "pair-1"
+          ],
+          "background": "#fee2e2",
+          "border": "#ef4444",
+          "foreground": "#7f1d1d",
+          "accent": "#fecaca"
+        },
+        {
+          "tokens": [
+            "pair-2"
+          ],
+          "background": "#dbeafe",
+          "border": "#2563eb",
+          "foreground": "#1e3a8a",
+          "accent": "#bfdbfe"
+        },
+        {
+          "tokens": [
+            "pair-3"
+          ],
+          "background": "#dcfce7",
+          "border": "#16a34a",
+          "foreground": "#14532d",
+          "accent": "#bbf7d0"
+        },
+        {
+          "tokens": [
+            "pair-4"
+          ],
+          "background": "#fef3c7",
+          "border": "#d97706",
+          "foreground": "#713f12",
+          "accent": "#fde68a"
+        }
+      ],
+      "defaultTokenStyle": {
+        "tokens": [
+          "default"
+        ],
+        "background": "#fce7f3",
+        "border": "#db2777",
+        "foreground": "#831843",
+        "accent": "#fbcfe8"
+      }
+    },
+    "assemblyRequestId": "request.number-memory.mvp"
+  },
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.number-memory.mvp.mechanic.1",
+      "mechanicId": "mechanic.tap-to-reveal",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-reveal"
+      },
+      "eventBindings": {
+        "primary": "frontend:revealed"
+      }
+    },
+    {
+      "bindingId": "profile.number-memory.mvp.mechanic.2",
+      "mechanicId": "mechanic.match-pairs",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:match-pairs"
+      },
+      "eventBindings": {
+        "primary": "rule:pair-matched"
+      }
+    },
+    {
+      "bindingId": "profile.number-memory.mvp.mechanic.3",
+      "mechanicId": "mechanic.timed-celebration",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "feedback:celebration"
+      },
+      "eventBindings": {
+        "primary": "frontend:celebrated"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.number-memory.mvp.rule.1",
+      "ruleId": "rule.pair-match",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "pair-matching"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.number-memory.mvp.rule.2",
+      "ruleId": "rule.guided-retry",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "retry"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.number-memory.mvp.rule.3",
+      "ruleId": "rule.hint-timing",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "hint"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.number-memory.mvp.rule.4",
+      "ruleId": "rule.completion",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "completion"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.number-memory.mvp.component.1",
+      "componentId": "component.reveal-card-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:reveal-card-grid",
+      "mechanicBindingIds": [
+        "profile.number-memory.mvp.mechanic.1",
+        "profile.number-memory.mvp.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.number-memory.mvp.mechanic.1",
+      "props": {
+        "title": "Number pairs",
+        "cards": [
+          "number-1-a",
+          "number-1-b",
+          "number-2-a",
+          "number-2-b",
+          "number-3-a",
+          "number-3-b"
+        ],
+        "pairs": {
+          "number-1-a": "pair-1",
+          "number-1-b": "pair-1",
+          "number-2-a": "pair-2",
+          "number-2-b": "pair-2",
+          "number-3-a": "pair-3",
+          "number-3-b": "pair-3"
+        },
+        "columns": 2
+      },
+      "assetBindings": {
+        "illustration": "asset.dinosaurs.dinosaur-1"
+      }
+    },
+    {
+      "bindingId": "profile.number-memory.mvp.component.2",
+      "componentId": "component.celebration-overlay",
+      "version": "1.0.0",
+      "renderCapability": "component:celebration-overlay",
+      "mechanicBindingIds": [
+        "profile.number-memory.mvp.mechanic.3"
+      ],
+      "renderMechanicBindingId": "profile.number-memory.mvp.mechanic.3",
+      "props": {
+        "message": "Number pairs complete."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.number-memory.mvp",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.number-memory.mvp",
+      "profileId": "profile.number-memory.mvp",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "png",
+      "prompt": "friendly number cards for a child-safe memory game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-number-memory"
+      },
+      "metadata": {
+        "profileTemplate": "template.number-memory"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.dinosaurs.dinosaur-1",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.number-memory.mvp",
+      "assetId": "asset.dinosaurs.dinosaur-1",
+      "sourceId": "asset-source.local-folder",
+      "contentType": "image",
+      "format": "png",
+      "uri": "file:///home/damaso/python/hackathons/playcraft/apps/studio/src/assets/library/replacements/dinosaurs/dinosaur-1.png",
+      "altText": "dinosaur-1 sprite",
+      "metadata": {
+        "theme": "dinosaurs",
+        "basename": "dinosaur-1",
+        "folder": "apps/studio/src/assets/library/replacements",
+        "canonical": true
+      },
+      "provenance": {
+        "sourceManifestId": "asset-source.local-folder",
+        "sourceManifestVersion": "1.0.0",
+        "seed": "seed-number-memory",
+        "seedSupported": false,
+        "seedStatus": "not-provided",
+        "generatedAt": "2026-07-06T21:56:59.044Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-number-memory",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.number-memory.mvp.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.number-memory.mvp",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.number-memory.mvp",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.number-memory.mvp",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.number-memory.mvp",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}

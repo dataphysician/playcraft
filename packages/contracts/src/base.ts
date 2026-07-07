@@ -1,4 +1,12 @@
 import { z } from "zod";
+import {
+  addDuplicateBuilderInputSourceIssues,
+  validateBuilderServiceCatalog,
+  validateBuilderServiceCatalogAction,
+  validateBuilderToolDefinition
+} from "./builder-catalog-constraints.js";
+
+export { addDuplicateBuilderInputSourceIssues };
 
 export const PLAYCRAFT_SCHEMA_VERSION = "playcraft.v1";
 export const PLAYCRAFT_LOCAL_TIMESTAMP = "2026-07-04T00:00:00.000Z";
@@ -100,6 +108,35 @@ export const CompatibilityConstraintsSchema = z
   .strict();
 export type CompatibilityConstraints = z.infer<typeof CompatibilityConstraintsSchema>;
 
+export const ProvenanceSourceSchema = z.enum(["bundled-local", "authored-local", "remote-agent"]);
+export type ProvenanceSource = z.infer<typeof ProvenanceSourceSchema>;
+
+/**
+ * Provenance discriminator carried by every building block manifest.
+ * Required on `MechanicDefinition`, `RuleModuleDefinition`, `ComponentManifest`,
+ * `ThemePack`, `AssetSourceCapabilityManifest`, `DomainProfile`, and
+ * `SafetyPolicyPack`. The discriminator is forward-only; there is no migration
+ * path between source values. `authored-local` identifies building blocks
+ * authored by the local LLM agent at runtime; `remote-agent` identifies
+ * building blocks returned by the optional remote enrichment layer.
+ */
+export const ProvenanceSchema = z
+  .object({
+    source: ProvenanceSourceSchema,
+    authoredBy: z.string().min(1).max(120).optional(),
+    authoredAt: z.string().datetime().optional(),
+    remoteUrl: z.string().url().optional()
+  })
+  .strict();
+export type Provenance = z.infer<typeof ProvenanceSchema>;
+
+/**
+ * Default provenance stamp for bundled building blocks. Every MVP mechanic,
+ * rule, component, theme, asset source, domain, and safety policy uses this
+ * stamp unless a pack declares otherwise.
+ */
+export const BUNDLED_LOCAL_PROVENANCE: Provenance = { source: "bundled-local" } as const;
+
 export const PublicContractBaseSchema = z
   .object({
     schemaVersion: z.literal(PLAYCRAFT_SCHEMA_VERSION),
@@ -146,7 +183,15 @@ export const PublicContractNameSchema = z.enum([
   "McpManifestSchema",
   "McpServerPolicySchema",
   "WorkflowGraphSchema",
-  "AssetCatalogManifestSchema"
+  "AssetCatalogManifestSchema",
+  "GameBundleSchema",
+  "LocalInferenceEngineManifestSchema",
+  "AgentToolCallSchema",
+  "AgentToolResultSchema",
+  "AgentStepSchema",
+  "PlaycraftAgentTranscriptSchema",
+  "RemoteEnrichmentRequestSchema",
+  "RemoteEnrichmentResponseSchema"
 ]);
 export type PublicContractName = z.infer<typeof PublicContractNameSchema>;
 
@@ -311,7 +356,7 @@ export const BuilderActionNameSchema = z.enum([
 ]);
 export type BuilderActionName = z.infer<typeof BuilderActionNameSchema>;
 
-export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
+const BuilderToolDefinitionBaseSchema = PublicContractBaseSchema.extend({
   kind: z.literal("builder-tool"),
   toolName: CapabilityTagSchema,
   displayName: z.string().min(1),
@@ -324,55 +369,9 @@ export const BuilderToolDefinitionSchema = PublicContractBaseSchema.extend({
   localOnly: z.boolean(),
   emittedEvents: z.array(CapabilityTagSchema).default([]),
   requiredContracts: z.array(PublicContractNameSchema).min(1)
-}).strict()
-  .superRefine((value, context) => {
-    addDuplicateBuilderInputSourceIssues(context, value.acceptedInputSources, ["acceptedInputSources"]);
-
-    const acceptsInput = builderActionAcceptsInput(value.actionName);
-    if (acceptsInput) {
-      for (const source of BuilderInputSourceSchema.options) {
-        if (!value.acceptedInputSources.includes(source)) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `builder input action ${value.actionName} must accept ${source}`,
-            path: ["acceptedInputSources"]
-          });
-        }
-      }
-    } else if (value.acceptedInputSources.length > 0) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `builder action ${value.actionName} must not accept text or transcript input`,
-        path: ["acceptedInputSources"]
-      });
-    }
-
-    const expectedSummary = builderToolInputSourceSummaryFor(value.acceptedInputSources);
-    if (value.inputSourceSummary !== expectedSummary) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `builder tool input source summary must be ${expectedSummary}`,
-        path: ["inputSourceSummary"]
-      });
-    }
-  });
-export type BuilderToolDefinition = z.infer<typeof BuilderToolDefinitionSchema>;
-
-function builderActionAcceptsInput(actionName: z.infer<typeof BuilderActionNameSchema>): boolean {
-  return actionName === "assemble-game" || actionName === "update-game";
-}
-
-function builderToolInputSourceSummaryFor(sources: z.infer<typeof BuilderInputSourceSchema>[]): string {
-  if (sources.length === 0) {
-    return "input: none";
-  }
-
-  const labels: Record<z.infer<typeof BuilderInputSourceSchema>, string> = {
-    text: "Text",
-    "moonshine-transcript": "Transcript"
-  };
-  return `input: ${sources.map((source) => labels[source]).join(", ")}`;
-}
+}).strict();
+export const BuilderToolDefinitionSchema = BuilderToolDefinitionBaseSchema.superRefine(validateBuilderToolDefinition);
+export type BuilderToolDefinition = z.infer<typeof BuilderToolDefinitionBaseSchema>;
 
 export const BuilderAssetEditCatalogEntrySchema = z
   .object({
@@ -435,7 +434,7 @@ export const BuilderServiceCatalogActionRequestSchema = z
   .strict();
 export type BuilderServiceCatalogActionRequest = z.infer<typeof BuilderServiceCatalogActionRequestSchema>;
 
-export const BuilderServiceCatalogActionSchema = z
+const BuilderServiceCatalogActionBaseSchema = z
   .object({
     actionName: BuilderServiceActionNameSchema,
     displayName: z.string().min(1).max(80),
@@ -444,187 +443,13 @@ export const BuilderServiceCatalogActionSchema = z
     request: BuilderServiceCatalogActionRequestSchema,
     responsePayload: z.enum(["catalog", "execution", "session", "profileExport", "reset"])
   })
-  .strict()
-  .superRefine((value, context) => {
-    const expectedRequiresSession = serviceActionRequiresSession(value.actionName);
-    if (value.requiresSession !== expectedRequiresSession) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `service action ${value.actionName} requiresSession must be ${String(expectedRequiresSession)}`,
-        path: ["requiresSession"]
-      });
-    }
+  .strict();
+export const BuilderServiceCatalogActionSchema = BuilderServiceCatalogActionBaseSchema.superRefine(
+  validateBuilderServiceCatalogAction
+);
+export type BuilderServiceCatalogAction = z.infer<typeof BuilderServiceCatalogActionBaseSchema>;
 
-    const expectedAcceptsInput = serviceActionAcceptsInput(value.actionName);
-    if (value.acceptsInput !== expectedAcceptsInput) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `service action ${value.actionName} acceptsInput must be ${String(expectedAcceptsInput)}`,
-        path: ["acceptsInput"]
-      });
-    }
-
-    const expectedResponsePayload = serviceActionResponsePayload(value.actionName);
-    if (value.responsePayload !== expectedResponsePayload) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `service action ${value.actionName} responsePayload must be ${expectedResponsePayload}`,
-        path: ["responsePayload"]
-      });
-    }
-
-    addDuplicateServiceRequestFieldIssues(context, value.request.acceptedFields, ["request", "acceptedFields"]);
-    addDuplicateServiceRequestFieldIssues(context, value.request.requiredFields, ["request", "requiredFields"]);
-
-    for (const field of value.request.requiredFields) {
-      if (!value.request.acceptedFields.includes(field)) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `required field ${field} must be accepted by service action ${value.actionName}`,
-          path: ["request", "requiredFields"]
-        });
-      }
-    }
-
-    for (const group of [
-      ...value.request.requiredAnyOf,
-      ...value.request.exclusiveAnyOf,
-      ...value.request.forbiddenTogether
-    ]) {
-      addDuplicateServiceRequestFieldIssues(context, group, ["request"]);
-      for (const field of group) {
-        if (!value.request.acceptedFields.includes(field)) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `request group field ${field} must be accepted by service action ${value.actionName}`,
-            path: ["request", "acceptedFields"]
-          });
-        }
-      }
-    }
-
-    if (expectedRequiresSession && !value.request.requiredFields.includes("sessionId")) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `service action ${value.actionName} must require sessionId`,
-        path: ["request", "requiredFields"]
-      });
-    }
-
-    if (!expectedRequiresSession && value.actionName !== "assemble" && value.actionName !== "execute-workflow" && value.request.acceptedFields.includes("sessionId")) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `service action ${value.actionName} must not accept sessionId`,
-        path: ["request", "acceptedFields"]
-      });
-    }
-
-    const inputFields: z.infer<typeof BuilderServiceRequestFieldNameSchema>[] = ["text", "source", "moonshineTranscript", "templateId"];
-    if (expectedAcceptsInput) {
-      for (const field of ["text", "source", "moonshineTranscript"] as const) {
-        if (!value.request.acceptedFields.includes(field)) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `input service action ${value.actionName} must accept ${field}`,
-            path: ["request", "acceptedFields"]
-          });
-        }
-      }
-      if (!serviceRequestFieldGroupIncludes(value.request.requiredAnyOf, ["text", "moonshineTranscript"])) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `input service action ${value.actionName} must require text or moonshineTranscript`,
-          path: ["request", "requiredAnyOf"]
-        });
-      }
-      if (!serviceRequestFieldGroupIncludes(value.request.exclusiveAnyOf, ["text", "moonshineTranscript"])) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `input service action ${value.actionName} must make text and moonshineTranscript exclusive`,
-          path: ["request", "exclusiveAnyOf"]
-        });
-      }
-    } else {
-      for (const field of inputFields) {
-        if (value.request.acceptedFields.includes(field)) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `non-input service action ${value.actionName} must not accept ${field}`,
-            path: ["request", "acceptedFields"]
-          });
-        }
-      }
-    }
-  });
-export type BuilderServiceCatalogAction = z.infer<typeof BuilderServiceCatalogActionSchema>;
-
-function serviceActionRequiresSession(actionName: z.infer<typeof BuilderServiceActionNameSchema>): boolean {
-  return actionName === "update" ||
-    actionName === "preview" ||
-    actionName === "get-session" ||
-    actionName === "export-profile" ||
-    actionName === "import-profile";
-}
-
-function serviceActionAcceptsInput(actionName: z.infer<typeof BuilderServiceActionNameSchema>): boolean {
-  return actionName === "assemble" || actionName === "update";
-}
-
-function serviceActionResponsePayload(
-  actionName: z.infer<typeof BuilderServiceActionNameSchema>
-): "catalog" | "execution" | "session" | "profileExport" | "reset" {
-  const responsePayloadByAction: Record<
-    z.infer<typeof BuilderServiceActionNameSchema>,
-    "catalog" | "execution" | "session" | "profileExport" | "reset"
-  > = {
-    assemble: "execution",
-    catalog: "catalog",
-    "execute-workflow": "execution",
-    "export-profile": "profileExport",
-    "get-session": "session",
-    "import-profile": "execution",
-    preview: "execution",
-    reset: "reset",
-    update: "execution"
-  };
-
-  return responsePayloadByAction[actionName];
-}
-
-function serviceRequestFieldGroupIncludes(
-  groups: Array<z.infer<typeof BuilderServiceRequestFieldNameSchema>[]>,
-  expectedFields: z.infer<typeof BuilderServiceRequestFieldNameSchema>[]
-): boolean {
-  return groups.some((group) =>
-    group.length === expectedFields.length && expectedFields.every((field) => group.includes(field))
-  );
-}
-
-function addDuplicateServiceRequestFieldIssues(
-  context: z.RefinementCtx,
-  fields: z.infer<typeof BuilderServiceRequestFieldNameSchema>[],
-  path: Array<string | number>
-): void {
-  const seen = new Set<z.infer<typeof BuilderServiceRequestFieldNameSchema>>();
-  const duplicates = new Set<z.infer<typeof BuilderServiceRequestFieldNameSchema>>();
-
-  for (const field of fields) {
-    if (seen.has(field)) {
-      duplicates.add(field);
-    }
-    seen.add(field);
-  }
-
-  for (const duplicate of duplicates) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `service request field ${duplicate} must be unique`,
-      path
-    });
-  }
-}
-
-export const BuilderServiceCatalogSchema = z
+const BuilderServiceCatalogBaseSchema = z
   .object({
     actions: z.array(BuilderServiceCatalogActionSchema).min(1),
     exactEnvelope: z
@@ -646,46 +471,9 @@ export const BuilderServiceCatalogSchema = z
       })
       .strict()
   })
-  .strict()
-  .superRefine((value, context) => {
-    const actionNames = value.actions.map((action) => action.actionName);
-    addDuplicateServiceActionIssues(context, actionNames, ["actions"]);
-
-    for (const actionName of BuilderServiceActionNameSchema.options) {
-      if (!actionNames.includes(actionName)) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `service catalog must include action ${actionName}`,
-          path: ["actions"]
-        });
-      }
-    }
-  });
-export type BuilderServiceCatalog = z.infer<typeof BuilderServiceCatalogSchema>;
-
-function addDuplicateServiceActionIssues(
-  context: z.RefinementCtx,
-  actionNames: z.infer<typeof BuilderServiceActionNameSchema>[],
-  path: Array<string | number>
-): void {
-  const seen = new Set<z.infer<typeof BuilderServiceActionNameSchema>>();
-  const duplicates = new Set<z.infer<typeof BuilderServiceActionNameSchema>>();
-
-  for (const actionName of actionNames) {
-    if (seen.has(actionName)) {
-      duplicates.add(actionName);
-    }
-    seen.add(actionName);
-  }
-
-  for (const duplicate of duplicates) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `service catalog action ${duplicate} must be unique`,
-      path
-    });
-  }
-}
+  .strict();
+export const BuilderServiceCatalogSchema = BuilderServiceCatalogBaseSchema.superRefine(validateBuilderServiceCatalog);
+export type BuilderServiceCatalog = z.infer<typeof BuilderServiceCatalogBaseSchema>;
 
 export const BuilderCatalogRequestTipsSchema = z
   .object({
@@ -798,30 +586,6 @@ export const BuilderServiceErrorSchema = z
   .strict();
 export type BuilderServiceError = z.infer<typeof BuilderServiceErrorSchema>;
 
-export function addDuplicateBuilderInputSourceIssues(
-  context: z.RefinementCtx,
-  sources: z.infer<typeof BuilderInputSourceSchema>[],
-  path: Array<string | number>
-): void {
-  const seen = new Set<z.infer<typeof BuilderInputSourceSchema>>();
-  const duplicates = new Set<z.infer<typeof BuilderInputSourceSchema>>();
-
-  for (const source of sources) {
-    if (seen.has(source)) {
-      duplicates.add(source);
-    }
-    seen.add(source);
-  }
-
-  for (const duplicate of duplicates) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `catalog input source ${duplicate} must be unique`,
-      path
-    });
-  }
-}
-
 export * from "./mcp.js";
 export * from "./packs.js";
 export * from "./sse.js";
@@ -832,3 +596,6 @@ export * from "./game-template.js";
 export * from "./builder-catalog.js";
 export * from "./manifests.js";
 export * from "./builder.js";
+export * from "./game-bundle.js";
+export * from "./agent.js";
+export * from "./enrichment.js";

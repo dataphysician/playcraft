@@ -55,3 +55,12 @@
   - Wrapping the client in App.tsx lets us transparently substitute a merged catalog without touching studio-app or service code.
 - **No filename auto-discovery**: `import.meta.glob("./assets/library/replacements/*/catalog.json")` only matches literal `catalog.json` filenames. Sprite PNGs alone in a folder (`dinosaur-1.png`, `dinosaur-2.png`) do NOT trigger catalog discovery — `loadManifestFromFolder` on such a folder returns `null`, verified by the "returns null for a folder that only contains sprite PNGs without catalog.json" test.
 - **No mutating bundled at runtime**: T9 explicitly does NOT change the runtime contents of `localAssetEditCatalog` exported from `@playcraft/assets`. The merged catalog is computed on-demand in the Studio. Service consumers continue to see the original `localAssetEditCatalog` (preserves the existing service contract test `publishes the shared local asset edit catalog used by service and Studio`).
+
+## [2026-07-06] Remote-Assembly Bundle Boundary Decisions
+
+- Bundle producer-side interface: existing `BuilderProfileExportSchema` + new optional `provenance` field (forward-only, no version bump).
+- Bundle consumer-side interface: existing `replayProfile(profile, registries)` + `TrustedComponentRegistry.render(request, assets, emit)`.
+- New public contract: `GameBundleSchema` (composition: export + registries snapshot). Lives in packages/contracts/src/ ONLY as a schema; no implementation in this repo.
+- No code in current repo is touched for the remote assembly path; all changes are additive contracts and docs.
+- Mobile shell evolution: add a bundle loader that uses the existing `import-profile` service path; do not add new shell code beyond what is needed to consume a bundle.
+- React component implementations stay in `@playcraft/packs`; the remote package reuses `@playcraft/packs` as a peer dependency to render bundles.

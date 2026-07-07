@@ -199,7 +199,7 @@
         "columns": 2
       },
       "assetBindings": {
-        "illustration": "asset.28d72307"
+        "illustration": "asset.dinosaurs.dinosaur-1"
       }
     },
     {
@@ -228,7 +228,7 @@
       "domainProfileId": "domain.child-edu",
       "safetyPolicyId": "safety.child-friendly",
       "contentType": "image",
-      "format": "svg",
+      "format": "png",
       "prompt": "friendly starter card illustrations for a child-safe memory match game",
       "seedPolicy": {
         "mode": "required",
@@ -242,28 +242,29 @@
   "assets": [
     {
       "schemaVersion": "playcraft.v1",
-      "id": "generated.28d72307",
+      "id": "generated.dinosaurs.dinosaur-1",
       "version": "1.0.0",
       "kind": "generated-asset",
       "requestId": "asset-request.profile.memory-match.mvp",
-      "assetId": "asset.28d72307",
-      "sourceId": "asset-source.local-deterministic",
+      "assetId": "asset.dinosaurs.dinosaur-1",
+      "sourceId": "asset-source.local-folder",
       "contentType": "image",
-      "format": "svg",
-      "uri": "local-asset://image/28d72307.svg",
-      "altText": "Deterministic image asset for friendly starter card illustrations for a child-safe memory match game",
+      "format": "png",
+      "uri": "file:///home/damaso/python/hackathons/playcraft/apps/studio/src/assets/library/replacements/dinosaurs/dinosaur-1.png",
+      "altText": "dinosaur-1 sprite",
       "metadata": {
-        "promptDigest": "28d72307",
-        "source": "deterministic-local"
+        "theme": "dinosaurs",
+        "basename": "dinosaur-1",
+        "folder": "apps/studio/src/assets/library/replacements",
+        "canonical": true
       },
       "provenance": {
-        "sourceManifestId": "asset-source.local-deterministic",
+        "sourceManifestId": "asset-source.local-folder",
         "sourceManifestVersion": "1.0.0",
-        "deterministic": true,
         "seed": "seed-memory-match",
-        "seedSupported": true,
-        "seedStatus": "used",
-        "generatedAt": "2026-06-27T00:00:00.000Z"
+        "seedSupported": false,
+        "seedStatus": "not-provided",
+        "generatedAt": "2026-07-06T23:11:43.914Z"
       },
       "safety": {
         "status": "safe",

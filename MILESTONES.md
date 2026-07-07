@@ -1,5 +1,44 @@
 # Playcraft Milestones
 
+## 2026-07-06 - Wave H: Local-First LLM Architecture & Forward-Only Doc Rewrite
+
+Pivot:
+- Replaced the V1 deterministic-only framing with an LLM-driven local-first architecture. The primary path is the `MoonshineStreamingCpuEngine` (LiquidAI LFM2.5-VL-450M-Extract over Moonshine Streaming CPU) driving `AgentLoop` + `ToolAdapter`, with tool-call generation constrained to JSON Schemas by the `Outlines` library.
+- Local asset folder is canonical `apps/studio/src/assets/library/replacements/`; per-deployment override via the `PLAYCRAFT_REPLACEMENTS_FOLDER` environment variable.
+- Remote enrichment is reachable only when a host provides its own `RemoteEnrichmentSource`. The shipped default is `NullRemoteEnrichmentSource`; no HTTP transport ships.
+
+Forward-only contract changes:
+- Added `ProvenanceSchema` and stamped it on every building block (`MechanicDefinition`, `RuleModuleDefinition`, `ComponentManifest`, `ThemePack`, `AssetSourceCapabilityManifest`, `DomainProfile`, `SafetyPolicyPack`). `source` is one of `bundled-local | authored-local | remote-agent`.
+- Extended `GameTemplateDefinition.retrieval` (and `BuilderCatalog.retrieval`) so both `current` and `planned` accept the full `{ bundled-local | authored-local | remote-agent }` enum.
+- Added the `recipe.bundled.* | recipe.local-authored.* | recipe.remote-agent.*` id namespace convention (documented on `AssemblyRecipe.id`).
+- Added `DeterministicAssemblyPlanner.registerRecipe(recipe)` to the core planner. Runtime LLM-authored recipes call this method; packed recipes ship under the `recipe.bundled.*` prefix; remote recipes ship under `recipe.remote-agent.*`.
+- Hard cap enforcement: `GAME_BUNDLE_MAX_BYTES = 512 * 1024`, `GAME_BUNDLE_MAX_REGISTRY_ENTRIES = 256`, and `GameBundleCapEnforcementSchema.purgedEntryIds` purge stale, unused entries from saved bundles.
+
+Forward-only doc rewrites:
+- `playcraft-agentic-framework/README.md` rewritten to summarize the Wave H pivot and the provenance / recipe / retrieval surfaces.
+- `playcraft-agentic-framework/ARCHITECTURE.md` rewritten around provenance, the recipe namespace, the local LLM agent, the local asset folder, the bundle cap, and the `RemoteEnrichmentSource` interface.
+- `playcraft-agentic-framework/DEV_GUIDE.md` rewritten around the package layout, the contracts lazy-wrap pattern, `AgentLoop` + `Outlines`, `LocalAssetFolderSource`, the planner and `registerRecipe`, `WorkflowGraph` examples, the CLI service surface, Tauri signing, and the milestones.
+- `playcraft-agentic-framework/MCP_API.md` rewritten to describe the local MCP surface; explicit no-auth / no-remote phrasing.
+- `playcraft-agentic-framework/WORKFLOWS.md` rewritten to reference `RecipeNamespace` and the local-LLM agent loop.
+- `playcraft-agentic-framework/AGENT_SAFETY.md` rewritten to anchor on local-only + provenance + allowlist + trace.
+- `playcraft-agentic-framework/CONTRIBUTING.md` created with the guardrails, coding heuristics, and acceptance gates that every contributor must follow.
+- Root `README.md` rewritten to lead with the Wave H pivot and link into the new framework docs.
+
+Guardrail automation:
+- `scripts/check-guardrails.mjs` blocks out-of-scope markers (`out-of-scope`, `forward-only`, `tracker-item`, `workaround-note`), `as any` / `@ts-ignore` / `@ts-expect-error`, non-`playcraft.v1` schema literals, and the `GAME_BUNDLE_MAX_BYTES` constant in source. `tests/import-light-and-scans.test.ts` blocks remotely-operated-service phrasing in code and docs.
+- `pnpm lint:guardrails` is part of the umbrella `pnpm verify` pipeline (`typecheck && lint:guardrails && test && test:a11y && test:e2e && build:studio`).
+
+Validation:
+- `pnpm typecheck`
+- `pnpm lint:guardrails`
+- `pnpm test`
+- `pnpm test:a11y`
+- `pnpm build:studio`
+- `git diff --check`
+
+Constraint notes:
+- No migration code. No backwards-compat shims. The framework docs no longer reference removed provider, retrieval, or placeholder-asset terminology; the source scan continues to enforce that.
+
 ## 2026-07-05 - Profile Validation Snapshots Are Clean
 
 Milestone:

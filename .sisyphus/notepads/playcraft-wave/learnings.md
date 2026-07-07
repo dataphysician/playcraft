@@ -270,3 +270,16 @@
 - Mobile-shell `App.tsx` now passes the listener's callback straight through: `<StudioApp client={client} onAudioCue={listenerRef.current.onAudioCue} />`. The previous `void listenerRef.current;` no-op is gone — the listener is now actually consumed by the prop chain. The `useRef` lazy-init pattern still keeps the listener stable across re-renders.
 - End-to-end test: the new "forwards AudioCue metadata from the mobile App into the registered listener after a pointer tap" test renders `<App audioCueListener={listener} />`, drives Transcript → "Memory game with toys" → Generate Game, then performs a 6px-diameter pointer tap on `toy-1-a` and asserts `listener.cues` contains a `reveal` cue. Critically, this test does NOT use `vi.useFakeTimers()` because `screen.findByRole(...)` polls with `setTimeout`, and a fake-timer override breaks the async query — yielding a 5s timeout. The pointer tap itself is well within `Date.now()` tolerance (sub-millisecond on a fast box) so the live timer is fine.
 - Test count after T15 wiring: 513 (was 512 → +1 new end-to-end test). All 513 tests pass; `pnpm typecheck` clean.
+
+## [2026-07-06] Remote-Assembly Bundle Boundary
+
+- `BuilderProfileExportSchema` (packages/contracts/src/builder.ts) already carries a `retrieval: { current: "bundled-local", planned: "server-catalog" }` discriminator — forward-pointing design hook in V1.
+- `GameAssemblyProfileSchema` references mechanics/rules/components by `id@version` only — does NOT inline the manifests. Runtime resolution happens via `replayProfile(profile, registries)` (packages/core/src/index.ts) which re-resolves every id@version against a `PlaycraftRegistries` instance.
+- `TrustedComponentRegistry` (packages/renderer/src/index.tsx) registers a React component per `componentId@version`. React component implementations live in `packages/packs/src/components.ts`.
+- The seven-tool allowlist and `McpServerPolicySchema` are a server-*re-serving* boundary, NOT a remote-assembly producer boundary. They are different future waves.
+- `BuilderSessionSnapshotSchema` already accepts `ownership` as optional (preserves backward compatibility for the snapshot union).
+- `LocalPlaycraftService.exportProfile()` returns `BuilderProfileExportSchema.parse(...)` — already emits a forward-compatible shape with the retrieval discriminator.
+- The mobile shell currently reuses the Studio UI via `StudioApp`; it does NOT yet load a pre-assembled bundle directly. Evolution path: bundle loader + `importProfile()` path.
+- Replay requires both `PlaycraftRegistries` (for manifests) AND `TrustedComponentRegistry` (for React code). Both must be present in any "fully runnable" bundle.
+- `PublicContractSchemas` (packages/contracts/src/builder.ts end) is the single registry the runtime enumerates — any new public contract must be added here and in `PublicContractNameSchema`.
+- The `schemaVersion: "playcraft.v1"` literal is hardcoded into `PublicContractBaseSchema`; no v2 discriminator shipped. NEXT_WAVE §2.5 governs any future version bump.

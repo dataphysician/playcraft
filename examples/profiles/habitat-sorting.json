@@ -1,0 +1,340 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.habitat-sorting.mvp",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Habitat Sorting MVP",
+  "assemblyRequestId": "request.habitat-sorting.mvp",
+  "template": {
+    "schemaVersion": "playcraft.v1",
+    "id": "template.habitat-sorting",
+    "version": "1.0.0",
+    "kind": "game-template-snapshot",
+    "displayName": "Habitat Sorting MVP",
+    "displayLabel": "Habitat Sorting",
+    "assetPromptKind": "sorting-game",
+    "assetEditOperations": [
+      {
+        "componentCapability": "component:choice-grid",
+        "operation": "choice-items"
+      },
+      {
+        "componentCapability": "component:sort-bins",
+        "operation": "sorting-items"
+      },
+      {
+        "componentCapability": "component:hint-bubble",
+        "operation": "hint-message"
+      }
+    ],
+    "liveSurface": {
+      "kind": "sorting",
+      "componentCapabilities": {
+        "primary": "component:sort-bins"
+      },
+      "assetReplacementSources": [
+        {
+          "componentRole": "primary",
+          "prop": "items",
+          "namespace": "item"
+        }
+      ],
+      "tokenStyles": [
+        {
+          "tokens": [
+            "red"
+          ],
+          "background": "#fee2e2",
+          "border": "#ef4444",
+          "foreground": "#7f1d1d",
+          "accent": "#fecaca"
+        },
+        {
+          "tokens": [
+            "blue"
+          ],
+          "background": "#dbeafe",
+          "border": "#2563eb",
+          "foreground": "#1e3a8a",
+          "accent": "#bfdbfe"
+        },
+        {
+          "tokens": [
+            "green"
+          ],
+          "background": "#dcfce7",
+          "border": "#16a34a",
+          "foreground": "#14532d",
+          "accent": "#bbf7d0"
+        },
+        {
+          "tokens": [
+            "yellow"
+          ],
+          "background": "#fef3c7",
+          "border": "#eab308",
+          "foreground": "#713f12",
+          "accent": "#fde68a"
+        }
+      ],
+      "defaultTokenStyle": {
+        "tokens": [
+          "default"
+        ],
+        "background": "#ede9fe",
+        "border": "#7c3aed",
+        "foreground": "#4c1d95",
+        "accent": "#ddd6fe"
+      }
+    },
+    "assemblyRequestId": "request.habitat-sorting.mvp"
+  },
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.habitat-sorting.mvp.mechanic.1",
+      "mechanicId": "mechanic.tap-to-select",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-select"
+      },
+      "eventBindings": {
+        "primary": "frontend:selected"
+      }
+    },
+    {
+      "bindingId": "profile.habitat-sorting.mvp.mechanic.2",
+      "mechanicId": "mechanic.sort-into-bins",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:sort-into-bins"
+      },
+      "eventBindings": {
+        "primary": "rule:item-sorted"
+      }
+    },
+    {
+      "bindingId": "profile.habitat-sorting.mvp.mechanic.3",
+      "mechanicId": "mechanic.retry-loop",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "support:retry"
+      },
+      "eventBindings": {
+        "primary": "rule:retry-ready"
+      }
+    },
+    {
+      "bindingId": "profile.habitat-sorting.mvp.mechanic.4",
+      "mechanicId": "mechanic.hint-prompt",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "support:hint"
+      },
+      "eventBindings": {
+        "primary": "frontend:hint-shown"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.habitat-sorting.mvp.rule.1",
+      "ruleId": "rule.category-validation",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "category-validation"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.habitat-sorting.mvp.rule.2",
+      "ruleId": "rule.guided-retry",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "retry"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.habitat-sorting.mvp.rule.3",
+      "ruleId": "rule.completion",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "completion"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.habitat-sorting.mvp.component.1",
+      "componentId": "component.choice-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:choice-grid",
+      "mechanicBindingIds": [
+        "profile.habitat-sorting.mvp.mechanic.1"
+      ],
+      "renderMechanicBindingId": "profile.habitat-sorting.mvp.mechanic.1",
+      "props": {
+        "title": "Animal homes",
+        "prompt": "Move each animal to its home.",
+        "items": [
+          "fish",
+          "bird",
+          "turtle"
+        ]
+      },
+      "assetBindings": {
+        "illustration": "asset.dinosaurs.dinosaur-1"
+      }
+    },
+    {
+      "bindingId": "profile.habitat-sorting.mvp.component.2",
+      "componentId": "component.sort-bins",
+      "version": "1.0.0",
+      "renderCapability": "component:sort-bins",
+      "mechanicBindingIds": [
+        "profile.habitat-sorting.mvp.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.habitat-sorting.mvp.mechanic.2",
+      "props": {
+        "title": "Animal homes",
+        "items": [
+          "fish",
+          "bird",
+          "turtle"
+        ],
+        "bins": [
+          "water",
+          "sky"
+        ],
+        "targets": {
+          "fish": "water",
+          "bird": "sky",
+          "turtle": "water"
+        }
+      },
+      "assetBindings": {
+        "illustration": "asset.dinosaurs.dinosaur-1"
+      }
+    },
+    {
+      "bindingId": "profile.habitat-sorting.mvp.component.3",
+      "componentId": "component.hint-bubble",
+      "version": "1.0.0",
+      "renderCapability": "component:hint-bubble",
+      "mechanicBindingIds": [
+        "profile.habitat-sorting.mvp.mechanic.4"
+      ],
+      "renderMechanicBindingId": "profile.habitat-sorting.mvp.mechanic.4",
+      "props": {
+        "hint": "Think about where it likes to live."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.habitat-sorting.mvp",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.habitat-sorting.mvp",
+      "profileId": "profile.habitat-sorting.mvp",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "png",
+      "prompt": "friendly animals and homes for a child-safe sorting game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-habitat-sorting"
+      },
+      "metadata": {
+        "profileTemplate": "template.habitat-sorting"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.dinosaurs.dinosaur-1",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.habitat-sorting.mvp",
+      "assetId": "asset.dinosaurs.dinosaur-1",
+      "sourceId": "asset-source.local-folder",
+      "contentType": "image",
+      "format": "png",
+      "uri": "file:///home/damaso/python/hackathons/playcraft/apps/studio/src/assets/library/replacements/dinosaurs/dinosaur-1.png",
+      "altText": "dinosaur-1 sprite",
+      "metadata": {
+        "theme": "dinosaurs",
+        "basename": "dinosaur-1",
+        "folder": "apps/studio/src/assets/library/replacements",
+        "canonical": true
+      },
+      "provenance": {
+        "sourceManifestId": "asset-source.local-folder",
+        "sourceManifestVersion": "1.0.0",
+        "seed": "seed-habitat-sorting",
+        "seedSupported": false,
+        "seedStatus": "not-provided",
+        "generatedAt": "2026-07-06T21:56:59.074Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-habitat-sorting",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.habitat-sorting.mvp.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.habitat-sorting.mvp",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.habitat-sorting.mvp",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.habitat-sorting.mvp",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.habitat-sorting.mvp",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}

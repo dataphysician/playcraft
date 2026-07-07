@@ -11,6 +11,7 @@
     { "path": "../assets" },
     { "path": "../core" },
     { "path": "../ag-ui" },
-    { "path": "../packs" }
+    { "path": "../packs" },
+    { "path": "../text-utils" }
   ]
 }

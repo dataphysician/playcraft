@@ -62,7 +62,7 @@ describe("capability registries", () => {
     const registries = createDefaultRegistries();
 
     expect(registries.themes.select({ capabilityTags: ["theme:high-readability"], domainProfileId: "domain.child-edu" }).selected?.id).toBe("theme.bright-calm");
-    expect(registries.assetSources.select({ contentType: "image", format: "svg", offlineOnly: true, credentialsForbidden: true, seedSupportRequired: true }).selected?.id).toBe("asset-source.local-deterministic");
+    expect(registries.assetSources.select({ contentType: "image", format: "png", offlineOnly: true, credentialsForbidden: true, seedSupportRequired: false }).selected?.id).toBe("asset-source.local-folder");
     expect(registries.domains.select({ ids: ["domain.child-edu"], ageBand: "4-6" }).selected?.id).toBe("domain.child-edu");
     expect(registries.safetyPolicies.select({ ids: ["safety.child-friendly"], domainProfileId: "domain.child-edu", ageBand: "4-6" }).selected?.id).toBe("safety.child-friendly");
   });

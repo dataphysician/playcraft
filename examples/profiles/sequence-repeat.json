@@ -212,7 +212,7 @@
         ]
       },
       "assetBindings": {
-        "illustration": "asset.40272302"
+        "illustration": "asset.dinosaurs.dinosaur-1"
       }
     },
     {
@@ -234,7 +234,7 @@
         ]
       },
       "assetBindings": {
-        "illustration": "asset.40272302"
+        "illustration": "asset.dinosaurs.dinosaur-1"
       }
     },
     {
@@ -263,7 +263,7 @@
       "domainProfileId": "domain.child-edu",
       "safetyPolicyId": "safety.child-friendly",
       "contentType": "image",
-      "format": "svg",
+      "format": "png",
       "prompt": "soft glowing buttons for a child-safe sequence repeat game",
       "seedPolicy": {
         "mode": "required",
@@ -277,28 +277,29 @@
   "assets": [
     {
       "schemaVersion": "playcraft.v1",
-      "id": "generated.40272302",
+      "id": "generated.dinosaurs.dinosaur-1",
       "version": "1.0.0",
       "kind": "generated-asset",
       "requestId": "asset-request.profile.sequence-repeat.mvp",
-      "assetId": "asset.40272302",
-      "sourceId": "asset-source.local-deterministic",
+      "assetId": "asset.dinosaurs.dinosaur-1",
+      "sourceId": "asset-source.local-folder",
       "contentType": "image",
-      "format": "svg",
-      "uri": "local-asset://image/40272302.svg",
-      "altText": "Deterministic image asset for soft glowing buttons for a child-safe sequence repeat game",
+      "format": "png",
+      "uri": "file:///home/damaso/python/hackathons/playcraft/apps/studio/src/assets/library/replacements/dinosaurs/dinosaur-1.png",
+      "altText": "dinosaur-1 sprite",
       "metadata": {
-        "promptDigest": "40272302",
-        "source": "deterministic-local"
+        "theme": "dinosaurs",
+        "basename": "dinosaur-1",
+        "folder": "apps/studio/src/assets/library/replacements",
+        "canonical": true
       },
       "provenance": {
-        "sourceManifestId": "asset-source.local-deterministic",
+        "sourceManifestId": "asset-source.local-folder",
         "sourceManifestVersion": "1.0.0",
-        "deterministic": true,
         "seed": "seed-sequence-repeat",
-        "seedSupported": true,
-        "seedStatus": "used",
-        "generatedAt": "2026-06-27T00:00:00.000Z"
+        "seedSupported": false,
+        "seedStatus": "not-provided",
+        "generatedAt": "2026-07-06T23:11:43.948Z"
       },
       "safety": {
         "status": "safe",

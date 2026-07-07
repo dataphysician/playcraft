@@ -4,6 +4,7 @@ import {
   AssetFormatSchema,
   CapabilityTagSchema,
   JsonValueSchema,
+  ProvenanceSchema,
   PublicContractBaseSchema,
   SafetyStatusSchema,
   SchemaIssueSchema,
@@ -71,7 +72,8 @@ export const AssetSourceCapabilityManifestSchema = z.lazy(() =>
     offline: z.boolean(),
     requiresNetwork: z.boolean(),
     requiresCredentials: z.boolean(),
-    maxBatchSize: z.number().int().positive()
+    maxBatchSize: z.number().int().positive(),
+    provenance: ProvenanceSchema
   }).strict()
 );
 export type AssetSourceCapabilityManifest = z.infer<typeof AssetSourceCapabilityManifestSchema>;
@@ -91,7 +93,7 @@ export const GeneratedAssetRecordSchema = z.lazy(() =>
       .object({
         sourceManifestId: StableIdSchema,
         sourceManifestVersion: VersionSchema,
-        deterministic: z.boolean(),
+        deterministic: z.boolean().optional(),
         seed: z.string().optional(),
         seedSupported: z.boolean(),
         seedStatus: z.enum(["used", "unsupported", "not-provided"]),

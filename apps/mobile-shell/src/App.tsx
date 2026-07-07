@@ -4,18 +4,26 @@ import {
   serviceEndpointFromStudioRuntimeEnv,
   studioRuntimeEnvFromServiceEndpoint
 } from "@playcraft/studio";
+import type { GameBundle } from "@playcraft/contracts";
 
 import {
   createMobileShellStudioClient,
   createMobileAudioCueListener,
   type MobileAudioCueListener
 } from "./mobile-client.js";
+import { OfflineGame } from "./OfflineGame.js";
 
 export interface AppProps {
   audioCueListener?: MobileAudioCueListener;
+  bundle?: GameBundle;
 }
 
-export function App({ audioCueListener }: AppProps = {}): React.JSX.Element {
+export function App({ audioCueListener, bundle }: AppProps = {}): React.JSX.Element {
+  if (bundle) {
+    const listener = audioCueListener ?? createMobileAudioCueListener();
+    return React.createElement(OfflineGame, { bundle, onAudioCue: listener.onAudioCue });
+  }
+
   const serviceEndpoint = serviceEndpointFromStudioRuntimeEnv(
     studioRuntimeEnvFromServiceEndpoint(import.meta.env.VITE_PLAYCRAFT_SERVICE_URL)
   );
@@ -25,5 +33,5 @@ export function App({ audioCueListener }: AppProps = {}): React.JSX.Element {
     listenerRef.current = audioCueListener ?? createMobileAudioCueListener();
   }
 
-  return <StudioApp client={client} onAudioCue={listenerRef.current.onAudioCue} />;
+  return React.createElement(StudioApp, { client, onAudioCue: listenerRef.current.onAudioCue });
 }

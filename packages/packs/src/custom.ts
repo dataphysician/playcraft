@@ -285,13 +285,13 @@ export const customGameTemplateDefinitions: GameTemplateDefinition[] = customTem
     localFirst: true,
     retrieval: {
       current: "bundled-local",
-      planned: "server-catalog"
+      planned: "bundled-local"
     }
   })
 );
 
 export const customTemplateRecipes: AssemblyRecipe[] = customTemplates.map((template) => ({
-  id: template.id,
+  id: `recipe.bundled.${template.id.slice("template.custom.".length)}`,
   version: "1.0.0",
   capabilityTags: template.capabilityTags,
   build: (context: AssemblyRecipeBuildContext) => buildProfileFromTemplate(template, context)

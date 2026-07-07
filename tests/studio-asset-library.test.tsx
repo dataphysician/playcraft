@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { GameAssemblyProfile } from "@playcraft/contracts";
 import { GameAssemblyProfileSchema } from "@playcraft/contracts";
-import { localAssetEditCatalog } from "@playcraft/assets";
 import { createBuilderCommandHandler } from "../packages/builder/src/index.js";
 import {
   createProfileLibraryAssetReplacements,
@@ -635,29 +634,13 @@ describe("studio asset library", () => {
     expect(createProfileLibraryAssetReplacements(staleProfile)["card:toy-1-a"]).toBeUndefined();
   });
 
-  it("rejects duplicate local replacement catalog themes instead of using catalog order", () => {
+  it("uses the folder-driven catalog for local replacement themes", () => {
     const client = createLocalStudioClient();
     const session = client.assembleFromIntent({ idea: "Memory game with toys" });
     const profile = session.activeProfile;
 
     expect(profile).toBeDefined();
-    localAssetEditCatalog.push({
-      aliases: ["toy duplicate"],
-      aliasSummary: "toy duplicate",
-      displayLabel: "duplicate toys",
-      localReplacementFolder: "toys",
-      suggestedItems: ["duplicate-toy-1"],
-      suggestedItemSummary: "duplicate-toy-1",
-      theme: "duplicate-toys"
-    });
-
-    try {
-      expect(() => createProfileLibraryAssetReplacements(profile!)).toThrow(
-        /local asset replacement theme toys maps to multiple catalog entries: toys, duplicate-toys/u
-      );
-    } finally {
-      localAssetEditCatalog.pop();
-    }
+    expect(createProfileLibraryAssetReplacements(profile!)["card:toy-1-a"]?.altText).toBe("toy 1 sprite");
   });
 
   it("rejects snapshotless asset replacement profiles at the contract boundary", () => {

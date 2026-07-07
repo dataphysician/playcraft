@@ -380,7 +380,7 @@ describe("public contract schemas", () => {
         },
         retrieval: {
           current: "bundled-local",
-          planned: "server-catalog"
+          planned: "bundled-local"
         }
       },
       BuilderIntentResolutionSchema: {
@@ -487,10 +487,56 @@ describe("public contract schemas", () => {
           interactionCount: 0
         },
         validation: profile.validation,
-        exportedAt: "2026-07-04T00:00:00.000Z",
-        retrieval: {
-          current: "bundled-local",
-          planned: "server-catalog"
+        exportedAt: "2026-07-06T00:00:00.000Z",
+        provenance: {
+          source: "local-llm-agent",
+          agentEngine: "lfm2.5-vl-450m-extract",
+          assembledBy: "playcraft-contracts-fixture",
+          assembledAt: "2026-07-06T00:00:00.000Z",
+          agentTranscriptId: "agent-transcript.session.fixture"
+        }
+      },
+      GameBundleSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "game-bundle.fixture",
+        version: "1.0.0",
+        kind: "game-bundle",
+        profileExport: {
+          schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+          id: "builder-profile-export.fixture",
+          version: "1.0.0",
+          kind: "builder-profile-export",
+          sessionId: "session.fixture",
+          templateId: "template.memory-match",
+          profile,
+          preview: {
+            schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+            sessionId: "session.fixture",
+            activeProfileId: profile.id,
+            activeTemplateId: "template.memory-match",
+            interactionCount: 0
+          },
+          validation: profile.validation,
+          exportedAt: "2026-07-06T00:00:00.000Z",
+          provenance: {
+            source: "local-llm-agent",
+            agentEngine: "lfm2.5-vl-450m-extract",
+            assembledBy: "playcraft-contracts-fixture",
+            assembledAt: "2026-07-06T00:00:00.000Z",
+            agentTranscriptId: "agent-transcript.session.fixture"
+          }
+        },
+        registries: {
+          mechanics: [mechanicDefinitions[0]],
+          rules: [ruleModuleDefinitions[0]],
+          components: [componentManifests[0]],
+          themes: [themePacks[0]],
+          assetSources: [assetSourceManifests[0]],
+          domains: [domainProfiles[0]],
+          safetyPolicies: [safetyPolicyPacks[0]]
+        },
+        capEnforcement: {
+          enforcedAt: "2026-07-06T00:00:00.000Z"
         }
       },
       BuilderServiceExecutionSchema: {
@@ -691,6 +737,100 @@ describe("public contract schemas", () => {
           "export-profile",
           "import-profile"
         ]
+      },
+      LocalInferenceEngineManifestSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "local-inference-engine.fixture",
+        version: "1.0.0",
+        kind: "local-inference-engine",
+        engineId: "lfm2.5-vl-450m-extract",
+        displayName: "LiquidAI LFM2.5-VL-450M Extract via Moonshine Streaming CPU",
+        capabilityTags: ["llm:local", "llm:extract", "llm:tool-call"],
+        offline: true,
+        localOnly: true,
+        maxContextTokens: 8192,
+        supportsStructuredJson: true,
+        supportsImageInput: true,
+        supportsToolCalls: true,
+        outboxModule: "@playcraft/core/local-llm.js"
+      },
+      AgentToolCallSchema: {
+        callId: "agent-call.fixture",
+        toolName: "tool:assemble-game",
+        arguments: {
+          text: "memory game with dinosaurs"
+        }
+      },
+      AgentToolResultSchema: {
+        callId: "agent-call.fixture",
+        toolName: "tool:assemble-game",
+        status: "ok",
+        value: {
+          profileId: "profile.fixture"
+        }
+      },
+      AgentStepSchema: {
+        kind: "tool-call",
+        stepId: "agent-step.fixture",
+        engine: "lfm2.5-vl-450m-extract",
+        call: {
+          callId: "agent-call.fixture",
+          toolName: "tool:assemble-game",
+          arguments: {
+            text: "memory game with dinosaurs"
+          }
+        },
+        emittedAt: "2026-07-06T00:00:00.000Z"
+      },
+      PlaycraftAgentTranscriptSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "agent-transcript.fixture",
+        version: "1.0.0",
+        kind: "agent-transcript",
+        engine: "lfm2.5-vl-450m-extract",
+        engineManifestId: "local-inference-engine.fixture",
+        engineManifestVersion: "1.0.0",
+        requestId: "agent-request.fixture",
+        steps: [
+          {
+            kind: "final",
+            stepId: "agent-step.fixture.final",
+            message: "Memory game with dinosaurs ready",
+            emittedAt: "2026-07-06T00:00:00.000Z"
+          }
+        ],
+        finished: true,
+        finishedAt: "2026-07-06T00:00:00.000Z"
+      },
+      RemoteEnrichmentRequestSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "remote-enrichment-request.fixture",
+        version: "1.0.0",
+        kind: "remote-enrichment-request",
+        requestId: "remote-enrichment-request.fixture.request",
+        engine: "lfm2.5-vl-450m-extract",
+        agentTranscriptId: "agent-transcript.fixture",
+        gap: {
+          missingCapabilities: ["render:novel-cards"],
+          requestedMechanicIds: ["mechanic.memory-match"],
+          requestedRuleIds: ["rule.memory-match"],
+          requestedComponentIds: ["component.memory-grid"],
+          context: { locale: "en-US" }
+        }
+      },
+      RemoteEnrichmentResponseSchema: {
+        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+        id: "remote-enrichment-response.fixture",
+        version: "1.0.0",
+        kind: "remote-enrichment-response",
+        requestId: "remote-enrichment-request.fixture.request",
+        status: "unsupported",
+        components: [],
+        rules: [],
+        assetSources: [],
+        bytes: 0,
+        cacheHit: false,
+        error: "Remote enrichment is not configured; local registries must satisfy all capabilities."
       }
     };
 
@@ -702,6 +842,12 @@ describe("public contract schemas", () => {
           expect(result.data.map((item: { schemaVersion?: string }) => item.schemaVersion)).toEqual(
             result.data.map(() => PLAYCRAFT_SCHEMA_VERSION)
           );
+        } else if (
+          name === "AgentToolCallSchema" ||
+          name === "AgentToolResultSchema" ||
+          name === "AgentStepSchema"
+        ) {
+          expect((result.data as { schemaVersion?: string }).schemaVersion).toBeUndefined();
         } else {
           expect(result.data.schemaVersion).toBe(PLAYCRAFT_SCHEMA_VERSION);
         }
@@ -1356,7 +1502,7 @@ describe("public contract schemas", () => {
       },
       retrieval: {
         current: "bundled-local",
-        planned: "server-catalog"
+        planned: "bundled-local"
       }
     };
 
@@ -1742,14 +1888,28 @@ describe("public contract schemas", () => {
         interactionCount: 0
       },
       validation: profile.validation,
-      exportedAt: "2026-07-04T00:00:00.000Z",
-      retrieval: {
-        current: "bundled-local",
-        planned: "server-catalog"
+      exportedAt: "2026-07-06T00:00:00.000Z",
+      provenance: {
+        source: "local-llm-agent",
+        agentEngine: "lfm2.5-vl-450m-extract",
+        assembledBy: "playcraft-profile-consistency",
+        assembledAt: "2026-07-06T00:00:00.000Z",
+        agentTranscriptId: "agent-transcript.session.profile-export-consistency"
       }
     };
 
     expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse(baseExport).success).toBe(true);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      provenance: undefined
+    }).success).toBe(false);
+    expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
+      ...baseExport,
+      provenance: {
+        source: "local-llm-agent",
+        assembledAt: "2026-07-06T00:00:00.000Z"
+      }
+    }).success).toBe(false);
     expect(PublicContractSchemas.BuilderProfileExportSchema.safeParse({
       ...baseExport,
       preview: undefined
@@ -2100,7 +2260,7 @@ describe("public contract schemas", () => {
           exportedAt: "2026-07-04T00:00:00.000Z",
           retrieval: {
             current: "bundled-local",
-            planned: "server-catalog"
+            planned: "bundled-local"
           }
         }
       }).success
@@ -2124,7 +2284,7 @@ describe("public contract schemas", () => {
           exportedAt: "2026-07-04T00:00:00.000Z",
           retrieval: {
             current: "bundled-local",
-            planned: "server-catalog"
+            planned: "bundled-local"
           }
         }
       }).success
@@ -2270,7 +2430,7 @@ describe("public contract schemas", () => {
           },
           retrieval: {
             current: "bundled-local",
-            planned: "server-catalog"
+            planned: "bundled-local"
           }
         },
         session
@@ -2295,7 +2455,7 @@ describe("public contract schemas", () => {
           exportedAt: "2026-07-04T00:00:00.000Z",
           retrieval: {
             current: "bundled-local",
-            planned: "server-catalog"
+            planned: "bundled-local"
           }
         },
         session
@@ -2673,7 +2833,7 @@ describe("public contract schemas", () => {
       },
       retrieval: {
         current: "bundled-local",
-        planned: "server-catalog"
+        planned: "bundled-local"
       }
     };
 

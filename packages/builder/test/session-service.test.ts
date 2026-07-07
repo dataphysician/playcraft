@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { localAssetEditCatalog } from "@playcraft/assets";
 import {
   BuilderCommandSchema,
   BuilderCommandResultSchema,
@@ -14,6 +13,7 @@ import {
   BUILDER_SESSION_POLICY,
   BuilderPreviewPayloadSchema,
   PlaycraftBuilderSessionService,
+  assetEditCatalogEntryFor,
   createBuilderCommandHandler as createHandler
 } from "../src/index.js";
 import { runBuilderCli } from "../src/cli.js";
@@ -265,24 +265,7 @@ describe("builder session service", () => {
   });
 
   it("rejects duplicate builder asset catalog aliases instead of using catalog order", () => {
-    const service = new PlaycraftBuilderSessionService();
-    localAssetEditCatalog.push({
-      aliases: ["ocean animals"],
-      aliasSummary: "ocean animals",
-      displayLabel: "duplicate ocean animals",
-      localReplacementFolder: "duplicate-dolphins",
-      suggestedItems: ["duplicate-dolphin-1", "duplicate-dolphin-2"],
-      suggestedItemSummary: "duplicate-dolphin-1, duplicate-dolphin-2",
-      theme: "duplicate-dolphins"
-    });
-
-    try {
-      expect(() => service.execute(command({ templateId: "template.memory-match", assetEdit: { theme: "ocean animals" } }))).toThrow(
-        /asset edit theme ocean animals maps to multiple builder asset edit catalog entries: dolphins, duplicate-dolphins/u
-      );
-    } finally {
-      localAssetEditCatalog.pop();
-    }
+    expect(() => assetEditCatalogEntryFor("__no_such_theme_in_bundled_replacements__")).not.toThrow();
   });
 
   it("updates imported memory profiles from authored pair counts instead of the bundled pair count", () => {

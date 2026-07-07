@@ -1,7 +1,7 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { DeterministicLocalAssetSource } from "@playcraft/assets";
+import { LocalAssetFolderSource } from "@playcraft/assets";
 import type { AssetGenerationRequest, GeneratedAssetRecord, PlaycraftAssemblyRequest } from "@playcraft/contracts";
 import {
   assembleMvpProfiles,
@@ -23,7 +23,10 @@ const fixtureByProfileId: Record<string, string> = {
   "profile.sequence-repeat.mvp": "../../../examples/profiles/sequence-repeat.json"
 };
 
-class DuplicateAssetSource extends DeterministicLocalAssetSource {
+class DuplicateAssetSource extends LocalAssetFolderSource {
+  constructor() {
+    super({ folder: "apps/studio/src/assets/library/replacements" });
+  }
   override generateBatch(requests: AssetGenerationRequest[]): GeneratedAssetRecord[] {
     const generated = super.generateBatch(requests);
     const [first] = generated;
@@ -42,7 +45,7 @@ describe("MVP profile pack", () => {
       "profile.sequence-repeat.mvp"
     ]);
     expect(profiles.every((profile) => profile.validation.valid)).toBe(true);
-    expect(profiles.every((profile) => profile.assets.every((asset) => asset.sourceId === "asset-source.local-deterministic"))).toBe(true);
+    expect(profiles.every((profile) => profile.assets.every((asset) => asset.sourceId === "asset-source.local-folder"))).toBe(true);
     expect(profiles.every((profile) => profile.template?.assemblyRequestId === profile.assemblyRequestId)).toBe(true);
     expect(profiles.slice(0, 3).map((profile) => profile.template?.id)).toEqual([
       "template.memory-match",
@@ -63,7 +66,14 @@ describe("MVP profile pack", () => {
       const path = fileURLToPath(new URL(fixturePath, import.meta.url));
       const saved = JSON.parse(readFileSync(path, "utf8"));
 
-      expect(saved).toEqual(assembled);
+      const stripped = (profile: { assets: Array<{ provenance: { generatedAt: string } }> }) => {
+        profile.assets.forEach((asset) => {
+          asset.provenance.generatedAt = "<stripped>";
+        });
+        return profile;
+      };
+      expect(stripped(JSON.parse(JSON.stringify(saved)))).toEqual(stripped(JSON.parse(JSON.stringify(assembled))));
+      writeFileSync(path, JSON.stringify(assembled, null, 2) + "\n");
     }
   });
 

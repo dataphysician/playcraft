@@ -10,3 +10,6 @@ export * from "./game-template.js";
 export * from "./builder-catalog.js";
 export * from "./manifests.js";
 export * from "./builder.js";
+export * from "./game-bundle.js";
+export * from "./agent.js";
+export * from "./enrichment.js";

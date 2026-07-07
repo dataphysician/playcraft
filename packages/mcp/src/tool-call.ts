@@ -1,5 +1,4 @@
 import {
-  BuilderServiceActionNameSchema,
   BuilderServiceRequestSchema,
   PLAYCRAFT_MCP_GUARDRAILS,
   type BuilderServiceRequest,
@@ -7,7 +6,7 @@ import {
   type BuilderToolDefinition
 } from "@playcraft/contracts";
 import { builderToolDefinitions } from "@playcraft/builder";
-import type { LocalPlaycraftService } from "@playcraft/service";
+import type { McpServiceFacade } from "./facade.js";
 
 const BUILDER_TOOL_BY_ACTION = new Map<string, BuilderToolDefinition>(
   builderToolDefinitions.map((tool) => [tool.actionName, tool])
@@ -54,20 +53,7 @@ function resolveSessionId(args: InvokeMcpToolArgs): string {
   return generateSessionId();
 }
 
-function exampleRequestFor(service: LocalPlaycraftService, templateId: string): string | undefined {
-  try {
-    const catalog = service.catalog();
-    return catalog.templates.find((template) => template.id === templateId)?.exampleRequest;
-  } catch {
-    return undefined;
-  }
-}
-
-function textForAssemble(
-  service: LocalPlaycraftService,
-  args: InvokeMcpToolArgs,
-  templateId: string | undefined
-): string {
+function textForAssemble(args: InvokeMcpToolArgs): string {
   if (typeof args.text === "string" && args.text.length > 0) {
     return args.text;
   }
@@ -76,20 +62,13 @@ function textForAssemble(
     return args.input;
   }
 
-  if (templateId) {
-    const example = exampleRequestFor(service, templateId);
-    if (example && example.length > 0) {
-      return example;
-    }
-  }
-
   return "local assemble request";
 }
 
 export async function invokeMcpTool(
   name: string,
   args: InvokeMcpToolArgs,
-  service: LocalPlaycraftService
+  service: McpServiceFacade
 ): Promise<BuilderServiceResponse> {
   const tool = BUILDER_TOOL_BY_ACTION.get(name);
   if (!tool) {
@@ -107,7 +86,7 @@ export async function invokeMcpTool(
     throw new Error(`MCP invocation rejected: no service routing for ${name}`);
   }
 
-  const candidateRequest = buildServiceRequest(tool, serviceAction, args, service);
+  const candidateRequest = buildServiceRequest(tool, serviceAction, args);
   const request: BuilderServiceRequest = BuilderServiceRequestSchema.parse(candidateRequest);
   return Promise.resolve(service.handle(request));
 }
@@ -115,8 +94,7 @@ export async function invokeMcpTool(
 function buildServiceRequest(
   tool: BuilderToolDefinition,
   serviceAction: string,
-  args: InvokeMcpToolArgs,
-  service: LocalPlaycraftService
+  args: InvokeMcpToolArgs
 ): Record<string, unknown> {
   const baseRequest = {
     schemaVersion: "playcraft.v1" as const,
@@ -137,7 +115,7 @@ function buildServiceRequest(
             ? args.sessionId
             : undefined,
         templateId,
-        text: textForAssemble(service, args, templateId),
+        text: textForAssemble(args),
         source: "text",
         assetEdit: args.assetEdit
       };
@@ -149,7 +127,7 @@ function buildServiceRequest(
         actionName: "update",
         sessionId: resolveSessionId(args),
         templateId,
-        text: textForAssemble(service, args, templateId),
+        text: textForAssemble(args),
         source: "text",
         assetEdit: args.assetEdit
       };
@@ -190,5 +168,3 @@ function buildServiceRequest(
       throw new Error(`MCP invocation rejected: unsupported builder tool ${tool.actionName}`);
   }
 }
-
-void BuilderServiceActionNameSchema;

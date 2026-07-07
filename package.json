@@ -13,14 +13,20 @@
     "serve:service": "pnpm --filter @playcraft/service serve",
     "test": "vitest run",
     "test:a11y": "vitest run tests/studio-accessibility.test.tsx",
+    "test:e2e": "pnpm --filter @playcraft/e2e exec playwright test",
+    "test:e2e:ui": "pnpm --filter @playcraft/e2e exec playwright test --ui",
+    "lint:guardrails": "node scripts/check-guardrails.mjs",
     "typecheck:mobile": "pnpm --filter @playcraft/mobile-shell typecheck",
     "typecheck": "tsc -b",
-    "typecheck:studio": "pnpm --filter @playcraft/studio typecheck"
+    "typecheck:studio": "pnpm --filter @playcraft/studio typecheck",
+    "verify": "pnpm typecheck && pnpm lint:guardrails && pnpm test && pnpm test:a11y && pnpm test:e2e && pnpm build:studio"
   },
   "devDependencies": {
     "@playcraft/service": "workspace:*",
     "@playcraft/builder": "workspace:*",
+    "@playwright/test": "^1.49.0",
     "@testing-library/react": "^16.2.0",
+    "@types/node": "^22.0.0",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "axe-core": "^4.10.0",

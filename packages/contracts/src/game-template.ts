@@ -129,8 +129,8 @@ export const GameTemplateDefinitionSchema = z.lazy(() =>
     localFirst: z.boolean(),
     retrieval: z
       .object({
-        current: z.literal("bundled-local"),
-        planned: z.literal("server-catalog")
+        current: z.enum(["bundled-local", "authored-local", "remote-agent"]),
+        planned: z.enum(["bundled-local", "authored-local", "remote-agent"])
       })
       .strict()
   }).strict()

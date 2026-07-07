@@ -1,0 +1,14 @@
+{
+  "name": "@playcraft/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playcraft/contracts": "workspace:*",
+    "@playwright/test": "^1.49.0",
+    "playwright": "^1.49.0"
+  }
+}

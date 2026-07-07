@@ -1,0 +1,313 @@
+{
+  "schemaVersion": "playcraft.v1",
+  "id": "profile.color-memory.mvp",
+  "version": "1.0.0",
+  "kind": "game-assembly-profile",
+  "profileName": "Color Memory MVP",
+  "assemblyRequestId": "request.color-memory.mvp",
+  "template": {
+    "schemaVersion": "playcraft.v1",
+    "id": "template.color-memory",
+    "version": "1.0.0",
+    "kind": "game-template-snapshot",
+    "displayName": "Color Memory MVP",
+    "displayLabel": "Color Memory",
+    "assetPromptKind": "memory-cards",
+    "assetEditOperations": [
+      {
+        "componentCapability": "component:reveal-card-grid",
+        "operation": "memory-pairs"
+      },
+      {
+        "componentCapability": "component:celebration-overlay",
+        "operation": "completion-message"
+      }
+    ],
+    "liveSurface": {
+      "kind": "memory",
+      "componentCapabilities": {
+        "primary": "component:reveal-card-grid"
+      },
+      "assetReplacementSources": [
+        {
+          "componentRole": "primary",
+          "prop": "cards",
+          "namespace": "card",
+          "pairMapProp": "pairs"
+        }
+      ],
+      "tokenStyles": [
+        {
+          "tokens": [
+            "pair-1"
+          ],
+          "background": "#fee2e2",
+          "border": "#ef4444",
+          "foreground": "#7f1d1d",
+          "accent": "#fecaca"
+        },
+        {
+          "tokens": [
+            "pair-2"
+          ],
+          "background": "#dbeafe",
+          "border": "#2563eb",
+          "foreground": "#1e3a8a",
+          "accent": "#bfdbfe"
+        },
+        {
+          "tokens": [
+            "pair-3"
+          ],
+          "background": "#dcfce7",
+          "border": "#16a34a",
+          "foreground": "#14532d",
+          "accent": "#bbf7d0"
+        },
+        {
+          "tokens": [
+            "pair-4"
+          ],
+          "background": "#fef3c7",
+          "border": "#d97706",
+          "foreground": "#713f12",
+          "accent": "#fde68a"
+        }
+      ],
+      "defaultTokenStyle": {
+        "tokens": [
+          "default"
+        ],
+        "background": "#fce7f3",
+        "border": "#db2777",
+        "foreground": "#831843",
+        "accent": "#fbcfe8"
+      }
+    },
+    "assemblyRequestId": "request.color-memory.mvp"
+  },
+  "domainProfile": {
+    "id": "domain.child-edu",
+    "version": "1.0.0"
+  },
+  "safetyPolicy": {
+    "id": "safety.child-friendly",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "id": "theme.bright-calm",
+    "version": "1.0.0"
+  },
+  "mechanics": [
+    {
+      "bindingId": "profile.color-memory.mvp.mechanic.1",
+      "mechanicId": "mechanic.tap-to-reveal",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:tap-to-reveal"
+      },
+      "eventBindings": {
+        "primary": "frontend:revealed"
+      }
+    },
+    {
+      "bindingId": "profile.color-memory.mvp.mechanic.2",
+      "mechanicId": "mechanic.match-pairs",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "mechanic:match-pairs"
+      },
+      "eventBindings": {
+        "primary": "rule:pair-matched"
+      }
+    },
+    {
+      "bindingId": "profile.color-memory.mvp.mechanic.3",
+      "mechanicId": "mechanic.timed-celebration",
+      "version": "1.0.0",
+      "parameters": {
+        "capability": "feedback:celebration"
+      },
+      "eventBindings": {
+        "primary": "frontend:celebrated"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "bindingId": "profile.color-memory.mvp.rule.1",
+      "ruleId": "rule.pair-match",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "pair-matching"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.color-memory.mvp.rule.2",
+      "ruleId": "rule.guided-retry",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "retry"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.color-memory.mvp.rule.3",
+      "ruleId": "rule.hint-timing",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "hint"
+      },
+      "defaultSource": "manifest"
+    },
+    {
+      "bindingId": "profile.color-memory.mvp.rule.4",
+      "ruleId": "rule.completion",
+      "version": "1.0.0",
+      "parameters": {
+        "category": "completion"
+      },
+      "defaultSource": "manifest"
+    }
+  ],
+  "components": [
+    {
+      "bindingId": "profile.color-memory.mvp.component.1",
+      "componentId": "component.reveal-card-grid",
+      "version": "1.0.0",
+      "renderCapability": "component:reveal-card-grid",
+      "mechanicBindingIds": [
+        "profile.color-memory.mvp.mechanic.1",
+        "profile.color-memory.mvp.mechanic.2"
+      ],
+      "renderMechanicBindingId": "profile.color-memory.mvp.mechanic.1",
+      "props": {
+        "title": "Color pairs",
+        "cards": [
+          "red-a",
+          "red-b",
+          "blue-a",
+          "blue-b"
+        ],
+        "pairs": {
+          "red-a": "pair-1",
+          "red-b": "pair-1",
+          "blue-a": "pair-2",
+          "blue-b": "pair-2"
+        },
+        "columns": 2
+      },
+      "assetBindings": {
+        "illustration": "asset.dinosaurs.dinosaur-1"
+      }
+    },
+    {
+      "bindingId": "profile.color-memory.mvp.component.2",
+      "componentId": "component.celebration-overlay",
+      "version": "1.0.0",
+      "renderCapability": "component:celebration-overlay",
+      "mechanicBindingIds": [
+        "profile.color-memory.mvp.mechanic.3"
+      ],
+      "renderMechanicBindingId": "profile.color-memory.mvp.mechanic.3",
+      "props": {
+        "message": "Color pairs complete."
+      },
+      "assetBindings": {}
+    }
+  ],
+  "assetRequests": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "asset-request.profile.color-memory.mvp",
+      "version": "1.0.0",
+      "kind": "asset-generation-request",
+      "requestId": "asset-request.profile.color-memory.mvp",
+      "profileId": "profile.color-memory.mvp",
+      "domainProfileId": "domain.child-edu",
+      "safetyPolicyId": "safety.child-friendly",
+      "contentType": "image",
+      "format": "png",
+      "prompt": "friendly color cards for a child-safe memory game",
+      "seedPolicy": {
+        "mode": "required",
+        "seed": "seed-color-memory"
+      },
+      "metadata": {
+        "profileTemplate": "template.color-memory"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "schemaVersion": "playcraft.v1",
+      "id": "generated.dinosaurs.dinosaur-1",
+      "version": "1.0.0",
+      "kind": "generated-asset",
+      "requestId": "asset-request.profile.color-memory.mvp",
+      "assetId": "asset.dinosaurs.dinosaur-1",
+      "sourceId": "asset-source.local-folder",
+      "contentType": "image",
+      "format": "png",
+      "uri": "file:///home/damaso/python/hackathons/playcraft/apps/studio/src/assets/library/replacements/dinosaurs/dinosaur-1.png",
+      "altText": "dinosaur-1 sprite",
+      "metadata": {
+        "theme": "dinosaurs",
+        "basename": "dinosaur-1",
+        "folder": "apps/studio/src/assets/library/replacements",
+        "canonical": true
+      },
+      "provenance": {
+        "sourceManifestId": "asset-source.local-folder",
+        "sourceManifestVersion": "1.0.0",
+        "seed": "seed-color-memory",
+        "seedSupported": false,
+        "seedStatus": "not-provided",
+        "generatedAt": "2026-07-06T21:56:59.038Z"
+      },
+      "safety": {
+        "status": "safe",
+        "policyId": "safety.child-friendly",
+        "findings": []
+      }
+    }
+  ],
+  "replay": {
+    "deterministicSeed": "seed-color-memory",
+    "plannerId": "planner.deterministic.mvp",
+    "plannerVersion": "1.0.0",
+    "unsupportedSeedRequests": [],
+    "eventLog": [
+      {
+        "schemaVersion": "playcraft.v1",
+        "id": "event.profile.color-memory.mvp.ready",
+        "version": "1.0.0",
+        "kind": "playcraft-event",
+        "profileId": "profile.color-memory.mvp",
+        "eventType": "replay:ready",
+        "eventName": "profile:assembled",
+        "source": {
+          "role": "planner",
+          "sourceId": "planner.deterministic.mvp"
+        },
+        "sequence": 0,
+        "occurredAt": "2026-06-27T00:00:00.000Z",
+        "payload": {
+          "profileId": "profile.color-memory.mvp",
+          "deterministic": true
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schemaVersion": "playcraft.v1",
+    "id": "validation.profile.color-memory.mvp",
+    "version": "1.0.0",
+    "kind": "assembly-validation-result",
+    "profileId": "profile.color-memory.mvp",
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+}

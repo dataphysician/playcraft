@@ -16,12 +16,14 @@ import {
   PLAYCRAFT_MCP_GUARDRAILS,
   type BuilderCatalog,
   type BuilderServiceRequest,
-  type BuilderServiceResponse,
-  type BuilderToolDefinition,
-  type McpManifest,
-  type McpTool,
-  type McpToolArgument
+  type McpTool
 } from "@playcraft/contracts";
+import {
+  adapterToolsToMcp,
+  createMcpManifest,
+  invokeMcpTool,
+  type InvokeMcpToolArgs
+} from "@playcraft/mcp";
 import {
   createLocalPlaycraftService,
   handleServiceHttpRequestBody,
@@ -198,7 +200,7 @@ async function handleMcpCatalogRoute(input: {
   service: LocalPlaycraftService;
 }): Promise<void> {
   const baseCatalog = input.service.catalog();
-  const manifest = buildMcpManifest(baseCatalog.tools, baseCatalog.service);
+  const manifest = createMcpManifest(baseCatalog.tools, baseCatalog.service);
   const catalog: BuilderCatalog = BuilderCatalogSchema.parse({
     ...baseCatalog,
     mcp: {
@@ -256,7 +258,7 @@ async function handleMcpToolsCallRoute(input: {
     return;
   }
 
-  let parsed: { name: string; arguments: Record<string, unknown> };
+  let parsed: { name: string; arguments: InvokeMcpToolArgs };
   try {
     const json = JSON.parse(rawBody) as unknown;
     if (!json || typeof json !== "object" || Array.isArray(json)) {
@@ -290,7 +292,7 @@ async function handleMcpToolsCallRoute(input: {
       );
       return;
     } else {
-      parsed = { name: candidate.name, arguments: args as Record<string, unknown> };
+      parsed = { name: candidate.name, arguments: args as InvokeMcpToolArgs };
     }
   } catch (error) {
     writeJsonError(input.response, 400, "builder-service-error", errorMessage(error));
@@ -567,248 +569,6 @@ function parsePort(value: string): number {
 
 function normalizeRoute(route: string): string {
   return route.startsWith("/") ? route : `/${route}`;
-}
-
-const MCP_FIELD_DESCRIPTIONS: Record<string, string> = {
-  assetEdit: "Optional asset edit payload that swaps the active theme or items.",
-  input: "Optional input request payload (text or Moonshine transcript).",
-  interaction: "Required preview interaction payload.",
-  profile: "Required validated profile payload for import.",
-  sessionId: "Optional stable session id; auto-generated when omitted.",
-  templateId: "Required game template id (for example template.memory-match)."
-};
-
-interface JsonFieldShape {
-  allowedValues?: readonly unknown[];
-  fields?: Record<string, unknown>;
-  required?: boolean;
-  type: string;
-}
-
-function adapterToolsToMcp(tools: readonly BuilderToolDefinition[]): McpTool[] {
-  const allowlist = new Set<string>(PLAYCRAFT_MCP_GUARDRAILS.allowlistedTools);
-  return tools
-    .filter((tool) => allowlist.has(tool.actionName))
-    .map((tool) => {
-      const parameters: Record<string, McpToolArgument> = {};
-      for (const [fieldName, field] of Object.entries(tool.argumentsSchema.fields)) {
-        const typedField = field as JsonFieldShape;
-        const arg: McpToolArgument = {
-          name: fieldName,
-          type: mapMcpJsonFieldType(typedField),
-          description: describeMcpField(tool.actionName, fieldName, typedField),
-          required: typedField.required !== false
-        };
-        if (typedField.allowedValues) {
-          parameters[fieldName] = { ...arg, enum: [...typedField.allowedValues] };
-        } else {
-          parameters[fieldName] = arg;
-        }
-      }
-      return {
-        name: tool.toolName,
-        description: tool.description,
-        parameters
-      };
-    });
-}
-
-function buildMcpManifest(
-  builderTools: readonly BuilderToolDefinition[],
-  serviceCatalog?: BuilderCatalog["service"]
-): McpManifest {
-  const mcpTools = adapterToolsToMcp(builderTools);
-  const serviceActionCount = serviceCatalog ? serviceCatalog.actions.length : 0;
-  const localTransport = (serviceCatalog?.transports.local ?? "createLocalServiceTransport").toLowerCase();
-  return {
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    id: `mcp-manifest.playcraft-local.${serviceActionCount}-actions.${localTransport}`,
-    version: "1.0.0",
-    kind: "mcp-manifest",
-    name: "playcraft-local-mcp",
-    tools: mcpTools
-  };
-}
-
-function mapMcpJsonFieldType(field: JsonFieldShape): string {
-  if (field.type === "array") {
-    return "array";
-  }
-  if (field.type === "record") {
-    return "object";
-  }
-  return field.type;
-}
-
-function describeMcpField(actionName: string, fieldName: string, field: JsonFieldShape): string {
-  const friendly = MCP_FIELD_DESCRIPTIONS[fieldName];
-  if (friendly) {
-    return `${actionName} argument: ${friendly}`;
-  }
-  if (field.allowedValues && field.allowedValues.length > 0) {
-    return `${actionName} argument ${fieldName} (allowed: ${field.allowedValues.join(", ")})`;
-  }
-  if (field.fields) {
-    return `${actionName} argument ${fieldName} of type object`;
-  }
-  return `${actionName} argument ${fieldName} of type ${field.type}`;
-}
-
-interface InvokeMcpToolArgs {
-  assetEdit?: unknown;
-  input?: unknown;
-  interaction?: unknown;
-  profile?: unknown;
-  profileExport?: unknown;
-  sessionId?: string;
-  templateId?: string;
-  text?: string;
-}
-
-const MCP_TOOL_TO_SERVICE_ACTION: Record<string, BuilderServiceRequest["actionName"]> = {
-  "assemble-game": "assemble",
-  "update-game": "update",
-  "preview-action": "preview",
-  "list-builder-tools": "catalog",
-  "get-session": "get-session",
-  "export-profile": "export-profile",
-  "import-profile": "import-profile"
-};
-
-function generateMcpSessionId(): string {
-  return `session.mcp.${Date.now().toString(36)}.${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function resolveMcpSessionId(args: InvokeMcpToolArgs): string {
-  if (typeof args.sessionId === "string" && args.sessionId.length > 0) {
-    return args.sessionId;
-  }
-  return generateMcpSessionId();
-}
-
-function textForMcpAssemble(
-  service: LocalPlaycraftService,
-  args: InvokeMcpToolArgs,
-  templateId: string | undefined
-): string {
-  if (typeof args.text === "string" && args.text.length > 0) {
-    return args.text;
-  }
-  if (typeof args.input === "string" && args.input.length > 0) {
-    return args.input;
-  }
-  if (templateId) {
-    const example = service.catalog().templates.find((template) => template.id === templateId)?.exampleRequest;
-    if (example && example.length > 0) {
-      return example;
-    }
-  }
-  return "local assemble request";
-}
-
-function generateMcpRequestId(): string {
-  return `builder-service-request.mcp.${Date.now().toString(36)}.${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function buildMcpServiceRequest(
-  name: string,
-  args: InvokeMcpToolArgs,
-  service: LocalPlaycraftService
-): BuilderServiceRequest {
-  const base = {
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    id: generateMcpRequestId(),
-    version: "1.0.0",
-    kind: "builder-service-request" as const
-  };
-
-  if (name === "assemble-game") {
-    const templateId = typeof args.templateId === "string" ? args.templateId : undefined;
-    return BuilderServiceRequestSchema.parse({
-      ...base,
-      actionName: "assemble",
-      sessionId: typeof args.sessionId === "string" && args.sessionId.length > 0 ? args.sessionId : undefined,
-      templateId,
-      text: textForMcpAssemble(service, args, templateId),
-      source: "text",
-      assetEdit: args.assetEdit
-    });
-  }
-
-  if (name === "update-game") {
-    const templateId = typeof args.templateId === "string" ? args.templateId : undefined;
-    return BuilderServiceRequestSchema.parse({
-      ...base,
-      actionName: "update",
-      sessionId: resolveMcpSessionId(args),
-      templateId,
-      text: textForMcpAssemble(service, args, templateId),
-      source: "text",
-      assetEdit: args.assetEdit
-    });
-  }
-
-  if (name === "preview-action") {
-    return BuilderServiceRequestSchema.parse({
-      ...base,
-      actionName: "preview",
-      sessionId: resolveMcpSessionId(args),
-      interaction: args.interaction
-    });
-  }
-
-  if (name === "list-builder-tools") {
-    return BuilderServiceRequestSchema.parse({
-      ...base,
-      actionName: "catalog"
-    });
-  }
-
-  if (name === "get-session") {
-    return BuilderServiceRequestSchema.parse({
-      ...base,
-      actionName: "get-session",
-      sessionId: resolveMcpSessionId(args)
-    });
-  }
-
-  if (name === "export-profile") {
-    return BuilderServiceRequestSchema.parse({
-      ...base,
-      actionName: "export-profile",
-      sessionId: resolveMcpSessionId(args)
-    });
-  }
-
-  if (name === "import-profile") {
-    return BuilderServiceRequestSchema.parse({
-      ...base,
-      actionName: "import-profile",
-      sessionId: resolveMcpSessionId(args),
-      profile: args.profile,
-      profileExport: args.profileExport
-    });
-  }
-
-  throw new Error(`MCP invocation rejected: unsupported builder tool ${name}`);
-}
-
-async function invokeMcpTool(
-  name: string,
-  args: InvokeMcpToolArgs,
-  service: LocalPlaycraftService
-): Promise<BuilderServiceResponse> {
-  if (!PLAYCRAFT_MCP_GUARDRAILS.allowlistedTools.includes(name)) {
-    throw new Error(
-      `MCP invocation rejected: tool ${name} is not in the PLAYCRAFT_MCP_GUARDRAILS allowlist`
-    );
-  }
-  const serviceAction = MCP_TOOL_TO_SERVICE_ACTION[name];
-  if (!serviceAction) {
-    throw new Error(`MCP invocation rejected: no service routing for ${name}`);
-  }
-  const request = buildMcpServiceRequest(name, args, service);
-  return Promise.resolve(service.handle(request));
 }
 
 if (realpathSync(process.argv[1]) === __filename) {

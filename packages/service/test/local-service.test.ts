@@ -15,7 +15,7 @@ import {
   createBuilderCommandHandler,
   type BuilderCommandHandler
 } from "@playcraft/builder";
-import { localAssetEditMaxItems } from "@playcraft/assets";
+import { localAssetEditMaxItems } from "@playcraft/service";
 import { DEFAULT_GAME_TEMPLATE_ID } from "@playcraft/packs";
 import {
   PLAYCRAFT_SERVICE_PACKAGE,
@@ -118,7 +118,7 @@ describe("local Playcraft service", () => {
     expect(catalog.defaultTemplateId).toBe(DEFAULT_GAME_TEMPLATE_ID);
     expect(catalog.retrieval).toEqual({
       current: "bundled-local",
-      planned: "server-catalog"
+      planned: "bundled-local"
     });
     expect(catalog.input).toEqual({
       defaultSource: "text",

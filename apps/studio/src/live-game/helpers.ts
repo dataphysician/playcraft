@@ -8,6 +8,7 @@ import type {
   GameTemplateLiveSurface,
   GameProfileTemplateSnapshot
 } from "@playcraft/contracts";
+import { normalizedTokens, tokenSequenceIncludes } from "@playcraft/text-utils";
 
 export interface LiveGameInteraction {
   eventName: string;
@@ -122,25 +123,6 @@ export function displayCardGlyph(cardId: string): string {
 
 export function isRenderableUri(uri: string): boolean {
   return /^(?:https?:|data:|blob:|\/|\.\/|\.\.\/)/u.test(uri);
-}
-
-export function normalizedTokens(value: string): string[] {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/gu, " ")
-    .trim()
-    .split(/\s+/u)
-    .filter(Boolean);
-}
-
-export function tokenSequenceIncludes(tokens: string[], sequence: string[]): boolean {
-  if (sequence.length === 0 || sequence.length > tokens.length) {
-    return false;
-  }
-
-  return tokens.some((_, index) =>
-    sequence.every((part, offset) => tokens[index + offset] === part)
-  );
 }
 
 export function pointInRect(x: number, y: number, rect: DOMRect): boolean {
