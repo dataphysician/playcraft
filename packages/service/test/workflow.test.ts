@@ -487,10 +487,10 @@ describe("LocalPlaycraftService.execute-workflow", () => {
     expect(response.execution?.events.length).toBeGreaterThan(0);
   });
 
-  it("dispatches execute-workflow via handleBatch", () => {
+  it("dispatches execute-workflow via handleBatch", async () => {
     const service = createLocalPlaycraftService();
     const graph = buildLinearGraph();
-    const responses = service.handleBatch([
+    const responses = await service.handleBatch([
       {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-service-request.test.workflow-batch-1",

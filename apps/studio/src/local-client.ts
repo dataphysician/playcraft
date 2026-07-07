@@ -12,6 +12,7 @@ import {
   type GameAssemblyProfile,
   type JsonValue,
   type MoonshineTranscriptRecord,
+  type PaidOnlineAssemblyResponse,
   type SseFrame
 } from "@playcraft/contracts";
 
@@ -259,6 +260,17 @@ export function createStudioClientFromServiceTransport(options: {
         (response) => snapshotFromResponse(input.sessionId, response)
       );
     },
+    requestPaidOnlineAssembly(input) {
+      const request = nextRequest("request-paid-online-assembly", {
+        sessionId: input.sessionId,
+        capabilityGap: input.capabilityGap,
+        paymentConfirmationId: input.paymentConfirmationId
+      });
+      return mapTransportResponse(
+        options.transport.send(request),
+        (response) => paidResponseFromResponse(response)
+      );
+    },
     reset() {
       void options.transport.send(nextRequest("reset", {}));
       timeline.length = 0;
@@ -348,6 +360,14 @@ function catalogFromResponse(response: BuilderServiceResponse): BuilderCatalog {
   }
 
   return response.catalog;
+}
+
+function paidResponseFromResponse(response: BuilderServiceResponse): PaidOnlineAssemblyResponse {
+  if (!response.paidOnline) {
+    throw new Error(`${response.actionName} response did not include paidOnline output`);
+  }
+
+  return response.paidOnline;
 }
 
 function mapTransportResponse<T>(

@@ -22,8 +22,9 @@
     "verify": "pnpm typecheck && pnpm lint:guardrails && pnpm test && pnpm test:a11y && pnpm test:e2e && pnpm build:studio"
   },
   "devDependencies": {
-    "@playcraft/service": "workspace:*",
+    "@boundaryml/baml": "^0.223.0",
     "@playcraft/builder": "workspace:*",
+    "@playcraft/service": "workspace:*",
     "@playwright/test": "^1.49.0",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^22.0.0",

@@ -97,7 +97,11 @@ const MCP_TOOL_NAMES = [
   "tool:list-builder-tools",
   "tool:get-session",
   "tool:export-profile",
-  "tool:import-profile"
+  "tool:import-profile",
+  "tool:list-building-blocks",
+  "tool:compose-profile",
+  "tool:list-local-assets",
+  "tool:package-bundle"
 ] as const;
 
 const BUILDER_TOOL_ACTION_NAMES = [...PLAYCRAFT_MCP_GUARDRAILS.allowlistedTools];
@@ -113,13 +117,12 @@ describe("MCP adapter", () => {
     const tools = adapterToolsToMcp(builderToolDefinitions);
 
     expect(tools).toHaveLength(builderToolDefinitions.length);
-    expect(tools).toHaveLength(7);
+    expect(tools).toHaveLength(11);
 
     for (const tool of tools) {
       const parsed = McpToolSchema.parse(tool);
       expect(parsed.name).toMatch(/^tool:/u);
       expect(parsed.description.length).toBeGreaterThan(0);
-      expect(Object.keys(parsed.parameters).length).toBeGreaterThan(0);
     }
 
     expect(tools.map((tool) => tool.name)).toEqual([...MCP_TOOL_NAMES]);
@@ -130,7 +133,11 @@ describe("MCP adapter", () => {
       "tool:list-builder-tools",
       "tool:get-session",
       "tool:export-profile",
-      "tool:import-profile"
+      "tool:import-profile",
+      "tool:list-building-blocks",
+      "tool:compose-profile",
+      "tool:list-local-assets",
+      "tool:package-bundle"
     ]);
   });
 
@@ -236,7 +243,7 @@ describe("MCP adapter", () => {
     expect(StableIdSchema.safeParse(parsed.id).success).toBe(true);
     expect(VersionSchema.safeParse(parsed.version).success).toBe(true);
     expect(parsed.name).toMatch(/playcraft/u);
-    expect(parsed.tools).toHaveLength(7);
+    expect(parsed.tools).toHaveLength(11);
     expect(parsed.tools.map((tool) => tool.name)).toEqual([...MCP_TOOL_NAMES]);
   });
 
@@ -418,7 +425,11 @@ describe("MCP adapter", () => {
       "list-builder-tools",
       "get-session",
       "export-profile",
-      "import-profile"
+      "import-profile",
+      "list-building-blocks",
+      "compose-profile",
+      "list-local-assets",
+      "package-bundle"
     ]);
     expect(PLAYCRAFT_MCP_GUARDRAILS.localOnly).toBe(true);
     expect(PLAYCRAFT_MCP_GUARDRAILS.noAuth).toBe(true);

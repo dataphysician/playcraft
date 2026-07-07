@@ -117,8 +117,7 @@ describe("local Playcraft service", () => {
     expect(catalog.kind).toBe("builder-catalog");
     expect(catalog.defaultTemplateId).toBe(DEFAULT_GAME_TEMPLATE_ID);
     expect(catalog.retrieval).toEqual({
-      current: "bundled-local",
-      planned: "bundled-local"
+      current: "bundled-local"
     });
     expect(catalog.input).toEqual({
       defaultSource: "text",
@@ -141,7 +140,7 @@ describe("local Playcraft service", () => {
     });
     expect(catalog.sessions).toEqual({
       defaultAssembleSessionId: "service.session",
-      sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
+      sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile", "request-paid-online-assembly"]
     });
     expect(catalog.service).toEqual({
       actions: [
@@ -279,6 +278,21 @@ describe("local Playcraft service", () => {
             summary: "Requires a deterministic workflow graph; runs up to 20 nodes in topological order, executes each via the same service envelope, and emits AG-UI events per node."
           },
           responsePayload: "execution"
+        },
+        {
+          actionName: "request-paid-online-assembly",
+          displayName: "Request Paid Online Assembly",
+          requiresSession: true,
+          acceptsInput: false,
+          request: {
+            acceptedFields: ["sessionId", "capabilityGap", "paymentConfirmationId"],
+            requiredFields: ["sessionId", "capabilityGap", "paymentConfirmationId"],
+            requiredAnyOf: [],
+            exclusiveAnyOf: [],
+            forbiddenTogether: [],
+            summary: "Requires sessionId, capabilityGap, and paymentConfirmationId. The user explicitly consents to the paid assembly cost and ETA before submission."
+          },
+          responsePayload: "execution"
         }
       ],
       exactEnvelope: {
@@ -324,7 +338,11 @@ describe("local Playcraft service", () => {
       "tool:list-builder-tools",
       "tool:get-session",
       "tool:export-profile",
-      "tool:import-profile"
+      "tool:import-profile",
+      "tool:list-building-blocks",
+      "tool:compose-profile",
+      "tool:list-local-assets",
+      "tool:package-bundle"
     ]);
     expect(catalog.tools.find((tool) => tool.actionName === "assemble-game")?.argumentsSchema.fields.templateId).toEqual({
       type: "string",
@@ -446,6 +464,17 @@ describe("local Playcraft service", () => {
       update: serviceRequestFixture("update", {
         sessionId: "session.catalog-schema",
         text: "Change the cards to toys"
+      }),
+      "request-paid-online-assembly": serviceRequestFixture("request-paid-online-assembly", {
+        sessionId: "session.catalog-schema",
+        capabilityGap: {
+          missingCapabilities: ["render:novel-cards"],
+          requestedMechanicIds: [],
+          requestedRuleIds: [],
+          requestedComponentIds: [],
+          context: {}
+        },
+        paymentConfirmationId: "payment-confirmation.test"
       })
     };
     const sampleFields = serviceRequestFieldSamples({ profile, profileExport });
@@ -1990,8 +2019,8 @@ describe("local Playcraft service", () => {
     expect(err).toEqual([]);
   });
 
-  it("lets agents submit same-process service request batches through the local API helper", () => {
-    const responses = handleLocalServiceRequestBatch([
+  it("lets agents submit same-process service request batches through the local API helper", async () => {
+    const responses = await handleLocalServiceRequestBatch([
       {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-service-request.test.api-batch-assemble",

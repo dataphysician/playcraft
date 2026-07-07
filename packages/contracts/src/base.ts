@@ -185,13 +185,12 @@ export const PublicContractNameSchema = z.enum([
   "WorkflowGraphSchema",
   "AssetCatalogManifestSchema",
   "GameBundleSchema",
-  "LocalInferenceEngineManifestSchema",
   "AgentToolCallSchema",
   "AgentToolResultSchema",
   "AgentStepSchema",
   "PlaycraftAgentTranscriptSchema",
-  "RemoteEnrichmentRequestSchema",
-  "RemoteEnrichmentResponseSchema"
+  "PaidOnlineAssemblyRequestSchema",
+  "PaidOnlineAssemblyResponseSchema"
 ]);
 export type PublicContractName = z.infer<typeof PublicContractNameSchema>;
 
@@ -352,7 +351,11 @@ export const BuilderActionNameSchema = z.enum([
   "list-builder-tools",
   "get-session",
   "export-profile",
-  "import-profile"
+  "import-profile",
+  "list-building-blocks",
+  "compose-profile",
+  "list-local-assets",
+  "package-bundle"
 ]);
 export type BuilderActionName = z.infer<typeof BuilderActionNameSchema>;
 
@@ -391,7 +394,8 @@ export const BuilderSessionBoundServiceActionNameSchema = z.enum([
   "preview",
   "get-session",
   "export-profile",
-  "import-profile"
+  "import-profile",
+  "request-paid-online-assembly"
 ]);
 export type BuilderSessionBoundServiceActionName = z.infer<typeof BuilderSessionBoundServiceActionNameSchema>;
 
@@ -404,7 +408,8 @@ export const BuilderServiceActionNameSchema = z.enum([
   "get-session",
   "export-profile",
   "import-profile",
-  "execute-workflow"
+  "execute-workflow",
+  "request-paid-online-assembly"
 ]);
 export type BuilderServiceActionName = z.infer<typeof BuilderServiceActionNameSchema>;
 
@@ -418,7 +423,9 @@ export const BuilderServiceRequestFieldNameSchema = z.enum([
   "interaction",
   "profile",
   "profileExport",
-  "workflow"
+  "workflow",
+  "capabilityGap",
+  "paymentConfirmationId"
 ]);
 export type BuilderServiceRequestFieldName = z.infer<typeof BuilderServiceRequestFieldNameSchema>;
 

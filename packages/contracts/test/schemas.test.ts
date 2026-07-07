@@ -46,7 +46,7 @@ import {
 } from "@playcraft/packs";
 
 function builderToolFixtureFor(
-  actionName: "assemble-game" | "update-game" | "preview-action" | "list-builder-tools" | "get-session" | "export-profile" | "import-profile"
+  actionName: "assemble-game" | "update-game" | "preview-action" | "list-builder-tools" | "get-session" | "export-profile" | "import-profile" | "list-building-blocks" | "compose-profile" | "list-local-assets" | "package-bundle"
 ) {
   const toolNameByAction = {
     "assemble-game": "tool:assemble-game",
@@ -55,7 +55,11 @@ function builderToolFixtureFor(
     "list-builder-tools": "tool:list-builder-tools",
     "get-session": "tool:get-session",
     "export-profile": "tool:export-profile",
-    "import-profile": "tool:import-profile"
+    "import-profile": "tool:import-profile",
+    "list-building-blocks": "tool:list-building-blocks",
+    "compose-profile": "tool:compose-profile",
+    "list-local-assets": "tool:list-local-assets",
+    "package-bundle": "tool:package-bundle"
   } as const;
   const displayNameByAction = {
     "assemble-game": "Assemble Game",
@@ -64,7 +68,11 @@ function builderToolFixtureFor(
     "list-builder-tools": "List Builder Tools",
     "get-session": "Get Session",
     "export-profile": "Export Profile",
-    "import-profile": "Import Profile"
+    "import-profile": "Import Profile",
+    "list-building-blocks": "List Building Blocks",
+    "compose-profile": "Compose Profile",
+    "list-local-assets": "List Local Assets",
+    "package-bundle": "Package Bundle"
   } as const;
   const requiredContractsByAction = {
     "assemble-game": ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"],
@@ -73,7 +81,11 @@ function builderToolFixtureFor(
     "list-builder-tools": ["BuilderToolDefinitionSchema", "GameTemplateDefinitionSchema"],
     "get-session": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema"],
     "export-profile": ["BuilderCommandSchema", "BuilderProfileExportSchema"],
-    "import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]
+    "import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"],
+    "list-building-blocks": ["BuilderToolDefinitionSchema", "GameTemplateDefinitionSchema"],
+    "compose-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"],
+    "list-local-assets": ["BuilderToolDefinitionSchema", "AssetSourceCapabilityManifestSchema"],
+    "package-bundle": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema", "GameBundleSchema"]
   } as const;
   const acceptsInput = actionName === "assemble-game" || actionName === "update-game";
 
@@ -118,13 +130,17 @@ function builderToolCatalogFixture() {
     builderToolFixtureFor("list-builder-tools"),
     builderToolFixtureFor("get-session"),
     builderToolFixtureFor("export-profile"),
-    builderToolFixtureFor("import-profile")
+    builderToolFixtureFor("import-profile"),
+    builderToolFixtureFor("list-building-blocks"),
+    builderToolFixtureFor("compose-profile"),
+    builderToolFixtureFor("list-local-assets"),
+    builderToolFixtureFor("package-bundle")
   ];
 }
 
 function serviceCatalogFixture() {
   const action = (
-    actionName: "catalog" | "assemble" | "update" | "preview" | "reset" | "get-session" | "export-profile" | "import-profile" | "execute-workflow",
+    actionName: "catalog" | "assemble" | "update" | "preview" | "reset" | "get-session" | "export-profile" | "import-profile" | "execute-workflow" | "request-paid-online-assembly",
     request: {
       acceptedFields: string[];
       requiredFields: string[];
@@ -136,7 +152,7 @@ function serviceCatalogFixture() {
   ) => ({
     actionName,
     displayName: actionName,
-    requiresSession: ["update", "preview", "get-session", "export-profile", "import-profile"].includes(actionName),
+    requiresSession: ["update", "preview", "get-session", "export-profile", "import-profile", "request-paid-online-assembly"].includes(actionName),
     acceptsInput: ["assemble", "update"].includes(actionName),
     request: {
       requiredAnyOf: [],
@@ -177,6 +193,10 @@ function serviceCatalogFixture() {
       action("execute-workflow", {
         acceptedFields: ["sessionId", "workflow"],
         requiredFields: ["workflow"]
+      }, "execution"),
+      action("request-paid-online-assembly", {
+        acceptedFields: ["sessionId", "capabilityGap", "paymentConfirmationId"],
+        requiredFields: ["sessionId", "capabilityGap", "paymentConfirmationId"]
       }, "execution")
     ],
     exactEnvelope: {
@@ -357,7 +377,7 @@ describe("public contract schemas", () => {
         service: serviceCatalogFixture(),
         sessions: {
           defaultAssembleSessionId: "service.session",
-          sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
+          sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile", "request-paid-online-assembly"]
         },
         assetEdit: {
           supported: true,
@@ -380,7 +400,6 @@ describe("public contract schemas", () => {
         },
         retrieval: {
           current: "bundled-local",
-          planned: "bundled-local"
         }
       },
       BuilderIntentResolutionSchema: {
@@ -738,22 +757,6 @@ describe("public contract schemas", () => {
           "import-profile"
         ]
       },
-      LocalInferenceEngineManifestSchema: {
-        schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        id: "local-inference-engine.fixture",
-        version: "1.0.0",
-        kind: "local-inference-engine",
-        engineId: "lfm2.5-vl-450m-extract",
-        displayName: "LiquidAI LFM2.5-VL-450M Extract via Moonshine Streaming CPU",
-        capabilityTags: ["llm:local", "llm:extract", "llm:tool-call"],
-        offline: true,
-        localOnly: true,
-        maxContextTokens: 8192,
-        supportsStructuredJson: true,
-        supportsImageInput: true,
-        supportsToolCalls: true,
-        outboxModule: "@playcraft/core/local-llm.js"
-      },
       AgentToolCallSchema: {
         callId: "agent-call.fixture",
         toolName: "tool:assemble-game",
@@ -802,15 +805,16 @@ describe("public contract schemas", () => {
         finished: true,
         finishedAt: "2026-07-06T00:00:00.000Z"
       },
-      RemoteEnrichmentRequestSchema: {
+      PaidOnlineAssemblyRequestSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        id: "remote-enrichment-request.fixture",
+        id: "paid-online-assembly-request.fixture",
         version: "1.0.0",
-        kind: "remote-enrichment-request",
-        requestId: "remote-enrichment-request.fixture.request",
-        engine: "lfm2.5-vl-450m-extract",
-        agentTranscriptId: "agent-transcript.fixture",
-        gap: {
+        kind: "paid-online-assembly-request",
+        requestId: "paid-online-assembly-request.fixture.request",
+        sessionId: "session.fixture",
+        userConsent: true,
+        paymentConfirmationId: "payment-confirmation.fixture",
+        capabilityGap: {
           missingCapabilities: ["render:novel-cards"],
           requestedMechanicIds: ["mechanic.memory-match"],
           requestedRuleIds: ["rule.memory-match"],
@@ -818,19 +822,16 @@ describe("public contract schemas", () => {
           context: { locale: "en-US" }
         }
       },
-      RemoteEnrichmentResponseSchema: {
+      PaidOnlineAssemblyResponseSchema: {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-        id: "remote-enrichment-response.fixture",
+        id: "paid-online-assembly-response.fixture",
         version: "1.0.0",
-        kind: "remote-enrichment-response",
-        requestId: "remote-enrichment-request.fixture.request",
-        status: "unsupported",
-        components: [],
-        rules: [],
-        assetSources: [],
-        bytes: 0,
-        cacheHit: false,
-        error: "Remote enrichment is not configured; local registries must satisfy all capabilities."
+        kind: "paid-online-assembly-response",
+        requestId: "paid-online-assembly-request.fixture.request",
+        bundleId: "game-bundle.paid.fixture",
+        costCents: 100,
+        estimatedCompletionSeconds: 45,
+        remoteUrl: "https://playcraft.test/paid-assembly"
       }
     };
 
@@ -1479,7 +1480,7 @@ describe("public contract schemas", () => {
       service: serviceCatalogFixture(),
       sessions: {
         defaultAssembleSessionId: "service.session",
-        sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
+        sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile", "request-paid-online-assembly"]
       },
       assetEdit: {
         supported: true,
@@ -1502,7 +1503,6 @@ describe("public contract schemas", () => {
       },
       retrieval: {
         current: "bundled-local",
-        planned: "bundled-local"
       }
     };
 
@@ -2260,7 +2260,6 @@ describe("public contract schemas", () => {
           exportedAt: "2026-07-04T00:00:00.000Z",
           retrieval: {
             current: "bundled-local",
-            planned: "bundled-local"
           }
         }
       }).success
@@ -2284,7 +2283,6 @@ describe("public contract schemas", () => {
           exportedAt: "2026-07-04T00:00:00.000Z",
           retrieval: {
             current: "bundled-local",
-            planned: "bundled-local"
           }
         }
       }).success
@@ -2430,7 +2428,6 @@ describe("public contract schemas", () => {
           },
           retrieval: {
             current: "bundled-local",
-            planned: "bundled-local"
           }
         },
         session
@@ -2455,7 +2452,6 @@ describe("public contract schemas", () => {
           exportedAt: "2026-07-04T00:00:00.000Z",
           retrieval: {
             current: "bundled-local",
-            planned: "bundled-local"
           }
         },
         session
@@ -2538,7 +2534,11 @@ describe("public contract schemas", () => {
       "list-builder-tools",
       "get-session",
       "export-profile",
-      "import-profile"
+      "import-profile",
+      "list-building-blocks",
+      "compose-profile",
+      "list-local-assets",
+      "package-bundle"
     ]);
   });
 
@@ -2810,7 +2810,7 @@ describe("public contract schemas", () => {
       service: serviceCatalogFixture(),
       sessions: {
         defaultAssembleSessionId: "service.session",
-        sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
+        sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile", "request-paid-online-assembly"]
       },
       assetEdit: {
         supported: true,
@@ -2833,7 +2833,6 @@ describe("public contract schemas", () => {
       },
       retrieval: {
         current: "bundled-local",
-        planned: "bundled-local"
       }
     };
 

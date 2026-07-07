@@ -453,6 +453,8 @@ function toolNameForAction(actionName: BuilderServiceActionName): string {
       return "tool:reset";
     case "execute-workflow":
       return "tool:execute-workflow";
+    case "request-paid-online-assembly":
+      return "tool:request-paid-online-assembly";
   }
 }
 

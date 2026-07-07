@@ -66,8 +66,7 @@ export const BuilderCatalogSchema = z.lazy(() =>
       .strict(),
     retrieval: z
       .object({
-        current: z.enum(["bundled-local", "authored-local", "remote-agent"]),
-        planned: z.enum(["bundled-local", "authored-local", "remote-agent"])
+        current: z.enum(["bundled-local", "authored-local", "remote-agent"])
       })
       .strict(),
     mcp: z

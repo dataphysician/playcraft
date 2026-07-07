@@ -202,8 +202,7 @@ export class LocalPlaycraftService {
         availableThemes: localAssetEditCatalog
       },
       retrieval: {
-        current: "bundled-local",
-        planned: "bundled-local"
+        current: "bundled-local"
       }
     });
   }
@@ -311,6 +310,74 @@ export class LocalPlaycraftService {
     return undefined;
   }
 
+  async requestPaidOnlineAssembly(input: {
+    sessionId: string;
+    capabilityGap: import("@playcraft/contracts").PaidOnlineAssemblyRequest["capabilityGap"];
+    paymentConfirmationId: string;
+    source?: import("@playcraft/core").PaidOnlineAssemblySource;
+  }): Promise<{
+    bundle: import("@playcraft/contracts").GameBundle;
+    paidResponse: import("@playcraft/contracts").PaidOnlineAssemblyResponse;
+  }> {
+    const sessionId = input.sessionId;
+    if (!input.paymentConfirmationId || input.paymentConfirmationId.trim().length === 0) {
+      throw new Error("requestPaidOnlineAssembly requires a non-empty paymentConfirmationId");
+    }
+
+    const session = this.getSession(sessionId);
+    if (!session.profile) {
+      throw new Error(`requestPaidOnlineAssembly requires an active session ${sessionId}; assemble a game before requesting paid escalation`);
+    }
+
+    const { requestPaidOnlineAssembly: requestPaidAssemblyFn } = await import("@playcraft/core");
+    const bundle = await requestPaidAssemblyFn({
+      sessionId,
+      registries: {
+        mechanics: [],
+        rules: [],
+        components: [],
+        themes: [],
+        assetSources: [],
+        domains: [],
+        safetyPolicies: []
+      },
+      capabilityGap: input.capabilityGap,
+      paymentConfirmationId: input.paymentConfirmationId,
+      ...(input.source ? { source: input.source } : {})
+    });
+
+    const paidResponse: import("@playcraft/contracts").PaidOnlineAssemblyResponse = {
+      schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
+      id: `paid-online-assembly-response.${sessionId}.${bundle.id}`,
+      version: "1.0.0",
+      kind: "paid-online-assembly-response",
+      requestId: `paid-online-assembly-request.${sessionId}`,
+      bundleId: bundle.profileExport.profile.id,
+      costCents: 50,
+      estimatedCompletionSeconds: 30,
+      remoteUrl: "https://playcraft.test/paid-assembly"
+    };
+
+    return { bundle, paidResponse };
+  }
+
+  async handlePaidOnlineAssembly(requestInput: BuilderServiceRequest): Promise<BuilderServiceResponse> {
+    const request = BuilderServiceRequestSchema.parse(requestInput);
+    if (request.actionName !== "request-paid-online-assembly") {
+      throw new Error(`handlePaidOnlineAssembly() received unexpected action ${request.actionName}`);
+    }
+    const sessionId = serviceRequestSessionId(request);
+    const result = await this.requestPaidOnlineAssembly({
+      sessionId,
+      capabilityGap: request.capabilityGap ?? { missingCapabilities: [], requestedMechanicIds: [], requestedRuleIds: [], requestedComponentIds: [], context: {} },
+      paymentConfirmationId: request.paymentConfirmationId ?? ""
+    });
+    return serviceResponse(request, {
+      paidOnline: result.paidResponse,
+      session: this.getSession(sessionId)
+    });
+  }
+
   executeWorkflow(requestInput: BuilderServiceRequest): BuilderServiceResponse {
     const request = BuilderServiceRequestSchema.parse(requestInput);
     if (request.actionName !== "execute-workflow") {
@@ -362,7 +429,8 @@ export class LocalPlaycraftService {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         result: commandResult,
         events
-      })
+      }),
+      session: this.getSession(sessionId)
     });
   }
 
@@ -383,6 +451,10 @@ export class LocalPlaycraftService {
 
     if (request.actionName === "execute-workflow") {
       return this.executeWorkflow(request);
+    }
+
+    if (request.actionName === "request-paid-online-assembly") {
+      throw new Error("request-paid-online-assembly is async; use handlePaidOnlineAssembly() or LocalPlaycraftService.requestPaidOnlineAssembly()");
     }
 
     const sessionBoundError = this.checkSessionBoundOwnership(request);
@@ -509,8 +581,15 @@ export class LocalPlaycraftService {
     return undefined;
   }
 
-  handleBatch(requestInputs: BuilderServiceRequestBatch): BuilderServiceResponse[] {
-    return BuilderServiceRequestBatchSchema.parse(requestInputs).map((request) => this.handle(request));
+  async handleBatch(requestInputs: BuilderServiceRequestBatch): Promise<BuilderServiceResponse[]> {
+    const parsed = BuilderServiceRequestBatchSchema.parse(requestInputs);
+    const results = await Promise.all(parsed.map(async (request) => {
+      if (request.actionName === "request-paid-online-assembly") {
+        return this.handlePaidOnlineAssembly(request);
+      }
+      return this.handle(request);
+    }));
+    return results;
   }
 
   private resolveInput(
@@ -756,10 +835,10 @@ export function handleLocalServiceRequest(
   return service.handle(request);
 }
 
-export function handleLocalServiceRequestBatch(
+export async function handleLocalServiceRequestBatch(
   requests: BuilderServiceRequestBatch,
   service = createLocalPlaycraftService()
-): BuilderServiceResponse[] {
+): Promise<BuilderServiceResponse[]> {
   return service.handleBatch(requests);
 }
 

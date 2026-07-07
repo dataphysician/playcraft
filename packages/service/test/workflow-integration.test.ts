@@ -172,12 +172,12 @@ describe("playcraft-service run-workflow CLI", () => {
 });
 
 describe("execute-workflow in handleLocalServiceRequestBatch", () => {
-  it("dispatches workflow and other requests through the same batch", () => {
+  it("dispatches workflow and other requests through the same batch", async () => {
     const service = createLocalPlaycraftService();
     const sessionId = "session.workflow.integration.batch";
     const graph = linearWorkflowGraph(sessionId);
 
-    const responses = handleLocalServiceRequestBatch([
+    const responses = await handleLocalServiceRequestBatch([
       {
         schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
         id: "builder-service-request.test.integration.workflow",

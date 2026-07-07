@@ -5,7 +5,9 @@ import type {
   BuilderPreviewInteraction,
   BuilderProfileExport,
   GameAssemblyProfile,
-  MoonshineTranscriptRecord
+  MoonshineTranscriptRecord,
+  PaidOnlineAssemblyCapabilityGap,
+  PaidOnlineAssemblyResponse
 } from "@playcraft/contracts";
 
 export type StudioTimelineKind = "lifecycle" | "state" | "activity" | "tool" | "custom" | "frontend";
@@ -42,6 +44,12 @@ export interface StudioChangeInput {
   moonshineTranscript?: MoonshineTranscriptRecord;
 }
 
+export interface StudioPaidOnlineAssemblyInput {
+  sessionId: string;
+  capabilityGap: PaidOnlineAssemblyCapabilityGap;
+  paymentConfirmationId: string;
+}
+
 export interface StudioClient {
   catalog?(): BuilderCatalog | Promise<BuilderCatalog>;
   assembleFromIntent(input: StudioAssembleInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
@@ -49,5 +57,6 @@ export interface StudioClient {
   importProfile?(input: { profileExport: BuilderProfileExport; sessionId: string }): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   previewAction?(input: { interaction: BuilderPreviewInteraction; sessionId: string }): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
   requestChange(input: StudioChangeInput): StudioSessionSnapshot | Promise<StudioSessionSnapshot>;
+  requestPaidOnlineAssembly?(input: StudioPaidOnlineAssemblyInput): PaidOnlineAssemblyResponse | Promise<PaidOnlineAssemblyResponse>;
   reset?(): void;
 }

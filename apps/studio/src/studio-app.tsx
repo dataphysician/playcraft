@@ -15,7 +15,8 @@ import {
   type TrustedPreviewInteraction
 } from "./trusted-preview.js";
 import type { StudioClient, StudioSessionSnapshot, StudioTimelineEntry } from "./types.js";
-import { DeveloperPanel } from "./studio/panels.js";
+import { DeveloperPanel, PaidOnlineAssemblyPanel } from "./studio/panels.js";
+import { useUserPlan } from "./hooks/use-user-plan.js";
 import { CommandBar } from "./studio/command-bar.js";
 import { shellStyles } from "./studio/shell-styles.js";
 import {
@@ -64,6 +65,10 @@ export function StudioApp({ client, initialSession, onAudioCue }: StudioAppProps
   const [runFrames, setRunFrames] = React.useState<SseFrame[]>([]);
   const [isRunning, setIsRunning] = React.useState(false);
   const abortControllerRef = React.useRef<AbortController | null>(null);
+  const [paidConsentAcknowledged, setPaidConsentAcknowledged] = React.useState(false);
+  const [paidPending, setPaidPending] = React.useState(false);
+  const [paidStatus, setPaidStatus] = React.useState<string | null>(null);
+  const userPlan = useUserPlan();
 
   const activeProfile = session?.activeProfile;
   const activeProfileId = activeProfile?.id;
@@ -224,7 +229,47 @@ export function StudioApp({ client, initialSession, onAudioCue }: StudioAppProps
     }
   }
 
-  async function handleServicePreview(): Promise<void> {
+  async function handleRequestPaidOnlineAssembly(): Promise<void> {
+    if (!session?.sessionId || !client.requestPaidOnlineAssembly) {
+      setPaidStatus("Paid assembly is not available on this client.");
+      return;
+    }
+    if (!paidConsentAcknowledged) {
+      setPaidStatus("Please acknowledge the cost and ETA before requesting paid assembly.");
+      return;
+    }
+
+    setPaidPending(true);
+    setPaidStatus(null);
+    setError(null);
+
+    try {
+      const response = await Promise.resolve(
+        client.requestPaidOnlineAssembly({
+          sessionId: session.sessionId,
+          capabilityGap: { missingCapabilities: [], requestedMechanicIds: [], requestedRuleIds: [], requestedComponentIds: [], context: {} },
+          paymentConfirmationId: `paid-confirmation.${session.sessionId}.${Date.now().toString(36)}`
+        })
+      );
+      setPaidStatus(`Paid assembly requested. Bundle ${response.bundleId}, ETA ${String(response.estimatedCompletionSeconds)}s.`);
+      setMessages((current) => [
+        ...current,
+        {
+          id: `message.studio.paid.${current.length + 1}`,
+          speaker: "Studio",
+          text: `Paid assembly accepted: ${response.bundleId}.`
+        }
+      ]);
+      setPaidConsentAcknowledged(false);
+    } catch (cause) {
+      setPaidStatus(cause instanceof Error ? cause.message : "Paid assembly request failed.");
+      setError(cause instanceof Error ? cause.message : "Paid assembly failed.");
+    } finally {
+      setPaidPending(false);
+    }
+  }
+
+async function handleServicePreview(): Promise<void> {
     if (!session?.sessionId || !client.previewAction) {
       setProfileTransferStatus("No active service preview tool is available.");
       return;
@@ -377,7 +422,10 @@ export function StudioApp({ client, initialSession, onAudioCue }: StudioAppProps
       { style: shellStyles.content },
       activeTab === "live"
         ? React.createElement(LiveGame, { profile: activeProfile, onInteraction: handleInteraction, onAudioCue })
-        : React.createElement(DeveloperPanel, {
+        : React.createElement(
+            "div",
+            { style: shellStyles.developerGrid },
+            React.createElement(DeveloperPanel, {
             activeProfile,
             canExportProfile: Boolean(client.exportProfile),
             canImportProfile: Boolean(client.importProfile),
@@ -406,7 +454,18 @@ export function StudioApp({ client, initialSession, onAudioCue }: StudioAppProps
             onSelectTimeline: setSelectedTimelineId,
             onStopRun: handleStopRun,
             onInteraction: handleInteraction
-          })
+          }),
+            React.createElement(PaidOnlineAssemblyPanel, {
+              available: userPlan === "paid" && Boolean(client.requestPaidOnlineAssembly),
+              consentAcknowledged: paidConsentAcknowledged,
+              costCents: 50,
+              estimatedCompletionSeconds: 30,
+              pending: paidPending,
+              onAcknowledgeConsent: () => setPaidConsentAcknowledged(true),
+              onRequestPaidAssembly: handleRequestPaidOnlineAssembly,
+              status: paidStatus
+            })
+          )
     ),
     React.createElement(CommandBar, {
       commandText,

@@ -223,6 +223,10 @@ export const PLAYCRAFT_MCP_GUARDRAILS: McpServerPolicy = {
     "list-builder-tools",
     "get-session",
     "export-profile",
-    "import-profile"
+    "import-profile",
+    "list-building-blocks",
+    "compose-profile",
+    "list-local-assets",
+    "package-bundle"
   ]
 };

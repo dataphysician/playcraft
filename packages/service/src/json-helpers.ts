@@ -18,7 +18,8 @@ import {
   type BuilderTemplateId,
   type JsonValue,
   type MoonshineTranscriptRecord,
-  type MoonshineTranscriptSegment
+  type MoonshineTranscriptSegment,
+  type PaidOnlineAssemblyResponse
 } from "@playcraft/contracts";
 import type { BuilderExecutionResult } from "@playcraft/builder";
 import { MOONSHINE_STREAMING_CPU_CONFIG } from "./intent-resolution.js";
@@ -98,6 +99,7 @@ export function serviceResponse(
     catalog?: BuilderCatalog;
     execution?: BuilderServiceExecution;
     profileExport?: BuilderProfileExport;
+    paidOnline?: PaidOnlineAssemblyResponse;
     reset?: true;
     session?: BuilderSessionSnapshot;
     error?: BuilderServiceError | { kind: "ownership-mismatch"; ownerId: string };

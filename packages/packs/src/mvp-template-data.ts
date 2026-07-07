@@ -42,7 +42,7 @@ export const gameTemplateDefinitions: GameTemplateDefinition[] = mvpTemplates.ma
     requiredRuleIds: template.ruleCategories.map((category) => findRuleByCategory(category).id),
     requiredComponentIds: template.componentCapabilities.map((capability) => findComponentByCapability(capability).id),
     defaultAssetContentTypes: ["image"], localFirst: true,
-    retrieval: { current: "bundled-local", planned: "bundled-local" }
+    retrieval: { current: "bundled-local" }
   })
 );
 

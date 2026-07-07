@@ -38,7 +38,34 @@ export interface BuilderCommandHandler {
   importProfile(sessionId: string, profile: GameAssemblyProfile, commandId?: string): BuilderExecutionResult;
   listTools(): BuilderToolDefinition[];
   listTemplates(): GameTemplateDefinition[];
+  listBuildingBlocks?(): BuildingBlocksSnapshot;
+  composeProfile?(input: ComposeProfileInput): BuilderExecutionResult;
+  listLocalAssets?(): LocalAssetsSnapshot;
+  packageBundle?(sessionId: string): BuilderExecutionResult;
   setSessionOwnership?(sessionId: string, ownership: import("@playcraft/contracts").BuilderSessionOwnership): void;
+}
+
+export interface BuildingBlocksSnapshot {
+  mechanics: readonly string[];
+  rules: readonly string[];
+  components: readonly string[];
+  themes: readonly string[];
+  assetSources: readonly string[];
+  domains: readonly string[];
+  safetyPolicies: readonly string[];
+}
+
+export interface LocalAssetsSnapshot {
+  folder: string;
+  themes: readonly { theme: string; itemCount: number }[];
+}
+
+export interface ComposeProfileInput {
+  sessionId: string;
+  mechanicId: string;
+  ruleId: string;
+  componentId: string;
+  themeId: string;
 }
 
 export const builderToolDefinitions: BuilderToolDefinition[] = [
@@ -48,7 +75,11 @@ export const builderToolDefinitions: BuilderToolDefinition[] = [
   builderTool("builder-tool.list-builder-tools", "tool:list-builder-tools", "List Builder Tools", "List the local Playcraft builder tools and bundled game templates.", "list-builder-tools", []),
   builderTool("builder-tool.get-session", "tool:get-session", "Get Session", "Inspect the active local builder session snapshot.", "get-session", []),
   builderTool("builder-tool.export-profile", "tool:export-profile", "Export Profile", "Export the active validated game profile for reuse.", "export-profile", []),
-  builderTool("builder-tool.import-profile", "tool:import-profile", "Import Profile", "Import a validated game profile into a local session.", "import-profile", [])
+  builderTool("builder-tool.import-profile", "tool:import-profile", "Import Profile", "Import a validated game profile into a local session.", "import-profile", []),
+  builderTool("builder-tool.list-building-blocks", "tool:list-building-blocks", "List Building Blocks", "List every local building block the deterministic planner can compose into a profile.", "list-building-blocks", []),
+  builderTool("builder-tool.compose-profile", "tool:compose-profile", "Compose Profile", "Compose a deterministic profile from explicitly chosen mechanic, rule, component, and theme ids.", "compose-profile", []),
+  builderTool("builder-tool.list-local-assets", "tool:list-local-assets", "List Local Assets", "List the local replacement asset themes available to the active session.", "list-local-assets", []),
+  builderTool("builder-tool.package-bundle", "tool:package-bundle", "Package Bundle", "Package the active session profile into a self-contained GameBundle with cap enforcement.", "package-bundle", [])
 ];
 
 function builderTool(
@@ -88,7 +119,11 @@ function builderToolRequiredContracts(actionName: BuilderToolDefinition["actionN
     "list-builder-tools": ["BuilderToolDefinitionSchema", "GameTemplateDefinitionSchema"],
     "get-session": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema"],
     "export-profile": ["BuilderCommandSchema", "BuilderProfileExportSchema"],
-    "import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]
+    "import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"],
+    "list-building-blocks": ["BuilderToolDefinitionSchema", "GameTemplateDefinitionSchema"],
+    "compose-profile": ["BuilderCommandSchema"],
+    "list-local-assets": ["BuilderToolDefinitionSchema", "AssetSourceCapabilityManifestSchema"],
+    "package-bundle": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema", "GameBundleSchema"]
   };
 
   return contractsByAction[actionName];
@@ -156,6 +191,18 @@ function builderToolArgumentsSchema(actionName: BuilderToolDefinition["actionNam
     },
     "import-profile": {
       profile: { type: "object", required: true },
+      sessionId: requiredString
+    },
+    "list-building-blocks": {
+      sessionId: optionalString
+    },
+    "compose-profile": {
+      sessionId: requiredString
+    },
+    "list-local-assets": {
+      sessionId: optionalString
+    },
+    "package-bundle": {
       sessionId: requiredString
     }
   };

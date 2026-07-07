@@ -27,7 +27,8 @@ const EXCLUDED_DIR_NAMES = new Set([
   "web-dist",
   ".vitest",
   "coverage",
-  ".git"
+  ".git",
+  "baml_client"
 ]);
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx"]);
 const LOC_LIMIT = 1000;

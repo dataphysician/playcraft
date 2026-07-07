@@ -284,8 +284,7 @@ export const customGameTemplateDefinitions: GameTemplateDefinition[] = customTem
     defaultAssetContentTypes: ["image"],
     localFirst: true,
     retrieval: {
-      current: "bundled-local",
-      planned: "bundled-local"
+      current: "bundled-local"
     }
   })
 );

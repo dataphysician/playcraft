@@ -72,7 +72,7 @@ describe("playcraft MCP HTTP endpoints", () => {
       expect(parsed.kind).toBe("builder-catalog");
       expect(parsed.mcp).toBeDefined();
       expect(parsed.mcp?.manifest).toBeDefined();
-      expect(parsed.mcp?.tools).toHaveLength(7);
+      expect(parsed.mcp?.tools).toHaveLength(11);
       expect(parsed.mcp?.tools.map((tool) => tool.name)).toEqual([
         "tool:assemble-game",
         "tool:update-game",
@@ -80,9 +80,13 @@ describe("playcraft MCP HTTP endpoints", () => {
         "tool:list-builder-tools",
         "tool:get-session",
         "tool:export-profile",
-        "tool:import-profile"
+        "tool:import-profile",
+        "tool:list-building-blocks",
+        "tool:compose-profile",
+        "tool:list-local-assets",
+        "tool:package-bundle"
       ]);
-      expect(parsed.mcp?.manifest.tools).toHaveLength(7);
+      expect(parsed.mcp?.manifest.tools).toHaveLength(11);
       expect(parsed.mcp?.manifest.id).toContain("mcp-manifest.playcraft-local");
     } finally {
       await closeStart(started);
@@ -102,7 +106,7 @@ describe("playcraft MCP HTTP endpoints", () => {
       expect(response.headers.get("content-type")).toBe("application/json");
 
       const body = (await response.json()) as unknown[];
-      expect(body).toHaveLength(7);
+      expect(body).toHaveLength(11);
       for (const entry of body) {
         expect(() => McpToolSchema.parse(entry)).not.toThrow();
       }
@@ -113,7 +117,11 @@ describe("playcraft MCP HTTP endpoints", () => {
         "tool:list-builder-tools",
         "tool:get-session",
         "tool:export-profile",
-        "tool:import-profile"
+        "tool:import-profile",
+        "tool:list-building-blocks",
+        "tool:compose-profile",
+        "tool:list-local-assets",
+        "tool:package-bundle"
       ]);
     } finally {
       await closeStart(started);

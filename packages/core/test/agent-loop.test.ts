@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AgentLoop,
-  StubLocalInferenceEngine,
+  defaultLocalInferenceEngineManifest,
   type AgentToolExecutor
 } from "@playcraft/core";
 import { PLAYCRAFT_SCHEMA_VERSION } from "@playcraft/contracts";
@@ -15,15 +15,15 @@ function echoTool(): AgentToolExecutor {
   };
 }
 
-function finalOnlyEngine() {
-  return new StubLocalInferenceEngine();
+function stubEngineManifest() {
+  return defaultLocalInferenceEngineManifest();
 }
 
 describe("AgentLoop", () => {
-  it("drives a stub engine through tool calls until it emits a final result", async () => {
+  it("drives an engine through tool calls until it emits a final result", async () => {
     let calls = 0;
     const engine = {
-      manifest: new StubLocalInferenceEngine().manifest,
+      manifest: stubEngineManifest(),
       async infer(): Promise<
         | { kind: "tool-call"; call: { callId: string; toolName: string; arguments: Record<string, unknown> } }
         | { kind: "final"; message: string; bundleId?: string }
@@ -62,15 +62,21 @@ describe("AgentLoop", () => {
     expect(finalSteps).toHaveLength(1);
     expect(result.transcript.kind).toBe("agent-transcript");
     expect(result.transcript.schemaVersion).toBe(PLAYCRAFT_SCHEMA_VERSION);
-    expect(result.transcript.engine).toBe("stub");
+    expect(result.transcript.engine).toBe("lfm2.5-vl-450m-extract");
     expect(result.transcript.requestId).toBe("agent-request.linear");
     expect(result.transcript.finished).toBe(true);
     expect(result.transcript.finishedAt).toBeDefined();
   });
 
   it("uses unique step ids across tool-call, tool-result, and final steps", async () => {
+    const engine = {
+      manifest: stubEngineManifest(),
+      async infer(): Promise<{ kind: "final"; message: string; bundleId?: string }> {
+        return { kind: "final", message: "done" };
+      }
+    };
     const loop = new AgentLoop({
-      engine: finalOnlyEngine(),
+      engine,
       systemPrompt: "stub system prompt",
       tools: [echoTool()],
       maxSteps: 4
@@ -84,7 +90,19 @@ describe("AgentLoop", () => {
   });
 
   it("exhausts the step budget when the engine keeps requesting tool calls", async () => {
-    const engine = new StubLocalInferenceEngine();
+    const engine = {
+      manifest: stubEngineManifest(),
+      async infer(): Promise<{ kind: "tool-call"; call: { callId: string; toolName: string; arguments: Record<string, unknown> } }> {
+        return {
+          kind: "tool-call",
+          call: {
+            callId: "agent-call.budget",
+            toolName: "tool:echo",
+            arguments: { text: "loop" }
+          }
+        };
+      }
+    };
     const loop = new AgentLoop({
       engine,
       systemPrompt: "stub system prompt",
@@ -103,7 +121,7 @@ describe("AgentLoop", () => {
 
   it("records an unsupported tool result when the engine emits a tool name not registered with the loop", async () => {
     const engine = {
-      manifest: new StubLocalInferenceEngine().manifest,
+      manifest: stubEngineManifest(),
       async infer(): Promise<{ kind: "tool-call"; call: { callId: string; toolName: string; arguments: Record<string, unknown> } }> {
         return {
           kind: "tool-call",
@@ -142,7 +160,7 @@ describe("AgentLoop", () => {
       }
     };
     const engine = {
-      manifest: new StubLocalInferenceEngine().manifest,
+      manifest: stubEngineManifest(),
       async infer(): Promise<{ kind: "tool-call"; call: { callId: string; toolName: string; arguments: Record<string, unknown> } }> {
         return {
           kind: "tool-call",
@@ -174,7 +192,7 @@ describe("AgentLoop", () => {
 
   it("returns a final step immediately when the engine emits a final on the first turn", async () => {
     const engine = {
-      manifest: new StubLocalInferenceEngine().manifest,
+      manifest: stubEngineManifest(),
       async infer(): Promise<{ kind: "final"; message: string; bundleId?: string }> {
         return { kind: "final", message: "direct final", bundleId: "game-bundle.fixture" };
       }

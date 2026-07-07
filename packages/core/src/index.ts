@@ -579,12 +579,10 @@ function isStringArray(value: unknown): value is string[] {
 }
 
 export {
-  AGENT_STUB_ENGINE_ID,
   MoonshineStreamingCpuEngine,
-  StubLocalInferenceEngine,
-  defaultMoonshineStreamingCpuEngineManifest,
-  defaultStubEngineManifest,
-  outlinesJsonSchemaForToolArguments
+  defaultLocalInferenceEngineManifest,
+  buildBamlAssembleGameRequest,
+  interpretBamlResponse
 } from "./local-llm.js";
 export type {
   AgentInferenceResult,
@@ -592,7 +590,8 @@ export type {
   AgentToolArgumentsSchema,
   AgentToolDescriptor,
   AgentToolField,
-  LocalInferenceEngine
+  LocalInferenceEngine,
+  LocalInferenceEngineManifest
 } from "./local-llm.js";
 
 export { AgentLoop, agentLoopToolsFromBuilderDefinitions } from "./agent-loop.js";
@@ -603,5 +602,26 @@ export type {
   AgentToolExecutor
 } from "./agent-loop.js";
 
-export { NullRemoteEnrichmentSource } from "./enrichment.js";
-export type { RemoteEnrichmentSource } from "./enrichment.js";
+export { BamlBridge, bamlBridge, loadGeneratedClient } from "./baml-bridge.js";
+export type {
+  BamlAgentMessage,
+  BamlAgentToolDescriptor,
+  BamlAgentToolCall,
+  BamlAssembleGameRequest,
+  BamlAssembleGameResponse,
+  BamlCapabilityGap,
+  BamlPaidOnlineAssemblyRequest,
+  BamlPaidOnlineAssemblyResponse,
+  BamlGeneratedClient
+} from "./baml-types.js";
+
+export {
+  BamlPaidOnlineAssemblySource,
+  OnlineGameAssemblyEngine,
+  requestPaidOnlineAssembly
+} from "./online-assembly.js";
+export type {
+  PaidOnlineAssemblySource,
+  PaidOnlineAssemblyInput,
+  OnlineGameAssemblyEngineManifest
+} from "./online-assembly.js";

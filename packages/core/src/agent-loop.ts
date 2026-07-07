@@ -34,18 +34,12 @@ export interface AgentLoopResult {
 }
 
 /**
- * The deterministic agent loop. Drives the local LLM through tool calls until
- * the engine emits a `final` result or the step budget is exhausted.
- *
- * Invariants:
- *   - The engine never sees raw tool output; only `ok`/`error`/`unsupported`
- *     status plus a JSON-serializable value or string error.
- *   - Tool execution is synchronous from the engine's perspective: the engine
- *     receives one assistant message per tool call, with a matching
- *     tool message carrying the result.
- *   - The transcript is append-only; the loop never rewinds.
- *   - Tools never call the engine directly; tools return values, the loop
- *     emits the next inference step.
+ * The deterministic local agent loop. Drives the BAML-backed local LLM
+ * through tool calls until the engine emits a `final` result or the step
+ * budget is exhausted. The loop is purely local — it has no references to
+ * remote enrichment sources or paid online assembly. When the local
+ * registries cannot satisfy a request, the loop surfaces a `final` message
+ * and lets the studio UI prompt the user to escalate to a paid action.
  */
 export class AgentLoop {
   private readonly engine: LocalInferenceEngine;
@@ -124,7 +118,7 @@ export class AgentLoop {
       version: "1.0.0",
       kind: "agent-transcript",
       engine: this.engine.manifest.engineId,
-      engineManifestId: this.engine.manifest.id,
+      engineManifestId: `local-inference-engine.${this.engine.manifest.engineId}`,
       engineManifestVersion: this.engine.manifest.version,
       requestId,
       steps,

@@ -111,6 +111,21 @@ export const GeneratedAssetRecordSchema = z.lazy(() =>
 );
 export type GeneratedAssetRecord = z.infer<typeof GeneratedAssetRecordSchema>;
 
+export const AssetProvenanceSchema = z.lazy(() =>
+  z
+    .object({
+      sourceManifestId: StableIdSchema,
+      sourceManifestVersion: VersionSchema,
+      deterministic: z.boolean().optional(),
+      seed: z.string().optional(),
+      seedSupported: z.boolean(),
+      seedStatus: z.enum(["used", "unsupported", "not-provided"]),
+      generatedAt: z.string().datetime().optional()
+    })
+    .strict()
+);
+export type AssetProvenance = z.infer<typeof AssetProvenanceSchema>;
+
 export const AssemblyValidationResultSchema = z.lazy(() =>
   PublicContractBaseSchema.extend({
     kind: z.literal("assembly-validation-result"),

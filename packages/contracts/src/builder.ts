@@ -62,13 +62,13 @@ import {
   AgentStepSchema,
   AgentToolCallSchema,
   AgentToolResultSchema,
-  LocalInferenceEngineIdSchema,
-  LocalInferenceEngineManifestSchema,
   PlaycraftAgentTranscriptSchema
 } from "./agent.js";
 import {
-  RemoteEnrichmentRequestSchema,
-  RemoteEnrichmentResponseSchema
+  PaidOnlineAssemblyRequestSchema,
+  PaidOnlineAssemblyResponseSchema,
+  PaidOnlineAssemblyCapabilityGapSchema,
+  type PaidOnlineAssemblyResponse
 } from "./enrichment.js";
 
 // base.ts re-exports this module, creating a circular import where base.ts is
@@ -194,7 +194,7 @@ export const BuilderProfileExportSchema = z.lazy(() =>
     provenance: z
       .object({
         source: z.enum(["local-llm-agent", "deterministic-local", "remote-agent"]),
-        agentEngine: LocalInferenceEngineIdSchema.optional(),
+        agentEngine: z.string().min(1).optional(),
         enrichmentSources: z.array(StableIdSchema).default([]),
         assembledBy: z.string().min(1).max(120).optional(),
         assembledAt: z.string().datetime(),
@@ -263,7 +263,7 @@ export const BuilderServiceExecutionSchema = z.lazy(() =>
 );
 export type BuilderServiceExecution = z.infer<typeof BuilderServiceExecutionSchema>;
 
-const BuilderServiceResponsePayloadKeys = ["catalog", "execution", "session", "profileExport", "reset", "error"] as const;
+const BuilderServiceResponsePayloadKeys = ["catalog", "execution", "session", "profileExport", "paidOnline", "reset", "error"] as const;
 
 export const BuilderServiceRequestSchema = z.lazy(() =>
   PublicContractBaseSchema.extend({
@@ -278,14 +278,16 @@ export const BuilderServiceRequestSchema = z.lazy(() =>
     interaction: BuilderPreviewInteractionSchema.optional(),
     profile: GameAssemblyProfileSchema.optional(),
     profileExport: BuilderProfileExportSchema.optional(),
-    workflow: WorkflowGraphSchema.optional()
+    workflow: WorkflowGraphSchema.optional(),
+    capabilityGap: PaidOnlineAssemblyCapabilityGapSchema.optional(),
+    paymentConfirmationId: z.string().min(1).optional()
   }).strict()
-    .refine((value) => !["update", "preview", "get-session", "export-profile", "import-profile"].includes(value.actionName) || Boolean(value.sessionId), {
-      message: "update, preview, get-session, export-profile, and import-profile requests require sessionId",
+    .refine((value) => !["update", "preview", "get-session", "export-profile", "import-profile", "request-paid-online-assembly"].includes(value.actionName) || Boolean(value.sessionId), {
+      message: "update, preview, get-session, export-profile, import-profile, and request-paid-online-assembly requests require sessionId",
       path: ["sessionId"]
     })
-    .refine((value) => ["assemble", "update", "preview", "get-session", "export-profile", "import-profile"].includes(value.actionName) || !value.sessionId, {
-      message: "sessionId is only accepted by assemble, update, preview, get-session, export-profile, and import-profile requests",
+    .refine((value) => ["assemble", "update", "preview", "get-session", "export-profile", "import-profile", "request-paid-online-assembly"].includes(value.actionName) || !value.sessionId, {
+      message: "sessionId is only accepted by assemble, update, preview, get-session, export-profile, import-profile, and request-paid-online-assembly requests",
       path: ["sessionId"]
     })
     .refine((value) => value.actionName !== "assemble" || Boolean(value.text || value.moonshineTranscript), {
@@ -356,6 +358,22 @@ export const BuilderServiceRequestSchema = z.lazy(() =>
       message: "workflow graphs are only accepted by execute-workflow requests",
       path: ["workflow"]
     })
+    .refine((value) => value.actionName !== "request-paid-online-assembly" || Boolean(value.capabilityGap), {
+      message: "request-paid-online-assembly requires a capabilityGap",
+      path: ["capabilityGap"]
+    })
+    .refine((value) => value.actionName !== "request-paid-online-assembly" || Boolean(value.paymentConfirmationId), {
+      message: "request-paid-online-assembly requires a paymentConfirmationId",
+      path: ["paymentConfirmationId"]
+    })
+    .refine((value) => value.actionName === "request-paid-online-assembly" || !value.capabilityGap, {
+      message: "capabilityGap is only accepted by request-paid-online-assembly requests",
+      path: ["capabilityGap"]
+    })
+    .refine((value) => value.actionName === "request-paid-online-assembly" || !value.paymentConfirmationId, {
+      message: "paymentConfirmationId is only accepted by request-paid-online-assembly requests",
+      path: ["paymentConfirmationId"]
+    })
 );
 export type BuilderServiceRequest = z.infer<typeof BuilderServiceRequestSchema>;
 
@@ -372,6 +390,7 @@ export type BuilderServiceResponse = z.infer<typeof PublicContractBaseSchema> & 
   execution?: BuilderServiceExecution;
   session?: BuilderSessionSnapshot;
   profileExport?: BuilderProfileExport;
+  paidOnline?: PaidOnlineAssemblyResponse;
   reset?: true;
   error?: BuilderServiceError;
 };
@@ -384,6 +403,7 @@ type BuilderServiceResponseInput = z.input<typeof PublicContractBaseSchema> & {
   execution?: z.input<typeof BuilderServiceExecutionSchema>;
   session?: z.input<typeof BuilderSessionSnapshotSchema>;
   profileExport?: z.input<typeof BuilderProfileExportSchema>;
+  paidOnline?: z.input<typeof PaidOnlineAssemblyResponseSchema>;
   reset?: true;
   error?: z.input<typeof BuilderServiceErrorSchema>;
 };
@@ -397,6 +417,7 @@ export const BuilderServiceResponseSchema: z.ZodType<BuilderServiceResponse, z.Z
     execution: BuilderServiceExecutionSchema.optional(),
     session: BuilderSessionSnapshotSchema.optional(),
     profileExport: BuilderProfileExportSchema.optional(),
+    paidOnline: PaidOnlineAssemblyResponseSchema.optional(),
     reset: z.literal(true).optional(),
     error: BuilderServiceErrorSchema.optional()
   }).strict()
@@ -448,6 +469,22 @@ export const BuilderServiceResponseSchema: z.ZodType<BuilderServiceResponse, z.Z
       message: "reset responses only include reset acknowledgement",
       path: ["reset"]
     })
+    .refine((value) => value.actionName !== "request-paid-online-assembly" || Boolean(value.paidOnline) || Boolean(value.error), {
+      message: "request-paid-online-assembly responses require a paid-online payload",
+      path: ["paidOnline"]
+    })
+    .refine((value) => value.actionName !== "request-paid-online-assembly" || hasOnlyServiceResponsePayloads(value, ["paidOnline", "session", "error"]), {
+      message: "request-paid-online-assembly responses only include paid-online output and session snapshot",
+      path: ["paidOnline"]
+    })
+    .refine((value) => value.actionName !== "execute-workflow" || Boolean(value.execution && value.session) || Boolean(value.error), {
+      message: "execute-workflow responses require execution output and a session snapshot",
+      path: ["execution"]
+    })
+    .refine((value) => value.actionName !== "execute-workflow" || hasOnlyServiceResponsePayloads(value, ["execution", "session", "error"]), {
+      message: "execute-workflow responses only include execution output and a session snapshot",
+      path: ["execution"]
+    })
 ) as unknown as z.ZodType<BuilderServiceResponse, z.ZodTypeDef, BuilderServiceResponseInput>;
 
 function hasOnlyServiceResponsePayloads(
@@ -498,13 +535,12 @@ export const PublicContractSchemas: Record<PublicContractName, z.ZodTypeAny> = {
   get WorkflowGraphSchema(): z.ZodTypeAny { return WorkflowGraphSchema; },
   get AssetCatalogManifestSchema(): z.ZodTypeAny { return AssetCatalogManifestSchema; },
   get GameBundleSchema(): z.ZodTypeAny { return GameBundleSchema; },
-  get LocalInferenceEngineManifestSchema(): z.ZodTypeAny { return LocalInferenceEngineManifestSchema; },
   get AgentToolCallSchema(): z.ZodTypeAny { return AgentToolCallSchema; },
   get AgentToolResultSchema(): z.ZodTypeAny { return AgentToolResultSchema; },
   get AgentStepSchema(): z.ZodTypeAny { return AgentStepSchema; },
   get PlaycraftAgentTranscriptSchema(): z.ZodTypeAny { return PlaycraftAgentTranscriptSchema; },
-  get RemoteEnrichmentRequestSchema(): z.ZodTypeAny { return RemoteEnrichmentRequestSchema; },
-  get RemoteEnrichmentResponseSchema(): z.ZodTypeAny { return RemoteEnrichmentResponseSchema; }
+  get PaidOnlineAssemblyRequestSchema(): z.ZodTypeAny { return PaidOnlineAssemblyRequestSchema; },
+  get PaidOnlineAssemblyResponseSchema(): z.ZodTypeAny { return PaidOnlineAssemblyResponseSchema; }
 };
 
 export function schemaIssue(path: Array<string | number>, code: string, message: string, severity: z.infer<typeof ValidationSeveritySchema>): z.infer<typeof SchemaIssueSchema> {

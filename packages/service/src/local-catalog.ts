@@ -13,7 +13,7 @@ import {
 
 export const LOCAL_SERVICE_SESSION_POLICY = {
   defaultAssembleSessionId: "service.session",
-  sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile"]
+  sessionBoundActions: ["update", "preview", "get-session", "export-profile", "import-profile", "request-paid-online-assembly"]
 } as const;
 
 export const LOCAL_SERVICE_SESSION_TTL_MS = 60 * 60 * 1000;
@@ -26,7 +26,8 @@ const LOCAL_SERVICE_SESSION_CAPABILITIES = [
   "preview",
   "get-session",
   "export-profile",
-  "import-profile"
+  "import-profile",
+  "request-paid-online-assembly"
 ] as const;
 
 export const LOCAL_SERVICE_INPUT_POLICY = {
@@ -204,6 +205,21 @@ export const LOCAL_SERVICE_CATALOG: BuilderServiceCatalog = {
         exclusiveAnyOf: [],
         forbiddenTogether: [],
         summary: "Requires a deterministic workflow graph; runs up to 20 nodes in topological order, executes each via the same service envelope, and emits AG-UI events per node."
+      },
+      responsePayload: "execution"
+    },
+    {
+      actionName: "request-paid-online-assembly",
+      displayName: "Request Paid Online Assembly",
+      requiresSession: true,
+      acceptsInput: false,
+      request: {
+        acceptedFields: ["sessionId", "capabilityGap", "paymentConfirmationId"],
+        requiredFields: ["sessionId", "capabilityGap", "paymentConfirmationId"],
+        requiredAnyOf: [],
+        exclusiveAnyOf: [],
+        forbiddenTogether: [],
+        summary: "Requires sessionId, capabilityGap, and paymentConfirmationId. The user explicitly consents to the paid assembly cost and ETA before submission."
       },
       responsePayload: "execution"
     }

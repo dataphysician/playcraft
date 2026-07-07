@@ -120,6 +120,7 @@ export function validateBuilderServiceCatalogAction(
     !expectedRequiresSession &&
     value.actionName !== "assemble" &&
     value.actionName !== "execute-workflow" &&
+    value.actionName !== "request-paid-online-assembly" &&
     value.request.acceptedFields.includes("sessionId")
   ) {
     context.addIssue({
@@ -231,7 +232,8 @@ function serviceActionRequiresSession(actionName: BuilderServiceActionName): boo
     actionName === "preview" ||
     actionName === "get-session" ||
     actionName === "export-profile" ||
-    actionName === "import-profile"
+    actionName === "import-profile" ||
+    actionName === "request-paid-online-assembly"
   );
 }
 
@@ -253,6 +255,7 @@ function serviceActionResponsePayload(
     "get-session": "session",
     "import-profile": "execution",
     preview: "execution",
+    "request-paid-online-assembly": "execution",
     reset: "reset",
     update: "execution"
   };

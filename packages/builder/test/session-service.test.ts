@@ -120,7 +120,11 @@ describe("builder session service", () => {
       ["list-builder-tools", "List Builder Tools"],
       ["get-session", "Get Session"],
       ["export-profile", "Export Profile"],
-      ["import-profile", "Import Profile"]
+      ["import-profile", "Import Profile"],
+      ["list-building-blocks", "List Building Blocks"],
+      ["compose-profile", "Compose Profile"],
+      ["list-local-assets", "List Local Assets"],
+      ["package-bundle", "Package Bundle"]
     ]);
     expect(Object.fromEntries(tools.map((tool) => [tool.actionName, tool.requiredContracts]))).toEqual({
       "assemble-game": ["BuilderCommandSchema", "BuilderInputRequestSchema", "GameTemplateDefinitionSchema"],
@@ -129,7 +133,11 @@ describe("builder session service", () => {
       "list-builder-tools": ["BuilderToolDefinitionSchema", "GameTemplateDefinitionSchema"],
       "get-session": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema"],
       "export-profile": ["BuilderCommandSchema", "BuilderProfileExportSchema"],
-      "import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"]
+      "import-profile": ["BuilderCommandSchema", "GameAssemblyProfileSchema"],
+      "list-building-blocks": ["BuilderToolDefinitionSchema", "GameTemplateDefinitionSchema"],
+      "compose-profile": ["BuilderCommandSchema"],
+      "list-local-assets": ["BuilderToolDefinitionSchema", "AssetSourceCapabilityManifestSchema"],
+      "package-bundle": ["BuilderCommandSchema", "BuilderSessionSnapshotSchema", "GameBundleSchema"]
     });
     expect(tools.find((tool) => tool.actionName === "export-profile")?.requiredContracts).not.toContain("BuilderInputRequestSchema");
     expect(tools.find((tool) => tool.actionName === "import-profile")?.requiredContracts).not.toContain("GameTemplateDefinitionSchema");

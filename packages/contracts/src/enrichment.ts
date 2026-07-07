@@ -6,8 +6,6 @@ import {
   StableIdSchema,
   type PublicContractName
 } from "./base.js";
-import { ComponentManifestSchema, RuleModuleDefinitionSchema } from "./manifests.js";
-import { AssetSourceCapabilityManifestSchema } from "./asset.js";
 
 // base.ts re-exports this module, creating a circular import where base.ts is
 // mid-initialization while enrichment.ts is being loaded. Every schema in this
@@ -18,10 +16,12 @@ import { AssetSourceCapabilityManifestSchema } from "./asset.js";
 // game-template.ts, packs.ts, manifests.ts, and builder.ts.
 
 /**
- * What the local agent asks the remote enrichment source for.
- * Capabilities are the gap the local registries couldn't satisfy.
+ * User-triggered paid online assembly request. The user explicitly consents
+ * (literal `true`) and supplies a payment confirmation id. The
+ * `capabilityGap` is inlined — the local registries did not satisfy these
+ * capabilities, and the user has chosen to escalate to the paid client.
  */
-export const EnrichmentCapabilityGapSchema = z.lazy(() =>
+export const PaidOnlineAssemblyCapabilityGapSchema = z.lazy(() =>
   z
     .object({
       missingCapabilities: z.array(CapabilityTagSchema).min(1),
@@ -32,55 +32,41 @@ export const EnrichmentCapabilityGapSchema = z.lazy(() =>
     })
     .strict()
 );
-export type EnrichmentCapabilityGap = z.infer<typeof EnrichmentCapabilityGapSchema>;
+export type PaidOnlineAssemblyCapabilityGap = z.infer<typeof PaidOnlineAssemblyCapabilityGapSchema>;
 
-export const EnrichmentResponseStatusSchema = z.enum(["ok", "unsupported", "rate-limited", "error"]);
-export type EnrichmentResponseStatus = z.infer<typeof EnrichmentResponseStatusSchema>;
-
-/**
- * A remote enrichment request the local agent loop sends when local registries
- * cannot satisfy a capability gap. The remote source answers with a
- * RemoteEnrichmentResponse.
- */
-export const RemoteEnrichmentRequestSchema = z.lazy(() =>
+export const PaidOnlineAssemblyRequestSchema = z.lazy(() =>
   PublicContractBaseSchema.extend({
-    kind: z.literal("remote-enrichment-request"),
+    kind: z.literal("paid-online-assembly-request"),
     requestId: StableIdSchema,
-    engine: z.string().min(1),
-    agentTranscriptId: StableIdSchema.optional(),
-    gap: EnrichmentCapabilityGapSchema
+    sessionId: StableIdSchema,
+    userConsent: z.literal(true),
+    paymentConfirmationId: z.string().min(1),
+    capabilityGap: PaidOnlineAssemblyCapabilityGapSchema
   }).strict()
 );
-export type RemoteEnrichmentRequest = z.infer<typeof RemoteEnrichmentRequestSchema>;
+export type PaidOnlineAssemblyRequest = z.infer<typeof PaidOnlineAssemblyRequestSchema>;
 
 /**
- * A remote enrichment response. Either fully `ok` with the requested building
- * blocks (components, rules, assetSources), or a non-ok status that must
- * include an `error` field describing why the remote source declined.
+ * Paid online assembly response. Carries the cost (in cents) and the
+ * estimated completion seconds so the studio UI can surface them in the
+ * confirmation dialog and after the request is acknowledged. The remoteUrl
+ * is the auditable source for the paid bundle.
  */
-export const RemoteEnrichmentResponseSchema = z.lazy(() =>
+export const PaidOnlineAssemblyResponseSchema = z.lazy(() =>
   PublicContractBaseSchema.extend({
-    kind: z.literal("remote-enrichment-response"),
+    kind: z.literal("paid-online-assembly-response"),
     requestId: StableIdSchema,
-    status: EnrichmentResponseStatusSchema,
-    components: z.array(ComponentManifestSchema).default([]),
-    rules: z.array(RuleModuleDefinitionSchema).default([]),
-    assetSources: z.array(AssetSourceCapabilityManifestSchema).default([]),
-    bytes: z.number().int().nonnegative(),
-    error: z.string().min(1).optional(),
-    cacheHit: z.boolean().default(false)
-  })
-    .strict()
-    .refine((value) => value.status === "ok" || value.error !== undefined, {
-      message: "non-ok enrichment responses must include an error",
-      path: ["error"]
-    })
+    bundleId: StableIdSchema,
+    costCents: z.number().int().nonnegative(),
+    estimatedCompletionSeconds: z.number().int().positive(),
+    remoteUrl: z.string().url()
+  }).strict()
 );
-export type RemoteEnrichmentResponse = z.infer<typeof RemoteEnrichmentResponseSchema>;
+export type PaidOnlineAssemblyResponse = z.infer<typeof PaidOnlineAssemblyResponseSchema>;
 
 export const ENRICHMENT_PUBLIC_CONTRACT_NAMES = [
-  "RemoteEnrichmentRequestSchema",
-  "RemoteEnrichmentResponseSchema"
+  "PaidOnlineAssemblyRequestSchema",
+  "PaidOnlineAssemblyResponseSchema"
 ] as const satisfies readonly PublicContractName[];
 
 export type EnrichmentPublicContractName = (typeof ENRICHMENT_PUBLIC_CONTRACT_NAMES)[number];

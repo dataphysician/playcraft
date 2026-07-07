@@ -156,10 +156,10 @@ describe("GameBundle contract", () => {
     expect(BuilderProfileExportSchema.safeParse(fixture).success).toBe(false);
   });
 
-  it("rejects BuilderProfileExportSchema when provenance has the legacy retrieval discriminator", () => {
+  it("rejects BuilderProfileExportSchema when provenance has a stray retrieval field", () => {
     const fixture = profileExportFixture() as unknown as Record<string, unknown>;
     delete fixture.provenance;
-    fixture.provenance = { retrieval: { current: "bundled-local", planned: "server-catalog" } };
+    fixture.provenance = { retrieval: { current: "bundled-local" } };
     expect(BuilderProfileExportSchema.safeParse(fixture).success).toBe(false);
   });
 

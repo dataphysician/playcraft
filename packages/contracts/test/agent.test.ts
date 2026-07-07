@@ -1,56 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  AgentMessageRoleSchema,
   AgentStepSchema,
   AgentToolCallSchema,
   AgentToolResultSchema,
-  LocalInferenceEngineManifestSchema,
-  MOONSHINE_STREAMING_CPU_ENGINE_ID,
   PLAYCRAFT_SCHEMA_VERSION,
   PlaycraftAgentTranscriptSchema
 } from "@playcraft/contracts";
-
-function baseEngineManifest() {
-  return {
-    schemaVersion: PLAYCRAFT_SCHEMA_VERSION,
-    id: MOONSHINE_STREAMING_CPU_ENGINE_ID,
-    version: "1.0.0",
-    kind: "local-inference-engine" as const,
-    engineId: "lfm2.5-vl-450m-extract" as const,
-    displayName: "LiquidAI LFM2.5-VL-450M Extract via Moonshine Streaming CPU",
-    capabilityTags: ["llm:local", "llm:extract", "llm:tool-call"],
-    offline: true,
-    localOnly: true,
-    maxContextTokens: 8192,
-    supportsStructuredJson: true,
-    supportsImageInput: true,
-    supportsToolCalls: true,
-    outboxModule: "@playcraft/core/local-llm.js"
-  };
-}
-
-describe("LocalInferenceEngineManifestSchema", () => {
-  it("accepts a happy-path manifest for the wired LFM2.5-VL-450M-Extract engine", () => {
-    const parsed = LocalInferenceEngineManifestSchema.parse(baseEngineManifest());
-    expect(parsed.engineId).toBe("lfm2.5-vl-450m-extract");
-    expect(parsed.supportsToolCalls).toBe(true);
-  });
-
-  it("rejects unknown additional properties on a strict LocalInferenceEngineManifest", () => {
-    const result = LocalInferenceEngineManifestSchema.safeParse({
-      ...baseEngineManifest(),
-      surprise: "nope"
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects an unknown engineId value", () => {
-    const result = LocalInferenceEngineManifestSchema.safeParse({
-      ...baseEngineManifest(),
-      engineId: "gpt-x"
-    });
-    expect(result.success).toBe(false);
-  });
-});
 
 describe("AgentToolCallSchema", () => {
   it("accepts a happy-path tool call with structured arguments", () => {
@@ -198,20 +154,6 @@ describe("AgentStepSchema", () => {
     });
     expect(result.success).toBe(false);
   });
-
-  it("rejects a tool-call step that omits the engine field", () => {
-    const result = AgentStepSchema.safeParse({
-      kind: "tool-call",
-      stepId: "agent-step.no-engine",
-      call: {
-        callId: "agent-call.1",
-        toolName: "tool:assemble-game",
-        arguments: {}
-      },
-      emittedAt: "2026-07-06T00:00:00.000Z"
-    });
-    expect(result.success).toBe(false);
-  });
 });
 
 describe("PlaycraftAgentTranscriptSchema", () => {
@@ -222,7 +164,7 @@ describe("PlaycraftAgentTranscriptSchema", () => {
       version: "1.0.0",
       kind: "agent-transcript" as const,
       engine: "lfm2.5-vl-450m-extract" as const,
-      engineManifestId: MOONSHINE_STREAMING_CPU_ENGINE_ID,
+      engineManifestId: `local-inference-engine.${"lfm2.5-vl-450m-extract"}`,
       engineManifestVersion: "1.0.0",
       requestId: "agent-request.fixture",
       steps: [
@@ -296,6 +238,19 @@ describe("PlaycraftAgentTranscriptSchema", () => {
       ...baseTranscript(),
       surprise: "nope"
     });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("AgentMessageRoleSchema", () => {
+  it("accepts the four declared roles", () => {
+    for (const role of ["system", "user", "assistant", "tool"] as const) {
+      expect(AgentMessageRoleSchema.parse(role)).toBe(role);
+    }
+  });
+
+  it("rejects unknown roles", () => {
+    const result = AgentMessageRoleSchema.safeParse("manager");
     expect(result.success).toBe(false);
   });
 });

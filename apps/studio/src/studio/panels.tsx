@@ -312,3 +312,82 @@ export function ComponentInventoryPanel({
     )
   );
 }
+
+export interface PaidOnlineAssemblyPanelProps {
+  available: boolean;
+  consentAcknowledged: boolean;
+  costCents: number;
+  estimatedCompletionSeconds: number;
+  pending: boolean;
+  onAcknowledgeConsent: () => void;
+  onRequestPaidAssembly: () => void;
+  status: string | null;
+}
+
+export function PaidOnlineAssemblyPanel({
+  available,
+  consentAcknowledged,
+  costCents,
+  estimatedCompletionSeconds,
+  pending,
+  onAcknowledgeConsent,
+  onRequestPaidAssembly,
+  status
+}: PaidOnlineAssemblyPanelProps): React.ReactElement {
+  if (!available) {
+    return React.createElement(
+      "section",
+      { "aria-label": "Paid online assembly", style: shellStyles.summaryPanel },
+      React.createElement("h3", null, "Paid online assembly"),
+      React.createElement(
+        "p",
+        { style: shellStyles.fieldLabel },
+        "Paid escalation is unavailable. The local LLM agent couldn't satisfy this request. Try a different template or asset edit."
+      )
+    );
+  }
+
+  return React.createElement(
+    "section",
+    { "aria-label": "Paid online assembly", style: shellStyles.summaryPanel },
+    React.createElement("h3", null, "Request paid online assembly"),
+    React.createElement(
+      "p",
+      null,
+      `Estimated cost: $${(costCents / 100).toFixed(2)}`,
+      React.createElement("br"),
+      `Estimated completion: ${String(estimatedCompletionSeconds)}s`
+    ),
+    React.createElement(
+      "label",
+      { style: shellStyles.portabilityField },
+      React.createElement("input", {
+        type: "checkbox",
+        checked: consentAcknowledged,
+        onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+          if (event.target.checked) {
+            onAcknowledgeConsent();
+          }
+        },
+        disabled: pending,
+        "aria-label": "Acknowledge paid assembly consent"
+      }),
+      React.createElement(
+        "span",
+        { style: shellStyles.fieldLabel },
+        "I consent to the cost and ETA above."
+      )
+    ),
+    React.createElement(
+      "button",
+      {
+        type: "button",
+        onClick: onRequestPaidAssembly,
+        disabled: !consentAcknowledged || pending,
+        style: shellStyles.primaryButton
+      },
+      pending ? "Requesting paid assembly..." : "Request paid online assembly"
+    ),
+    status ? React.createElement("p", { role: "status", style: shellStyles.portabilityStatus }, status) : null
+  );
+}
